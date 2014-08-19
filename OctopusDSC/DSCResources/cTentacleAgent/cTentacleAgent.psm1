@@ -17,7 +17,8 @@ function Get-TargetResource
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
-        [int]$ListenPort
+        [int]$ListenPort,
+        [boolean]$UseHostName
     )
 
     Write-Verbose "Checking if Tentacle is installed"
@@ -76,7 +77,8 @@ function Set-TargetResource
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory = "$($env:SystemDrive)\Applications",
-        [int]$ListenPort = 10933
+        [int]$ListenPort = 10933,
+        [boolean]$UseHostName = $true
     )
 
     if ($Ensure -eq "Absent" -and $State -eq "Started") 
@@ -124,7 +126,7 @@ function Set-TargetResource
     elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Absent") 
     {
         Write-Verbose "Installing Tentacle..."
-        New-Tentacle -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl -port $ListenPort -environments $Environments -roles $Roles -DefaultApplicationDirectory $DefaultApplicationDirectory
+        New-Tentacle -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl -port $ListenPort -environments $Environments -roles $Roles -DefaultApplicationDirectory $DefaultApplicationDirectory -useHostName $UseHostName
         Write-Verbose "Tentacle installed!"
     }
 
@@ -156,7 +158,8 @@ function Test-TargetResource
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
-        [int]$ListenPort
+        [int]$ListenPort,
+        [boolean]$UseHostName
     )
  
     $currentResource = (Get-TargetResource -Name $Name)
@@ -239,7 +242,8 @@ function New-Tentacle
         [Parameter(Mandatory=$True)]
         [string[]]$roles,
         [int] $port,
-        [string]$DefaultApplicationDirectory
+        [string]$DefaultApplicationDirectory,
+        [boolean]$useHostName
     )
  
     Write-Verbose "Beginning Tentacle installation" 
@@ -269,10 +273,14 @@ function New-Tentacle
     Write-Verbose "Open port $port on Windows Firewall"
     Invoke-AndAssert { & netsh.exe advfirewall firewall add rule protocol=TCP dir=in localport=$port action=allow name="Octopus Tentacle: $Name" }
     
-    $ipAddress = Get-MyPublicIPAddress
-    $ipAddress = $ipAddress.Trim()
+    $hostName = $env:COMPUTERNAME
+
+    if (!$useHostName) {
+        $hostName = Get-MyPublicIPAddress
+        $hostName = $hostName.Trim()
+    }
  
-    Write-Verbose "Public IP address: $ipAddress"
+    Write-Verbose "Using Public Host Name: $hostName"
     Write-Verbose "Configuring and registering Tentacle"
   
     pushd "${env:ProgramFiles}\Octopus Deploy\Tentacle"
@@ -287,7 +295,7 @@ function New-Tentacle
     Invoke-AndAssert { & .\tentacle.exe new-certificate --instance $name --console }
     Invoke-AndAssert { & .\tentacle.exe service --install --instance $name --console }
 
-    $registerArguments = @("register-with", "--instance", $name, "--server", $octopusServerUrl, "--name", $env:COMPUTERNAME, "--publicHostName", $ipAddress, "--apiKey", $apiKey, "--comms-style", "TentaclePassive", "--force", "--console")
+    $registerArguments = @("register-with", "--instance", $name, "--server", $octopusServerUrl, "--name", $env:COMPUTERNAME, "--publicHostName", $hostName, "--apiKey", $apiKey, "--comms-style", "TentaclePassive", "--force", "--console")
 
     foreach ($environment in $environments) 
     {
