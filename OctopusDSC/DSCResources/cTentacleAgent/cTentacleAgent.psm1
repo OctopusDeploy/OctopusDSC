@@ -254,7 +254,7 @@ function New-Tentacle
     if ((test-path $tentaclePath) -ne $true) 
     {
         Write-Verbose "Downloading latest Octopus Tentacle MSI from $tentacleDownloadUrl to $tentaclePath"
-        Download-File $tentacleDownloadUrl $tentaclePath
+        Request-File $tentacleDownloadUrl $tentaclePath
     }
   
     Write-Verbose "Installing MSI..."
