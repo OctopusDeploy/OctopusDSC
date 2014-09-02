@@ -7,35 +7,35 @@ First, ensure the OctopusDSC module is on your `$env:PSModulePath`. Then you can
 ```
 Configuration SampleConfig
 {
-    param ($MachineName)
-
+    param ($ApiKey, $OctopusServerUrl, $Environments, $Roles, $ListenPort)
+ 
     Import-DscResource -Module OctopusDSC
-
-    Node $MachineName
+ 
+    Node "localhost"
     {
         cTentacleAgent OctopusTentacle 
         { 
             Ensure = "Present"; 
             State = "Started"; 
-            
+ 
             # Tentacle instance name. Leave it as 'Tentacle' unless you have more 
             # than one instance
             Name = "Tentacle";
-
+ 
             # Registration - all parameters required
-            ApiKey = "API-ABCDEF12345678910";
-            OctopusServerUrl = "https://demo.octopusdeploy.com/";
-            Environments = @("Development");
-            Roles = @("web-server", "app-server");
-
-           	# Optional settings
-            ListenPort = 10933;
+            ApiKey = $ApiKey;
+            OctopusServerUrl = $OctopusServerUrl;
+            Environments = $Environments;
+            Roles = $Roles;
+ 
+            # Optional settings
+            ListenPort = $ListenPort;
             DefaultApplicationDirectory = "C:\Applications"
         }
     }
 }
-
-SampleConfig -MachineName $env:COMPUTERNAME
+ 
+SampleConfig -ApiKey "API-ABCDEF12345678910" -OctopusServerUrl "https://demo.octopusdeploy.com/" -Environments @("Development") -Roles @("web-server", "app-server") -ListenPort 10933
 
 Start-DscConfiguration .\SampleConfig -Verbose -wait
 
