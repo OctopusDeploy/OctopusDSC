@@ -250,11 +250,13 @@ function New-Tentacle
         $tentacleDownloadUrl = "http://octopusdeploy.com/downloads/latest/OctopusTentacle"
     }
 
+    mkdir "$($env:SystemDrive)\Octopus" -ErrorAction SilentlyContinue
+
     $tentaclePath = "$($env:SystemDrive)\Octopus\Tentacle.msi"
     if ((test-path $tentaclePath) -ne $true) 
     {
         Write-Verbose "Downloading latest Octopus Tentacle MSI from $tentacleDownloadUrl to $tentaclePath"
-        Download-File $tentacleDownloadUrl $tentaclePath
+        Request-File $tentacleDownloadUrl $tentaclePath
     }
   
     Write-Verbose "Installing MSI..."
