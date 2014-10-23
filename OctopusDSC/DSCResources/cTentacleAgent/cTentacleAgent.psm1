@@ -242,6 +242,11 @@ function New-Tentacle
         [string]$DefaultApplicationDirectory
     )
  
+    if ($port -eq 0) 
+    {
+        $port = 10933
+    }
+
     Write-Verbose "Beginning Tentacle installation" 
   
     $tentacleDownloadUrl = "http://octopusdeploy.com/downloads/latest/OctopusTentacle64"
@@ -293,13 +298,19 @@ function New-Tentacle
 
     foreach ($environment in $environments) 
     {
-        $registerArguments += "--environment"
-        $registerArguments += $environment
+        foreach ($e2 in $environment.Split(',')) 
+        {
+            $registerArguments += "--environment"
+            $registerArguments += $e2.Trim()
+        }
     }
     foreach ($role in $roles) 
     {
-        $registerArguments += "--role"
-        $registerArguments += $role
+        foreach ($r2 in $role.Split(',')) 
+        {
+            $registerArguments += "--role"
+            $registerArguments += $r2.Trim()
+        }
     }
 
     Write-Verbose "Registering with arguments: $registerArguments"
