@@ -11,4 +11,5 @@ class cTentacleAgent : OMI_BaseResource
   [Write] string Roles[];
   [Write] UInt32 ListenPort;
   [Write] string DefaultApplicationDirectory;
+  [Write] boolean UseHostName;
 };
