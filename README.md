@@ -27,6 +27,7 @@ Configuration SampleConfig
             OctopusServerUrl = "https://demo.octopusdeploy.com/";
             Environments = @("Development");
             Roles = @("web-server", "app-server");
+            UseHostName = $true
 
            	# Optional settings
             ListenPort = 10933;
