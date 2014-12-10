@@ -199,7 +199,7 @@ function Request-File
         [string]$saveAs
     )
  
-    Write-Host "Downloading $url to $saveAs"
+    Write-Verbose "Downloading $url to $saveAs"
     $downloader = new-object System.Net.WebClient
     $downloader.DownloadFile($url, $saveAs)
 }
