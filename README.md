@@ -31,6 +31,7 @@ Configuration SampleConfig
             # Optional settings
             ListenPort = $ListenPort;
             DefaultApplicationDirectory = "C:\Applications"
+			PublicHostName = "ServerName"
         }
     }
 }
@@ -59,6 +60,8 @@ When `Ensure` is set to `Absent`, the resource will:
  3. Uninstall using the MSI
 
 When `State` is `Started`, the resource will ensure that the Tentacle windows service is running. When `Stopped`, it will ensure the service is stopped.
+
+`PublicHostName` is optional. Defaults to your public IP address.
 
 ## Drift
 
