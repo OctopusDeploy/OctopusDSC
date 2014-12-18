@@ -273,9 +273,17 @@ function New-Tentacle
         throw "Installation of the Tentacle MSI failed; MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
     }
  
-    Write-Verbose "Open port $port on Windows Firewall"
-    Invoke-AndAssert { & netsh.exe advfirewall firewall add rule protocol=TCP dir=in localport=$port action=allow name="Octopus Tentacle: $Name" }
-    
+    $windowsFirewall = Get-Service -Name MpsSvc   
+    if ($windowsFirewall.Status -eq "Running")
+    {
+        Write-Verbose "Open port $port on Windows Firewall"
+        Invoke-AndAssert { & netsh.exe advfirewall firewall add rule protocol=TCP dir=in localport=$port action=allow name="Octopus Tentacle: $Name" }
+    }
+    else
+    {
+        Write-Verbose "Windows Firewall Service is not running... skipping firewall rule addition"
+    }
+        
     $ipAddress = Get-MyPublicIPAddress
     $ipAddress = $ipAddress.Trim()
  
