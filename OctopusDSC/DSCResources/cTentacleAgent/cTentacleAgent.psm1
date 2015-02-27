@@ -1,3 +1,38 @@
+<#
+
+# (jason.brown@domain.com.au 27-2-2015) changed IP Address code to optionally specify a known IP address instead of relying on ifconfig.me
+# For instance, if using instances in a private subnet behind an ELB in AWS, with an Octopus server in a private subnet  you'd use this
+  
+  Configuration SampleConfig
+  {
+    param ($ApiKey, $OctopusServerUrl, $Environments, $Roles, $ListenPort, $IpAddress)
+    Import-DscResource -Module OctopusDSC
+    Node "localhost"
+    {
+        cTentacleAgent OctopusTentacle 
+        { 
+            Ensure = "Present"; 
+            State = "Started"; 
+            Name = "Tentacle";
+            # reqd
+            ApiKey = $ApiKey;
+            OctopusServerUrl = $OctopusServerUrl;
+            Environments = $Environments;
+            Roles = $Roles;
+            # optional
+            ListenPort = $ListenPort;
+            DefaultApplicationDirectory = "C:\Applications"
+            IpAddress = $IpAddress 
+        }
+    }
+  }
+
+  $ip = http://169.254.1679.254/latest/meta-data/ip-v4  
+  SampleConfig -ApiKey "API-ABCDEF12345678910" -OctopusServerUrl "https://10.123.15.25/" -Environments @("Development") -Roles @("web-server", "app-server") -ListenPort 10933 -IpAddress $ip
+
+#> 
+
+
 function Get-TargetResource
 {
     [OutputType([Hashtable])]
@@ -17,7 +52,8 @@ function Get-TargetResource
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
-        [int]$ListenPort
+        [int]$ListenPort,
+        [string]$IPAddress # optionally override the public IP check - useful for scenarios with private nodes
     )
 
     Write-Verbose "Checking if Tentacle is installed"
@@ -76,7 +112,8 @@ function Set-TargetResource
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory = "$($env:SystemDrive)\Applications",
-        [int]$ListenPort = 10933
+        [int]$ListenPort = 10933,
+        [string]$IPAddress #optionally override the public IP check
     )
 
     if ($Ensure -eq "Absent" -and $State -eq "Started") 
@@ -156,7 +193,8 @@ function Test-TargetResource
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
-        [int]$ListenPort
+        [int]$ListenPort,
+        [string]$IPAddress #optionally override the public IP check
     )
  
     $currentResource = (Get-TargetResource -Name $Name)
@@ -217,6 +255,10 @@ function Invoke-AndAssert {
 # After the Tentacle is registered with Octopus, Tentacle listens on a TCP port, and Octopus connects to it. The Octopus server
 # needs to know the public IP address to use to connect to this Tentacle instance. Is there a way in Windows Azure in which we can 
 # know the public IP/host name of the current machine?
+#
+#
+#
+#
 function Get-MyPublicIPAddress
 {
     Write-Verbose "Getting public IP address"
@@ -276,10 +318,17 @@ function New-Tentacle
     Write-Verbose "Open port $port on Windows Firewall"
     Invoke-AndAssert { & netsh.exe advfirewall firewall add rule protocol=TCP dir=in localport=$port action=allow name="Octopus Tentacle: $Name" }
     
-    $ipAddress = Get-MyPublicIPAddress
-    $ipAddress = $ipAddress.Trim()
+    if(!$ipAddress) {
+        $ipAddress = Get-MyPublicIPAddress
+        $ipAddress = $ipAddress.Trim()
  
-    Write-Verbose "Public IP address: $ipAddress"
+        Write-Verbose "Discovered public IP address: $ipAddress"
+    }
+    else
+    {
+        Write_verbose "IP adress specified as parameter: $ipAddress"
+    }
+    
     Write-Verbose "Configuring and registering Tentacle"
   
     pushd "${env:ProgramFiles}\Octopus Deploy\Tentacle"
