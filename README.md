@@ -7,7 +7,7 @@ First, ensure the OctopusDSC module is on your `$env:PSModulePath`. Then you can
 ```
 Configuration SampleConfig
 {
-    param ($ApiKey, $OctopusServerUrl, $Environments, $Roles, $ListenPort)
+    param ($ApiKey, $OctopusServerUrl, $Environments, $Roles, $ListenPort, $ipAddress)
  
     Import-DscResource -Module OctopusDSC
  
@@ -31,11 +31,12 @@ Configuration SampleConfig
             # Optional settings
             ListenPort = $ListenPort;
             DefaultApplicationDirectory = "C:\Applications"
+            IPAddress = $ipAddress
         }
     }
 }
  
-SampleConfig -ApiKey "API-ABCDEF12345678910" -OctopusServerUrl "https://demo.octopusdeploy.com/" -Environments @("Development") -Roles @("web-server", "app-server") -ListenPort 10933
+SampleConfig -ApiKey "API-ABCDEF12345678910" -OctopusServerUrl "https://demo.octopusdeploy.com/" -Environments @("Development") -Roles @("web-server", "app-server") -ListenPort 10933 -IpAddress "10.123.23.34"
 
 Start-DscConfiguration .\SampleConfig -Verbose -wait
 
