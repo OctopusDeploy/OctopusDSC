@@ -134,7 +134,7 @@ function Set-TargetResource
         Write-Verbose "Installing Tentacle..."
         New-Tentacle -name $Name -AutoRegister $AutoRegister -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl `
             -port $ListenPort -environments $Environments -roles $Roles -DefaultApplicationDirectory $DefaultApplicationDirectory `
-            -AutoRegister $AutoRegister -OctopusHomeDirectory $OctopusHomeDirectory -OctopusServerThumbprint $OctopusServerThumbprint
+            -OctopusHomeDirectory $OctopusHomeDirectory -OctopusServerThumbprint $OctopusServerThumbprint
         Write-Verbose "Tentacle installed!"
     }
 
@@ -261,19 +261,26 @@ function New-Tentacle
     {
         $port = 10933
     }
-    if ($AutoRegister -and (!$apiKey -or !$octopusServerUrl -or !$environments -or !$roles)) {
+    if ($AutoRegister -and (!$apiKey -or !$octopusServerUrl -or !$environments -or !$roles)) 
+    {
         throw "When creating Tentacle using AutoRegister=true the follow parameters must be provided: apiKey, octopusServerUrl, environments, roles"
     }
-    if (!$AutoRegister -and !$OctopusServerThumbprint) {
+    if (!$AutoRegister -and !$OctopusServerThumbprint) 
+    {
         throw "When creating Tentacle using AutoRegister=false the follow parameters must be provided: OctopusServerThumbprint"
     }
     
     Write-Verbose "Beginning Tentacle installation" 
   
-    $tentacleDownloadUrl = "http://octopusdeploy.com/downloads/latest/OctopusTentacle64"
+    #$tentacleDownloadUrl = "http://octopusdeploy.com/downloads/latest/OctopusTentacle64"
+    # Temporarily using version 2.6 instead to be compatible with 2.x server
+    $tentacleDownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.Tentacle.2.6.5.1010-x64.msi"
+            
     if ([IntPtr]::Size -eq 4) 
     {
-        $tentacleDownloadUrl = "http://octopusdeploy.com/downloads/latest/OctopusTentacle"
+        #$tentacleDownloadUrl = "http://octopusdeploy.com/downloads/latest/OctopusTentacle"
+        # Temporarily using version 2.6 instead to be compatible with 2.x server
+        $tentacleDownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.Tentacle.2.6.5.1010.msi"
     }
 
     mkdir $OctopusHomeDirectory -ErrorAction SilentlyContinue
@@ -313,14 +320,16 @@ function New-Tentacle
     Invoke-AndAssert { & .\tentacle.exe configure --instance $name --home $OctopusHomeDirectory --console }
     Invoke-AndAssert { & .\tentacle.exe configure --instance $name --app $DefaultApplicationDirectory --console }
     Invoke-AndAssert { & .\tentacle.exe configure --instance $name --port $port --console }
-    if (!$AutoRegister) {
+    if (!$AutoRegister) 
+    {
         Write-Verbose "Adding trusted server thumbprint $OctopusServerThumbprint"
         Invoke-AndAssert { & .\tentacle.exe configure --instance $Name --trust $OctopusServerThumbprint --console }
     }
     Invoke-AndAssert { & .\tentacle.exe new-certificate --instance $name --console }
     Invoke-AndAssert { & .\tentacle.exe service --install --instance $name --console }
 
-    if ($AutoRegister) {
+    if ($AutoRegister) 
+    {
         $ipAddress = Get-MyPublicIPAddress
         $ipAddress = $ipAddress.Trim()
         Write-Verbose "Public IP address: $ipAddress"
