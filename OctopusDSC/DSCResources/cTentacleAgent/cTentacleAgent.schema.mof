@@ -6,6 +6,7 @@ class cTentacleAgent : OMI_BaseResource
   [Write,ValueMap{"Started","Stopped"},Values{"Started", "Stopped"}] string State;
 
   [Write] string ApiKey;
+  [Write] string Thumbprint;
   [Write] string OctopusServerUrl;
   [Write] string Environments[];
   [Write] string Roles[];
