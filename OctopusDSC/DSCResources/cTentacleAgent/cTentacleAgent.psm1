@@ -17,6 +17,7 @@ function Get-TargetResource
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
+        [string]$PublicDnsName,
         [int]$ListenPort
     )
 
@@ -76,6 +77,7 @@ function Set-TargetResource
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory = "$($env:SystemDrive)\Applications",
+        [string]$PublicDnsName,
         [int]$ListenPort = 10933
     )
 
@@ -124,7 +126,7 @@ function Set-TargetResource
     elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Absent") 
     {
         Write-Verbose "Installing Tentacle..."
-        New-Tentacle -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl -port $ListenPort -environments $Environments -roles $Roles -DefaultApplicationDirectory $DefaultApplicationDirectory
+        New-Tentacle -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl -port $ListenPort -environments $Environments -roles $Roles -DefaultApplicationDirectory $DefaultApplicationDirectory -PublicDnsName $PublicDnsName
         Write-Verbose "Tentacle installed!"
     }
 
@@ -156,6 +158,7 @@ function Test-TargetResource
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
+        [string]$PublicDnsName,
         [int]$ListenPort
     )
  
@@ -239,7 +242,8 @@ function New-Tentacle
         [Parameter(Mandatory=$True)]
         [string[]]$roles,
         [int] $port,
-        [string]$DefaultApplicationDirectory
+        [string]$DefaultApplicationDirectory,
+        [string]$PublicDnsName
     )
  
     if ($port -eq 0) 
@@ -283,10 +287,21 @@ function New-Tentacle
     {
         Write-Verbose "Windows Firewall Service is not running... skipping firewall rule addition"
     }
-        
-    $ipAddress = Get-MyPublicIPAddress
-    $ipAddress = $ipAddress.Trim()
- 
+    
+    if ($PublicDnsName.Trim())
+    {
+        $ipAddress = $PublicDnsName.Trim()
+    }
+    else 
+    {
+        $ipAddress = Get-MyPublicIPAddress
+        $ipAddress = $ipAddress.Trim()
+    }
+    if (-Not $ipAddress)
+    {
+        throw "Unable to retrieve Public IP address."
+    }
+
     Write-Verbose "Public IP address: $ipAddress"
     Write-Verbose "Configuring and registering Tentacle"
   
