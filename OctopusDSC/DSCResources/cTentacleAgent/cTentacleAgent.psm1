@@ -220,8 +220,15 @@ function Invoke-AndAssert {
 function Get-MyPublicIPAddress
 {
     Write-Verbose "Getting public IP address"
-    $downloader = new-object System.Net.WebClient
-    $ip = $downloader.DownloadString("http://ifconfig.me/ip")
+
+    try
+    {
+        $ip = Invoke-RestMethod -Uri https://api.ipify.org
+    }
+    catch
+    {
+        Write-Verbose $_
+    }
     return $ip
 }
  
