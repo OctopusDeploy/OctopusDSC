@@ -221,14 +221,14 @@ function Get-MyPublicIPAddress
 {
     Write-Verbose "Getting public IP address"
 
-	try
-	{
-		$ip = Invoke-RestMethod -Uri https://api.ipify.org
-	}
-	catch
-	{
-		Write-Verbose $_
-	}
+    try
+    {
+        $ip = Invoke-RestMethod -Uri https://api.ipify.org
+    }
+    catch
+    {
+        Write-Verbose $_
+    }
     return $ip
 }
  
