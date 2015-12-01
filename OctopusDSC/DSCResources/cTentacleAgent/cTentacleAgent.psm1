@@ -12,12 +12,15 @@ function Get-TargetResource
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started",
         
+        [bool]$AutoRegister,
         [string]$ApiKey,
         [string]$OctopusServerUrl,
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
-        [int]$ListenPort
+        [int]$ListenPort,        
+        [string]$OctopusHomeDirectory,
+        [string]$OctopusServerThumbprint
     )
 
     Write-Verbose "Checking if Tentacle is installed"
@@ -71,12 +74,15 @@ function Set-TargetResource
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started",
         
+        [bool]$AutoRegister = $true,
         [string]$ApiKey,
         [string]$OctopusServerUrl,
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory = "$($env:SystemDrive)\Applications",
-        [int]$ListenPort = 10933
+        [int]$ListenPort = 10933,
+        [string]$OctopusHomeDirectory = "$($env:SystemDrive)\Octopus",
+        [string]$OctopusServerThumbprint        
     )
 
     if ($Ensure -eq "Absent" -and $State -eq "Started") 
@@ -97,7 +103,9 @@ function Set-TargetResource
 
     if ($Ensure -eq "Absent" -and $currentResource["Ensure"] -eq "Present")
     {
-        Remove-TentacleRegistration -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl
+        if ($AutoRegister) {
+            Remove-TentacleRegistration -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl
+        }
         
         $serviceName = (Get-TentacleServiceName $Name)
         Write-Verbose "Deleting service $serviceName..."
@@ -105,8 +113,8 @@ function Set-TargetResource
         
         # Uninstall msi
         Write-Verbose "Uninstalling Tentacle..."
-        $tentaclePath = "$($env:SystemDrive)\Octopus\Tentacle.msi"
-        $msiLog = "$($env:SystemDrive)\Octopus\Tentacle.msi.uninstall.log"
+        $tentaclePath = "$OctopusHomeDirectory\Tentacle.msi"
+        $msiLog = "$OctopusHomeDirectory\Tentacle.msi.uninstall.log"
         if (test-path $tentaclePath)
         {
             $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/x $tentaclePath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
@@ -124,7 +132,9 @@ function Set-TargetResource
     elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Absent") 
     {
         Write-Verbose "Installing Tentacle..."
-        New-Tentacle -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl -port $ListenPort -environments $Environments -roles $Roles -DefaultApplicationDirectory $DefaultApplicationDirectory
+        New-Tentacle -name $Name -AutoRegister $AutoRegister -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl `
+            -port $ListenPort -environments $Environments -roles $Roles -DefaultApplicationDirectory $DefaultApplicationDirectory `
+            -OctopusHomeDirectory $OctopusHomeDirectory -OctopusServerThumbprint $OctopusServerThumbprint
         Write-Verbose "Tentacle installed!"
     }
 
@@ -151,12 +161,15 @@ function Test-TargetResource
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started",
         
+        [bool]$AutoRegister,
         [string]$ApiKey,
         [string]$OctopusServerUrl,
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
-        [int]$ListenPort
+        [int]$ListenPort,    
+        [string]$OctopusHomeDirectory,
+        [string]$OctopusServerThumbprint
     )
  
     $currentResource = (Get-TargetResource -Name $Name)
@@ -238,33 +251,48 @@ function New-Tentacle
         [Parameter(Mandatory=$True)]
         [string]$name,
         [Parameter(Mandatory=$True)]
+        [bool]$AutoRegister,
         [string]$apiKey,
-        [Parameter(Mandatory=$True)]
         [string]$octopusServerUrl,
-        [Parameter(Mandatory=$True)]
         [string[]]$environments,
-        [Parameter(Mandatory=$True)]
         [string[]]$roles,
         [int] $port,
-        [string]$DefaultApplicationDirectory
+        [Parameter(Mandatory=$True)]
+        [string]$DefaultApplicationDirectory,
+        [Parameter(Mandatory=$True)]
+        [string]$OctopusHomeDirectory,
+        [string]$OctopusServerThumbprint
     )
  
     if ($port -eq 0) 
     {
         $port = 10933
     }
-
+    if ($AutoRegister -and (!$apiKey -or !$octopusServerUrl -or !$environments -or !$roles)) 
+    {
+        throw "When creating Tentacle using AutoRegister=true the follow parameters must be provided: apiKey, octopusServerUrl, environments, roles"
+    }
+    if (!$AutoRegister -and !$OctopusServerThumbprint) 
+    {
+        throw "When creating Tentacle using AutoRegister=false the follow parameters must be provided: OctopusServerThumbprint"
+    }
+    
     Write-Verbose "Beginning Tentacle installation" 
   
-    $tentacleDownloadUrl = "http://octopusdeploy.com/downloads/latest/OctopusTentacle64"
+    #$tentacleDownloadUrl = "http://octopusdeploy.com/downloads/latest/OctopusTentacle64"
+    # Temporarily using version 2.6 instead to be compatible with 2.x server
+    $tentacleDownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.Tentacle.2.6.5.1010-x64.msi"
+            
     if ([IntPtr]::Size -eq 4) 
     {
-        $tentacleDownloadUrl = "http://octopusdeploy.com/downloads/latest/OctopusTentacle"
+        #$tentacleDownloadUrl = "http://octopusdeploy.com/downloads/latest/OctopusTentacle"
+        # Temporarily using version 2.6 instead to be compatible with 2.x server
+        $tentacleDownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.Tentacle.2.6.5.1010.msi"
     }
 
-    mkdir "$($env:SystemDrive)\Octopus" -ErrorAction SilentlyContinue
+    mkdir $OctopusHomeDirectory -ErrorAction SilentlyContinue
 
-    $tentaclePath = "$($env:SystemDrive)\Octopus\Tentacle.msi"
+    $tentaclePath = "$OctopusHomeDirectory\Tentacle.msi"
     if ((test-path $tentaclePath) -ne $true) 
     {
         Write-Verbose "Downloading latest Octopus Tentacle MSI from $tentacleDownloadUrl to $tentaclePath"
@@ -272,7 +300,7 @@ function New-Tentacle
     }
   
     Write-Verbose "Installing MSI..."
-    $msiLog = "$($env:SystemDrive)\Octopus\Tentacle.msi.log"
+    $msiLog = "$OctopusHomeDirectory\Tentacle.msi.log"
     $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $tentaclePath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
     Write-Verbose "Tentacle MSI installer returned exit code $msiExitCode"
     if ($msiExitCode -ne 0) 
@@ -290,47 +318,52 @@ function New-Tentacle
     {
         Write-Verbose "Windows Firewall Service is not running... skipping firewall rule addition"
     }
-        
-    $ipAddress = Get-MyPublicIPAddress
-    $ipAddress = $ipAddress.Trim()
- 
-    Write-Verbose "Public IP address: $ipAddress"
-    Write-Verbose "Configuring and registering Tentacle"
+            
+    Write-Verbose "Configuring Tentacle"
   
     pushd "${env:ProgramFiles}\Octopus Deploy\Tentacle"
- 
-    $tentacleHomeDirectory = "$($env:SystemDrive)\Octopus"
-    $tentacleAppDirectory = $DefaultApplicationDirectory
-    $tentacleConfigFile = "$($env:SystemDrive)\Octopus\$Name\Tentacle.config"
-    Invoke-AndAssert { & .\tentacle.exe create-instance --instance $name --config $tentacleConfigFile --console }
-    Invoke-AndAssert { & .\tentacle.exe configure --instance $name --home $tentacleHomeDirectory --console }
-    Invoke-AndAssert { & .\tentacle.exe configure --instance $name --app $tentacleAppDirectory --console }
+
+    Invoke-AndAssert { & .\tentacle.exe create-instance --instance $name --config "$OctopusHomeDirectory\$Name\Tentacle.config" --console }
+    Invoke-AndAssert { & .\tentacle.exe configure --instance $name --home $OctopusHomeDirectory --console }
+    Invoke-AndAssert { & .\tentacle.exe configure --instance $name --app $DefaultApplicationDirectory --console }
     Invoke-AndAssert { & .\tentacle.exe configure --instance $name --port $port --console }
+    if (!$AutoRegister) 
+    {
+        Write-Verbose "Adding trusted server thumbprint $OctopusServerThumbprint"
+        Invoke-AndAssert { & .\tentacle.exe configure --instance $Name --trust $OctopusServerThumbprint --console }
+    }
     Invoke-AndAssert { & .\tentacle.exe new-certificate --instance $name --console }
     Invoke-AndAssert { & .\tentacle.exe service --install --instance $name --console }
 
-    $registerArguments = @("register-with", "--instance", $name, "--server", $octopusServerUrl, "--name", $env:COMPUTERNAME, "--publicHostName", $ipAddress, "--apiKey", $apiKey, "--comms-style", "TentaclePassive", "--force", "--console")
-
-    foreach ($environment in $environments) 
+    if ($AutoRegister) 
     {
-        foreach ($e2 in $environment.Split(',')) 
+        $ipAddress = Get-MyPublicIPAddress
+        $ipAddress = $ipAddress.Trim()
+        Write-Verbose "Public IP address: $ipAddress"
+        Write-Verbose "Automatically registering Tentacle with server $octopusServerUrl"
+        $registerArguments = @("register-with", "--instance", $name, "--server", $octopusServerUrl, "--name", $env:COMPUTERNAME, "--publicHostName", $ipAddress, "--apiKey", $apiKey, "--comms-style", "TentaclePassive", "--force", "--console")
+    
+        foreach ($environment in $environments) 
         {
-            $registerArguments += "--environment"
-            $registerArguments += $e2.Trim()
+            foreach ($e2 in $environment.Split(',')) 
+            {
+                $registerArguments += "--environment"
+                $registerArguments += $e2.Trim()
+            }
         }
-    }
-    foreach ($role in $roles) 
-    {
-        foreach ($r2 in $role.Split(',')) 
+        foreach ($role in $roles) 
         {
-            $registerArguments += "--role"
-            $registerArguments += $r2.Trim()
+            foreach ($r2 in $role.Split(',')) 
+            {
+                $registerArguments += "--role"
+                $registerArguments += $r2.Trim()
+            }
         }
+    
+        Write-Verbose "Registering with arguments: $registerArguments"
+        Invoke-AndAssert { & .\tentacle.exe ($registerArguments) }
     }
-
-    Write-Verbose "Registering with arguments: $registerArguments"
-    Invoke-AndAssert { & .\tentacle.exe ($registerArguments) }
-
+    
     popd
     Write-Verbose "Tentacle commands complete"
 }
