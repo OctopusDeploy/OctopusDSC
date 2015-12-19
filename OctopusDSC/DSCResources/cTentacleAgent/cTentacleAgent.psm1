@@ -17,6 +17,7 @@ function Get-TargetResource
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
+        [string]$PublicDnsName,
         [int]$ListenPort
     )
 
@@ -68,6 +69,10 @@ function Set-TargetResource
         [ValidateNotNullOrEmpty()]
         [string]$Name,
 
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Thumbprint,
+        
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started",
         
@@ -76,6 +81,7 @@ function Set-TargetResource
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory = "$($env:SystemDrive)\Applications",
+        [string]$PublicDnsName,
         [int]$ListenPort = 10933
     )
 
@@ -124,7 +130,7 @@ function Set-TargetResource
     elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Absent") 
     {
         Write-Verbose "Installing Tentacle..."
-        New-Tentacle -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl -port $ListenPort -environments $Environments -roles $Roles -DefaultApplicationDirectory $DefaultApplicationDirectory
+        New-Tentacle -name $Name -thumbprint $Thumbprint -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl -port $ListenPort -environments $Environments -roles $Roles -DefaultApplicationDirectory $DefaultApplicationDirectory -PublicDnsName $PublicDnsName
         Write-Verbose "Tentacle installed!"
     }
 
@@ -148,6 +154,10 @@ function Test-TargetResource
         [ValidateNotNullOrEmpty()]
         [string]$Name,
 
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Thumbprint,
+
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started",
         
@@ -156,6 +166,7 @@ function Test-TargetResource
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
+        [string]$PublicDnsName,
         [int]$ListenPort
     )
  
@@ -238,6 +249,8 @@ function New-Tentacle
         [Parameter(Mandatory=$True)]
         [string]$name,
         [Parameter(Mandatory=$True)]
+        [string]$thumbprint,
+        [Parameter(Mandatory=$True)]
         [string]$apiKey,
         [Parameter(Mandatory=$True)]
         [string]$octopusServerUrl,
@@ -246,7 +259,8 @@ function New-Tentacle
         [Parameter(Mandatory=$True)]
         [string[]]$roles,
         [int] $port,
-        [string]$DefaultApplicationDirectory
+        [string]$DefaultApplicationDirectory,
+        [string]$PublicDnsName
     )
  
     if ($port -eq 0) 
@@ -290,10 +304,21 @@ function New-Tentacle
     {
         Write-Verbose "Windows Firewall Service is not running... skipping firewall rule addition"
     }
-        
-    $ipAddress = Get-MyPublicIPAddress
-    $ipAddress = $ipAddress.Trim()
- 
+    
+    if ($PublicDnsName.Trim())
+    {
+        $ipAddress = $PublicDnsName.Trim()
+    }
+    else 
+    {
+        $ipAddress = Get-MyPublicIPAddress
+        $ipAddress = $ipAddress.Trim()
+    }
+    if (-Not $ipAddress)
+    {
+        throw "Unable to retrieve Public IP address."
+    }
+
     Write-Verbose "Public IP address: $ipAddress"
     Write-Verbose "Configuring and registering Tentacle"
   
@@ -303,10 +328,12 @@ function New-Tentacle
     $tentacleAppDirectory = $DefaultApplicationDirectory
     $tentacleConfigFile = "$($env:SystemDrive)\Octopus\$Name\Tentacle.config"
     Invoke-AndAssert { & .\tentacle.exe create-instance --instance $name --config $tentacleConfigFile --console }
+    Invoke-AndAssert { & .\tentacle.exe new-certificate --instance $name --if-blank --console }
+    Invoke-AndAssert { & .\tentacle.exe configure --instance $name --reset-trust --console }
     Invoke-AndAssert { & .\tentacle.exe configure --instance $name --home $tentacleHomeDirectory --console }
     Invoke-AndAssert { & .\tentacle.exe configure --instance $name --app $tentacleAppDirectory --console }
     Invoke-AndAssert { & .\tentacle.exe configure --instance $name --port $port --console }
-    Invoke-AndAssert { & .\tentacle.exe new-certificate --instance $name --console }
+    Invoke-AndAssert { & .\tentacle.exe configure --instance $name --trust $thumbprint --console }
     Invoke-AndAssert { & .\tentacle.exe service --install --instance $name --console }
 
     $registerArguments = @("register-with", "--instance", $name, "--server", $octopusServerUrl, "--name", $env:COMPUTERNAME, "--publicHostName", $ipAddress, "--apiKey", $apiKey, "--comms-style", "TentaclePassive", "--force", "--console")
