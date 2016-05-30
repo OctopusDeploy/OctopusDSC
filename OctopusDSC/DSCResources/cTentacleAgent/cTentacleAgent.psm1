@@ -12,6 +12,8 @@ function Get-TargetResource
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started",
         
+        [string]$TargetName = $env:computername,  # allow overriding machine name
+        [string]$TargetIp = $null,
         [string]$ApiKey,
         [string]$OctopusServerUrl,
         [string[]]$Environments,
@@ -73,6 +75,8 @@ function Set-TargetResource
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started",
         
+        [string]$TargetName = $env:computername,  # allow overriding machine name
+        [string]$TargetIp = $null,
         [string]$ApiKey,
         [string]$OctopusServerUrl,
         [string[]]$Environments,
@@ -128,7 +132,7 @@ function Set-TargetResource
     elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Absent") 
     {
         Write-Verbose "Installing Tentacle..."
-        New-Tentacle -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl -port $ListenPort -environments $Environments -roles $Roles -DefaultApplicationDirectory $DefaultApplicationDirectory -tentacleDownloadUrl $tentacleDownloadUrl -tentacleDownloadUrl64 $tentacleDownloadUrl64
+        New-Tentacle -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl -port $ListenPort -environments $Environments -roles $Roles -DefaultApplicationDirectory $DefaultApplicationDirectory -tentacleDownloadUrl $tentacleDownloadUrl -tentacleDownloadUrl64 $tentacleDownloadUrl64 -TargetIp $TargetIp
         Write-Verbose "Tentacle installed!"
     }
 
@@ -155,6 +159,8 @@ function Test-TargetResource
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started",
         
+        [string]$TargetName = $env:computername,  # allow overriding machine name
+        [string]$TargetIp = $null,
         [string]$ApiKey,
         [string]$OctopusServerUrl,
         [string[]]$Environments,
@@ -252,6 +258,7 @@ function New-Tentacle
         [Parameter(Mandatory=$True)]
         [string[]]$roles,
         [int] $port,
+        [string]$TargetIp = $null,
         [string]$DefaultApplicationDirectory,
         [string]$tentacleDownloadUrl = "http://octopusdeploy.com/downloads/latest/OctopusTentacle",
         [string]$tentacleDownloadUrl64 = "http://octopusdeploy.com/downloads/latest/OctopusTentacle64"
@@ -298,11 +305,18 @@ function New-Tentacle
     {
         Write-Verbose "Windows Firewall Service is not running... skipping firewall rule addition"
     }
-        
-    $ipAddress = Get-MyPublicIPAddress
-    $ipAddress = $ipAddress.Trim()
+     
+    if($targetIp -eq $null)
+    {   
+        $ipAddress = Get-MyPublicIPAddress
+        $ipAddress = $ipAddress.Trim()
+    }
+    else
+    {
+        $ipAddress = $targetIp
+    }
  
-    Write-Verbose "Public IP address: $ipAddress"
+    Write-Verbose "IP address: $ipAddress"
     Write-Verbose "Configuring and registering Tentacle"
   
     pushd "${env:ProgramFiles}\Octopus Deploy\Tentacle"
@@ -317,7 +331,7 @@ function New-Tentacle
     Invoke-AndAssert { & .\tentacle.exe new-certificate --instance $name --console }
     Invoke-AndAssert { & .\tentacle.exe service --install --instance $name --console }
 
-    $registerArguments = @("register-with", "--instance", $name, "--server", $octopusServerUrl, "--name", $env:COMPUTERNAME, "--publicHostName", $ipAddress, "--apiKey", $apiKey, "--comms-style", "TentaclePassive", "--force", "--console")
+    $registerArguments = @("register-with", "--instance", $name, "--server", $octopusServerUrl, "--name", $TargetName, "--publicHostName", $ipAddress, "--apiKey", $apiKey, "--comms-style", "TentaclePassive", "--force", "--console")
 
     foreach ($environment in $environments) 
     {
