@@ -12,6 +12,7 @@ function Get-TargetResource
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started",
         
+        [string]$TargetName = $env:computername,  # allow overriding machine name
         [string]$ApiKey,
         [string]$OctopusServerUrl,
         [string[]]$Environments,
@@ -73,6 +74,7 @@ function Set-TargetResource
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started",
         
+        [string]$TargetName = $env:computername,  # allow overriding machine name
         [string]$ApiKey,
         [string]$OctopusServerUrl,
         [string[]]$Environments,
@@ -155,6 +157,7 @@ function Test-TargetResource
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started",
         
+        [string]$TargetName = $env:computername,  # allow overriding machine name
         [string]$ApiKey,
         [string]$OctopusServerUrl,
         [string[]]$Environments,
@@ -317,7 +320,7 @@ function New-Tentacle
     Invoke-AndAssert { & .\tentacle.exe new-certificate --instance $name --console }
     Invoke-AndAssert { & .\tentacle.exe service --install --instance $name --console }
 
-    $registerArguments = @("register-with", "--instance", $name, "--server", $octopusServerUrl, "--name", $env:COMPUTERNAME, "--publicHostName", $ipAddress, "--apiKey", $apiKey, "--comms-style", "TentaclePassive", "--force", "--console")
+    $registerArguments = @("register-with", "--instance", $name, "--server", $octopusServerUrl, "--name", $TargetName, "--publicHostName", $ipAddress, "--apiKey", $apiKey, "--comms-style", "TentaclePassive", "--force", "--console")
 
     foreach ($environment in $environments) 
     {
