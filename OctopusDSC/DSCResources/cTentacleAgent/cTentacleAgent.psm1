@@ -1,3 +1,7 @@
+# Define the URLs that download the MSI at the top
+$Script:tentacleDownloadUrl32 = "http://octopusdeploy.com/downloads/latest/OctopusTentacle"
+$Script:tentacleDownloadUrl64 = "http://octopusdeploy.com/downloads/latest/OctopusTentacle64"
+
 function Get-TargetResource
 {
     [OutputType([Hashtable])]
@@ -18,8 +22,8 @@ function Get-TargetResource
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
         [int]$ListenPort,
-        [string]$tentacleDownloadUrl,
-        [string]$tentacleDownloadUrl64
+		[string]$tentacleDownloadUrl,
+		[string]$tentacleDownloadUrl64
     )
 
     Write-Verbose "Checking if Tentacle is installed"
@@ -79,8 +83,8 @@ function Set-TargetResource
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory = "$($env:SystemDrive)\Applications",
         [int]$ListenPort = 10933,
-        [string]$tentacleDownloadUrl,
-        [string]$tentacleDownloadUrl64
+		[string]$tentacleDownloadUrl,
+		[string]$tentacleDownloadUrl64
     )
 
     if ($Ensure -eq "Absent" -and $State -eq "Started") 
@@ -128,7 +132,7 @@ function Set-TargetResource
     elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Absent") 
     {
         Write-Verbose "Installing Tentacle..."
-        New-Tentacle -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl -port $ListenPort -environments $Environments -roles $Roles -DefaultApplicationDirectory $DefaultApplicationDirectory -tentacleDownloadUrl $tentacleDownloadUrl -tentacleDownloadUrl64 $tentacleDownloadUrl64
+        New-Tentacle -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl -port $ListenPort -environments $Environments -roles $Roles -DefaultApplicationDirectory $DefaultApplicationDirectory
         Write-Verbose "Tentacle installed!"
     }
 
@@ -161,8 +165,8 @@ function Test-TargetResource
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
         [int]$ListenPort,
-        [string]$tentacleDownloadUrl,
-        [string]$tentacleDownloadUrl64
+		[string]$tentacleDownloadUrl,
+		[string]$tentacleDownloadUrl64
     )
  
     $currentResource = (Get-TargetResource -Name $Name)
@@ -198,16 +202,30 @@ function Get-TentacleServiceName
     }
 }
 
-function Request-File 
+function Save-TentacleFile 
 {
+    [CmdletBinding()]
     param (
-        [string]$url,
+		[Parameter(Mandatory=$true)]
+		[ValidateScript({Test-Path -Path (Split-Path $_)})]
         [string]$saveAs
     )
- 
-    Write-Verbose "Downloading $url to $saveAs"
-    $downloader = new-object System.Net.WebClient
-    $downloader.DownloadFile($url, $saveAs)
+	Write-Verbose "Downloading latest Octopus Tentacle MSI from $url to $(Split-Path $saveAs)"
+	
+	$url = $(
+		if ($env:PROCESSOR_ARCHITECTURE -eq "AMD64")
+		{
+			$Script:tentacleDownloadUrl64
+		}
+		else
+		{
+			$Script:tentacleDownloadUrl32
+		}
+	)
+
+	Write-Verbose "Downloading $url to $(Split-Path $saveAs)"
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12,[Net.SecurityProtocolType]::Tls11,[Net.SecurityProtocolType]::Tls
+    Invoke-WebRequest -Uri "$url" -Method Get -OutFile $saveAs
 }
 
 function Invoke-AndAssert {
@@ -250,33 +268,23 @@ function New-Tentacle
         [Parameter(Mandatory=$True)]
         [string[]]$environments,
         [Parameter(Mandatory=$True)]
-        [string[]]$roles,
-        [int] $port,
-        [string]$DefaultApplicationDirectory,
-        [string]$tentacleDownloadUrl = "http://octopusdeploy.com/downloads/latest/OctopusTentacle",
-        [string]$tentacleDownloadUrl64 = "http://octopusdeploy.com/downloads/latest/OctopusTentacle64"
+        [string[]]$roles,		
+        [Parameter(Mandatory=$false)]
+        [int]$port = 10933,
+        [string]$DefaultApplicationDirectory
     )
- 
-    if ($port -eq 0) 
-    {
-        $port = 10933
-    }
-
     Write-Verbose "Beginning Tentacle installation" 
-  
-    $actualTentacleDownloadUrl = $tentacleDownloadUrl64
-    if ([IntPtr]::Size -eq 4) 
-    {
-        $actualTentacleDownloadUrl = $tentacleDownloadUrl
-    }
 
-    mkdir "$($env:SystemDrive)\Octopus" -ErrorAction SilentlyContinue
+	$MSIDirectory = "$($env:SystemDrive)\Octopus"
+	if (-not (Test-Path -Path "$MSIDirectory"))
+	{
+		New-Item -Path "$MSIDirectory" -ItemType Directory | Out-Null
+	}
 
-    $tentaclePath = "$($env:SystemDrive)\Octopus\Tentacle.msi"
+    $tentaclePath = "$MSIDirectory\Tentacle.msi"
     if ((test-path $tentaclePath) -ne $true) 
     {
-        Write-Verbose "Downloading latest Octopus Tentacle MSI from $actualTentacleDownloadUrl to $tentaclePath"
-        Request-File $actualTentacleDownloadUrl $tentaclePath
+		Save-TentacleFile -saveAs $tentaclePath
     }
   
     Write-Verbose "Installing MSI..."
@@ -307,7 +315,7 @@ function New-Tentacle
   
     pushd "${env:ProgramFiles}\Octopus Deploy\Tentacle"
  
-    $tentacleHomeDirectory = "$($env:SystemDrive)\Octopus"
+    $tentacleHomeDirectory = "$MSIDirectory"
     $tentacleAppDirectory = $DefaultApplicationDirectory
     $tentacleConfigFile = "$($env:SystemDrive)\Octopus\$Name\Tentacle.config"
     Invoke-AndAssert { & .\tentacle.exe create-instance --instance $name --config $tentacleConfigFile --console }
