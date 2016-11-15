@@ -21,8 +21,12 @@ function check_env_var() {
     fi
 }
 
+check_env_var AWS_ACCESS_KEY_ID
+check_env_var AWS_SECRET_ACCESS_KEY
 check_env_var OCTOPUS_SERVER_URL
 check_env_var OCTOPUS_API_KEY
+check_env_var AWS_SUBNET_ID
+check_env_var AWS_SECURITY_GROUP_ID
 
 which vagrant > /dev/null
 
@@ -31,7 +35,12 @@ if [ $? != 0 ]; then
   exit 1
 fi
 
+check_plugin_installed "vagrant-aws"
+check_plugin_installed "vagrant-aws-winrm"
 check_plugin_installed "vagrant-dsc"
 check_plugin_installed "vagrant-winrm"
+check_plugin_installed "vagrant-winrm-syncedfolders"
 
-vagrant up --provider virtualbox # --debug &> vagrant.log
+time vagrant up --provider virtualbox # --debug &> vagrant.log
+
+echo "Dont forget to run 'vagrant destroy -f' when you have finished"
