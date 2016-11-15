@@ -85,7 +85,9 @@ function Set-TargetResource
 
     if ($Ensure -eq "Absent" -and $State -eq "Started")
     {
-        throw "Invalid configuration: service cannot be both 'Absent' and 'Started'"
+        throw "Invalid configuration requested. " + `
+              "You have asked for the service to not exist, but also be running at the same time. " +`
+              "You probably want 'State = `"Stopped`"."
     }
 
     $currentResource = (Get-TargetResource -Name $Name)
