@@ -68,4 +68,30 @@ SCRIPT
   #run tests for scenario 1 (initial install)
   config.vm.provision "shell", inline: $shell_script
 
+  # Run DSC for scenario 2 (uninstall)
+  config.vm.provision "dsc" do |dsc|
+    dsc.configuration_file  = "Scenario_02_Remove.ps1"
+    dsc.configuration_data_file  = "Tests/Configuration.psd1"
+    dsc.manifests_path = "Tests"
+    dsc.configuration_params = {
+      "-MachineName" => "localhost",
+      "-HostName" => "#{hostname}",
+      "-OctopusServerUrl" => "#{ENV['OCTOPUS_SERVER_URL']}",
+      "-ApiKey" => "#{ENV['OCTOPUS_API_KEY']}",
+      "-Environments" => "The Environment",
+      "-Roles" => "Test-Tentacle",
+      "-ListenPort" => "10933"
+    }
+  end
+
+$shell_script = <<SCRIPT
+  $env:OctopusServerUrl="#{ENV['OCTOPUS_SERVER_URL']}"
+  $env:OctopusApiKey="#{ENV['OCTOPUS_API_KEY']}"
+  set-location c:/temp/tests
+  C:/tools/ruby23/bin/bundle.bat exec rspec Spec/scenario_02_remove_spec.rb
+SCRIPT
+
+  #run tests for scenario 1 (initial install)
+  config.vm.provision "shell", inline: $shell_script
+
 end
