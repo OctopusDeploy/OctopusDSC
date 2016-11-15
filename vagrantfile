@@ -1,0 +1,71 @@
+# -*- mode: ruby -*-
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  hostname = "vagrantdsc.local"
+  config.vm.guest = :windows
+  config.vm.communicator = "winrm"
+
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  if Vagrant.has_plugin?("vagrant-multi-hostsupdater")
+    config.multihostsupdater.aliases = {ip_address => [hostname]}
+  end
+
+  config.vm.provider "virtualbox" do |v, override|
+    v.gui = true
+    v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+    v.customize ["modifyvm", :id, "--audio", "none"]
+    v.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
+    v.customize ["modifyvm", :id, "--usb", "off"]
+    override.vm.box = "mfellows/windows2012r2"
+    override.vm.box_version = "1.0.1"
+    override.vm.network :forwarded_port, guest: 5985, host: 5985, id: "winrm", auto_correct: true
+    override.vm.network :forwarded_port, guest: 80,   host: 8000, id: "web"
+    override.vm.network :forwarded_port, guest: 443, host: 8443,  id: "ssl"
+    override.vm.network :forwarded_port, guest: 22, host: 9222,  id: "ssh"
+  end
+
+  # vagrant appears to be not closing connections (might not be needed after upgrading to vagrant 1.8.7)
+  config.vm.provision "shell", inline: "Set-Item WSMan:\\localhost\\Shell\\MaxShellsPerUser 500"
+  #delete existing tests if they exist (for dev)
+  config.vm.provision "shell", inline: "if (Test-Path 'c:\\temp\\tests') {remove-item -force -recurse 'c:\\temp\\tests' }"
+  #upload tests
+  config.vm.provision "file", source: "Tests", destination: "c:\\temp\\tests"
+  #install ruby / serverspec
+  config.vm.provision "shell", path: "Tests/install-serverspec.ps1"
+  config.vm.provision "shell", path: "Tests/install-test-dependencies.ps1"
+  #restart the dsc host to reset the cache (much easier in ps5, but we are targeting ps4)
+  config.vm.provision "shell", path: "Tests/clear-dsc-cache.ps1"
+  # in theory, we shouldn't have to do this - the vagrant-dsc should upload it automatically, but cant get it to work
+  config.vm.provision "file", source: "OctopusDSC", destination: 'C:\Windows\System32\WindowsPowerShell\v1.0\modules\OctopusDSC'
+
+  # Run DSC for scenario 1 (initial install)
+  config.vm.provision "dsc" do |dsc|
+    dsc.configuration_file  = "Scenario_01_Install.ps1"
+    dsc.configuration_data_file  = "Tests/Configuration.psd1"
+    dsc.manifests_path = "Tests"
+    dsc.configuration_params = {
+      "-MachineName" => "localhost",
+      "-HostName" => "#{hostname}",
+      "-OctopusServerUrl" => "#{ENV['OCTOPUS_SERVER_URL']}",
+      "-ApiKey" => "#{ENV['OCTOPUS_API_KEY']}",
+      "-Environments" => "The Environment",
+      "-Roles" => "Test-Tentacle",
+      "-ListenPort" => "10933"
+    }
+  end
+
+$shell_script = <<SCRIPT
+  $env:OctopusServerUrl="#{ENV['OCTOPUS_SERVER_URL']}"
+  $env:OctopusApiKey="#{ENV['OCTOPUS_API_KEY']}"
+  set-location c:/temp/tests
+  C:/tools/ruby23/bin/bundle.bat exec rspec Spec/scenario_01_install_spec.rb
+SCRIPT
+
+  #run tests for scenario 1 (initial install)
+  config.vm.provision "shell", inline: $shell_script
+
+end

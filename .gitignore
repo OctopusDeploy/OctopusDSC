@@ -174,3 +174,8 @@ UpgradeLog*.htm
 FakesAssemblies/
 SampleConfig.ps1
 SampleConfig/*
+
+output-virtualbox-iso/
+packer_cache/
+*.box
+.vagrant/
