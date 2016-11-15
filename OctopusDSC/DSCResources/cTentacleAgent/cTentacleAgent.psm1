@@ -79,8 +79,8 @@ function Set-TargetResource
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory = "$($env:SystemDrive)\Applications",
         [int]$ListenPort = 10933,
-        [string]$tentacleDownloadUrl,
-        [string]$tentacleDownloadUrl64
+        [string]$tentacleDownloadUrl = "http://octopusdeploy.com/downloads/latest/OctopusTentacle",
+        [string]$tentacleDownloadUrl64 = "http://octopusdeploy.com/downloads/latest/OctopusTentacle64"
     )
 
     if ($Ensure -eq "Absent" -and $State -eq "Started")
@@ -206,6 +206,7 @@ function Request-File
     )
 
     Write-Verbose "Downloading $url to $saveAs"
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12,[System.Net.SecurityProtocolType]::Tls11,[System.Net.SecurityProtocolType]::Tls
     $downloader = new-object System.Net.WebClient
     $downloader.DownloadFile($url, $saveAs)
 }
@@ -253,8 +254,8 @@ function New-Tentacle
         [string[]]$roles,
         [int] $port,
         [string]$DefaultApplicationDirectory,
-        [string]$tentacleDownloadUrl = "http://octopusdeploy.com/downloads/latest/OctopusTentacle",
-        [string]$tentacleDownloadUrl64 = "http://octopusdeploy.com/downloads/latest/OctopusTentacle64"
+        [string]$tentacleDownloadUrl,
+        [string]$tentacleDownloadUrl64
     )
 
     if ($port -eq 0)
