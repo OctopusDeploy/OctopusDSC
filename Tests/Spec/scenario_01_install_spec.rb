@@ -16,7 +16,7 @@ describe service('OctopusDeploy Tentacle') do
   it { should be_installed }
   it { should be_running }
   it { should have_start_mode('Automatic') }
-  #todo: add matcher for service name
+  it { should run_under_account('LocalSystem') }
 end
 
 describe port(10933) do
