@@ -21,5 +21,14 @@ describe port(10933) do
   it { should_not be_listening.with('tcp') }
 end
 
+#todo: confirm whether these should be deleted
+#describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle') do
+#  it { should_not exist }
+#end
+#
+#describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\Tentacle') do
+#  it { should_not exist }
+#end
+
+
 #todo: can we check its been removed from the server somehow?
-#todo: check removed from the registry

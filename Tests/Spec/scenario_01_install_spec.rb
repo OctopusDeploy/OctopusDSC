@@ -31,3 +31,13 @@ describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey']) 
   it { should be_in_environment('The Environment') }
   it { should have_role('Test-Tentacle') }
 end
+
+describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle') do
+  it { should exist }
+  it { should have_property_value('InstallLocation', :type_string, "C:\\Program Files\\Octopus Deploy\\Tentacle\\") }
+end
+
+describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\Tentacle') do
+  it { should exist }
+  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\Tentacle\Tentacle.config') }
+end
