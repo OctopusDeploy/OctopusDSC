@@ -7,6 +7,7 @@ $run_test_scenario_script = <<SCRIPT
   $env:OctopusApiKey="#{ENV['OCTOPUS_API_KEY']}"
   $env:TEAMCITY_PROJECT_NAME="#{ENV['TEAMCITY_PROJECT_NAME']}"
   set-location c:/temp/tests
+  write-host executing bundle exec rspec Spec/{scenario_name}_spec.rb
   C:/tools/ruby23/bin/bundle.bat exec rspec Spec/{scenario_name}_spec.rb
   exit $LASTEXITCODE
 SCRIPT
