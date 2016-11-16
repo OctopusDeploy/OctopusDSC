@@ -80,15 +80,16 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     }
   end
 
-$shell_script = <<SCRIPT
+$run_test_scenario_script = <<SCRIPT
   $env:OctopusServerUrl="#{ENV['OCTOPUS_SERVER_URL']}"
   $env:OctopusApiKey="#{ENV['OCTOPUS_API_KEY']}"
+  $env:TEAMCITY_PROJECT_NAME="#{ENV['TEAMCITY_PROJECT_NAME']}"
   set-location c:/temp/tests
-  C:/tools/ruby23/bin/bundle.bat exec rspec Spec/scenario_01_install_spec.rb
+  C:/tools/ruby23/bin/bundle.bat exec rspec Spec/{scenario_name}_spec.rb
 SCRIPT
 
   #run tests for scenario 1 (initial install)
-  config.vm.provision "shell", inline: $shell_script
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'scenario_01_install')
 
   # Run DSC for scenario 2 (uninstall)
   config.vm.provision "dsc" do |dsc|
@@ -106,14 +107,7 @@ SCRIPT
     }
   end
 
-$shell_script = <<SCRIPT
-  $env:OctopusServerUrl="#{ENV['OCTOPUS_SERVER_URL']}"
-  $env:OctopusApiKey="#{ENV['OCTOPUS_API_KEY']}"
-  set-location c:/temp/tests
-  C:/tools/ruby23/bin/bundle.bat exec rspec Spec/scenario_02_remove_spec.rb
-SCRIPT
-
   #run tests for scenario 1 (initial install)
-  config.vm.provision "shell", inline: $shell_script
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'scenario_02_remove_spec')
 
 end
