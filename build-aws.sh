@@ -62,12 +62,14 @@ fi
 chmod 400 $KEY_NAME.pem
 
 echo "Running 'vagrant up'"
-time vagrant up --provider aws # --debug &> vagrant.log
+vagrant up --provider aws # --debug &> vagrant.log
 VAGRANT_UP_EXIT_CODE=$?
+echo "'vagrant up' exited with exit code $VAGRANT_UP_EXIT_CODE"
 
 echo "Running 'vagrant destroy -f'"
 vagrant destroy -f
 VAGRANT_DESTROY_EXIT_CODE=$?
+echo "'vagrant destroy' exited with exit code $VAGRANT_DESTROY_EXIT_CODE"
 
 echo "Removing local key-pair"
 rm -f $KEY_NAME.pem
