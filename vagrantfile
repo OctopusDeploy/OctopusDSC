@@ -107,7 +107,7 @@ SCRIPT
     }
   end
 
-  #run tests for scenario 1 (initial install)
-  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'scenario_02_remove_spec')
+  #run tests for scenario 2 (initial install)
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'scenario_02_remove')
 
 end
