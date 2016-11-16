@@ -1,9 +1,9 @@
 require 'spec_helper'
 
-#todo: confirm desired behaviour around whether this folder should still exist
-#describe file('c:/Octopus') do
-#  it { should_not exist }
-#end
+#we deliberately dont cleanup the octopus directory, as it contains logs & config
+describe file('c:/Octopus') do
+  it { should exist }
+end
 
 describe file('c:/Applications') do
   it { should be_directory }
