@@ -111,8 +111,9 @@ function Set-TargetResource
 
         # Uninstall msi
         Write-Verbose "Uninstalling Tentacle..."
+        if (-not (Test-Path "$($env:SystemDrive)\Octopus\logs")) { New-Item -type Directory "$($env:SystemDrive)\Octopus\logs" }
         $tentaclePath = "$($env:SystemDrive)\Octopus\Tentacle.msi"
-        $msiLog = "$($env:SystemDrive)\Octopus\Tentacle.msi.uninstall.log"
+        $msiLog = "$($env:SystemDrive)\Octopus\logs\Tentacle.msi.uninstall.log"
         if (test-path $tentaclePath)
         {
             $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/x $tentaclePath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
@@ -283,7 +284,8 @@ function New-Tentacle
     }
 
     Write-Verbose "Installing MSI..."
-    $msiLog = "$($env:SystemDrive)\Octopus\Tentacle.msi.log"
+    if (-not (Test-Path "$($env:SystemDrive)\Octopus\logs")) { New-Item -type Directory "$($env:SystemDrive)\Octopus\logs" }
+    $msiLog = "$($env:SystemDrive)\Octopus\logs\Tentacle.msi.log"
     $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $tentaclePath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
     Write-Verbose "Tentacle MSI installer returned exit code $msiExitCode"
     if ($msiExitCode -ne 0)
