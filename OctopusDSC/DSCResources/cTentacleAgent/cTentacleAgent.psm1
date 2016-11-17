@@ -277,11 +277,12 @@ function New-Tentacle
     mkdir "$($env:SystemDrive)\Octopus" -ErrorAction SilentlyContinue
 
     $tentaclePath = "$($env:SystemDrive)\Octopus\Tentacle.msi"
-    if ((test-path $tentaclePath) -ne $true)
+    if ((Test-Path $tentaclePath) -eq $true)
     {
-        Write-Verbose "Downloading latest Octopus Tentacle MSI from $actualTentacleDownloadUrl to $tentaclePath"
-        Request-File $actualTentacleDownloadUrl $tentaclePath
+        Remove-Item $tentaclePath -force
     }
+    Write-Verbose "Downloading Octopus Tentacle MSI from $actualTentacleDownloadUrl to $tentaclePath"
+    Request-File $actualTentacleDownloadUrl $tentaclePath
 
     Write-Verbose "Installing MSI..."
     if (-not (Test-Path "$($env:SystemDrive)\Octopus\logs")) { New-Item -type Directory "$($env:SystemDrive)\Octopus\logs" }
