@@ -1,3 +1,6 @@
+$defaultTentacleDownloadUrl = "http://octopusdeploy.com/downloads/latest/OctopusTentacle"
+$defaultTentacleDownloadUrl64 = "http://octopusdeploy.com/downloads/latest/OctopusTentacle64"
+
 function Get-TargetResource
 {
     [OutputType([Hashtable])]
@@ -18,8 +21,8 @@ function Get-TargetResource
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
         [int]$ListenPort,
-        [string]$tentacleDownloadUrl,
-        [string]$tentacleDownloadUrl64
+        [string]$tentacleDownloadUrl = $defaultTentacleDownloadUrl,
+        [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64
     )
 
     Write-Verbose "Checking if Tentacle is installed"
@@ -53,10 +56,16 @@ function Get-TargetResource
         $currentEnsure = "Absent"
     }
 
+    $originalDownloadUrl = $null
+    if (Test-Path "$($env:SystemDrive)\Octopus\Octopus.DSC.installstate") {
+        $originalDownloadUrl = (Get-Content -Raw -Path "$($env:SystemDrive)\Octopus\Octopus.DSC.installstate" | ConvertFrom-Json).TentacleDownloadUrl
+    }
+
     return @{
         Name = $Name;
         Ensure = $currentEnsure;
         State = $currentState;
+        TentacleDownloadUrl = $originalDownloadUrl;
     };
 }
 
@@ -79,8 +88,8 @@ function Set-TargetResource
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory = "$($env:SystemDrive)\Applications",
         [int]$ListenPort = 10933,
-        [string]$tentacleDownloadUrl = "http://octopusdeploy.com/downloads/latest/OctopusTentacle",
-        [string]$tentacleDownloadUrl64 = "http://octopusdeploy.com/downloads/latest/OctopusTentacle64"
+        [string]$tentacleDownloadUrl = $defaultTentacleDownloadUrl,
+        [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64
     )
 
     if ($Ensure -eq "Absent" -and $State -eq "Started")
@@ -134,6 +143,17 @@ function Set-TargetResource
         New-Tentacle -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl -port $ListenPort -environments $Environments -roles $Roles -DefaultApplicationDirectory $DefaultApplicationDirectory -tentacleDownloadUrl $tentacleDownloadUrl -tentacleDownloadUrl64 $tentacleDownloadUrl64
         Write-Verbose "Tentacle installed!"
     }
+    elseif ($Ensure -eq "Present" -and $currentResource["TentacleDownloadUrl"] -ne (Get-TentacleDownloadUrl $tentacleDownloadUrl $tentacleDownloadUrl64))
+    {
+        Write-Verbose "Upgrading Tentacle..."
+        $serviceName = (Get-TentacleServiceName $Name)
+        Stop-Service -Name $serviceName
+        Install-Tentacle $tentacleDownloadUrl $tentacleDownloadUrl64
+        if ($State -eq "Started") {
+            Start-Service $serviceName
+        }
+        Write-Verbose "Tentacle upgraded!"
+    }
 
     if ($State -eq "Started" -and $currentResource["State"] -eq "Stopped")
     {
@@ -164,8 +184,8 @@ function Test-TargetResource
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
         [int]$ListenPort,
-        [string]$tentacleDownloadUrl,
-        [string]$tentacleDownloadUrl64
+        [string]$tentacleDownloadUrl = $defaultTentacleDownloadUrl,
+        [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64
     )
 
     $currentResource = (Get-TargetResource -Name $Name)
@@ -182,6 +202,15 @@ function Test-TargetResource
     if (!$stateMatch)
     {
         return $false
+    }
+
+    if ($currentResource["TentacleDownloadUrl"] -ne $null) {
+        $requestedDownloadUrl = Get-TentacleDownloadUrl $tentacleDownloadUrl $tentacleDownloadUrl64
+        $downloadUrlsMatch = $requestedDownloadUrl -eq $currentResource["TentacleDownloadUrl"]
+        Write-Verbose "Download Url: $($currentResource["TentacleDownloadUrl"]) vs. $requestedDownloadUrl = $downloadUrlsMatch"
+        if (!$downloadUrlsMatch) {
+            return $false
+        }
     }
 
     return $true
@@ -242,6 +271,40 @@ function Get-MyPublicIPAddress
     return $ip
 }
 
+function Install-Tentacle
+{
+    param (
+        [string]$tentacleDownloadUrl,
+        [string]$tentacleDownloadUrl64
+    )
+    Write-Verbose "Beginning Tentacle installation"
+
+    $actualTentacleDownloadUrl = Get-TentacleDownloadUrl $tentacleDownloadUrl $tentacleDownloadUrl64
+
+    mkdir "$($env:SystemDrive)\Octopus" -ErrorAction SilentlyContinue
+
+    $tentaclePath = "$($env:SystemDrive)\Octopus\Tentacle.msi"
+    if ((Test-Path $tentaclePath) -eq $true)
+    {
+        Remove-Item $tentaclePath -force
+    }
+    Write-Verbose "Downloading Octopus Tentacle MSI from $actualTentacleDownloadUrl to $tentaclePath"
+    Request-File $actualTentacleDownloadUrl $tentaclePath
+
+    Write-Verbose "Installing MSI..."
+    if (-not (Test-Path "$($env:SystemDrive)\Octopus\logs")) { New-Item -type Directory "$($env:SystemDrive)\Octopus\logs" }
+    $msiLog = "$($env:SystemDrive)\Octopus\logs\Tentacle.msi.log"
+    $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $tentaclePath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
+    Write-Verbose "Tentacle MSI installer returned exit code $msiExitCode"
+    if ($msiExitCode -ne 0)
+    {
+        throw "Installation of the Tentacle MSI failed; MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
+    }
+
+    @{ "TentacleDownloadUrl" = $actualTentacleDownloadUrl } | ConvertTo-Json | set-content "$($env:SystemDrive)\Octopus\Octopus.DSC.installstate"
+
+}
+
 function New-Tentacle
 {
     param (
@@ -266,33 +329,7 @@ function New-Tentacle
         $port = 10933
     }
 
-    Write-Verbose "Beginning Tentacle installation"
-
-    $actualTentacleDownloadUrl = $tentacleDownloadUrl64
-    if ([IntPtr]::Size -eq 4)
-    {
-        $actualTentacleDownloadUrl = $tentacleDownloadUrl
-    }
-
-    mkdir "$($env:SystemDrive)\Octopus" -ErrorAction SilentlyContinue
-
-    $tentaclePath = "$($env:SystemDrive)\Octopus\Tentacle.msi"
-    if ((Test-Path $tentaclePath) -eq $true)
-    {
-        Remove-Item $tentaclePath -force
-    }
-    Write-Verbose "Downloading Octopus Tentacle MSI from $actualTentacleDownloadUrl to $tentaclePath"
-    Request-File $actualTentacleDownloadUrl $tentaclePath
-
-    Write-Verbose "Installing MSI..."
-    if (-not (Test-Path "$($env:SystemDrive)\Octopus\logs")) { New-Item -type Directory "$($env:SystemDrive)\Octopus\logs" }
-    $msiLog = "$($env:SystemDrive)\Octopus\logs\Tentacle.msi.log"
-    $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $tentaclePath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
-    Write-Verbose "Tentacle MSI installer returned exit code $msiExitCode"
-    if ($msiExitCode -ne 0)
-    {
-        throw "Installation of the Tentacle MSI failed; MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
-    }
+    Install-Tentacle $tentacleDownloadUrl $tentacleDownloadUrl64
 
     $windowsFirewall = Get-Service -Name MpsSvc
     if ($windowsFirewall.Status -eq "Running")
@@ -347,6 +384,20 @@ function New-Tentacle
 
     popd
     Write-Verbose "Tentacle commands complete"
+}
+
+function Get-TentacleDownloadUrl
+{
+    param (
+        [string]$tentacleDownloadUrl,
+        [string]$tentacleDownloadUrl64
+    )
+
+    if ([IntPtr]::Size -eq 4)
+    {
+        return $tentacleDownloadUrl
+    }
+    return $tentacleDownloadUrl64
 }
 
 

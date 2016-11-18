@@ -132,4 +132,24 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   #run tests for scenario 3 (subsequent re-install)
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'scenario_03_reinstall')
+
+  # Run DSC for scenario 4 (upgrade)
+  config.vm.provision "dsc" do |dsc|
+    dsc.configuration_file  = "Scenario_04_Upgrade.ps1"
+    dsc.configuration_data_file  = "Tests/Configuration.psd1"
+    dsc.manifests_path = "Tests"
+    dsc.configuration_params = {
+      "-MachineName" => "localhost",
+      "-HostName" => "#{hostname}",
+      "-OctopusServerUrl" => "#{ENV['OCTOPUS_SERVER_URL']}",
+      "-ApiKey" => "#{ENV['OCTOPUS_API_KEY']}",
+      "-Environments" => "The Environment",
+      "-Roles" => "Test-Tentacle",
+      "-ListenPort" => "10933"
+    }
+  end
+
+  #run tests for scenario 4 (upgrade)
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'scenario_04_upgrade')
+
 end
