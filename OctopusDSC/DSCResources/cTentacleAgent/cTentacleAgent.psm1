@@ -12,12 +12,15 @@ function Get-TargetResource
         [string]$Name,
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started",
+        [ValidateSet("Listen", "Poll")]
+        [string]$CommunicationMode = "Listen",
         [string]$ApiKey,
         [string]$OctopusServerUrl,
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
         [int]$ListenPort=10933,
+        [int]$ServerPort=10943,
         [string]$tentacleDownloadUrl = $defaultTentacleDownloadUrl,
         [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64
     )
@@ -76,12 +79,15 @@ function Set-TargetResource
         [string]$Name,
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started",
+        [ValidateSet("Listen", "Poll")]
+        [string]$CommunicationMode = "Listen",
         [string]$ApiKey,
         [string]$OctopusServerUrl,
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory = "$($env:SystemDrive)\Applications",
         [int]$ListenPort = 10933,
+        [int]$ServerPort = 10943,
         [string]$tentacleDownloadUrl = $defaultTentacleDownloadUrl,
         [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64
     )
@@ -134,7 +140,17 @@ function Set-TargetResource
     elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Absent")
     {
         Write-Verbose "Installing Tentacle..."
-        New-Tentacle -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl -port $ListenPort -environments $Environments -roles $Roles -DefaultApplicationDirectory $DefaultApplicationDirectory -tentacleDownloadUrl $tentacleDownloadUrl -tentacleDownloadUrl64 $tentacleDownloadUrl64
+        New-Tentacle -name $Name `
+                     -apiKey $ApiKey `
+                     -octopusServerUrl $OctopusServerUrl `
+                     -port $ListenPort `
+                     -environments $Environments `
+                     -roles $Roles `
+                     -DefaultApplicationDirectory $DefaultApplicationDirectory `
+                     -tentacleDownloadUrl $tentacleDownloadUrl `
+                     -tentacleDownloadUrl64 $tentacleDownloadUrl64 `
+                     -communicationMode $CommunicationMode `
+                     -serverPort $ServerPort
         Write-Verbose "Tentacle installed!"
     }
     elseif ($Ensure -eq "Present" -and $currentResource["TentacleDownloadUrl"] -ne (Get-TentacleDownloadUrl $tentacleDownloadUrl $tentacleDownloadUrl64))
@@ -169,12 +185,15 @@ function Test-TargetResource
         [string]$Name,
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started",
+        [ValidateSet("Listen", "Poll")]
+        [string]$CommunicationMode = "Listen",
         [string]$ApiKey,
         [string]$OctopusServerUrl,
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
         [int]$ListenPort=10933,
+        [int]$ServerPort=10943,
         [string]$tentacleDownloadUrl = $defaultTentacleDownloadUrl,
         [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64
     )
@@ -312,7 +331,10 @@ function New-Tentacle
         [int]$port=10933,
         [string]$DefaultApplicationDirectory,
         [string]$tentacleDownloadUrl,
-        [string]$tentacleDownloadUrl64
+        [string]$tentacleDownloadUrl64,
+        [ValidateSet("Listen", "Poll")]
+        [string]$communicationMode = "Listen",
+        [int]$serverPort=10943
     )
 
     if ($port -eq 0)
@@ -347,11 +369,28 @@ function New-Tentacle
     Invoke-AndAssert { & .\tentacle.exe create-instance --instance $name --config $tentacleConfigFile --console }
     Invoke-AndAssert { & .\tentacle.exe configure --instance $name --home $tentacleHomeDirectory --console }
     Invoke-AndAssert { & .\tentacle.exe configure --instance $name --app $tentacleAppDirectory --console }
-    Invoke-AndAssert { & .\tentacle.exe configure --instance $name --port $port --console }
-    Invoke-AndAssert { & .\tentacle.exe new-certificate --instance $name --console }
-    Invoke-AndAssert { & .\tentacle.exe service --install --instance $name --console }
 
-    $registerArguments = @("register-with", "--instance", $name, "--server", $octopusServerUrl, "--name", $env:COMPUTERNAME, "--publicHostName", $ipAddress, "--apiKey", $apiKey, "--comms-style", "TentaclePassive", "--force", "--console")
+    Invoke-AndAssert { & .\tentacle.exe new-certificate --instance $name --console }
+
+    $registerArguments = @("register-with",
+                           "--instance", $name,
+                           "--server", $octopusServerUrl,
+                           "--name", "$($env:COMPUTERNAME)_$name",
+                           "--publicHostName", $ipAddress,
+                           "--apiKey", $apiKey,
+                           "--force",
+                           "--console")
+
+    if ($CommunicationMode -eq "Listen") {
+        Invoke-AndAssert { & .\tentacle.exe configure --instance $name --port $port --console }
+        $registerArguments += @("--comms-style", "TentaclePassive")
+    }
+    else {
+        Invoke-AndAssert { & .\tentacle.exe configure --instance $name --port $port --noListen "True" --console }
+        $registerArguments += @("--comms-style", "TentacleActive",
+                                "--server-comms-port", $serverPort)
+    }
+    Invoke-AndAssert { & .\tentacle.exe service --install --instance $name --console }
 
     foreach ($environment in $environments)
     {
