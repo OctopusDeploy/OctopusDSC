@@ -17,7 +17,7 @@ function Get-TargetResource
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
-        [int]$ListenPort,
+        [int]$ListenPort=10933,
         [string]$tentacleDownloadUrl = $defaultTentacleDownloadUrl,
         [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64
     )
@@ -174,7 +174,7 @@ function Test-TargetResource
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
-        [int]$ListenPort,
+        [int]$ListenPort=10933,
         [string]$tentacleDownloadUrl = $defaultTentacleDownloadUrl,
         [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64
     )
@@ -309,7 +309,7 @@ function New-Tentacle
         [string[]]$environments,
         [Parameter(Mandatory=$True)]
         [string[]]$roles,
-        [int] $port,
+        [int]$port=10933,
         [string]$DefaultApplicationDirectory,
         [string]$tentacleDownloadUrl,
         [string]$tentacleDownloadUrl64
