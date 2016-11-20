@@ -13,12 +13,16 @@ describe file('C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe') do
   it { should_not exist }
 end
 
-describe service('OctopusDeploy Tentacle') do
+describe service('OctopusDeploy Tentacle: ListeningTentacle') do
   it { should_not be_installed }
 end
 
 describe port(10933) do
   it { should_not be_listening.with('tcp') }
+end
+
+describe service('OctopusDeploy Tentacle: PollingTentacle') do
+  it { should_not be_installed }
 end
 
 #todo: confirm whether these should be deleted

@@ -118,23 +118,36 @@ function Set-TargetResource
         Write-Verbose "Deleting service $serviceName..."
         Invoke-AndAssert { & sc.exe delete $serviceName }
 
-        # Uninstall msi
-        Write-Verbose "Uninstalling Tentacle..."
-        if (-not (Test-Path "$($env:SystemDrive)\Octopus\logs")) { New-Item -type Directory "$($env:SystemDrive)\Octopus\logs" }
-        $tentaclePath = "$($env:SystemDrive)\Octopus\Tentacle.msi"
-        $msiLog = "$($env:SystemDrive)\Octopus\logs\Tentacle.msi.uninstall.log"
-        if (test-path $tentaclePath)
+        $otherServices = @(Get-WmiObject win32_service | ? {$_.PathName -like "`"$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe*"})
+
+        if ($otherServices.length -eq 0)
         {
-            $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/x $tentaclePath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
-            Write-Verbose "Tentacle MSI installer returned exit code $msiExitCode"
-            if ($msiExitCode -ne 0)
+            # Uninstall msi
+            Write-Verbose "Uninstalling Tentacle..."
+            if (-not (Test-Path "$($env:SystemDrive)\Octopus\logs")) { New-Item -type Directory "$($env:SystemDrive)\Octopus\logs" }
+            $tentaclePath = "$($env:SystemDrive)\Octopus\Tentacle.msi"
+            $msiLog = "$($env:SystemDrive)\Octopus\logs\Tentacle.msi.uninstall.log"
+            if (test-path $tentaclePath)
             {
-                throw "Removal of Tentacle failed, MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
+                $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/x $tentaclePath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
+                Write-Verbose "Tentacle MSI installer returned exit code $msiExitCode"
+                if ($msiExitCode -ne 0)
+                {
+                    throw "Removal of Tentacle failed, MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
+                }
+            }
+            else
+            {
+                throw "Tentacle cannot be removed, because the MSI could not be found."
             }
         }
         else
         {
-            throw "Tentacle cannot be removed, because the MSI could not be found."
+            Write-Verbose "Skipping uninstall, as other tentacles still exist:"
+            foreach($otherService in $otherServices)
+            {
+                Write-Verbose " - $($otherService.Name)"
+            }
         }
     }
     elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Absent")
