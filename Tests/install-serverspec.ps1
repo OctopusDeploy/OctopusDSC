@@ -35,8 +35,6 @@ if (-not (Test-Path "c:\temp\serverspec-installed.marker")) {
   & C:\tools\ruby23\bin\gem.cmd install bundler --no-ri --no-rdoc
   if ($LASTEXITCODE -ne 0) { exit 1 }
 
-  echo "running 'C:\tools\ruby23\bin\gem.cmd env'"
-  & C:\tools\ruby23\bin\gem.cmd env
   set-content "c:\temp\serverspec-installed.marker" ""
 }
 
