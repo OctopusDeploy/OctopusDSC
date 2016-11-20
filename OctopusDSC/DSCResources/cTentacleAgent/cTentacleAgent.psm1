@@ -7,14 +7,11 @@ function Get-TargetResource
     param (
         [ValidateSet("Present", "Absent")]
         [string]$Ensure = "Present",
-
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Name,
-
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started",
-
         [string]$ApiKey,
         [string]$OctopusServerUrl,
         [string[]]$Environments,
@@ -74,14 +71,11 @@ function Set-TargetResource
     param (
         [ValidateSet("Present", "Absent")]
         [string]$Ensure = "Present",
-
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Name,
-
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started",
-
         [string]$ApiKey,
         [string]$OctopusServerUrl,
         [string[]]$Environments,
@@ -170,14 +164,11 @@ function Test-TargetResource
     param (
         [ValidateSet("Present", "Absent")]
         [string]$Ensure = "Present",
-
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Name,
-
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started",
-
         [string]$ApiKey,
         [string]$OctopusServerUrl,
         [string[]]$Environments,
