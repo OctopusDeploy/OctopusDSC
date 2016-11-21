@@ -371,15 +371,18 @@ function New-Tentacle
 
     Install-Tentacle $tentacleDownloadUrl $tentacleDownloadUrl64
 
-    $windowsFirewall = Get-Service -Name MpsSvc
-    if ($windowsFirewall.Status -eq "Running")
+    if ($communicationMode -eq "Listen")
     {
-        Write-Verbose "Open port $port on Windows Firewall"
-        Invoke-AndAssert { & netsh.exe advfirewall firewall add rule protocol=TCP dir=in localport=$port action=allow name="Octopus Tentacle: $Name" }
-    }
-    else
-    {
-        Write-Verbose "Windows Firewall Service is not running... skipping firewall rule addition"
+        $windowsFirewall = Get-Service -Name MpsSvc
+        if ($windowsFirewall.Status -eq "Running")
+        {
+            Write-Verbose "Open port $port on Windows Firewall"
+            Invoke-AndAssert { & netsh.exe advfirewall firewall add rule protocol=TCP dir=in localport=$port action=allow name="Octopus Tentacle: $Name" }
+        }
+        else
+        {
+            Write-Verbose "Windows Firewall Service is not running... skipping firewall rule addition"
+        }
     }
 
     Write-Verbose "Configuring and registering Tentacle"
