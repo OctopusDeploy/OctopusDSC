@@ -22,7 +22,10 @@ function Get-TargetResource
         [int]$ListenPort=10933,
         [int]$ServerPort=10943,
         [string]$tentacleDownloadUrl = $defaultTentacleDownloadUrl,
-        [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64
+        [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64,
+        [ValidateSet("PublicIp", "FQDN", "ComputerName", "Custom")]
+        [string]$PublicHostNameConfiguration = "PublicIp",
+        [string]$CustomPublicHostName
     )
 
     Write-Verbose "Checking if Tentacle is installed"
@@ -89,7 +92,10 @@ function Set-TargetResource
         [int]$ListenPort = 10933,
         [int]$ServerPort = 10943,
         [string]$tentacleDownloadUrl = $defaultTentacleDownloadUrl,
-        [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64
+        [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64,
+        [ValidateSet("PublicIp", "FQDN", "ComputerName", "Custom")]
+        [string]$PublicHostNameConfiguration = "PublicIp",
+        [string]$CustomPublicHostName
     )
 
     if ($Ensure -eq "Absent" -and $State -eq "Started")
@@ -163,7 +169,9 @@ function Set-TargetResource
                      -tentacleDownloadUrl $tentacleDownloadUrl `
                      -tentacleDownloadUrl64 $tentacleDownloadUrl64 `
                      -communicationMode $CommunicationMode `
-                     -serverPort $ServerPort
+                     -serverPort $ServerPort `
+                     -publicHostNameConfiguration $PublicHostNameConfiguration `
+                     -customPublicHostName $CustomPublicHostName
         Write-Verbose "Tentacle installed!"
     }
     elseif ($Ensure -eq "Present" -and $currentResource["TentacleDownloadUrl"] -ne (Get-TentacleDownloadUrl $tentacleDownloadUrl $tentacleDownloadUrl64))
@@ -208,7 +216,10 @@ function Test-TargetResource
         [int]$ListenPort=10933,
         [int]$ServerPort=10943,
         [string]$tentacleDownloadUrl = $defaultTentacleDownloadUrl,
-        [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64
+        [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64,
+        [ValidateSet("PublicIp", "FQDN", "ComputerName", "Custom")]
+        [string]$PublicHostNameConfiguration = "PublicIp",
+        [string]$CustomPublicHostName
     )
 
     $currentResource = (Get-TargetResource -Name $Name)
@@ -347,7 +358,10 @@ function New-Tentacle
         [string]$tentacleDownloadUrl64,
         [ValidateSet("Listen", "Poll")]
         [string]$communicationMode = "Listen",
-        [int]$serverPort=10943
+        [int]$serverPort=10943,
+        [ValidateSet("PublicIp", "FQDN", "ComputerName", "Custom")]
+        [string]$publicHostNameConfiguration = "PublicIp",
+        [string]$customPublicHostName
     )
 
     if ($port -eq 0)
@@ -368,10 +382,6 @@ function New-Tentacle
         Write-Verbose "Windows Firewall Service is not running... skipping firewall rule addition"
     }
 
-    $ipAddress = Get-MyPublicIPAddress
-    $ipAddress = $ipAddress.Trim()
-
-    Write-Verbose "Public IP address: $ipAddress"
     Write-Verbose "Configuring and registering Tentacle"
 
     pushd "${env:ProgramFiles}\Octopus Deploy\Tentacle"
@@ -382,21 +392,22 @@ function New-Tentacle
     Invoke-AndAssert { & .\tentacle.exe create-instance --instance $name --config $tentacleConfigFile --console }
     Invoke-AndAssert { & .\tentacle.exe configure --instance $name --home $tentacleHomeDirectory --console }
     Invoke-AndAssert { & .\tentacle.exe configure --instance $name --app $tentacleAppDirectory --console }
-
     Invoke-AndAssert { & .\tentacle.exe new-certificate --instance $name --console }
 
     $registerArguments = @("register-with",
                            "--instance", $name,
                            "--server", $octopusServerUrl,
                            "--name", "$($env:COMPUTERNAME)_$name",
-                           "--publicHostName", $ipAddress,
                            "--apiKey", $apiKey,
                            "--force",
                            "--console")
 
     if ($CommunicationMode -eq "Listen") {
         Invoke-AndAssert { & .\tentacle.exe configure --instance $name --port $port --console }
-        $registerArguments += @("--comms-style", "TentaclePassive")
+        $publicHostName = Get-PublicHostName
+        Write-Verbose "Public host name: $publicHostName"
+        $registerArguments += @("--comms-style", "TentaclePassive",
+                                "--publicHostName", $publicHostName)
     }
     else {
         Invoke-AndAssert { & .\tentacle.exe configure --instance $name --port $port --noListen "True" --console }
@@ -429,6 +440,34 @@ function New-Tentacle
     Write-Verbose "Tentacle commands complete"
 }
 
+function Get-PublicHostName
+{
+    param (
+        [ValidateSet("PublicIp", "FQDN", "ComputerName", "Custom")]
+        [string]$publicHostNameConfiguration = "PublicIp",
+        [string]$customPublicHostName
+    )
+    if ($publicHostNameConfiguration -eq "Custom")
+    {
+        $publicHostName = $customPublicHostName
+    }
+    elseif ($publicHostNameConfiguration -eq "FQDN")
+    {
+        $wmiComputer = Get-WmiObject win32_computersystem
+        $publicHostName = "$($wmiComputer.DNSHostName).$($wmiComputer.Domain)"
+    }
+    elseif ($publicHostNameConfiguration -eq "ComputerName")
+    {
+        $publicHostName = $env:COMPUTERNAME
+    }
+    else
+    {
+        $publicHostName = Get-MyPublicIPAddress
+    }
+    $publicHostName = $publicHostName.Trim()
+    return $publicHostName
+}
+
 function Get-TentacleDownloadUrl
 {
     param (
@@ -442,7 +481,6 @@ function Get-TentacleDownloadUrl
     }
     return $tentacleDownloadUrl64
 }
-
 
 function Remove-TentacleRegistration
 {
@@ -469,4 +507,3 @@ function Remove-TentacleRegistration
         Write-Verbose "Could not find Tentacle.exe"
     }
 }
-
