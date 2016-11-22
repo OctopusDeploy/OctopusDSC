@@ -407,7 +407,7 @@ function New-Tentacle
 
     if ($CommunicationMode -eq "Listen") {
         Invoke-AndAssert { & .\tentacle.exe configure --instance $name --port $port --console }
-        $publicHostName = Get-PublicHostName
+        $publicHostName = Get-PublicHostName $publicHostNameConfiguration $customPublicHostName
         Write-Verbose "Public host name: $publicHostName"
         $registerArguments += @("--comms-style", "TentaclePassive",
                                 "--publicHostName", $publicHostName)
