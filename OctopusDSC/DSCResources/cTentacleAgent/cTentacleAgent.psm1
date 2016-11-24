@@ -29,8 +29,8 @@ function Get-TargetResource
     )
 
     Write-Verbose "Checking if Tentacle is installed"
-    $installLocation = (get-itemproperty -path "HKLM:\Software\Octopus\Tentacle" -ErrorAction SilentlyContinue).InstallLocation
-    $present = ($installLocation -ne $null)
+    $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\Tentacle" -ErrorAction SilentlyContinue).InstallLocation
+    $present = ($null -ne $installLocation)
     Write-Verbose "Tentacle present: $present"
 
     $currentEnsure = if ($present) { "Present" } else { "Absent" }
@@ -39,7 +39,7 @@ function Get-TargetResource
     Write-Verbose "Checking for Windows Service: $serviceName"
     $serviceInstance = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
     $currentState = "Stopped"
-    if ($serviceInstance -ne $null)
+    if ($null -ne $serviceInstance)
     {
         Write-Verbose "Windows service: $($serviceInstance.Status)"
         if ($serviceInstance.Status -eq "Running")
@@ -124,7 +124,7 @@ function Set-TargetResource
         Write-Verbose "Deleting service $serviceName..."
         Invoke-AndAssert { & sc.exe delete $serviceName }
 
-        $otherServices = @(Get-WmiObject win32_service | ? {$_.PathName -like "`"$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe*"})
+        $otherServices = @(Get-CimInstance win32_service | Where-Object {$_.PathName -like "`"$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe*"})
 
         if ($otherServices.length -eq 0)
         {
@@ -238,7 +238,7 @@ function Test-TargetResource
         return $false
     }
 
-    if ($currentResource["TentacleDownloadUrl"] -ne $null) {
+    if ($null -ne $currentResource["TentacleDownloadUrl"]) {
         $requestedDownloadUrl = Get-TentacleDownloadUrl $tentacleDownloadUrl $tentacleDownloadUrl64
         $downloadUrlsMatch = $requestedDownloadUrl -eq $currentResource["TentacleDownloadUrl"]
         Write-Verbose "Download Url: $($currentResource["TentacleDownloadUrl"]) vs. $requestedDownloadUrl = $downloadUrlsMatch"
@@ -281,7 +281,7 @@ function Invoke-AndAssert {
     param ($block)
 
     & $block | Write-Verbose
-    if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne $null)
+    if ($LASTEXITCODE -ne 0 -and $null -ne $LASTEXITCODE)
     {
         throw "Command returned exit code $LASTEXITCODE"
     }
@@ -387,7 +387,7 @@ function New-Tentacle
 
     Write-Verbose "Configuring and registering Tentacle"
 
-    pushd "${env:ProgramFiles}\Octopus Deploy\Tentacle"
+    Push-Location "${env:ProgramFiles}\Octopus Deploy\Tentacle"
 
     $tentacleHomeDirectory = "$($env:SystemDrive)\Octopus"
     $tentacleAppDirectory = $DefaultApplicationDirectory
@@ -439,7 +439,7 @@ function New-Tentacle
     Write-Verbose "Registering with arguments: $registerArguments"
     Invoke-AndAssert { & .\tentacle.exe ($registerArguments) }
 
-    popd
+    Pop-Location
     Write-Verbose "Tentacle commands complete"
 }
 
@@ -456,8 +456,8 @@ function Get-PublicHostName
     }
     elseif ($publicHostNameConfiguration -eq "FQDN")
     {
-        $wmiComputer = Get-WmiObject win32_computersystem
-        $publicHostName = "$($wmiComputer.DNSHostName).$($wmiComputer.Domain)"
+        $computer = Get-CimInstance win32_computersystem
+        $publicHostName = "$($computer.DNSHostName).$($computer.Domain)"
     }
     elseif ($publicHostNameConfiguration -eq "ComputerName")
     {
@@ -501,9 +501,9 @@ function Remove-TentacleRegistration
     {
         Write-Verbose "Beginning Tentacle deregistration"
         Write-Verbose "Tentacle commands complete"
-        pushd $tentacleDir
+        Push-Location $tentacleDir
         Invoke-AndAssert { & .\tentacle.exe deregister-from --instance "$name" --server $octopusServerUrl --apiKey $apiKey --console }
-        popd
+        Pop-Location
     }
     else
     {

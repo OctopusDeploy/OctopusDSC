@@ -180,3 +180,5 @@ packer_cache/
 *.box
 .vagrant/
 vagrant_*.pem
+
+PesterTestResults.xml

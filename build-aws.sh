@@ -6,7 +6,7 @@ function check_plugin_installed() {
     vagrant plugin list | grep -i "$param " > /dev/null
 
     if [ $? == 0 ]; then
-      echo " Vagrant plugin $param exists - good."
+      echo "Vagrant plugin $param exists - good."
     else
       echo "Vagrant plugin $param not installed."
       vagrant plugin install $param
@@ -42,11 +42,49 @@ if [ $? != 0 ]; then
 fi
 echo "AWS CLI installed - good."
 
+POWERSHELL_INSTALLED=0
+which powershell > /dev/null
+if [ $? != 0 ]; then
+  POWERSHELL_INSTALLED=1
+  echo "Powershell does not appear to be installed. To install, see https://github.com/PowerShell/PowerShell/blob/master/docs/installation/linux.md."
+else
+  echo "Powershell installed - good."
+fi
+
 check_plugin_installed "vagrant-aws"
 check_plugin_installed "vagrant-aws-winrm"
 check_plugin_installed "vagrant-dsc"
 check_plugin_installed "vagrant-winrm"
 check_plugin_installed "vagrant-winrm-syncedfolders"
+
+if [ $POWERSHELL_INSTALLED == 0 ]; then
+  if [ -z "$PSSCRIPTANALZYER_PATH" ]; then
+    if [ -e /opt/PowerShell/PSScriptAnalyzer/out/PSScriptAnalyzer ]; then
+      PSSCRIPTANALZYER_PATH = "/opt/PowerShell/PSScriptAnalyzer/out/PSScriptAnalyzer"
+    else
+      echo "Could not find PSScriptAnalyzer. Please set environment variable PSSCRIPTANALZYER_PATH to the folder containing PSScriptAnalyzer.psm1."
+      echo "Skipping PSScriptAnalyzer testing."
+    fi
+  fi
+
+  if [ -n "$PSSCRIPTANALZYER_PATH" ]; then
+    echo "Running PSScriptAnalyzer"
+    powershell -command "Import-Module $PSSCRIPTANALZYER_PATH; \$results = Invoke-ScriptAnalyzer ./OctopusDSC/DSCResources/cTentacleAgent/cTentacleAgent.psm1 -exclude @('PSUseShouldProcessForStateChangingFunctions'); write-output \$results; exit \$results.length"
+    if [ $? != 0 ]; then
+      echo "PSScriptAnalyzer found issues."
+      echo "##teamcity[buildStatus text='{build.status.text}. PSScriptAnalyzer found errors.']"
+      exit 1
+    fi
+  fi
+
+  echo "Running Pester Tests"
+  powershell -command "Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -EnableExit"
+  if [ $? != 0 ]; then
+    echo "Pester tests failed."
+    echo "##teamcity[buildStatus text='{build.status.text}. Pester tests failed.']"
+    exit 1
+  fi
+fi
 
 RANDOM_GUID=$(python -c 'import uuid; print str(uuid.uuid4())')
 export KEY_NAME="vagrant_$RANDOM_GUID"
