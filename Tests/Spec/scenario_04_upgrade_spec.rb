@@ -26,6 +26,7 @@ describe port(10933) do
 end
 
 describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "Tentacle") do
+  it { should exist }
   it { should be_registered_with_the_server }
   # disabled for now - we are registering as a passive tentacle, but we are not publically
   # accessible from the server, so we register okay, but dont come online.

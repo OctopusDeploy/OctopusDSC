@@ -32,6 +32,7 @@ describe port(10933) do
 end
 
 describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "ListeningTentacle") do
+  it { should exist }
   it { should be_registered_with_the_server }
   # disabled for now - we are registering as a passive tentacle, but we are not publically
   # accessible from the server, so we register okay, but dont come online.
@@ -55,6 +56,7 @@ describe service('OctopusDeploy Tentacle: PollingTentacle') do
 end
 
 describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "PollingTentacle") do
+  it { should exist }
   it { should be_registered_with_the_server }
   it { should be_online }
   it { should be_in_environment('The Environment') }
