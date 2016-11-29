@@ -40,17 +40,6 @@ if (-not (Test-Path "c:\temp\serverspec-installed.marker")) {
 
 echo "##teamcity[blockClosed name='Install ServerSpec']"
 
-echo "##teamcity[blockOpened name='Installing Chocolatey']"
-# need chocolatey to install git
-if (-not (Test-Path "c:\temp\chocolatey-installed.marker")) {
-  write-output "Installing Chocolatey"
-  iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-  if ($LASTEXITCODE -ne 0) { exit 1 }
-  set-content "c:\temp\chocolatey-installed.marker" ""
-}
-
-echo "##teamcity[blockClosed name='Installing Chocolatey']"
-
 echo "##teamcity[blockOpened name='Installing Git 2.10.1']"
 # need git to install octopus-serverspec-extensions from github
 if (-not (Test-Path "c:\temp\git-installed.marker")) {
