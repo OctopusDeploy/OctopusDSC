@@ -24,6 +24,7 @@ Configuration Scenario_04_Upgrade
             # Optional settings
             ListenPort = $ListenPort;
             DefaultApplicationDirectory = "C:\Applications"
+            PublicHostNameConfiguration = "ComputerName"
         }
     }
 }

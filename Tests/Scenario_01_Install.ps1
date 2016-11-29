@@ -24,6 +24,7 @@ Configuration Scenario_01_Install
             # Optional settings
             ListenPort = $ListenPort;
             DefaultApplicationDirectory = "C:\Applications"
+            PublicHostNameConfiguration = "ComputerName"
         }
 
         cTentacleAgent PollingTentacle

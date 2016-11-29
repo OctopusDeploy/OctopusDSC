@@ -31,7 +31,7 @@ describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], 
   # disabled for now - we are registering as a passive tentacle, but we are not publically
   # accessible from the server, so we register okay, but dont come online.
   #it { should be_online }
-  it { should be_in_environment('The Environment') }
+  it { should be_in_environment('The-Env') }
   it { should have_role('Test-Tentacle') }
 end
 

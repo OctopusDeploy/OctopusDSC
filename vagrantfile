@@ -4,8 +4,6 @@ VAGRANTFILE_API_VERSION = "2"
 
 $run_test_scenario_script = <<SCRIPT
   write-output "##teamcity[blockOpened name='Testing Scenario {scenario_name}']"
-  $env:OctopusServerUrl="#{ENV['OCTOPUS_SERVER_URL']}"
-  $env:OctopusApiKey="#{ENV['OCTOPUS_API_KEY']}"
   $env:TEAMCITY_PROJECT_NAME="#{ENV['TEAMCITY_PROJECT_NAME']}"
   set-location c:/temp/tests
   write-host executing bundle exec rspec Spec/{scenario_name}_spec.rb
@@ -45,7 +43,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     aws.access_key_id = ENV['AWS_ACCESS_KEY_ID']
     aws.secret_access_key = ENV['AWS_SECRET_ACCESS_KEY']
     aws.region = "ap-southeast-2"
-    aws.ami = "ami-74043617"
+    aws.ami = "ami-1e48717d"
     aws.keypair_name = "#{ENV['KEY_NAME']}"
     aws.tags = {
       'Name' => 'Vagrant DSC testing'
@@ -59,7 +57,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     override.ssh.private_key_path = "./#{ENV['KEY_NAME']}.pem"
     override.winrm.username = "Administrator"
     override.winrm.password = :aws # this uses the vagrant-aws-winrm plugin to get the password from aws
-    # override.winrm.transport = :ssl
+    override.winrm.transport = :ssl
+    override.winrm.port = 5986
+    override.winrm.ssl_peer_verification = false
   end
 
   # vagrant appears to be not closing connections (might not be needed after upgrading to vagrant 1.8.7)
@@ -71,6 +71,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #install ruby / serverspec
   config.vm.provision "shell", path: "Tests/install-serverspec.ps1"
   config.vm.provision "shell", path: "Tests/install-test-dependencies.ps1"
+  config.vm.provision "shell", path: "Tests/install-octopus-server.ps1"
   #restart the dsc host to reset the cache (much easier in ps5, but we are targeting ps4)
   config.vm.provision "shell", path: "Tests/clear-dsc-cache.ps1"
   # in theory, we shouldn't have to do this - the vagrant-dsc should upload it automatically, but cant get it to work
@@ -82,11 +83,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.configuration_params = {
-      "-MachineName" => "localhost",
-      "-HostName" => "#{hostname}",
-      "-OctopusServerUrl" => "#{ENV['OCTOPUS_SERVER_URL']}",
-      "-ApiKey" => "#{ENV['OCTOPUS_API_KEY']}",
-      "-Environments" => "The Environment",
+      "-OctopusServerUrl" => "$ENV:OctopusServerUrl",
+      "-ApiKey" => "$ENV:OctopusApiKey",
+      "-Environments" => "The-Env",
       "-Roles" => "Test-Tentacle",
       "-ListenPort" => "10933"
     }
@@ -101,11 +100,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.configuration_params = {
-      "-MachineName" => "localhost",
-      "-HostName" => "#{hostname}",
-      "-OctopusServerUrl" => "#{ENV['OCTOPUS_SERVER_URL']}",
-      "-ApiKey" => "#{ENV['OCTOPUS_API_KEY']}",
-      "-Environments" => "The Environment",
+      "-OctopusServerUrl" => "$ENV:OctopusServerUrl",
+      "-ApiKey" => "$ENV:OctopusApiKey",
+      "-Environments" => "The-Env",
       "-Roles" => "Test-Tentacle",
       "-ListenPort" => "10933"
     }
@@ -120,11 +117,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.configuration_params = {
-      "-MachineName" => "localhost",
-      "-HostName" => "#{hostname}",
-      "-OctopusServerUrl" => "#{ENV['OCTOPUS_SERVER_URL']}",
-      "-ApiKey" => "#{ENV['OCTOPUS_API_KEY']}",
-      "-Environments" => "The Environment",
+      "-OctopusServerUrl" => "$ENV:OctopusServerUrl",
+      "-ApiKey" => "$ENV:OctopusApiKey",
+      "-Environments" => "The-Env",
       "-Roles" => "Test-Tentacle",
       "-ListenPort" => "10933"
     }
@@ -139,11 +134,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.configuration_params = {
-      "-MachineName" => "localhost",
-      "-HostName" => "#{hostname}",
-      "-OctopusServerUrl" => "#{ENV['OCTOPUS_SERVER_URL']}",
-      "-ApiKey" => "#{ENV['OCTOPUS_API_KEY']}",
-      "-Environments" => "The Environment",
+      "-OctopusServerUrl" => "$ENV:OctopusServerUrl",
+      "-ApiKey" => "$ENV:OctopusApiKey",
+      "-Environments" => "The-Env",
       "-Roles" => "Test-Tentacle",
       "-ListenPort" => "10933"
     }
