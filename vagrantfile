@@ -64,18 +64,31 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # vagrant appears to be not closing connections (might not be needed after upgrading to vagrant 1.8.7)
   config.vm.provision "shell", inline: "Set-Item WSMan:\\localhost\\Shell\\MaxShellsPerUser 500"
-  #delete existing tests if they exist (for dev)
+  # delete existing tests if they exist (for dev)
   config.vm.provision "shell", inline: "if (Test-Path 'c:\\temp\\tests') {remove-item -force -recurse 'c:\\temp\\tests' }"
-  #upload tests
+  # upload tests
   config.vm.provision "file", source: "Tests", destination: "c:\\temp\\tests"
-  #install ruby / serverspec
+  # install ruby / serverspec
   config.vm.provision "shell", path: "Tests/install-serverspec.ps1"
   config.vm.provision "shell", path: "Tests/install-test-dependencies.ps1"
   config.vm.provision "shell", path: "Tests/install-octopus-server.ps1"
-  #restart the dsc host to reset the cache (much easier in ps5, but we are targeting ps4)
+  # restart the dsc host to reset the cache (much easier in ps5, but we are targeting ps4)
   config.vm.provision "shell", path: "Tests/clear-dsc-cache.ps1"
   # in theory, we shouldn't have to do this - the vagrant-dsc should upload it automatically, but cant get it to work
   config.vm.provision "file", source: "OctopusDSC", destination: 'C:\Windows\System32\WindowsPowerShell\v1.0\modules\OctopusDSC'
+
+  # Run DSC to install server
+  config.vm.provision "dsc" do |dsc|
+    dsc.configuration_file  = "Scenario_00_Install_Server.ps1"
+    dsc.configuration_data_file  = "Tests/Configuration.psd1"
+    dsc.manifests_path = "Tests"
+  end
+
+  config.vm.provision "dsc" do |dsc|
+    dsc.configuration_file  = "Scenario_00_Remove_Server.ps1"
+    dsc.configuration_data_file  = "Tests/Configuration.psd1"
+    dsc.manifests_path = "Tests"
+  end
 
   # Run DSC for scenario 1 (initial install)
   config.vm.provision "dsc" do |dsc|

@@ -69,7 +69,7 @@ if [ $POWERSHELL_INSTALLED == 0 ]; then
 
   if [ -n "$PSSCRIPTANALZYER_PATH" ]; then
     echo "Running PSScriptAnalyzer"
-    powershell -command "Import-Module $PSSCRIPTANALZYER_PATH; \$results = Invoke-ScriptAnalyzer ./OctopusDSC/DSCResources/cTentacleAgent/cTentacleAgent.psm1 -exclude @('PSUseShouldProcessForStateChangingFunctions'); write-output \$results; exit \$results.length"
+    powershell -command "Import-Module $PSSCRIPTANALZYER_PATH; \$results = Invoke-ScriptAnalyzer ./OctopusDSC/DSCResources -recurse -exclude @('PSUseShouldProcessForStateChangingFunctions', 'PSAvoidUsingPlainTextForPassword', 'PSAvoidUsingUserNameAndPassWordParams'); write-output \$results; exit \$results.length"
     if [ $? != 0 ]; then
       echo "PSScriptAnalyzer found issues."
       echo "##teamcity[buildStatus text='{build.status.text}. PSScriptAnalyzer found errors.']"
@@ -99,7 +99,7 @@ fi
 
 chmod 400 $KEY_NAME.pem
 
-echo "Running 'vagrant up'"
+echo "Running 'vagrant up --provider aws'"
 vagrant up --provider aws # --debug &> vagrant.log
 VAGRANT_UP_EXIT_CODE=$?
 echo "'vagrant up' exited with exit code $VAGRANT_UP_EXIT_CODE"
