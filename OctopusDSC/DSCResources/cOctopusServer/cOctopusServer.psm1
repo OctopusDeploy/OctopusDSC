@@ -1,3 +1,5 @@
+$installStateFile = "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate"
+
 function Get-TargetResource
 {
   [OutputType([Hashtable])]
@@ -23,11 +25,11 @@ function Get-TargetResource
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
     [string]$OctopusAdminPassword,
-    [bool]$upgradeCheck = $true,
-    [bool]$upgradeCheckWithStatistics = $true,
-    [string]$webAuthenticationMode = 'UsernamePassword',
-    [bool]$forceSSL = $false,
-    [int]$listenPort = 10943
+    [bool]$UpgradeCheck = $true,
+    [bool]$UpgradeCheckWithStatistics = $true,
+    [string]$WebAuthenticationMode = 'UsernamePassword',
+    [bool]$ForceSSL = $false,
+    [int]$ListenPort = 10943
   )
 
   Write-Verbose "Checking if Octopus Server is installed"
@@ -62,8 +64,8 @@ function Get-TargetResource
   }
 
   $existingDownloadUrl = $null
-  if (($existingEnsure -eq "Present") -and (Test-Path ("$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate"))) {
-    $existingDownloadUrl = (Get-Content -Raw -Path "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate" | ConvertFrom-Json).TentacleDownloadUrl
+  if (($existingEnsure -eq "Present") -and (Test-Path $installStateFile)) {
+    $existingDownloadUrl = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json).DownloadUrl
   }
 
   $existingWebListenPrefix = $null
@@ -74,7 +76,7 @@ function Get-TargetResource
     $existingWebListenPrefix = $existingConfig.OctopusWebPortalListenPrefixes
   }
 
-  return @{
+  $currentResource = @{
     Name = $Name;
     Ensure = $existingEnsure;
     State = $existingState;
@@ -82,6 +84,13 @@ function Get-TargetResource
     WebListenPrefix = $existingWebListenPrefix;
     SqlDbConnectionString = $existingSqlDbConnectionString;
   }
+
+  Write-Verbose "Existing state is:"
+  $currentResource.Keys | ForEach-Object { write-verbose "* $_ = '$($currentResource.Item($_))'" }
+  Write-Verbose "Requested state is:"
+  $PSBoundParameters.Keys | ForEach-Object { write-verbose "* $_ = '$($PSBoundParameters.Item($_))'" }
+
+  return $currentResource
 }
 
 function Import-ServerConfig
@@ -112,8 +121,8 @@ function Import-ServerConfig
     throw "Octopus.Server.exe path '$OctopusServerExePath' does not exist."
   }
 
-  $file = Get-Item -LiteralPath $OctopusServerExePath -ErrorAction Stop
-  if ($file -isnot [System.IO.FileInfo])
+  $exeFile = Get-Item -LiteralPath $OctopusServerExePath -ErrorAction Stop
+  if ($exeFile -isnot [System.IO.FileInfo])
   {
     throw "Octopus.Server.exe path '$OctopusServerExePath ' does not refer to a file."
   }
@@ -176,11 +185,11 @@ function Set-TargetResource
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
     [string]$OctopusAdminPassword,
-    [bool]$upgradeCheck = $true,
-    [bool]$upgradeCheckWithStatistics = $true,
-    [string]$webAuthenticationMode = 'UsernamePassword',
-    [bool]$forceSSL = $false,
-    [int]$listenPort = 10943
+    [bool]$UpgradeCheck = $true,
+    [bool]$UpgradeCheckWithStatistics = $true,
+    [string]$WebAuthenticationMode = 'UsernamePassword',
+    [bool]$ForceSSL = $false,
+    [int]$ListenPort = 10943
   )
 
   if ($Ensure -eq "Absent" -and $State -eq "Started")
@@ -198,14 +207,11 @@ function Set-TargetResource
                                          -SqlDbConnectionString $SqlDbConnectionString `
                                          -OctopusAdminUsername $OctopusAdminUsername `
                                          -OctopusAdminPassword $OctopusAdminPassword `
-                                         -UpgradeCheck $upgradeCheck `
-                                         -UpgradeCheckWithStatistics $upgradeCheckWithStatistics `
-                                         -WebAuthenticationMode $webAuthenticationMode `
-                                         -ForceSSL $forceSSL `
-                                         -ListenPort $listenPort)
-
-  Write-Verbose "Current resource is:"
-  $currentResource.Keys | ForEach-Object { write-verbose "* $_ = '$($currentResource.Item($_))'" }
+                                         -UpgradeCheck $UpgradeCheck `
+                                         -UpgradeCheckWithStatistics $UpgradeCheckWithStatistics `
+                                         -WebAuthenticationMode $WebAuthenticationMode `
+                                         -ForceSSL $ForceSSL `
+                                         -ListenPort $ListenPort)
 
   if ($State -eq "Stopped" -and $currentResource["State"] -eq "Started")
   {
@@ -218,11 +224,10 @@ function Set-TargetResource
   {
     $serviceName = (Get-ServiceName $Name)
     Write-Verbose "Deleting service $serviceName..."
+    $services = @(Get-CimInstance win32_service | Where-Object {$_.PathName -like "`"$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe*"})
     Invoke-AndAssert { & sc.exe delete $serviceName }
 
-    $otherServices = @(Get-CimInstance win32_service | Where-Object {$_.PathName -like "`"$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe*"})
-
-    if ($otherServices.length -eq 0)
+    if ($services.length -eq 1)
     {
       # Uninstall msi
       Write-Verbose "Uninstalling Octopus..."
@@ -329,7 +334,7 @@ function Install-OctopusDeploy
         throw "Installation of the MSI failed; MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
     }
 
-    @{ "DownloadUrl" = $downloadUrl } | ConvertTo-Json | set-content "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate"
+    @{ "DownloadUrl" = $downloadUrl } | ConvertTo-Json | set-content $installStateFile
 }
 
 function Request-File
@@ -526,11 +531,11 @@ function Test-TargetResource
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
     [string]$OctopusAdminPassword,
-    [bool]$upgradeCheck = $true,
-    [bool]$upgradeCheckWithStatistics = $true,
-    [string]$webAuthenticationMode = 'UsernamePassword',
-    [bool]$forceSSL = $false,
-    [int]$listenPort = 10943
+    [bool]$UpgradeCheck = $true,
+    [bool]$UpgradeCheckWithStatistics = $true,
+    [string]$WebAuthenticationMode = 'UsernamePassword',
+    [bool]$ForceSSL = $false,
+    [int]$ListenPort = 10943
   )
 
   $currentResource = (Get-TargetResource -Ensure $Ensure `
@@ -541,11 +546,11 @@ function Test-TargetResource
                                          -SqlDbConnectionString $SqlDbConnectionString `
                                          -OctopusAdminUsername $OctopusAdminUsername `
                                          -OctopusAdminPassword $OctopusAdminPassword `
-                                         -UpgradeCheck $upgradeCheck `
-                                         -UpgradeCheckWithStatistics $upgradeCheckWithStatistics `
-                                         -WebAuthenticationMode $webAuthenticationMode `
-                                         -ForceSSL $forceSSL `
-                                         -ListenPort $listenPort)
+                                         -UpgradeCheck $UpgradeCheck `
+                                         -UpgradeCheckWithStatistics $UpgradeCheckWithStatistics `
+                                         -WebAuthenticationMode $WebAuthenticationMode `
+                                         -ForceSSL $ForceSSL `
+                                         -ListenPort $ListenPort)
 
   $match = $currentResource["Ensure"] -eq $Ensure
   Write-Verbose "Ensure: $($currentResource["Ensure"]) vs. $Ensure = $match"
@@ -571,7 +576,7 @@ function Test-TargetResource
 
   if ($null -ne $currentResource["WebListenPrefix"]) {
     $match = $WebListenPrefix -eq $currentResource["WebListenPrefix"]
-    Write-Verbose "Download Url: $($currentResource["WebListenPrefix"]) vs. $WebListenPrefix = $match"
+    Write-Verbose "WebListenPrefix: $($currentResource["WebListenPrefix"]) vs. $WebListenPrefix = $match"
     if (!$match) {
       return $false
     }
@@ -579,7 +584,7 @@ function Test-TargetResource
 
   if ($null -ne $currentResource["SqlDbConnectionString"]) {
     $match = $SqlDbConnectionString -eq $currentResource["SqlDbConnectionString"]
-    Write-Verbose "Download Url: $($currentResource["SqlDbConnectionString"]) vs. $SqlDbConnectionString = $match"
+    Write-Verbose "SqlDbConnectionString: $($currentResource["SqlDbConnectionString"]) vs. $SqlDbConnectionString = $match"
     if (!$match) {
         return $false
     }

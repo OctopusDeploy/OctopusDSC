@@ -30,8 +30,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     v.customize ["modifyvm", :id, "--audio", "none"]
     v.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
     v.customize ["modifyvm", :id, "--usb", "off"]
-    override.vm.box = "mfellows/windows2012r2"
-    override.vm.box_version = "1.0.1"
+#    override.vm.box = "mfellows/windows2012r2"
+#    override.vm.box_version = "1.0.1"
+    override.vm.box = "packer_virtualbox-iso_virtualbox"
     override.vm.network :forwarded_port, guest: 5985, host: 5985, id: "winrm", auto_correct: true
     override.vm.network :forwarded_port, guest: 80,   host: 8000, id: "web"
     override.vm.network :forwarded_port, guest: 443, host: 8443,  id: "ssl"
@@ -71,7 +72,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # install ruby / serverspec
   config.vm.provision "shell", path: "Tests/install-serverspec.ps1"
   config.vm.provision "shell", path: "Tests/install-test-dependencies.ps1"
-  config.vm.provision "shell", path: "Tests/install-octopus-server.ps1"
+  # we are now relying on DSC to install the server
+  # config.vm.provision "shell", path: "Tests/install-octopus-server.ps1"
   # restart the dsc host to reset the cache (much easier in ps5, but we are targeting ps4)
   config.vm.provision "shell", path: "Tests/clear-dsc-cache.ps1"
   # in theory, we shouldn't have to do this - the vagrant-dsc should upload it automatically, but cant get it to work
@@ -79,20 +81,46 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # Run DSC to install server
   config.vm.provision "dsc" do |dsc|
-    dsc.configuration_file  = "Scenario_00_Install_Server.ps1"
+    dsc.configuration_file  = "Server_Scenario_01_Install.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
   end
 
+  #run tests for server scenario 1 (initial install)
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_01_install')
+
   config.vm.provision "dsc" do |dsc|
-    dsc.configuration_file  = "Scenario_00_Remove_Server.ps1"
+    dsc.configuration_file  = "Server_Scenario_02_Remove.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
   end
+
+  #run tests for server scenario 2 (remove)
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_02_remove')
+
+  config.vm.provision "dsc" do |dsc|
+    dsc.configuration_file  = "Server_Scenario_03_Reinstall.ps1"
+    dsc.configuration_data_file  = "Tests/Configuration.psd1"
+    dsc.manifests_path = "Tests"
+  end
+
+  #run tests for server scenario 3 (reinstall old version)
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_03_reinstall')
+
+  config.vm.provision "dsc" do |dsc|
+    dsc.configuration_file  = "Server_Scenario_04_Upgrade.ps1"
+    dsc.configuration_data_file  = "Tests/Configuration.psd1"
+    dsc.manifests_path = "Tests"
+  end
+
+  #run tests for server scenario 4 (upgrade)
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_04_upgrade')
+
+  config.vm.provision "shell", path: "Tests/configure-octopus-for-tentacle-tests.ps1"
 
   # Run DSC for scenario 1 (initial install)
   config.vm.provision "dsc" do |dsc|
-    dsc.configuration_file  = "Scenario_01_Install.ps1"
+    dsc.configuration_file  = "Tentacle_Scenario_01_Install.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.configuration_params = {
@@ -104,12 +132,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     }
   end
 
-  #run tests for scenario 1 (initial install)
-  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'scenario_01_install')
+  #run tests for tentacle scenario 1 (initial install)
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_01_install')
 
-  # Run DSC for scenario 2 (uninstall)
+  # Run DSC for tentacle scenario 2 (uninstall)
   config.vm.provision "dsc" do |dsc|
-    dsc.configuration_file  = "Scenario_02_Remove.ps1"
+    dsc.configuration_file  = "Tentacle_Scenario_02_Remove.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.configuration_params = {
@@ -121,12 +149,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     }
   end
 
-  #run tests for scenario 2 (initial install)
-  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'scenario_02_remove')
+  #run tests for tentacle scenario 2 (initial install)
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_02_remove')
 
-  # Run DSC for scenario 3 (subsequent re-install)
+  # Run DSC for tentacle scenario 3 (subsequent re-install)
   config.vm.provision "dsc" do |dsc|
-    dsc.configuration_file  = "Scenario_03_Reinstall.ps1"
+    dsc.configuration_file  = "Tentacle_Scenario_03_Reinstall.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.configuration_params = {
@@ -138,12 +166,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     }
   end
 
-  #run tests for scenario 3 (subsequent re-install)
-  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'scenario_03_reinstall')
+  #run tests for tentacle scenario 3 (subsequent re-install)
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_03_reinstall')
 
-  # Run DSC for scenario 4 (upgrade)
+  # Run DSC for tentacle scenario 4 (upgrade)
   config.vm.provision "dsc" do |dsc|
-    dsc.configuration_file  = "Scenario_04_Upgrade.ps1"
+    dsc.configuration_file  = "Tentacle_Scenario_04_Upgrade.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.configuration_params = {
@@ -155,7 +183,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     }
   end
 
-  #run tests for scenario 4 (upgrade)
-  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'scenario_04_upgrade')
+  #run tests for tentacle scenario 4 (upgrade)
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_04_upgrade')
 
 end

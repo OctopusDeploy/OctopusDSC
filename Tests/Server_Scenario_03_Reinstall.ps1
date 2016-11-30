@@ -1,4 +1,4 @@
-Configuration Scenario_00_Install_Server
+Configuration Server_Scenario_03_Reinstall
 {
     Import-DscResource -ModuleName OctopusDSC
 
@@ -19,8 +19,13 @@ Configuration Scenario_00_Install_Server
             SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusDeploy;Trusted_Connection=True;"
 
             # The admin user to create
-            OctopusAdminUsername = "Admin"
-            OctopusAdminPassword = "SuperS3cretPassw0rd"
+            OctopusAdminUsername = "OctoAdmin"
+            OctopusAdminPassword = "SuperS3cretPassw0rd!"
+
+            DownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.3.3.24-x64.msi"
+
+            # dont mess with stats
+            UpgradeCheckWithStatistics = $false
         }
     }
 }

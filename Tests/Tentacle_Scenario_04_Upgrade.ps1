@@ -1,4 +1,4 @@
-Configuration Scenario_03_Reinstall
+Configuration Tentacle_Scenario_04_Upgrade
 {
     param ($OctopusServerUrl, $ApiKey, $Environments, $Roles, $ListenPort)
 
@@ -24,8 +24,6 @@ Configuration Scenario_03_Reinstall
             # Optional settings
             ListenPort = $ListenPort;
             DefaultApplicationDirectory = "C:\Applications"
-            TentacleDownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.Tentacle.3.3.24.msi"
-            TentacleDownloadUrl64 = "https://download.octopusdeploy.com/octopus/Octopus.Tentacle.3.3.24-x64.msi"
             PublicHostNameConfiguration = "ComputerName"
         }
     }

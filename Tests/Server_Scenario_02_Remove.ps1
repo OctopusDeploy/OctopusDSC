@@ -1,4 +1,4 @@
-Configuration Scenario_00_Remove_Server
+Configuration Server_Scenario_02_Remove
 {
     Import-DscResource -ModuleName OctopusDSC
 
@@ -16,11 +16,14 @@ Configuration Scenario_00_Remove_Server
             # The url that Octopus will listen on
             WebListenPrefix = "http://localhost:81"
 
-            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusDeploy;Trusted_Connection=True;"
+            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=Octopus;Trusted_Connection=True;"
 
             # The admin user to create
-            OctopusAdminUsername = "Admin"
-            OctopusAdminPassword = "SuperS3cretPassw0rd"
+            OctopusAdminUsername = "OctoAdmin"
+            OctopusAdminPassword = "SuperS3cretPassw0rd!"
+
+            # dont mess with stats
+            UpgradeCheckWithStatistics = $false
         }
     }
 }

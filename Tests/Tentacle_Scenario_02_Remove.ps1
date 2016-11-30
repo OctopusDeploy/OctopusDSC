@@ -1,4 +1,4 @@
-Configuration Scenario_01_Install
+Configuration Tentacle_Scenario_02_Remove
 {
     param ($OctopusServerUrl, $ApiKey, $Environments, $Roles, $ListenPort)
 
@@ -8,8 +8,8 @@ Configuration Scenario_01_Install
     {
         cTentacleAgent ListeningTentacle
         {
-            Ensure = "Present";
-            State = "Started";
+            Ensure = "Absent";
+            State = "Stopped";
 
             # Tentacle instance name. Leave it as 'Tentacle' unless you have more
             # than one instance
@@ -24,13 +24,12 @@ Configuration Scenario_01_Install
             # Optional settings
             ListenPort = $ListenPort;
             DefaultApplicationDirectory = "C:\Applications"
-            PublicHostNameConfiguration = "ComputerName"
         }
 
         cTentacleAgent PollingTentacle
         {
-            Ensure = "Present";
-            State = "Started";
+            Ensure = "Absent";
+            State = "Stopped";
 
             # Tentacle instance name. Leave it as 'Tentacle' unless you have more
             # than one instance
