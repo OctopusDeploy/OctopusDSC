@@ -72,8 +72,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # install ruby / serverspec
   config.vm.provision "shell", path: "Tests/install-serverspec.ps1"
   config.vm.provision "shell", path: "Tests/install-test-dependencies.ps1"
-  # we are now relying on DSC to install the server
-  # config.vm.provision "shell", path: "Tests/install-octopus-server.ps1"
   # restart the dsc host to reset the cache (much easier in ps5, but we are targeting ps4)
   config.vm.provision "shell", path: "Tests/clear-dsc-cache.ps1"
   # in theory, we shouldn't have to do this - the vagrant-dsc should upload it automatically, but cant get it to work
