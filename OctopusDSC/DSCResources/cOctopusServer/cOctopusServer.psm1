@@ -183,6 +183,7 @@ function Import-ServerConfig
 
 function Set-TargetResource
 {
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSDSCUseVerboseMessageInDSCResource", "The Write-Verbose calls are in other methods")]
   param (
     [ValidateSet("Present", "Absent")]
     [string]$Ensure = "Present",
@@ -258,19 +259,19 @@ function Set-TargetResource
   }
   elseif ($Ensure -eq "Present" -and $currentResource["DownloadUrl"] -ne $DownloadUrl)
   {
-    Upgrade-OctopusDeploy $Name $DownloadUrl $State
+    Update-OctopusDeploy $Name $DownloadUrl $State
   }
 
   $params = Get-Parameters $MyInvocation.MyCommand.Parameters
-  if (Should-Reconfigure $currentResource $params)
+  if (Test-ReconfigurationRequired $currentResource $params)
   {
-    Reconfigure-OctopusDeploy -name $Name `
-                              -webListenPrefix $WebListenPrefix `
-                              -upgradeCheck $UpgradeCheck `
-                              -UpgradeCheckWithStatistics $UpgradeCheckWithStatistics `
-                              -webAuthenticationMode $WebAuthenticationMode `
-                              -forceSSL $ForceSSL `
-                              -listenPort $ListenPort
+    Set-OctopusDeployConfiguration -name $Name `
+                                   -webListenPrefix $WebListenPrefix `
+                                   -upgradeCheck $UpgradeCheck `
+                                   -UpgradeCheckWithStatistics $UpgradeCheckWithStatistics `
+                                   -webAuthenticationMode $WebAuthenticationMode `
+                                   -forceSSL $ForceSSL `
+                                   -listenPort $ListenPort
   }
 
   if ($State -eq "Started" -and $currentResource["State"] -eq "Stopped")
@@ -279,7 +280,7 @@ function Set-TargetResource
   }
 }
 
-function Reconfigure-OctopusDeploy
+function Set-OctopusDeployConfiguration
 {
   param (
     [Parameter(Mandatory=$True)]
@@ -309,7 +310,7 @@ function Reconfigure-OctopusDeploy
   Invoke-OctopusServerCommand $args
 }
 
-function Should-Reconfigure($currentState, $desiredState)
+function Test-ReconfigurationRequired($currentState, $desiredState)
 {
   $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'UpgradeCheckWithStatistics', 'UpgradeCheck')
   foreach($property in $reconfigurableProperties)
@@ -360,7 +361,7 @@ function Uninstall-OctopusDeploy($name)
   }
 }
 
-function Upgrade-OctopusDeploy($name, $downloadUrl, $state)
+function Update-OctopusDeploy($name, $downloadUrl, $state)
 {
   Write-Verbose "Upgrading Octopus Deploy..."
   $serviceName = (Get-ServiceName $name)
