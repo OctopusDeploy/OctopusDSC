@@ -64,16 +64,29 @@ function Get-TargetResource
   }
 
   $existingDownloadUrl = $null
-  if (($existingEnsure -eq "Present") -and (Test-Path $installStateFile)) {
-    $existingDownloadUrl = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json).DownloadUrl
-  }
-
   $existingWebListenPrefix = $null
   $existingSqlDbConnectionString = $null
+  $existingForceSSL = $null
+  $existingOctopusUpgradesAllowChecking = $null
+  $existingOctopusUpgradesIncludeStatistics = $null
+  $existingListenPort = $null
+  $existingOctopusAdminUsername = $null
+  $existingOctopusAdminPassword = $null
+
   if ($existingEnsure -eq "Present") {
     $existingConfig = Import-ServerConfig "$($env:SystemDrive)\Octopus\OctopusServer.config" "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
     $existingSqlDbConnectionString = $existingConfig.OctopusStorageExternalDatabaseConnectionString
     $existingWebListenPrefix = $existingConfig.OctopusWebPortalListenPrefixes
+    $existingForceSSL = $existingConfig.OctopusWebPortalForceSsl
+    $existingOctopusUpgradesAllowChecking = $existingConfig.OctopusUpgradesAllowChecking
+    $existingOctopusUpgradesIncludeStatistics = $existingConfig.OctopusUpgradesIncludeStatistics
+    $existingListenPort = $existingConfig.OctopusCommunicationsServicesPort
+    if (Test-Path $installStateFile) {
+      $installState = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json)
+      $existingDownloadUrl = $installState.DownloadUrl
+      $existingOctopusAdminUsername = $installState.OctopusAdminUsername
+      $existingOctopusAdminPassword = $installState.OctopusAdminPassword
+    }
   }
 
   $currentResource = @{
@@ -83,12 +96,13 @@ function Get-TargetResource
     DownloadUrl = $existingDownloadUrl;
     WebListenPrefix = $existingWebListenPrefix;
     SqlDbConnectionString = $existingSqlDbConnectionString;
+    ForceSSL = $existingForceSSL
+    UpgradeCheck = $existingOctopusUpgradesAllowChecking
+    UpgradeCheckWithStatistics = $existingOctopusUpgradesIncludeStatistics
+    ListenPort = $existingListenPort
+    OctopusAdminUsername = $existingOctopusAdminUsername
+    OctopusAdminPassword = $existingOctopusAdminPassword
   }
-
-  Write-Verbose "Existing state is:"
-  $currentResource.Keys | ForEach-Object { write-verbose "* $_ = '$($currentResource.Item($_))'" }
-  Write-Verbose "Requested state is:"
-  $PSBoundParameters.Keys | ForEach-Object { write-verbose "* $_ = '$($PSBoundParameters.Item($_))'" }
 
   return $currentResource
 }
@@ -133,13 +147,15 @@ function Import-ServerConfig
 
   if ($octopusServerVersion -ge $versionWhereShowConfigurationWasIntroduced) {
     $rawConfig = & $OctopusServerExePath show-configuration --format=json-hierarchical --noconsolelogging --console
-    #todo: remove this:
-    write-verbose $rawConfig
     $config = $rawConfig | ConvertFrom-Json
 
     $result = [pscustomobject] @{
       OctopusStorageExternalDatabaseConnectionString         = $config.Octopus.Storage.ExternalDatabaseConnectionString
       OctopusWebPortalListenPrefixes                         = $config.Octopus.WebPortal.ListenPrefixes
+      OctopusWebPortalForceSsl                               = [System.Convert]::ToBoolean($config.Octopus.WebPortal.ForceSSL)
+      OctopusUpgradesAllowChecking                           = [System.Convert]::ToBoolean($config.Octopus.Upgrades.AllowChecking)
+      OctopusUpgradesIncludeStatistics                       = [System.Convert]::ToBoolean($config.Octopus.Upgrades.IncludeStatistics)
+      OctopusCommunicationsServicesPort                      = $config.Octopus.Communications.ServicesPort
     }
   }
   else {
@@ -156,6 +172,10 @@ function Import-ServerConfig
     $result = [pscustomobject] @{
       OctopusStorageExternalDatabaseConnectionString         = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Storage.ExternalDatabaseConnectionString"]/text()').Value
       OctopusWebPortalListenPrefixes                         = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.WebPortal.ListenPrefixes"]/text()').Value
+      OctopusWebPortalForceSsl                               = [System.Convert]::ToBoolean($xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.WebPortal.ForceSsl"]/text()').Value)
+      OctopusUpgradesAllowChecking                           = [System.Convert]::ToBoolean($xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Upgrades.AllowChecking"]/text()').Value)
+      OctopusUpgradesIncludeStatistics                       = [System.Convert]::ToBoolean($xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Upgrades.IncludeStatistics"]/text()').Value)
+      OctopusCommunicationsServicesport                      = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Communications.ServicesPort"]/text()').Value
     }
   }
   return $result
@@ -215,82 +235,155 @@ function Set-TargetResource
 
   if ($State -eq "Stopped" -and $currentResource["State"] -eq "Started")
   {
-    $serviceName = (Get-ServiceName $Name)
-    Write-Verbose "Stopping $serviceName"
-    Stop-Service -Name $serviceName -Force
+    Stop-OctopusDeployService $Name
   }
 
   if ($Ensure -eq "Absent" -and $currentResource["Ensure"] -eq "Present")
   {
-    $serviceName = (Get-ServiceName $Name)
-    Write-Verbose "Deleting service $serviceName..."
-    $services = @(Get-CimInstance win32_service | Where-Object {$_.PathName -like "`"$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe*"})
-    Invoke-AndAssert { & sc.exe delete $serviceName }
-
-    if ($services.length -eq 1)
-    {
-      # Uninstall msi
-      Write-Verbose "Uninstalling Octopus..."
-      if (-not (Test-Path "$($env:SystemDrive)\Octopus\logs")) { New-Item -type Directory "$($env:SystemDrive)\Octopus\logs" | out-null }
-      $msiPath = "$($env:SystemDrive)\Octopus\Octopus-x64.msi"
-      $msiLog = "$($env:SystemDrive)\Octopus\logs\Octopus-x64.msi.uninstall.log"
-      if (Test-Path $msiPath)
-      {
-        $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/x $msiPath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
-        Write-Verbose "MSI uninstaller returned exit code $msiExitCode"
-        if ($msiExitCode -ne 0)
-        {
-          throw "Removal of Octopus Server failed, MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
-        }
-      }
-      else
-      {
-        throw "Octopus Server cannot be removed, because the MSI could not be found."
-      }
-    }
-    else
-    {
-      Write-Verbose "Skipping uninstall, as other instances still exist:"
-      foreach($otherService in $otherServices)
-      {
-        Write-Verbose " - $($otherService.Name)"
-      }
-    }
+    Uninstall-OctopusDeploy $Name
   }
   elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Absent")
   {
-    Write-Verbose "Installing Octopus Deploy..."
-    New-Instance -name $Name `
-                 -downloadUrl $DownloadUrl `
-                 -webListenPrefix $WebListenPrefix `
-                 -sqlDbConnectionString $SqlDbConnectionString `
-                 -OctopusAdminUsername $OctopusAdminUsername `
-                 -OctopusAdminPassword $OctopusAdminPassword `
-                 -upgradeCheck $upgradeCheck `
-                 -upgradeCheckWithStatistics $upgradeCheckWithStatistics `
-                 -webAuthenticationMode $webAuthenticationMode `
-                 -forceSSL $forceSSL `
-                 -listenPort $listenPort
-    Write-Verbose "Octopus Deploy installed!"
+    Install-OctopusDeploy -name $Name `
+                          -downloadUrl $DownloadUrl `
+                          -webListenPrefix $WebListenPrefix `
+                          -sqlDbConnectionString $SqlDbConnectionString `
+                          -OctopusAdminUsername $OctopusAdminUsername `
+                          -OctopusAdminPassword $OctopusAdminPassword `
+                          -upgradeCheck $upgradeCheck `
+                          -upgradeCheckWithStatistics $upgradeCheckWithStatistics `
+                          -webAuthenticationMode $webAuthenticationMode `
+                          -forceSSL $forceSSL `
+                          -listenPort $listenPort
   }
   elseif ($Ensure -eq "Present" -and $currentResource["DownloadUrl"] -ne $DownloadUrl)
   {
-    Write-Verbose "Upgrading Octopus Deploy..."
-    $serviceName = (Get-ServiceName $Name)
-    Stop-Service -Name $serviceName
-    Install-OctopusDeploy $DownloadUrl
-    if ($State -eq "Started") {
-      Start-Service $serviceName
-    }
-    Write-Verbose "Octopus Deploy upgraded!"
+    Upgrade-OctopusDeploy $Name $DownloadUrl $State
+  }
+
+  $params = Get-Parameters $MyInvocation.MyCommand.Parameters
+  if (Should-Reconfigure $currentResource $params)
+  {
+    Reconfigure-OctopusDeploy -name $Name `
+                              -webListenPrefix $WebListenPrefix `
+                              -upgradeCheck $UpgradeCheck `
+                              -UpgradeCheckWithStatistics $UpgradeCheckWithStatistics `
+                              -webAuthenticationMode $WebAuthenticationMode `
+                              -forceSSL $ForceSSL `
+                              -listenPort $ListenPort
   }
 
   if ($State -eq "Started" -and $currentResource["State"] -eq "Stopped")
   {
-    $serviceName = (Get-ServiceName $Name)
-    Write-Verbose "Starting $serviceName"
-    Start-Service -Name $serviceName
+    Start-OctopusDeployService $Name
   }
+}
+
+function Reconfigure-OctopusDeploy
+{
+  param (
+    [Parameter(Mandatory=$True)]
+    [string]$name,
+    [Parameter(Mandatory=$True)]
+    [string]$webListenPrefix,
+    [Parameter(Mandatory)]
+    [bool]$upgradeCheck = $true,
+    [bool]$upgradeCheckWithStatistics = $true,
+    [string]$webAuthenticationMode = 'UsernamePassword',
+    [bool]$forceSSL = $false,
+    [int]$listenPort = 10943
+  )
+
+  Write-Log "Configuring Octopus Deploy instance ..."
+  $args = @(
+    'configure',
+    '--console',
+    '--instance', $name,
+    '--upgradeCheck', $upgradeCheck,
+    '--upgradeCheckWithStatistics', $upgradeCheckWithStatistics,
+    '--webAuthenticationMode', $webAuthenticationMode,
+    '--webForceSSL', $forceSSL,
+    '--webListenPrefixes', $webListenPrefix,
+    '--commsListenPort', $listenPort
+  )
+  Invoke-OctopusServerCommand $args
+}
+
+function Should-Reconfigure($currentState, $desiredState)
+{
+  $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'UpgradeCheckWithStatistics', 'UpgradeCheck')
+  foreach($property in $reconfigurableProperties)
+  {
+    if ($currentState.Item($property) -ne ($desiredState.Item($property)))
+    {
+      return $true
+    }
+  }
+  return $false
+}
+
+function Uninstall-OctopusDeploy($name)
+{
+  $serviceName = (Get-ServiceName $name)
+  Write-Verbose "Deleting service $serviceName..."
+  $services = @(Get-CimInstance win32_service | Where-Object {$_.PathName -like "`"$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe*"})
+  Invoke-AndAssert { & sc.exe delete $serviceName }
+
+  if ($services.length -eq 1)
+  {
+    # Uninstall msi
+    Write-Verbose "Uninstalling Octopus..."
+    if (-not (Test-Path "$($env:SystemDrive)\Octopus\logs")) { New-Item -type Directory "$($env:SystemDrive)\Octopus\logs" | out-null }
+    $msiPath = "$($env:SystemDrive)\Octopus\Octopus-x64.msi"
+    $msiLog = "$($env:SystemDrive)\Octopus\logs\Octopus-x64.msi.uninstall.log"
+    if (Test-Path $msiPath)
+    {
+      $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/x $msiPath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
+      Write-Verbose "MSI uninstaller returned exit code $msiExitCode"
+      if ($msiExitCode -ne 0)
+      {
+        throw "Removal of Octopus Server failed, MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
+      }
+    }
+    else
+    {
+      throw "Octopus Server cannot be removed, because the MSI could not be found."
+    }
+  }
+  else
+  {
+    Write-Verbose "Skipping uninstall, as other instances still exist:"
+    foreach($otherService in $otherServices)
+    {
+      Write-Verbose " - $($otherService.Name)"
+    }
+  }
+}
+
+function Upgrade-OctopusDeploy($name, $downloadUrl, $state)
+{
+  Write-Verbose "Upgrading Octopus Deploy..."
+  $serviceName = (Get-ServiceName $name)
+  Stop-Service -Name $serviceName
+  Install-MSI $downloadUrl
+  if ($state -eq "Started") {
+    Start-Service $serviceName
+  }
+  Write-Verbose "Octopus Deploy upgraded!"
+}
+
+function Start-OctopusDeployService($name)
+{
+  $serviceName = (Get-ServiceName $Name)
+  Write-Verbose "Starting $serviceName"
+  Start-Service -Name $serviceName
+}
+
+function Stop-OctopusDeployService($name)
+{
+  $serviceName = (Get-ServiceName $Name)
+  Write-Verbose "Stopping $serviceName"
+  Stop-Service -Name $serviceName -Force
 }
 
 function Get-ServiceName
@@ -307,7 +400,7 @@ function Get-ServiceName
     }
 }
 
-function Install-OctopusDeploy
+function Install-MSI
 {
     param (
         [string]$downloadUrl
@@ -334,7 +427,25 @@ function Install-OctopusDeploy
         throw "Installation of the MSI failed; MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
     }
 
-    @{ "DownloadUrl" = $downloadUrl } | ConvertTo-Json | set-content $installStateFile
+    Update-InstallState "DownloadUrl" $downloadUrl
+}
+
+function Update-InstallState
+{
+  param (
+    [string]$key,
+    [string]$value
+  )
+
+  $currentInstallState = @{}
+  if (Test-Path $installStateFile) {
+    $fileContent = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json)
+    $fileContent.psobject.properties | ForEach-Object { $currentInstallState[$_.Name] = $_.Value }
+  }
+
+  $currentInstallState.Set_Item($key, $value)
+
+  $currentInstallState | ConvertTo-Json | set-content $installStateFile
 }
 
 function Request-File
@@ -376,7 +487,7 @@ function Invoke-AndAssert {
     }
 }
 
-function New-Instance
+function Install-OctopusDeploy
 {
   param (
     [Parameter(Mandatory=$True)]
@@ -400,11 +511,9 @@ function New-Instance
     [int]$listenPort = 10943
   )
 
+  Write-Verbose "Installing Octopus Deploy..."
   Write-Log "Setting up new instance of Octopus Deploy with name '$name'"
-  Install-OctopusDeploy $downloadUrl
-
-  Write-Log "Configure Octopus Deploy"
-
+  Install-MSI $downloadUrl
 
   Write-Log "Creating Octopus Deploy instance ..."
   $args = @(
@@ -458,6 +567,8 @@ function New-Instance
     '--password', $octopusAdminPassword
   )
   Invoke-OctopusServerCommand $args
+  Update-InstallState "OctopusAdminUsername" $octopusAdminUsername
+  Update-InstallState "OctopusAdminPassword" (Get-EncryptedString $octopusAdminPassword)
 
   Write-Log "Configuring Octopus Deploy instance to use free license ..."
   $args = @(
@@ -478,6 +589,19 @@ function New-Instance
     '--stop'
   )
   Invoke-OctopusServerCommand $args
+  Write-Verbose "Octopus Deploy installed!"
+}
+
+function Get-EncryptedString($string)
+{
+  return $string | ConvertTo-SecureString -AsPlainText -Force | ConvertFrom-SecureString
+}
+
+function Get-DecryptedSecureString($encryptedString)
+{
+  $secureString = ConvertTo-SecureString -string $encryptedString
+  $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureString)
+  return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
 }
 
 function Invoke-OctopusServerCommand ($arguments)
@@ -503,7 +627,11 @@ function Write-CommandOutput
   if ($output -eq "") { return }
 
   Write-Verbose ""
-  $output.Trim().Split("`n") | ForEach-Object { Write-Verbose "`t| $($_.Trim())" }
+  #this isn't quite working
+  foreach($line in $output.Trim().Split("`n"))
+  {
+    Write-Verbose $line
+  }
   Write-Verbose ""
 }
 
@@ -552,43 +680,52 @@ function Test-TargetResource
                                          -ForceSSL $ForceSSL `
                                          -ListenPort $ListenPort)
 
-  $match = $currentResource["Ensure"] -eq $Ensure
-  Write-Verbose "Ensure: $($currentResource["Ensure"]) vs. $Ensure = $match"
-  if (!$match)
+  $params = Get-Parameters $MyInvocation.MyCommand.Parameters
+
+  $currentConfigurationMatchesRequestedConfiguration = $true
+  foreach($key in $currentResource.Keys)
   {
-    return $false
-  }
-
-  $match = $currentResource["State"] -eq $State
-  Write-Verbose "State: $($currentResource["State"]) vs. $State = $match"
-  if (!$match)
-  {
-    return $false
-  }
-
-  if ($null -ne $currentResource["DownloadUrl"]) {
-    $match = $DownloadUrl -eq $currentResource["DownloadUrl"]
-    Write-Verbose "Download Url: $($currentResource["DownloadUrl"]) vs. $DownloadUrl = $match"
-    if (!$match) {
-      return $false
+    $currentValue = $currentResource.Item($key)
+    $requestedValue = $params.Item($key)
+    if ($key -eq "OctopusAdminPassword")
+    {
+      if ((Get-DecryptedSecureString $currentValue) -ne $requestedValue)
+      {
+        Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '********' mismatched the specified value '********'"
+        $currentConfigurationMatchesRequestedConfiguration = $false
+      }
+      else
+      {
+        Write-Verbose "Configuration parameter '$key' matches the requested value '********'"
+      }
+    }
+    elseif ($currentValue -ne $requestedValue)
+    {
+      Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '$currentValue' mismatched the specified value '$requestedValue'"
+      $currentConfigurationMatchesRequestedConfiguration = $false
+    }
+    else
+    {
+      Write-Verbose "Configuration parameter '$key' matches the requested value '$requestedValue'"
     }
   }
 
-  if ($null -ne $currentResource["WebListenPrefix"]) {
-    $match = $WebListenPrefix -eq $currentResource["WebListenPrefix"]
-    Write-Verbose "WebListenPrefix: $($currentResource["WebListenPrefix"]) vs. $WebListenPrefix = $match"
-    if (!$match) {
-      return $false
+  return $currentConfigurationMatchesRequestedConfiguration
+}
+
+function Get-Parameters($parameters)
+{
+  # unfortunately $PSBoundParameters doesn't contain parameters that weren't supplied (because the default value was okay)
+  # credit to https://www.briantist.com/how-to/splatting-psboundparameters-default-values-optional-parameters/
+  $params = @{}
+  foreach($h in $parameters.GetEnumerator()) {
+    $key = $h.Key
+    $var = Get-Variable -Name $key -ErrorAction SilentlyContinue
+    if ($null -ne $var)
+    {
+      $val = Get-Variable -Name $key -ErrorAction Stop | Select-Object -ExpandProperty Value -ErrorAction Stop
+      $params[$key] = $val
     }
   }
-
-  if ($null -ne $currentResource["SqlDbConnectionString"]) {
-    $match = $SqlDbConnectionString -eq $currentResource["SqlDbConnectionString"]
-    Write-Verbose "SqlDbConnectionString: $($currentResource["SqlDbConnectionString"]) vs. $SqlDbConnectionString = $match"
-    if (!$match) {
-        return $false
-    }
-  }
-
-  return $true
+  return $params
 }

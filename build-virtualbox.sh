@@ -62,7 +62,7 @@ if [ $POWERSHELL_INSTALLED == 0 ]; then
 
   if [ -n "$PSSCRIPTANALZYER_PATH" ]; then
     echo "Running PSScriptAnalyzer"
-    powershell -command "Import-Module $PSSCRIPTANALZYER_PATH; \$results = Invoke-ScriptAnalyzer ./OctopusDSC/DSCResources -recurse -exclude @('PSUseShouldProcessForStateChangingFunctions', 'PSAvoidUsingPlainTextForPassword', 'PSAvoidUsingUserNameAndPassWordParams'); write-output \$results; exit \$results.length"
+    powershell -command "Import-Module $PSSCRIPTANALZYER_PATH; \$results = Invoke-ScriptAnalyzer ./OctopusDSC/DSCResources -recurse -exclude @('PSUseShouldProcessForStateChangingFunctions', 'PSAvoidUsingPlainTextForPassword', 'PSAvoidUsingUserNameAndPassWordParams', 'PSAvoidUsingConvertToSecureStringWithPlainText'); write-output \$results; exit \$results.length"
     if [ $? != 0 ]; then
       echo "PSScriptAnalyzer found issues."
       exit 1
