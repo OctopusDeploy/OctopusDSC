@@ -23,8 +23,6 @@ function check_env_var() {
 
 check_env_var AWS_ACCESS_KEY_ID
 check_env_var AWS_SECRET_ACCESS_KEY
-check_env_var OCTOPUS_SERVER_URL
-check_env_var OCTOPUS_API_KEY
 check_env_var AWS_SUBNET_ID
 check_env_var AWS_SECURITY_GROUP_ID
 
