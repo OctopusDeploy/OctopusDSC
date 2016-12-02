@@ -5,7 +5,7 @@
 First, ensure the OctopusDSC module is on your `$env:PSModulePath`. Then you can create and apply configuration like this.
 
 ```PowerShell
-CConfiguration SampleConfig
+Configuration SampleConfig
 {
     Import-DscResource -Module OctopusDSC
 
