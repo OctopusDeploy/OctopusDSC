@@ -25,5 +25,11 @@ Configuration Server_Scenario_01_Install
             # dont mess with stats
             AllowCollectionOfAnonymousUsageStatistics = $false
         }
+
+        cOctopusServerUsernamePasswordAuthentication "Enable Username/Password Auth"
+        {
+            InstanceName = "OctopusServer"
+            Enabled = $false
+        }
     }
 }
