@@ -9,7 +9,7 @@ class cOctopusServer : OMI_BaseResource
   [Write] string OctopusAdminUsername;
   [Write] string OctopusAdminPassword;
   [Write] boolean UpgradeCheck;
-  [Write] boolean UpgradeCheckWithStatistics;
+  [Write] boolean AllowCollectionOfAnonymousUsageStatistics;
   [Write] string DownloadUrl;
   [Write] uint16 ListenPort;
   [Write] boolean ForceSSL;

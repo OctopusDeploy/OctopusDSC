@@ -25,7 +25,7 @@ Configuration Server_Scenario_03_Reinstall
             DownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.3.3.24-x64.msi"
 
             # dont mess with stats
-            UpgradeCheckWithStatistics = $false
+            AllowCollectionOfAnonymousUsageStatistics = $false
         }
     }
 }

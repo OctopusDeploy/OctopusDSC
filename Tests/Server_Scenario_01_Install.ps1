@@ -23,7 +23,7 @@ Configuration Server_Scenario_01_Install
             OctopusAdminPassword = "SuperS3cretPassw0rd!"
 
             # dont mess with stats
-            UpgradeCheckWithStatistics = $false
+            AllowCollectionOfAnonymousUsageStatistics = $false
         }
     }
 }

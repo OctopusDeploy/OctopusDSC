@@ -24,8 +24,8 @@ Configuration SampleConfig
 
             # optional parameters
             UpgradeCheck = $true
-            UpgradeCheckWithStatistics = $true
             WebAuthenticationMode = "UsernamePassword"
+            AllowCollectionOfAnonymousUsageStatistics = $true
             ForceSSL = $false
             ListenPort = 10943
             DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer"

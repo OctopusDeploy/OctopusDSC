@@ -27,7 +27,7 @@ function Get-TargetResource
     [ValidateNotNullOrEmpty()]
     [string]$OctopusAdminPassword,
     [bool]$UpgradeCheck = $true,
-    [bool]$UpgradeCheckWithStatistics = $true,
+    [bool]$AllowCollectionOfAnonymousUsageStatistics = $true,
     [ValidateSet("UsernamePassword", "Domain", "Ignore")]
     [string]$LegacyWebAuthenticationMode = 'Ignore',
     [bool]$ForceSSL = $false,
@@ -101,7 +101,7 @@ function Get-TargetResource
     SqlDbConnectionString = $existingSqlDbConnectionString;
     ForceSSL = $existingForceSSL
     UpgradeCheck = $existingOctopusUpgradesAllowChecking
-    UpgradeCheckWithStatistics = $existingOctopusUpgradesIncludeStatistics
+    AllowCollectionOfAnonymousUsageStatistics = $AllowCollectionOfAnonymousUsageStatistics
     ListenPort = $existingListenPort
     OctopusAdminUsername = $existingOctopusAdminUsername
     OctopusAdminPassword = $existingOctopusAdminPassword
@@ -220,7 +220,7 @@ function Set-TargetResource
     [ValidateNotNullOrEmpty()]
     [string]$OctopusAdminPassword,
     [bool]$UpgradeCheck = $true,
-    [bool]$UpgradeCheckWithStatistics = $true,
+    [bool]$AllowCollectionOfAnonymousUsageStatistics = $true,
     [ValidateSet("UsernamePassword", "Domain", "Ignore")]
     [string]$LegacyWebAuthenticationMode = 'Ignore',
     [bool]$ForceSSL = $false,
@@ -238,7 +238,7 @@ function Set-TargetResource
                                          -OctopusAdminUsername $OctopusAdminUsername `
                                          -OctopusAdminPassword $OctopusAdminPassword `
                                          -UpgradeCheck $UpgradeCheck `
-                                         -UpgradeCheckWithStatistics $UpgradeCheckWithStatistics `
+                                         -AllowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
                                          -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
                                          -ForceSSL $ForceSSL `
                                          -ListenPort $ListenPort)
@@ -264,7 +264,7 @@ function Set-TargetResource
                           -OctopusAdminUsername $OctopusAdminUsername `
                           -OctopusAdminPassword $OctopusAdminPassword `
                           -upgradeCheck $upgradeCheck `
-                          -upgradeCheckWithStatistics $upgradeCheckWithStatistics `
+                          -allowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
                           -legacyWebAuthenticationMode $legacyWebAuthenticationMode `
                           -forceSSL $forceSSL `
                           -listenPort $listenPort
@@ -280,7 +280,7 @@ function Set-TargetResource
       Set-OctopusDeployConfiguration -name $Name `
                                      -webListenPrefix $WebListenPrefix `
                                      -upgradeCheck $UpgradeCheck `
-                                     -UpgradeCheckWithStatistics $UpgradeCheckWithStatistics `
+                                     -allowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
                                      -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
                                      -forceSSL $ForceSSL `
                                      -listenPort $ListenPort
@@ -331,7 +331,7 @@ function Set-OctopusDeployConfiguration
     [string]$webListenPrefix,
     [Parameter(Mandatory)]
     [bool]$upgradeCheck = $true,
-    [bool]$upgradeCheckWithStatistics = $true,
+    [bool]$allowCollectionOfAnonymousUsageStatistics = $true,
     [ValidateSet("UsernamePassword", "Domain", "Ignore")]
     [string]$legacyWebAuthenticationMode = 'Ignore',
     [bool]$forceSSL = $false,
@@ -344,7 +344,7 @@ function Set-OctopusDeployConfiguration
     '--console',
     '--instance', $name,
     '--upgradeCheck', $upgradeCheck,
-    '--upgradeCheckWithStatistics', $upgradeCheckWithStatistics,
+    '--upgradeCheckWithStatistics', $allowCollectionOfAnonymousUsageStatistics,
     '--webForceSSL', $forceSSL,
     '--webListenPrefixes', $webListenPrefix,
     '--commsListenPort', $listenPort
@@ -371,7 +371,7 @@ function Set-OctopusDeployConfiguration
 
 function Test-ReconfigurationRequired($currentState, $desiredState)
 {
-  $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'UpgradeCheckWithStatistics', 'UpgradeCheck', 'LegacyWebAuthenticationMode')
+  $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'AllowCollectionOfAnonymousUsageStatistics', 'UpgradeCheck', 'LegacyWebAuthenticationMode')
   foreach($property in $reconfigurableProperties)
   {
     if ($currentState.Item($property) -ne ($desiredState.Item($property)))
@@ -564,7 +564,7 @@ function Install-OctopusDeploy
     [ValidateNotNullOrEmpty()]
     [string]$octopusAdminPassword,
     [bool]$upgradeCheck = $true,
-    [bool]$upgradeCheckWithStatistics = $true,
+    [bool]$allowCollectionOfAnonymousUsageStatistics = $true,
     [ValidateSet("UsernamePassword", "Domain", "Ignore")]
     [string]$legacyWebAuthenticationMode = 'Ignore',
     [bool]$forceSSL = $false,
@@ -591,7 +591,7 @@ function Install-OctopusDeploy
     '--instance', $name,
     '--home', "$($env:SystemDrive)\Octopus",
     '--upgradeCheck', $upgradeCheck,
-    '--upgradeCheckWithStatistics', $upgradeCheckWithStatistics,
+    '--upgradeCheckWithStatistics', $allowCollectionOfAnonymousUsageStatistics,
     '--webForceSSL', $forceSSL,
     '--webListenPrefixes', $webListenPrefix,
     '--commsListenPort', $listenPort,
@@ -738,7 +738,7 @@ function Test-TargetResource
     [ValidateNotNullOrEmpty()]
     [string]$OctopusAdminPassword,
     [bool]$UpgradeCheck = $true,
-    [bool]$UpgradeCheckWithStatistics = $true,
+    [bool]$AllowCollectionOfAnonymousUsageStatistics = $true,
     [ValidateSet("UsernamePassword", "Domain", "Ignore")]
     [string]$LegacyWebAuthenticationMode = 'Ignore',
     [bool]$ForceSSL = $false,
@@ -754,7 +754,7 @@ function Test-TargetResource
                                          -OctopusAdminUsername $OctopusAdminUsername `
                                          -OctopusAdminPassword $OctopusAdminPassword `
                                          -UpgradeCheck $UpgradeCheck `
-                                         -UpgradeCheckWithStatistics $UpgradeCheckWithStatistics `
+                                         -AllowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
                                          -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
                                          -ForceSSL $ForceSSL `
                                          -ListenPort $ListenPort)
