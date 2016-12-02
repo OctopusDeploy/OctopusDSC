@@ -47,5 +47,13 @@ Configuration Server_Scenario_01_Install
             Issuer = "https://login.microsoftonline.com/b91ebf6a-84be-4c6f-97f3-32a1d0a11c8a"
             ClientID = "0272262a-b31d-4acf-8891-56e96d302018"
         }
+
+        cOctopusServerGoogleAppsAuthentication "Enable GoogleApps Auth"
+        {
+            InstanceName = "OctopusServer"
+            Enabled = $true
+            ClientID = "5743519123-1232358520259-3634528"
+            HostedDomain = "https://octopus.example.com"
+        }
     }
 }
