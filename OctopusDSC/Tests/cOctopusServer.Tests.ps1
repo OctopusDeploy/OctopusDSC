@@ -35,7 +35,7 @@ try
                 }
             }
 
-             Mock Import-ServerConfig { return $mockConfig }
+            Mock Import-ServerConfig { return $mockConfig }
 
             Context 'Get-TargetResource' {
                 Mock Get-ItemProperty { return @{ InstallLocation = "c:\Octopus\Octopus" }}
@@ -76,6 +76,29 @@ try
 
             Context 'Set-TargetResource' {
                 #todo: more tests
+            }
+        }
+
+        Describe "Encryption & Decryption" {
+            Context 'Get-EncryptedString' {
+                #skipped as it doesn't work on PowerShell for Linux
+                It 'Returns an encrypted string' -skip {
+                    $result = Get-EncryptedString "MySecret"
+
+                    $result.GetType()         | Should Be ([SecureString])
+                    $result                   | Should Not Be 'MySecret'
+                }
+            }
+
+            Context 'Get-DecryptedSecureString' {
+                #skipped as it doesn't work on PowerShell for Linux
+                It 'Returns the decrypted value' -skip {
+                    $encrypted = Get-EncryptedString "MySecret"
+                    $result = Get-DecryptedSecureString $encrypted
+
+                    $result.GetType()         | Should Be ([String])
+                    $result                   | Should Be 'MySecret'
+                }
             }
         }
     }
