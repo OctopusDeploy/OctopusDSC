@@ -4,7 +4,7 @@ Configuration SampleConfig
 
     Node "localhost"
     {
-        cOctopusServerUsernamePasswordAuthentication EnableUsernamePasswordAuth
+        cOctopusServerUsernamePasswordAuthentication "Enable Username/Password Auth"
         {
             InstanceName = "OctopusServer"
             Enabled = $true
