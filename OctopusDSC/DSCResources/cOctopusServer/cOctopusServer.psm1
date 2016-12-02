@@ -265,9 +265,9 @@ function Set-TargetResource
                           -OctopusAdminPassword $OctopusAdminPassword `
                           -allowUpgradeCheck $AllowUpgradeCheck `
                           -allowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
-                          -legacyWebAuthenticationMode $legacyWebAuthenticationMode `
-                          -forceSSL $forceSSL `
-                          -listenPort $listenPort
+                          -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
+                          -forceSSL $ForceSSL `
+                          -listenPort $ListenPort
   }
   else
   {
