@@ -26,7 +26,7 @@ function Get-TargetResource
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
     [string]$OctopusAdminPassword,
-    [bool]$UpgradeCheck = $true,
+    [bool]$AllowUpgradeCheck = $true,
     [bool]$AllowCollectionOfAnonymousUsageStatistics = $true,
     [ValidateSet("UsernamePassword", "Domain", "Ignore")]
     [string]$LegacyWebAuthenticationMode = 'Ignore',
@@ -100,7 +100,7 @@ function Get-TargetResource
     WebListenPrefix = $existingWebListenPrefix;
     SqlDbConnectionString = $existingSqlDbConnectionString;
     ForceSSL = $existingForceSSL
-    UpgradeCheck = $existingOctopusUpgradesAllowChecking
+    AllowUpgradeCheck = $existingOctopusUpgradesAllowChecking
     AllowCollectionOfAnonymousUsageStatistics = $AllowCollectionOfAnonymousUsageStatistics
     ListenPort = $existingListenPort
     OctopusAdminUsername = $existingOctopusAdminUsername
@@ -219,7 +219,7 @@ function Set-TargetResource
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
     [string]$OctopusAdminPassword,
-    [bool]$UpgradeCheck = $true,
+    [bool]$AllowUpgradeCheck = $true,
     [bool]$AllowCollectionOfAnonymousUsageStatistics = $true,
     [ValidateSet("UsernamePassword", "Domain", "Ignore")]
     [string]$LegacyWebAuthenticationMode = 'Ignore',
@@ -237,7 +237,7 @@ function Set-TargetResource
                                          -SqlDbConnectionString $SqlDbConnectionString `
                                          -OctopusAdminUsername $OctopusAdminUsername `
                                          -OctopusAdminPassword $OctopusAdminPassword `
-                                         -UpgradeCheck $UpgradeCheck `
+                                         -AllowUpgradeCheck $AllowUpgradeCheck `
                                          -AllowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
                                          -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
                                          -ForceSSL $ForceSSL `
@@ -263,7 +263,7 @@ function Set-TargetResource
                           -sqlDbConnectionString $SqlDbConnectionString `
                           -OctopusAdminUsername $OctopusAdminUsername `
                           -OctopusAdminPassword $OctopusAdminPassword `
-                          -upgradeCheck $upgradeCheck `
+                          -allowUpgradeCheck $AllowUpgradeCheck `
                           -allowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
                           -legacyWebAuthenticationMode $legacyWebAuthenticationMode `
                           -forceSSL $forceSSL `

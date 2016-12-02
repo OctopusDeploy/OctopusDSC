@@ -23,7 +23,7 @@ Configuration SampleConfig
             OctopusAdminPassword = "SuperS3cretPassw0rd"
 
             # optional parameters
-            UpgradeCheck = $true
+            AllowUpgradeCheck = $true
             AllowCollectionOfAnonymousUsageStatistics = $true
             ForceSSL = $false
             ListenPort = 10943
