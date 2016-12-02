@@ -4,6 +4,13 @@ This repository contains a PowerShell modeul with DSC resources that can be used
 
 Read about the [cTentacleAgent](README-cTentacleAgent.md) or [cOctopusServer](README-cOctopusServer.md) resources.
 
+Authentication can be configured to use:
+
+* Active Directory Domain with [cOctopusServerActiveDirectoryAuthentication](README-cOctopusServerActiveDirectoryAuthentication.md)
+* Azure AD with [cOctopusServerAzureADAuthentication](README-cOctopusServerAzureADAuthentication.md)
+* GoogleApps with [cOctopusServerGoogleAppsAuthentication](README-cOctopusServerGoogleAppsAuthentication.md)
+* Username/passwords stored in Octopus with [cOctopusServerUsernamePasswordAuthentication](README-cOctopusServerUsernamePasswordAuthentication.md)
+
 ## Development
 
 This project is setup to use [Vagrant](vagrant.io) to provide a dev/test environment. Once you've installed Vagrant, you can use `build-virtualbox.sh` to spin up a local virtual machine using [VirtualBox](virtualbox.org) and run the test scenarios. On a build server, you most likely want to use `build-aws.sh` to spin up a virtual machine on AWS to run the tests.
