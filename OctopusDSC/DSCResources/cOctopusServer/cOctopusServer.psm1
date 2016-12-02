@@ -1,4 +1,5 @@
 $installStateFile = "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate"
+$octopusServerExePath = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
 
 function Get-TargetResource
 {
@@ -27,7 +28,8 @@ function Get-TargetResource
     [string]$OctopusAdminPassword,
     [bool]$UpgradeCheck = $true,
     [bool]$UpgradeCheckWithStatistics = $true,
-    [string]$WebAuthenticationMode = 'UsernamePassword',
+    [ValidateSet("UsernamePassword", "Domain", "Ignore")]
+    [string]$LegacyWebAuthenticationMode = 'Ignore',
     [bool]$ForceSSL = $false,
     [int]$ListenPort = 10943
   )
@@ -74,13 +76,14 @@ function Get-TargetResource
   $existingOctopusAdminPassword = $null
 
   if ($existingEnsure -eq "Present") {
-    $existingConfig = Import-ServerConfig "$($env:SystemDrive)\Octopus\OctopusServer.config" "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
+    $existingConfig = Import-ServerConfig "$($env:SystemDrive)\Octopus\OctopusServer.config"
     $existingSqlDbConnectionString = $existingConfig.OctopusStorageExternalDatabaseConnectionString
     $existingWebListenPrefix = $existingConfig.OctopusWebPortalListenPrefixes
     $existingForceSSL = $existingConfig.OctopusWebPortalForceSsl
     $existingOctopusUpgradesAllowChecking = $existingConfig.OctopusUpgradesAllowChecking
     $existingOctopusUpgradesIncludeStatistics = $existingConfig.OctopusUpgradesIncludeStatistics
     $existingListenPort = $existingConfig.OctopusCommunicationsServicesPort
+    $existingLegacyWebAuthenticationMode = $existingConfig.OctopusWebPortalAuthenticationMode
     if (Test-Path $installStateFile) {
       $installState = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json)
       $existingDownloadUrl = $installState.DownloadUrl
@@ -102,6 +105,7 @@ function Get-TargetResource
     ListenPort = $existingListenPort
     OctopusAdminUsername = $existingOctopusAdminUsername
     OctopusAdminPassword = $existingOctopusAdminPassword
+    LegacyWebAuthenticationMode = $existingLegacyWebAuthenticationMode
   }
 
   return $currentResource
@@ -112,9 +116,7 @@ function Import-ServerConfig
   [CmdletBinding()]
   param (
     [Parameter(Mandatory)]
-    [string] $Path,
-    [Parameter(Mandatory)]
-    [string] $OctopusServerExePath
+    [string] $Path
   )
 
   Write-Verbose "Importing server configuration file from '$Path'"
@@ -130,23 +132,8 @@ function Import-ServerConfig
     throw "Config path '$Path' does not refer to a file."
   }
 
-  if (-not (Test-Path -LiteralPath $OctopusServerExePath))
-  {
-    throw "Octopus.Server.exe path '$OctopusServerExePath' does not exist."
-  }
-
-  $exeFile = Get-Item -LiteralPath $OctopusServerExePath -ErrorAction Stop
-  if ($exeFile -isnot [System.IO.FileInfo])
-  {
-    throw "Octopus.Server.exe path '$OctopusServerExePath ' does not refer to a file."
-  }
-
-  $fileVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($OctopusServerExePath).FileVersion
-  $octopusServerVersion = New-Object System.Version $fileVersion
-  $versionWhereShowConfigurationWasIntroduced = New-Object System.Version 3, 5, 0
-
-  if ($octopusServerVersion -ge $versionWhereShowConfigurationWasIntroduced) {
-    $rawConfig = & $OctopusServerExePath show-configuration --format=json-hierarchical --noconsolelogging --console
+  if (Test-OctopusVersionSupportsShowConfiguration) {
+    $rawConfig = & $octopusServerExePath show-configuration --format=json-hierarchical --noconsolelogging --console
     $config = $rawConfig | ConvertFrom-Json
 
     $result = [pscustomobject] @{
@@ -156,6 +143,7 @@ function Import-ServerConfig
       OctopusUpgradesAllowChecking                           = [System.Convert]::ToBoolean($config.Octopus.Upgrades.AllowChecking)
       OctopusUpgradesIncludeStatistics                       = [System.Convert]::ToBoolean($config.Octopus.Upgrades.IncludeStatistics)
       OctopusCommunicationsServicesPort                      = $config.Octopus.Communications.ServicesPort
+      OctopusWebPortalAuthenticationMode                     = "Ignore"
     }
   }
   else {
@@ -176,14 +164,39 @@ function Import-ServerConfig
       OctopusUpgradesAllowChecking                           = [System.Convert]::ToBoolean($xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Upgrades.AllowChecking"]/text()').Value)
       OctopusUpgradesIncludeStatistics                       = [System.Convert]::ToBoolean($xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Upgrades.IncludeStatistics"]/text()').Value)
       OctopusCommunicationsServicesport                      = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Communications.ServicesPort"]/text()').Value
+      OctopusWebPortalAuthenticationMode                     = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.WebPortal.AuthenticationMode"]/text()').Value
     }
+
+    if ($result.OctopusWebPortalAuthenticationMode -eq '0') { $result.OctopusWebPortalAuthenticationMode = 'UsernamePassword' }
+    elseif ($result.OctopusWebPortalAuthenticationMode -eq '1') { $result.OctopusWebPortalAuthenticationMode = 'Domain' }
   }
   return $result
 }
 
+function Test-OctopusVersionSupportsShowConfiguration
+{
+  if (-not (Test-Path -LiteralPath $octopusServerExePath))
+  {
+    throw "Octopus.Server.exe path '$octopusServerExePath' does not exist."
+  }
+
+  $exeFile = Get-Item -LiteralPath $octopusServerExePath -ErrorAction Stop
+  if ($exeFile -isnot [System.IO.FileInfo])
+  {
+    throw "Octopus.Server.exe path '$octopusServerExePath ' does not refer to a file."
+  }
+
+  $fileVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($octopusServerExePath).FileVersion
+  $octopusServerVersion = New-Object System.Version $fileVersion
+  $versionWhereShowConfigurationWasIntroduced = New-Object System.Version 3, 5, 0
+
+  return ($octopusServerVersion -ge $versionWhereShowConfigurationWasIntroduced)
+}
+
 function Set-TargetResource
 {
-  [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSDSCUseVerboseMessageInDSCResource", "The Write-Verbose calls are in other methods")]
+  #The Write-Verbose calls are in other methods
+  [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSDSCUseVerboseMessageInDSCResource", "")]
   param (
     [ValidateSet("Present", "Absent")]
     [string]$Ensure = "Present",
@@ -208,17 +221,13 @@ function Set-TargetResource
     [string]$OctopusAdminPassword,
     [bool]$UpgradeCheck = $true,
     [bool]$UpgradeCheckWithStatistics = $true,
-    [string]$WebAuthenticationMode = 'UsernamePassword',
+    [ValidateSet("UsernamePassword", "Domain", "Ignore")]
+    [string]$LegacyWebAuthenticationMode = 'Ignore',
     [bool]$ForceSSL = $false,
     [int]$ListenPort = 10943
   )
 
-  if ($Ensure -eq "Absent" -and $State -eq "Started")
-  {
-    throw "Invalid configuration requested. " + `
-          "You have asked for the service to not exist, but also be running at the same time. " +`
-          "You probably want 'State = `"Stopped`"."
-  }
+
 
   $currentResource = (Get-TargetResource -Ensure $Ensure `
                                          -Name $Name `
@@ -230,9 +239,12 @@ function Set-TargetResource
                                          -OctopusAdminPassword $OctopusAdminPassword `
                                          -UpgradeCheck $UpgradeCheck `
                                          -UpgradeCheckWithStatistics $UpgradeCheckWithStatistics `
-                                         -WebAuthenticationMode $WebAuthenticationMode `
+                                         -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
                                          -ForceSSL $ForceSSL `
                                          -ListenPort $ListenPort)
+
+  $params = Get-Parameters $MyInvocation.MyCommand.Parameters
+  Test-RequestedConfiguration $currentResource $params
 
   if ($State -eq "Stopped" -and $currentResource["State"] -eq "Started")
   {
@@ -253,30 +265,60 @@ function Set-TargetResource
                           -OctopusAdminPassword $OctopusAdminPassword `
                           -upgradeCheck $upgradeCheck `
                           -upgradeCheckWithStatistics $upgradeCheckWithStatistics `
-                          -webAuthenticationMode $webAuthenticationMode `
+                          -legacyWebAuthenticationMode $legacyWebAuthenticationMode `
                           -forceSSL $forceSSL `
                           -listenPort $listenPort
   }
-  elseif ($Ensure -eq "Present" -and $currentResource["DownloadUrl"] -ne $DownloadUrl)
+  else
   {
-    Update-OctopusDeploy $Name $DownloadUrl $State
-  }
-
-  $params = Get-Parameters $MyInvocation.MyCommand.Parameters
-  if (Test-ReconfigurationRequired $currentResource $params)
-  {
-    Set-OctopusDeployConfiguration -name $Name `
-                                   -webListenPrefix $WebListenPrefix `
-                                   -upgradeCheck $UpgradeCheck `
-                                   -UpgradeCheckWithStatistics $UpgradeCheckWithStatistics `
-                                   -webAuthenticationMode $WebAuthenticationMode `
-                                   -forceSSL $ForceSSL `
-                                   -listenPort $ListenPort
+    if ($Ensure -eq "Present" -and $currentResource["DownloadUrl"] -ne $DownloadUrl)
+    {
+      Update-OctopusDeploy $Name $DownloadUrl $State
+    }
+    if (Test-ReconfigurationRequired $currentResource $params)
+    {
+      Set-OctopusDeployConfiguration -name $Name `
+                                     -webListenPrefix $WebListenPrefix `
+                                     -upgradeCheck $UpgradeCheck `
+                                     -UpgradeCheckWithStatistics $UpgradeCheckWithStatistics `
+                                     -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
+                                     -forceSSL $ForceSSL `
+                                     -listenPort $ListenPort
+    }
   }
 
   if ($State -eq "Started" -and $currentResource["State"] -eq "Stopped")
   {
     Start-OctopusDeployService $Name
+  }
+}
+
+function Test-RequestedConfiguration($currentState, $desiredState)
+{
+  if ($desiredState.Item('Ensure') -eq "Absent" -and $desiredState.Item('State') -eq "Started")
+  {
+    throw "Invalid configuration requested. " + `
+          "You have asked for the service to not exist, but also be running at the same time. " +`
+          "You probably want 'State = `"Stopped`"."
+  }
+
+  if ($currentState.Item['Ensure'] -eq "Present")
+  {
+    if (Test-OctopusVersionSupportsShowConfiguration)
+    {
+      if ($desiredState.Item('LegacyWebAuthenticationMode') -ne 'Ignore')
+      {
+        #todo: add note to use new auth resources
+        throw "LegacyWebAuthenticationMode is only supported for Octopus versions older than 3.5.0."
+      }
+    }
+    else
+    {
+      if ($desiredState.Item('LegacyWebAuthenticationMode') -eq 'Ignore')
+      {
+        throw "LegacyWebAuthenticationMode = 'ignore' is only supported from Octopus 3.5.0."
+      }
+    }
   }
 }
 
@@ -290,7 +332,8 @@ function Set-OctopusDeployConfiguration
     [Parameter(Mandatory)]
     [bool]$upgradeCheck = $true,
     [bool]$upgradeCheckWithStatistics = $true,
-    [string]$webAuthenticationMode = 'UsernamePassword',
+    [ValidateSet("UsernamePassword", "Domain", "Ignore")]
+    [string]$legacyWebAuthenticationMode = 'Ignore',
     [bool]$forceSSL = $false,
     [int]$listenPort = 10943
   )
@@ -302,17 +345,33 @@ function Set-OctopusDeployConfiguration
     '--instance', $name,
     '--upgradeCheck', $upgradeCheck,
     '--upgradeCheckWithStatistics', $upgradeCheckWithStatistics,
-    '--webAuthenticationMode', $webAuthenticationMode,
     '--webForceSSL', $forceSSL,
     '--webListenPrefixes', $webListenPrefix,
     '--commsListenPort', $listenPort
   )
+  if (Test-OctopusVersionSupportsShowConfiguration)
+  {
+    if ($legacyWebAuthenticationMode -ne 'Ignore')
+    {
+      #todo: add note to use new auth resources
+      throw "LegacyWebAuthenticationMode is only supported for Octopus versions older than 3.5.0."
+    }
+  }
+  else
+  {
+    if ($legacyWebAuthenticationMode -eq 'Ignore')
+    {
+      throw "LegacyWebAuthenticationMode = 'ignore' is only supported from Octopus 3.5.0."
+    }
+    $args += @('--webAuthenticationMode', $legacyWebAuthenticationMode)
+  }
+
   Invoke-OctopusServerCommand $args
 }
 
 function Test-ReconfigurationRequired($currentState, $desiredState)
 {
-  $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'UpgradeCheckWithStatistics', 'UpgradeCheck')
+  $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'UpgradeCheckWithStatistics', 'UpgradeCheck', 'LegacyWebAuthenticationMode')
   foreach($property in $reconfigurableProperties)
   {
     if ($currentState.Item($property) -ne ($desiredState.Item($property)))
@@ -415,7 +474,6 @@ function Install-MSI
     {
         Remove-Item $msiPath -force
     }
-    Write-Verbose "Downloading Octopus MSI from $downloadUrl to $msiPath"
     Request-File $downloadUrl $msiPath
 
     Write-Verbose "Installing MSI..."
@@ -507,7 +565,8 @@ function Install-OctopusDeploy
     [string]$octopusAdminPassword,
     [bool]$upgradeCheck = $true,
     [bool]$upgradeCheckWithStatistics = $true,
-    [string]$webAuthenticationMode = 'UsernamePassword',
+    [ValidateSet("UsernamePassword", "Domain", "Ignore")]
+    [string]$legacyWebAuthenticationMode = 'Ignore',
     [bool]$forceSSL = $false,
     [int]$listenPort = 10943
   )
@@ -533,12 +592,29 @@ function Install-OctopusDeploy
     '--home', "$($env:SystemDrive)\Octopus",
     '--upgradeCheck', $upgradeCheck,
     '--upgradeCheckWithStatistics', $upgradeCheckWithStatistics,
-    '--webAuthenticationMode', $webAuthenticationMode,
     '--webForceSSL', $forceSSL,
     '--webListenPrefixes', $webListenPrefix,
     '--commsListenPort', $listenPort,
     '--storageConnectionString', $sqlDbConnectionString
   )
+
+  if (Test-OctopusVersionSupportsShowConfiguration)
+  {
+    if ($legacyWebAuthenticationMode -ne 'Ignore')
+    {
+      #todo: add note to use new auth resources
+      throw "LegacyWebAuthenticationMode is only supported for Octopus versions older than 3.5.0."
+    }
+  }
+  else
+  {
+    if ($legacyWebAuthenticationMode -eq 'Ignore')
+    {
+      throw "LegacyWebAuthenticationMode = 'ignore' is only supported from Octopus 3.5.0."
+    }
+    $args += @('--webAuthenticationMode', $legacyWebAuthenticationMode)
+  }
+
   Invoke-OctopusServerCommand $args
 
   Write-Log "Creating Octopus Deploy database ..."
@@ -600,6 +676,7 @@ function Get-EncryptedString($string)
 
 function Get-DecryptedSecureString($encryptedString)
 {
+  if (($null -eq $encryptedString) -or ($encryptedString -eq "")) { return "" }
   $secureString = ConvertTo-SecureString -string $encryptedString
   $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureString)
   return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
@@ -662,7 +739,8 @@ function Test-TargetResource
     [string]$OctopusAdminPassword,
     [bool]$UpgradeCheck = $true,
     [bool]$UpgradeCheckWithStatistics = $true,
-    [string]$WebAuthenticationMode = 'UsernamePassword',
+    [ValidateSet("UsernamePassword", "Domain", "Ignore")]
+    [string]$LegacyWebAuthenticationMode = 'Ignore',
     [bool]$ForceSSL = $false,
     [int]$ListenPort = 10943
   )
@@ -677,7 +755,7 @@ function Test-TargetResource
                                          -OctopusAdminPassword $OctopusAdminPassword `
                                          -UpgradeCheck $UpgradeCheck `
                                          -UpgradeCheckWithStatistics $UpgradeCheckWithStatistics `
-                                         -WebAuthenticationMode $WebAuthenticationMode `
+                                         -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
                                          -ForceSSL $ForceSSL `
                                          -ListenPort $ListenPort)
 
