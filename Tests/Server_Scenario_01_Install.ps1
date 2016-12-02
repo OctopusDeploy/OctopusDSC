@@ -35,7 +35,7 @@ Configuration Server_Scenario_01_Install
         cOctopusServerActiveDirectoryAuthentication "Enable Active Directory Auth"
         {
             InstanceName = "OctopusServer"
-            Enabled = $false
+            Enabled = $true
             AllowFormsAuthenticationForDomainUsers = $true
             ActiveDirectoryContainer = "CN=Users,DC=GPN,DC=COM"
         }
