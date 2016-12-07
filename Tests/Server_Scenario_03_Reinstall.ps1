@@ -18,6 +18,8 @@ Configuration Server_Scenario_03_Reinstall
 
             SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusDeploy;Trusted_Connection=True;"
 
+            LegacyWebAuthenticationMode = "UsernamePassword"
+
             # The admin user to create
             OctopusAdminUsername = "OctoAdmin"
             OctopusAdminPassword = "SuperS3cretPassw0rd!"
