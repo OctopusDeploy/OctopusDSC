@@ -384,10 +384,17 @@ function Test-ReconfigurationRequired($currentState, $desiredState)
 
 function Uninstall-OctopusDeploy($name)
 {
-  $serviceName = (Get-ServiceName $name)
-  Write-Verbose "Deleting service $serviceName..."
   $services = @(Get-CimInstance win32_service | Where-Object {$_.PathName -like "`"$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe*"})
-  Invoke-AndAssert { & sc.exe delete $serviceName }
+  Write-Verbose "Found $($services.length) instance(s)"
+  Write-Log "Uninstalling Octopus Deploy service ..."
+  $args = @(
+    'service',
+    '--stop',
+    '--uninstall',
+    '--console',
+    '--instance', $name
+  )
+  Invoke-OctopusServerCommand $args
 
   if ($services.length -eq 1)
   {
@@ -434,16 +441,26 @@ function Update-OctopusDeploy($name, $downloadUrl, $state)
 
 function Start-OctopusDeployService($name)
 {
-  $serviceName = (Get-ServiceName $Name)
-  Write-Verbose "Starting $serviceName"
-  Start-Service -Name $serviceName
+  Write-Log "Starting Octopus Deploy instance ..."
+  $args = @(
+    'service',
+    '--start',
+    '--console',
+    '--instance', $name
+  )
+  Invoke-OctopusServerCommand $args
 }
 
 function Stop-OctopusDeployService($name)
 {
-  $serviceName = (Get-ServiceName $Name)
-  Write-Verbose "Stopping $serviceName"
-  Stop-Service -Name $serviceName -Force
+  Write-Log "Stopping Octopus Deploy instance ..."
+  $args = @(
+    'service',
+    '--stop',
+    '--console',
+    '--instance', $name
+  )
+  Invoke-OctopusServerCommand $args
 }
 
 function Get-ServiceName
