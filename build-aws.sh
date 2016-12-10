@@ -98,7 +98,7 @@ fi
 chmod 400 $KEY_NAME.pem
 
 echo "Running 'vagrant up --provider aws'"
-vagrant up --provider aws # --debug &> vagrant.log
+time vagrant up --provider aws # --debug &> vagrant.log
 VAGRANT_UP_EXIT_CODE=$?
 echo "'vagrant up' exited with exit code $VAGRANT_UP_EXIT_CODE"
 
