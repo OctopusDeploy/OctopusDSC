@@ -4,6 +4,11 @@ Configuration Server_Scenario_01_Install
 
     Node "localhost"
     {
+        LocalConfigurationManager
+        {
+            DebugMode = "ForceModuleImport"
+        }
+
         cOctopusServer OctopusServer
         {
             Ensure = "Present"

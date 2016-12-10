@@ -6,6 +6,11 @@ Configuration Tentacle_Scenario_01_Install
 
     Node "localhost"
     {
+        LocalConfigurationManager
+        {
+            DebugMode = "ForceModuleImport"
+        }
+
         cTentacleAgent ListeningTentacle
         {
             Ensure = "Present";

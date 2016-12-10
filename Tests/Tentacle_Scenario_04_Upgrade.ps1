@@ -6,6 +6,11 @@ Configuration Tentacle_Scenario_04_Upgrade
 
     Node "localhost"
     {
+        LocalConfigurationManager
+        {
+            DebugMode = "ForceModuleImport"
+        }
+
         cTentacleAgent OctopusTentacle
         {
             Ensure = "Present";

@@ -4,6 +4,11 @@ Configuration Server_Scenario_03_Reinstall
 
     Node "localhost"
     {
+        LocalConfigurationManager
+        {
+            DebugMode = "ForceModuleImport"
+        }
+
         cOctopusServer OctopusServer
         {
             Ensure = "Present"

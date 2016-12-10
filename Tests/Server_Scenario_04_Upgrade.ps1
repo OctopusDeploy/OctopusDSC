@@ -4,6 +4,11 @@ Configuration Server_Scenario_04_Upgrade
 
     Node "localhost"
     {
+        LocalConfigurationManager
+        {
+            DebugMode = "ForceModuleImport"
+        }
+
         cOctopusServer OctopusServer
         {
             Ensure = "Present"

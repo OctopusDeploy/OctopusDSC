@@ -6,6 +6,11 @@ Configuration Tentacle_Scenario_02_Remove
 
     Node "localhost"
     {
+        LocalConfigurationManager
+        {
+            DebugMode = "ForceModuleImport"
+        }
+
         cTentacleAgent ListeningTentacle
         {
             Ensure = "Absent";

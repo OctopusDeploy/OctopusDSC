@@ -4,6 +4,11 @@ Configuration Server_Scenario_02_Remove
 
     Node "localhost"
     {
+        LocalConfigurationManager
+        {
+            DebugMode = "ForceModuleImport"
+        }
+
         cOctopusServer OctopusServer
         {
             Ensure = "Absent"

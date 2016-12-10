@@ -6,6 +6,11 @@ Configuration Tentacle_Scenario_03_Reinstall
 
     Node "localhost"
     {
+        LocalConfigurationManager
+        {
+            DebugMode = "ForceModuleImport"
+        }
+
         cTentacleAgent OctopusTentacle
         {
             Ensure = "Present";
