@@ -289,7 +289,7 @@ function Set-TargetResource
 
   if ($State -eq "Started" -and $currentResource["State"] -eq "Stopped")
   {
-    Start-OctopusDeployService $Name
+    Start-OctopusDeployService -name $Name -url ($webListenPrefix -split ';')[0]
   }
 }
 
@@ -447,7 +447,7 @@ function Update-OctopusDeploy($name, $downloadUrl, $state)
   Write-Verbose "Octopus Deploy upgraded!"
 }
 
-function Start-OctopusDeployService($name)
+function Start-OctopusDeployService($name, $url)
 {
   Write-Log "Starting Octopus Deploy instance ..."
   $args = @(
@@ -457,6 +457,26 @@ function Start-OctopusDeployService($name)
     '--instance', $name
   )
   Invoke-OctopusServerCommand $args
+
+  $timeout = new-timespan -Minutes 5
+  $sw = [diagnostics.stopwatch]::StartNew()
+  while (($sw.elapsed -lt $timeout) -and (-not (Test-OctopusDeployServerResponding $url))) {
+      Write-Verbose "$(date) Waiting until server completes startup"
+      start-sleep 5
+  }
+}
+
+function Test-OctopusDeployServerResponding($url)
+{
+  try {
+    Write-Verbose "Checking if $url/api is responding..."
+    Invoke-WebRequest "$url/api" -UseBasicParsing | Out-Null
+    return $true
+  }
+  catch {
+    write-verbose "Server returned error $($_)"
+    return $false
+  }
 }
 
 function Stop-OctopusDeployService($name)
