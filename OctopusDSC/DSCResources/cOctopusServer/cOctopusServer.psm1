@@ -396,6 +396,14 @@ function Uninstall-OctopusDeploy($name)
   )
   Invoke-OctopusServerCommand $args
 
+  Write-Log "Deleting Octopus Deploy instance ..."
+  $args = @(
+    'delete-instance',
+    '--console',
+    '--instance', $name
+  )
+  Invoke-OctopusServerCommand $args
+
   if ($services.length -eq 1)
   {
     # Uninstall msi
