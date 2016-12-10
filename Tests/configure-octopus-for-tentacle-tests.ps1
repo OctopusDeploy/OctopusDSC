@@ -36,7 +36,7 @@ try
     #create an environment for the tentacles to go into
     $environment = New-Object Octopus.Client.Model.EnvironmentResource
     $environment.Name = "The-Env"
-    $repository.Environments.Create($environment)
+    $repository.Environments.Create($environment) | Out-Null
 
     set-content "c:\temp\octopus-configured.marker" ""
   }
