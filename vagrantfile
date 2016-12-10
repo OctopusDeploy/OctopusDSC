@@ -63,8 +63,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     override.winrm.ssl_peer_verification = false
   end
 
-  # vagrant appears to be not closing connections (might not be needed after upgrading to vagrant 1.8.7)
-  config.vm.provision "shell", inline: "Set-Item WSMan:\\localhost\\Shell\\MaxShellsPerUser 500"
   # delete existing tests if they exist (for dev)
   config.vm.provision "shell", inline: "if (Test-Path 'c:\\temp\\tests') {remove-item -force -recurse 'c:\\temp\\tests' }"
   # upload tests
