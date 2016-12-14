@@ -34,4 +34,4 @@ As there are no windows specific build scripts at present, if you want to run th
 
 Tests are written in [ServerSpec](serverspec.org), which is an infrastructure oriented layer over [RSpec](rspec.info).
 
-When creating a PR, please ensure that all existing tests run succesfully against VirtualBox, and please include a new scenario where possible.
+When creating a PR, please ensure that all existing tests run succesfully against VirtualBox, and please include a new scenario where possible. Before you start, please raise an issue to discuss your plans so we can make sure it fits with the goals of the project.
