@@ -1,3 +1,4 @@
+$ErrorActionPreference = "Stop"
 $installStateFile = "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate"
 $octopusServerExePath = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
 
