@@ -22,9 +22,9 @@ As there are no windows specific build scripts at present, if you want to run th
 1. Install Vagrant from [vagrantup.com](vagrantup.com)
 2. Run `vagrant plugin install vagrant-aws`
 3. Run `vagrant plugin install vagrant-aws-winrm`
-4. Run `vagrant plugin install vagrant-dsc1
-5. Run `vagrant plugin install vagrant-winrm1
-6. Run `vagrant plugin install vagrant-winrm-syncedfolders1
+4. Run `vagrant plugin install vagrant-dsc`
+5. Run `vagrant plugin install vagrant-winrm`
+6. Run `vagrant plugin install vagrant-winrm-syncedfolders`
 7. Set an environment variable `AWS_ACCESS_KEY_ID` to a valid value
 8. Set an environment variable `AWS_SECRET_ACCESS_KEY` to a valid value
 9. Set an environment variable `AWS_SUBNET_ID` to a valid subnet where you want the instance launched
