@@ -80,12 +80,12 @@ When `State` is `Started`, the resource will ensure that the Octopus Servr windo
 | `WebListenPrefix`                            | `string`                                            |                                                                 | A semi-colon (`;`) delimited list of urls on which the server should listen. eg `https://octopus.example.com:81`. |
 | `OctopusAdminUsername`                       | `string`                                            |                                                                 | The name of the administrative user to create on first install. |
 | `OctopusAdminPassword`                       | `string`                                            |                                                                 | The password of the administrative user to create on first install. |
-| `AllowUpgradeCheck`                               | `boolean`                                           | `$true`                                                         | Whether the server should check for updates periodically. |
+| `AllowUpgradeCheck`                          | `boolean`                                           | `$true`                                                         | Whether the server should check for updates periodically. |
 | `AllowCollectionOfAnonymousUsageStatistics`  | `boolean`                                           | `$true`                                                         | Allow anonymous reporting of usage statistics. |
 | `LegacyWebAuthenticationMode`                | `string` - `UsernamePassword`, `Domain` or `Ignore` | `Ignore`                                                        | For Octopus version older than 3.5, allows you to configure how users login. For 3.5 and above, this must be set to `ignore`.  |
 | `ForceSSL`                                   | `boolean`                                           | `$false`                                                        | Whether SSL should be required (HTTP requests get redirected to HTTPS) |
 | `ListenPort`                                 | `int`                                               | `10943`                                                         | The port on which the Server should listen for communication from `Polling` Tentacles. |
-
+| `AutoLoginEnabled`                           | `boolean`                                           | `$false`                                                        | If an authentication provider is enabled that supports pass through authentcation (eg Active Directory), allow the user to automatically sign in. Only supported from Octopus 3.5. |
 
 ## Drift
 

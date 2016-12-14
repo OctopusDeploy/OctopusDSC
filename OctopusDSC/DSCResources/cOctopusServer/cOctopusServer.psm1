@@ -31,7 +31,8 @@ function Get-TargetResource
     [ValidateSet("UsernamePassword", "Domain", "Ignore")]
     [string]$LegacyWebAuthenticationMode = 'Ignore',
     [bool]$ForceSSL = $false,
-    [int]$ListenPort = 10943
+    [int]$ListenPort = 10943,
+    [bool]$AutoLoginEnabled = $false
   )
 
   Write-Verbose "Checking if Octopus Server is installed"
@@ -74,6 +75,7 @@ function Get-TargetResource
   $existingListenPort = $null
   $existingOctopusAdminUsername = $null
   $existingOctopusAdminPassword = $null
+  $existingAutoLoginEnabled = $null
 
   if ($existingEnsure -eq "Present") {
     $existingConfig = Import-ServerConfig "$($env:SystemDrive)\Octopus\OctopusServer.config"
@@ -83,6 +85,7 @@ function Get-TargetResource
     $existingOctopusUpgradesAllowChecking = $existingConfig.OctopusUpgradesAllowChecking
     $existingOctopusUpgradesIncludeStatistics = $existingConfig.OctopusUpgradesIncludeStatistics
     $existingListenPort = $existingConfig.OctopusCommunicationsServicesPort
+    $existingAutoLoginEnabled = $existingConfig.OctopusWebPortalAutoLoginEnabled
     $existingLegacyWebAuthenticationMode = $existingConfig.OctopusWebPortalAuthenticationMode
     if (Test-Path $installStateFile) {
       $installState = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json)
@@ -106,6 +109,7 @@ function Get-TargetResource
     OctopusAdminUsername = $existingOctopusAdminUsername
     OctopusAdminPassword = $existingOctopusAdminPassword
     LegacyWebAuthenticationMode = $existingLegacyWebAuthenticationMode
+    AutoLoginEnabled = $existingAutoLoginEnabled
   }
 
   return $currentResource
@@ -144,6 +148,7 @@ function Import-ServerConfig
       OctopusUpgradesIncludeStatistics                       = [System.Convert]::ToBoolean($config.Octopus.Upgrades.IncludeStatistics)
       OctopusCommunicationsServicesPort                      = $config.Octopus.Communications.ServicesPort
       OctopusWebPortalAuthenticationMode                     = "Ignore"
+      OctopusWebPortalAutoLoginEnabled                       = [System.Convert]::ToBoolean($config.Octopus.WebPortal.AutoLoginEnabled)
     }
   }
   else {
@@ -165,6 +170,7 @@ function Import-ServerConfig
       OctopusUpgradesIncludeStatistics                       = [System.Convert]::ToBoolean($xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Upgrades.IncludeStatistics"]/text()').Value)
       OctopusCommunicationsServicesport                      = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Communications.ServicesPort"]/text()').Value
       OctopusWebPortalAuthenticationMode                     = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.WebPortal.AuthenticationMode"]/text()').Value
+      OctopusWebPortalAutoLoginEnabled                       = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.WebPortal.AutoLoginEnabled"]/text()').Value
     }
 
     if ($result.OctopusWebPortalAuthenticationMode -eq '0') { $result.OctopusWebPortalAuthenticationMode = 'UsernamePassword' }
@@ -173,7 +179,17 @@ function Import-ServerConfig
   return $result
 }
 
+function Test-OctopusVersionSupportsAutoLoginEnabled
+{
+  return Test-OctopusVersionNewerThan (New-Object System.Version 3, 5, 0)
+}
+
 function Test-OctopusVersionSupportsShowConfiguration
+{
+  return Test-OctopusVersionNewerThan (New-Object System.Version 3, 5, 0)
+}
+
+function Test-OctopusVersionNewerThan($targetVersion)
 {
   if (-not (Test-Path -LiteralPath $octopusServerExePath))
   {
@@ -188,9 +204,8 @@ function Test-OctopusVersionSupportsShowConfiguration
 
   $fileVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($octopusServerExePath).FileVersion
   $octopusServerVersion = New-Object System.Version $fileVersion
-  $versionWhereShowConfigurationWasIntroduced = New-Object System.Version 3, 5, 0
 
-  return ($octopusServerVersion -ge $versionWhereShowConfigurationWasIntroduced)
+  return ($octopusServerVersion -ge $targetVersion)
 }
 
 function Set-TargetResource
@@ -224,10 +239,9 @@ function Set-TargetResource
     [ValidateSet("UsernamePassword", "Domain", "Ignore")]
     [string]$LegacyWebAuthenticationMode = 'Ignore',
     [bool]$ForceSSL = $false,
-    [int]$ListenPort = 10943
+    [int]$ListenPort = 10943,
+    [bool]$AutoLoginEnabled = $false
   )
-
-
 
   $currentResource = (Get-TargetResource -Ensure $Ensure `
                                          -Name $Name `
@@ -241,7 +255,8 @@ function Set-TargetResource
                                          -AllowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
                                          -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
                                          -ForceSSL $ForceSSL `
-                                         -ListenPort $ListenPort)
+                                         -ListenPort $ListenPort `
+                                         -AutoLoginEnabled $AutoLoginEnabled)
 
   $params = Get-Parameters $MyInvocation.MyCommand.Parameters
   Test-RequestedConfiguration $currentResource $params
@@ -267,7 +282,8 @@ function Set-TargetResource
                           -allowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
                           -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
                           -forceSSL $ForceSSL `
-                          -listenPort $ListenPort
+                          -listenPort $ListenPort `
+                          -autoLoginEnabled $AutoLoginEnabled
   }
   else
   {
@@ -283,7 +299,8 @@ function Set-TargetResource
                                      -allowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
                                      -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
                                      -forceSSL $ForceSSL `
-                                     -listenPort $ListenPort
+                                     -listenPort $ListenPort `
+                                     -autoLoginEnabled $AutoLoginEnabled
     }
   }
 
@@ -335,7 +352,8 @@ function Set-OctopusDeployConfiguration
     [ValidateSet("UsernamePassword", "Domain", "Ignore")]
     [string]$legacyWebAuthenticationMode = 'Ignore',
     [bool]$forceSSL = $false,
-    [int]$listenPort = 10943
+    [int]$listenPort = 10943,
+    [bool]$autoLoginEnabled = $false
   )
 
   Write-Log "Configuring Octopus Deploy instance ..."
@@ -349,6 +367,17 @@ function Set-OctopusDeployConfiguration
     '--webListenPrefixes', $webListenPrefix,
     '--commsListenPort', $listenPort
   )
+  if (Test-OctopusVersionSupportsAutoLoginEnabled)
+  {
+    $args += @('--autoLoginEnabled', $autoLoginEnabled)
+  }
+  else {
+    if (-not ($autoLoginEnabled))
+    {
+      throw "AutoLoginEnabled is only supported from Octopus 3.5.0."
+    }
+  }
+
   if (Test-OctopusVersionSupportsShowConfiguration)
   {
     if ($legacyWebAuthenticationMode -ne 'Ignore')
@@ -613,7 +642,8 @@ function Install-OctopusDeploy
     [ValidateSet("UsernamePassword", "Domain", "Ignore")]
     [string]$legacyWebAuthenticationMode = 'Ignore',
     [bool]$forceSSL = $false,
-    [int]$listenPort = 10943
+    [int]$listenPort = 10943,
+    [bool]$autoLoginEnabled = $false
   )
 
   Write-Verbose "Installing Octopus Deploy..."
@@ -642,6 +672,15 @@ function Install-OctopusDeploy
     '--commsListenPort', $listenPort,
     '--storageConnectionString', $sqlDbConnectionString
   )
+
+  if (Test-OctopusVersionSupportsAutoLoginEnabled)
+  {
+    $args += @('--autoLoginEnabled', $autoLoginEnabled)
+  }
+  elseif ($autoLoginEnabled)
+  {
+    throw "AutoLoginEnabled is only supported from Octopus 3.5.0."
+  }
 
   if (Test-OctopusVersionSupportsShowConfiguration)
   {
@@ -787,7 +826,8 @@ function Test-TargetResource
     [ValidateSet("UsernamePassword", "Domain", "Ignore")]
     [string]$LegacyWebAuthenticationMode = 'Ignore',
     [bool]$ForceSSL = $false,
-    [int]$ListenPort = 10943
+    [int]$ListenPort = 10943,
+    [bool]$AutoLoginEnabled = $false
   )
 
   $currentResource = (Get-TargetResource -Ensure $Ensure `
@@ -802,7 +842,8 @@ function Test-TargetResource
                                          -AllowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
                                          -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
                                          -ForceSSL $ForceSSL `
-                                         -ListenPort $ListenPort)
+                                         -ListenPort $ListenPort `
+                                         -AutoLoginEnabled $AutoLoginEnabled)
 
   $params = Get-Parameters $MyInvocation.MyCommand.Parameters
 
