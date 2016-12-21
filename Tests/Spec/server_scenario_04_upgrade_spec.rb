@@ -27,6 +27,11 @@ describe service('OctopusDeploy') do
   it { should run_under_account('LocalSystem') }
 end
 
+puts "netstat output"
+system 'netstat -aon'
+puts "tasklist output"
+system 'tasklist'
+
 describe port(10943) do
   it { should be_listening.with('tcp') }
 end
