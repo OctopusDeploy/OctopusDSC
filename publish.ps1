@@ -1,8 +1,13 @@
+param(
+    [string]$buildVersion,
+    [string]$psGalleryApiKey
+)
+
 try
 {
-    Write-output "### Updating version number to %build.number%"
+    Write-output "### Updating version number to $buildVersion"
     $content = (Get-Content OctopusDSC/OctopusDSC.psd1)
-    $content = $content -replace "ModuleVersion = '[0-9\.]+'", "ModuleVersion = '%build.number%'"
+    $content = $content -replace "ModuleVersion = '[0-9\.]+'", "ModuleVersion = '$buildVersion'"
     Set-Content OctopusDSC/OctopusDSC.psd1 $content
 
     Write-output "### Import Modules"
@@ -22,7 +27,7 @@ try
     Install-PackageProvider nuget -force
 
     Write-output "### Publish-Module -Path 'OctopusDSC'"
-    Publish-Module -Path "OctopusDSC" -NuGetApiKey "%PSGallery.ApiKey%"
+    Publish-Module -Path "OctopusDSC" -NuGetApiKey $psGalleryApiKey
 }
 catch
 {
