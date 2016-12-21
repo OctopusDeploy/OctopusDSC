@@ -13,6 +13,11 @@ describe service('OctopusDeploy') do
   it { should_not be_installed }
 end
 
+puts "netstat output"
+system 'netstat -aon'
+puts "tasklist output"
+system 'tasklist'
+
 describe port(10943) do
   it { should_not be_listening.with('tcp') }
 end
