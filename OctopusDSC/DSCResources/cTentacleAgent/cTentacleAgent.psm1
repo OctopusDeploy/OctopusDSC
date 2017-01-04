@@ -15,7 +15,7 @@ function Get-TargetResource
         [ValidateSet("Listen", "Poll")]
         [string]$CommunicationMode = "Listen",
         [string]$ApiKey,
-        [string]$MachineName = "$($env:COMPUTERNAME)_$Name",
+        [string]$DisplayName = "$($env:COMPUTERNAME)_$Name",
         [string]$OctopusServerUrl,
         [string[]]$Environments,
         [string[]]$Roles,
@@ -87,7 +87,7 @@ function Set-TargetResource
         [string]$CommunicationMode = "Listen",
         [string]$ApiKey,
         [string]$OctopusServerUrl,
-        [string]$MachineName = "$($env:COMPUTERNAME)_$Name",
+        [string]$DisplayName = "$($env:COMPUTERNAME)_$Name",
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory = "$($env:SystemDrive)\Applications",
@@ -165,7 +165,7 @@ function Set-TargetResource
                      -apiKey $ApiKey `
                      -octopusServerUrl $OctopusServerUrl `
                      -port $ListenPort `
-                     -machineName $MachineName `
+                     -displayName $DisplayName `
                      -environments $Environments `
                      -roles $Roles `
                      -DefaultApplicationDirectory $DefaultApplicationDirectory `
@@ -213,7 +213,7 @@ function Test-TargetResource
         [string]$CommunicationMode = "Listen",
         [string]$ApiKey,
         [string]$OctopusServerUrl,
-        [string]$MachineName = "$($env:COMPUTERNAME)_$Name",
+        [string]$DisplayName = "$($env:COMPUTERNAME)_$Name",
         [string[]]$Environments,
         [string[]]$Roles,
         [string]$DefaultApplicationDirectory,
@@ -357,7 +357,7 @@ function New-Tentacle
         [Parameter(Mandatory=$True)]
         [string[]]$roles,
         [int]$port=10933,
-        [string]$machineName,
+        [string]$displayName,
         [string]$DefaultApplicationDirectory,
         [string]$tentacleDownloadUrl,
         [string]$tentacleDownloadUrl64,
@@ -405,7 +405,7 @@ function New-Tentacle
     $registerArguments = @("register-with",
                            "--instance", $name,
                            "--server", $octopusServerUrl,
-                           "--name", $machineName,
+                           "--name", $displayName,
                            "--apiKey", $apiKey,
                            "--force",
                            "--console")
