@@ -22,6 +22,9 @@ Configuration SampleConfig
             # than one instance
             Name = "Tentacle"
 
+            # Defaults to <MachineName>_<InstanceName> unless overridden
+            DisplayName = "My Tentacle"
+
             # Registration - all parameters required
             ApiKey = $ApiKey
             OctopusServerUrl = $OctopusServerUrl
@@ -66,6 +69,7 @@ When `State` is `Started`, the resource will ensure that the Tentacle windows se
 | ----------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------- | ------------|
 | `Ensure`                      | `string` - `Present` or `Absent`                           | `Present`                                                     | The desired state of the Tentacle - effectively whether to install or uninstall. |
 | `Name`                        | `string`                                                   |                                                               | The name of the Tentacle instance. Use `Tentacle` by convention unless you have more than one instance. |
+| `DisplayName`                 | `string`                                                   | `<Name>_<MachineName>`                                        | The display name of the Tentacle that is used in the Octopus UI. |
 | `State`                       | `string` - `Started` or `Stopped`                          | `Started`                                                     | The desired state of the Tentacle service. |
 | `CommunicationMode`           | `string` - `Listen` or `Poll`                              | `Listen`                                                      | The type of Tentacle - whether the Tentacle [listens](http://docs.octopusdeploy.com/display/OD/Listening+Tentacles) for requests from server, or [actively polls](http://docs.octopusdeploy.com/display/OD/Polling+Tentacles) the server for requests. **Note:** to change the `CommunicationMode`, you need to uninstall and reinstall the Tentacle. |
 | `ApiKey`                      | `string`                                                   |                                                               | The [Api Key](http://docs.octopusdeploy.com/display/OD/How+to+create+an+API+key) to use to register the Tentacle with the Server. |
