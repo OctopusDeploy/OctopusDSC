@@ -20,6 +20,8 @@ Configuration Tentacle_Scenario_01_Install
             # than one instance
             Name = "ListeningTentacle";
 
+            DisplayName = "My Listening Tentacle"
+
             # Registration - all parameters required
             ApiKey = $ApiKey;
             OctopusServerUrl = $OctopusServerUrl;
