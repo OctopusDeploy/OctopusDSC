@@ -25,6 +25,7 @@ describe service('OctopusDeploy Tentacle: ListeningTentacle') do
   it { should be_running }
   it { should have_start_mode('Automatic') }
   it { should run_under_account('LocalSystem') }
+  it { should have_display_name('My Listening Tentacle')}
 end
 
 describe port(10933) do
@@ -51,6 +52,7 @@ describe service('OctopusDeploy Tentacle: PollingTentacle') do
   it { should be_running }
   it { should have_start_mode('Automatic') }
   it { should run_under_account('LocalSystem') }
+  it { should have_display_name("#{ENV['COMPUTERNAME']}_PollingTentacle")}
 end
 
 describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "PollingTentacle") do
