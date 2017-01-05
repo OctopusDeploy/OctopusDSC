@@ -165,30 +165,47 @@ function Set-TargetResource
         Write-Verbose "Installing Tentacle..."
         
         #Let's read the environments file
-        $fileContent = Get-Content $EnvironmentsFilePath
-        foreach ($line in $fileContent) 
+        if ([string]::IsNullOrEmpty($EnvironmentsFilePath) -eq $false)
         {
-            if ([string]::IsNullOrEmpty($line) -eq $false)
-            {
-                $Environments += $line
+            try {
+                $fileContent = Get-Content $EnvironmentsFilePath
+                foreach ($line in $fileContent) 
+                {
+                    if ([string]::IsNullOrEmpty($line) -eq $false)
+                    {
+                        $Environments += $line
+                    }
+                    #I need to do this because powershell seems to initialize empty string arrays to string.
+                    #For eg
+                    #A,B,C
+                    #D,E
+                    #becomes A,B,CD,E when joined
+                    $Environments += ","
+                }
             }
-            #I need to do this because powershell seems to initialize empty string arrays to string.
-            #For eg
-            #A,B,C
-            #D,E
-            #becomes A,B,CD,E when joined
-            $Environments += ","
+            catch [System.Exception] 
+            {
+                throw "Error reading Environments File - $($EnvironmentFilePath)"
+            }
         }
-
-        #Let's read the roles file
-        $fileContent = Get-Content $RolesFilePath
-        foreach ($line in $fileContent) 
+        
+        if ([string]::IsNullOrEmpty($RolesFilePath) -eq $false)
         {
-            if ([string]::IsNullOrEmpty($line) -eq $false)
-            {
-                $Roles += $line
+            try {
+                #Let's read the roles file
+                $fileContent = Get-Content $RolesFilePath
+                foreach ($line in $fileContent) 
+                {
+                    if ([string]::IsNullOrEmpty($line) -eq $false)
+                    {
+                        $Roles += $line
+                    }
+                    $Roles += ","
+                }                
             }
-            $Roles += ","
+            catch [System.Exception] {
+                throw "Error reading Roles File - $($RolesFilePath)"
+            }
         }
 
         #Creating Tentacle
