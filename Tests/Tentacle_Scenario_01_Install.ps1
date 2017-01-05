@@ -1,4 +1,4 @@
-Configuration Scenario_01_Install
+Configuration Tentacle_Scenario_01_Install
 {
     param ($OctopusServerUrl, $ApiKey, $Environments, $Roles, $ListenPort)
 
@@ -6,6 +6,11 @@ Configuration Scenario_01_Install
 
     Node "localhost"
     {
+        LocalConfigurationManager
+        {
+            DebugMode = "ForceModuleImport"
+        }
+
         cTentacleAgent ListeningTentacle
         {
             Ensure = "Present";
@@ -14,6 +19,8 @@ Configuration Scenario_01_Install
             # Tentacle instance name. Leave it as 'Tentacle' unless you have more
             # than one instance
             Name = "ListeningTentacle";
+
+            DisplayName = "My Listening Tentacle"
 
             # Registration - all parameters required
             ApiKey = $ApiKey;

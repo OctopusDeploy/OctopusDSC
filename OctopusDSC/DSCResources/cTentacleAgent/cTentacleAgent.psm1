@@ -15,6 +15,7 @@ function Get-TargetResource
         [ValidateSet("Listen", "Poll")]
         [string]$CommunicationMode = "Listen",
         [string]$ApiKey,
+        [string]$DisplayName = "$($env:COMPUTERNAME)_$Name",
         [string]$OctopusServerUrl,
         [string[]]$Environments,
         [string]$EnvironmentsFilePath,
@@ -88,6 +89,7 @@ function Set-TargetResource
         [string]$CommunicationMode = "Listen",
         [string]$ApiKey,
         [string]$OctopusServerUrl,
+        [string]$DisplayName = "$($env:COMPUTERNAME)_$Name",
         [string[]]$Environments,
         [string]$EnvironmentsFilePath,
         [string[]]$Roles,
@@ -213,6 +215,7 @@ function Set-TargetResource
                      -apiKey $ApiKey `
                      -octopusServerUrl $OctopusServerUrl `
                      -port $ListenPort `
+                     -displayName $DisplayName `
                      -environments $Environments `
                      -roles $Roles `
                      -DefaultApplicationDirectory $DefaultApplicationDirectory `
@@ -260,6 +263,7 @@ function Test-TargetResource
         [string]$CommunicationMode = "Listen",
         [string]$ApiKey,
         [string]$OctopusServerUrl,
+        [string]$DisplayName = "$($env:COMPUTERNAME)_$Name",
         [string[]]$Environments,
         [string]$EnvironmentsFilePath,
         [string[]]$Roles,
@@ -405,6 +409,7 @@ function New-Tentacle
         [Parameter(Mandatory=$True)]
         [string[]]$roles,
         [int]$port=10933,
+        [string]$displayName,
         [string]$DefaultApplicationDirectory,
         [string]$tentacleDownloadUrl,
         [string]$tentacleDownloadUrl64,
@@ -452,7 +457,7 @@ function New-Tentacle
     $registerArguments = @("register-with",
                            "--instance", $name,
                            "--server", $octopusServerUrl,
-                           "--name", "$($env:COMPUTERNAME)_$name",
+                           "--name", $displayName,
                            "--apiKey", $apiKey,
                            "--force",
                            "--console")

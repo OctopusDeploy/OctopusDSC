@@ -1,4 +1,4 @@
-Configuration Scenario_04_Upgrade
+Configuration Tentacle_Scenario_04_Upgrade
 {
     param ($OctopusServerUrl, $ApiKey, $Environments, $Roles, $ListenPort)
 
@@ -6,6 +6,11 @@ Configuration Scenario_04_Upgrade
 
     Node "localhost"
     {
+        LocalConfigurationManager
+        {
+            DebugMode = "ForceModuleImport"
+        }
+
         cTentacleAgent OctopusTentacle
         {
             Ensure = "Present";

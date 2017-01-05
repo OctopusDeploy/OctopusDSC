@@ -1,0 +1,36 @@
+require 'spec_helper'
+
+#we deliberately dont cleanup the octopus directory, as it contains logs & config
+describe file('c:/Octopus') do
+  it { should exist }
+end
+
+describe file('C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe') do
+  it { should_not exist }
+end
+
+describe service('OctopusDeploy') do
+  it { should_not be_installed }
+end
+
+puts "netstat output"
+system 'netstat -aon'
+puts "tasklist output"
+system 'tasklist'
+
+describe port(10943) do
+  it { should_not be_listening.with('tcp') }
+end
+
+describe port(81) do
+  it { should_not be_listening.with('tcp') }
+end
+
+#todo: confirm whether these should be deleted
+# describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer') do
+#   it { should_not exist }
+# end
+
+# describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer\OctopusServer') do
+#   it { should_not exist }
+# end

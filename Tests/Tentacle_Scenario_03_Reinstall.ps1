@@ -1,4 +1,4 @@
-Configuration Scenario_03_Reinstall
+Configuration Tentacle_Scenario_03_Reinstall
 {
     param ($OctopusServerUrl, $ApiKey, $Environments, $Roles, $ListenPort)
 
@@ -6,6 +6,11 @@ Configuration Scenario_03_Reinstall
 
     Node "localhost"
     {
+        LocalConfigurationManager
+        {
+            DebugMode = "ForceModuleImport"
+        }
+
         cTentacleAgent OctopusTentacle
         {
             Ensure = "Present";

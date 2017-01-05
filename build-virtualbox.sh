@@ -23,8 +23,6 @@ function check_env_var() {
 
 check_env_var AWS_ACCESS_KEY_ID
 check_env_var AWS_SECRET_ACCESS_KEY
-check_env_var OCTOPUS_SERVER_URL
-check_env_var OCTOPUS_API_KEY
 check_env_var AWS_SUBNET_ID
 check_env_var AWS_SECURITY_GROUP_ID
 
@@ -62,7 +60,7 @@ if [ $POWERSHELL_INSTALLED == 0 ]; then
 
   if [ -n "$PSSCRIPTANALZYER_PATH" ]; then
     echo "Running PSScriptAnalyzer"
-    powershell -command "Import-Module $PSSCRIPTANALZYER_PATH; \$results = Invoke-ScriptAnalyzer ./OctopusDSC/DSCResources/cTentacleAgent/cTentacleAgent.psm1 -exclude @('PSUseShouldProcessForStateChangingFunctions'); write-output \$results; exit \$results.length"
+    powershell -command "Import-Module $PSSCRIPTANALZYER_PATH; \$results = Invoke-ScriptAnalyzer ./OctopusDSC/DSCResources -recurse -exclude @('PSUseShouldProcessForStateChangingFunctions', 'PSAvoidUsingPlainTextForPassword', 'PSAvoidUsingUserNameAndPassWordParams', 'PSAvoidUsingConvertToSecureStringWithPlainText'); write-output \$results; exit \$results.length"
     if [ $? != 0 ]; then
       echo "PSScriptAnalyzer found issues."
       exit 1
@@ -77,7 +75,7 @@ if [ $POWERSHELL_INSTALLED == 0 ]; then
   fi
 fi
 
-echo "Running 'vagrant up'"
+echo "Running 'vagrant up --provider virtualbox'"
 time vagrant up --provider virtualbox # --debug &> vagrant.log
 
 echo "Dont forget to run 'vagrant destroy -f' when you have finished"

@@ -1,4 +1,4 @@
-Configuration Scenario_02_Remove
+Configuration Tentacle_Scenario_02_Remove
 {
     param ($OctopusServerUrl, $ApiKey, $Environments, $Roles, $ListenPort)
 
@@ -6,6 +6,11 @@ Configuration Scenario_02_Remove
 
     Node "localhost"
     {
+        LocalConfigurationManager
+        {
+            DebugMode = "ForceModuleImport"
+        }
+
         cTentacleAgent ListeningTentacle
         {
             Ensure = "Absent";
