@@ -25,7 +25,6 @@ describe service('OctopusDeploy Tentacle: ListeningTentacle') do
   it { should be_running }
   it { should have_start_mode('Automatic') }
   it { should run_under_account('LocalSystem') }
-  it { should have_display_name('My Listening Tentacle')}
 end
 
 describe port(10933) do
@@ -38,6 +37,7 @@ describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], 
   it { should be_online }
   it { should be_in_environment('The-Env') }
   it { should have_role('Test-Tentacle') }
+  it { should have_display_name('My Listening Tentacle')}
 end
 
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\ListeningTentacle') do
@@ -52,7 +52,6 @@ describe service('OctopusDeploy Tentacle: PollingTentacle') do
   it { should be_running }
   it { should have_start_mode('Automatic') }
   it { should run_under_account('LocalSystem') }
-  it { should have_display_name("#{ENV['COMPUTERNAME']}_PollingTentacle")}
 end
 
 describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "PollingTentacle") do
@@ -61,6 +60,7 @@ describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], 
   it { should be_online }
   it { should be_in_environment('The-Env') }
   it { should have_role('Test-Tentacle') }
+  it { should have_display_name("#{ENV['COMPUTERNAME']}_PollingTentacle")}
 end
 
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\PollingTentacle') do
