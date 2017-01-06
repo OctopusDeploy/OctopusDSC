@@ -21,10 +21,11 @@ function check_env_var() {
     fi
 }
 
-check_env_var AWS_ACCESS_KEY_ID
-check_env_var AWS_SECRET_ACCESS_KEY
-check_env_var AWS_SUBNET_ID
-check_env_var AWS_SECURITY_GROUP_ID
+#not required when running locally in VirtualBox?
+#check_env_var AWS_ACCESS_KEY_ID
+#check_env_var AWS_SECRET_ACCESS_KEY
+#check_env_var AWS_SUBNET_ID
+#check_env_var AWS_SECURITY_GROUP_ID
 
 which vagrant > /dev/null
 if [ $? != 0 ]; then
@@ -32,6 +33,13 @@ if [ $? != 0 ]; then
   exit 1
 fi
 echo "Vagrant installed - good."
+
+which VBoxManage > /dev/null
+if [ $? != 0 ]; then
+  echo "Please install VirtualBox from virtualbox.org."
+  exit 1
+fi
+echo "VirtualBox installed - good."
 
 POWERSHELL_INSTALLED=0
 which powershell > /dev/null
@@ -42,8 +50,9 @@ else
   echo "Powershell installed - good."
 fi
 
-check_plugin_installed "vagrant-aws"
-check_plugin_installed "vagrant-aws-winrm"
+#not required when running locally in VirtualBox?
+#check_plugin_installed "vagrant-aws"
+#check_plugin_installed "vagrant-aws-winrm"
 check_plugin_installed "vagrant-dsc"
 check_plugin_installed "vagrant-winrm"
 check_plugin_installed "vagrant-winrm-syncedfolders"
