@@ -290,7 +290,10 @@ function Set-TargetResource
   {
     if ($Ensure -eq "Present" -and $currentResource["DownloadUrl"] -ne $DownloadUrl)
     {
-      Update-OctopusDeploy $Name $DownloadUrl $State
+      Update-OctopusDeploy -name $Name `
+                           -downloadUrl $DownloadUrl `
+                           -state $State `
+                           -url ($webListenPrefix -split ';')[0]
     }
     if (Test-ReconfigurationRequired $currentResource $params)
     {
@@ -465,14 +468,13 @@ function Uninstall-OctopusDeploy($name)
   }
 }
 
-function Update-OctopusDeploy($name, $downloadUrl, $state)
+function Update-OctopusDeploy($name, $downloadUrl, $state, $url)
 {
   Write-Verbose "Upgrading Octopus Deploy..."
-  $serviceName = (Get-ServiceName $name)
-  Stop-Service -Name $serviceName
+  Stop-OctopusDeployService -name $name
   Install-MSI $downloadUrl
   if ($state -eq "Started") {
-    Start-Service $serviceName
+    Start-OctopusDeployService -name $name -url $url
   }
   Write-Verbose "Octopus Deploy upgraded!"
 }
