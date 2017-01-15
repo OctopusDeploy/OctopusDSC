@@ -13,11 +13,6 @@ describe service('OctopusDeploy') do
   it { should_not be_installed }
 end
 
-puts "netstat output"
-system 'netstat -aon'
-puts "tasklist output"
-system 'tasklist'
-
 #todo: add a new type/matcher to the `octopus-serverspec-extensions` project
 #the port can still be in a TIME_WAIT state for upto 4 minutes and these tests can fail because of that
 #describe port(10943) do
