@@ -59,8 +59,8 @@ check_plugin_installed "vagrant-winrm-syncedfolders"
 
 if [ $POWERSHELL_INSTALLED == 0 ]; then
   if [ -z "$PSSCRIPTANALZYER_PATH" ]; then
-    if [ -e /opt/PowerShell/PSScriptAnalyzer/out/PSScriptAnalyzer ]; then
-      PSSCRIPTANALZYER_PATH = "/opt/PowerShell/PSScriptAnalyzer/out/PSScriptAnalyzer"
+    if [ -e $HOME/.local/share/powershell/Modules/PSScriptAnalyzer ]; then
+      PSSCRIPTANALZYER_PATH="$HOME/.local/share/powershell/Modules/PSScriptAnalyzer"
     else
       echo "Could not find PSScriptAnalyzer. Please set environment variable PSSCRIPTANALZYER_PATH to the folder containing PSScriptAnalyzer.psm1."
       echo "Skipping PSScriptAnalyzer testing."
