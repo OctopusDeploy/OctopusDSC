@@ -130,6 +130,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   #run tests for tentacle scenario 1 (initial install)
+  config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_01_install')
 
   # Run DSC for tentacle scenario 2 (uninstall)
@@ -148,6 +149,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   #run tests for tentacle scenario 2 (initial install)
+  config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_02_remove')
 
   # Run DSC for tentacle scenario 3 (subsequent re-install)
@@ -166,6 +168,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   #run tests for tentacle scenario 3 (subsequent re-install)
+  config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_03_reinstall')
 
   # Run DSC for tentacle scenario 4 (upgrade)
@@ -184,6 +187,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   #run tests for tentacle scenario 4 (upgrade)
+  config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_04_upgrade')
 
 end
