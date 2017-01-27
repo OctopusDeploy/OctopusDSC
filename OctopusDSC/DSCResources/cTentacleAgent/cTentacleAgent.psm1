@@ -26,7 +26,8 @@ function Get-TargetResource
         [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64,
         [ValidateSet("PublicIp", "FQDN", "ComputerName", "Custom")]
         [string]$PublicHostNameConfiguration = "PublicIp",
-        [string]$CustomPublicHostName
+        [string]$CustomPublicHostName,
+        [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus"
     )
 
     Write-Verbose "Checking if Tentacle is installed"
@@ -97,7 +98,8 @@ function Set-TargetResource
         [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64,
         [ValidateSet("PublicIp", "FQDN", "ComputerName", "Custom")]
         [string]$PublicHostNameConfiguration = "PublicIp",
-        [string]$CustomPublicHostName
+        [string]$CustomPublicHostName,
+        [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus"
     )
 
     if ($Ensure -eq "Absent" -and $State -eq "Started")
@@ -132,9 +134,9 @@ function Set-TargetResource
         {
             # Uninstall msi
             Write-Verbose "Uninstalling Tentacle..."
-            if (-not (Test-Path "$($env:SystemDrive)\Octopus\logs")) { New-Item -type Directory "$($env:SystemDrive)\Octopus\logs" }
-            $tentaclePath = "$($env:SystemDrive)\Octopus\Tentacle.msi"
-            $msiLog = "$($env:SystemDrive)\Octopus\logs\Tentacle.msi.uninstall.log"
+            if (-not (Test-Path "$TentacleHomeDirectory\logs")) { New-Item -type Directory "$TentacleHomeDirectory\logs" }
+            $tentaclePath = "$TentacleHomeDirectory\Tentacle.msi"
+            $msiLog = "$TentacleHomeDirectory\logs\Tentacle.msi.uninstall.log"
             if (test-path $tentaclePath)
             {
                 $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/x $tentaclePath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
@@ -174,7 +176,8 @@ function Set-TargetResource
                      -communicationMode $CommunicationMode `
                      -serverPort $ServerPort `
                      -publicHostNameConfiguration $PublicHostNameConfiguration `
-                     -customPublicHostName $CustomPublicHostName
+                     -customPublicHostName $CustomPublicHostName `
+                     -tentacleHomeDirectory $TentacleHomeDirectory
         Write-Verbose "Tentacle installed!"
     }
     elseif ($Ensure -eq "Present" -and $currentResource["TentacleDownloadUrl"] -ne (Get-TentacleDownloadUrl $tentacleDownloadUrl $tentacleDownloadUrl64))
@@ -182,7 +185,7 @@ function Set-TargetResource
         Write-Verbose "Upgrading Tentacle..."
         $serviceName = (Get-TentacleServiceName $Name)
         Stop-Service -Name $serviceName
-        Install-Tentacle $tentacleDownloadUrl $tentacleDownloadUrl64
+        Install-Tentacle $tentacleDownloadUrl $tentacleDownloadUrl64 $TentacleHomeDirectory
         if ($State -eq "Started") {
             Start-Service $serviceName
         }
@@ -223,7 +226,8 @@ function Test-TargetResource
         [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64,
         [ValidateSet("PublicIp", "FQDN", "ComputerName", "Custom")]
         [string]$PublicHostNameConfiguration = "PublicIp",
-        [string]$CustomPublicHostName
+        [string]$CustomPublicHostName,
+        [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus"
     )
 
     $currentResource = (Get-TargetResource -Name $Name)
@@ -313,15 +317,16 @@ function Install-Tentacle
 {
     param (
         [string]$tentacleDownloadUrl,
-        [string]$tentacleDownloadUrl64
+        [string]$tentacleDownloadUrl64,
+        [string]$tentacleHomeDirectory
     )
     Write-Verbose "Beginning Tentacle installation"
 
     $actualTentacleDownloadUrl = Get-TentacleDownloadUrl $tentacleDownloadUrl $tentacleDownloadUrl64
 
-    mkdir "$($env:SystemDrive)\Octopus" -ErrorAction SilentlyContinue
+    mkdir "$tentacleHomeDirectory" -ErrorAction SilentlyContinue
 
-    $tentaclePath = "$($env:SystemDrive)\Octopus\Tentacle.msi"
+    $tentaclePath = "$tentacleHomeDirectory\Tentacle.msi"
     if ((Test-Path $tentaclePath) -eq $true)
     {
         Remove-Item $tentaclePath -force
@@ -330,8 +335,8 @@ function Install-Tentacle
     Request-File $actualTentacleDownloadUrl $tentaclePath
 
     Write-Verbose "Installing MSI..."
-    if (-not (Test-Path "$($env:SystemDrive)\Octopus\logs")) { New-Item -type Directory "$($env:SystemDrive)\Octopus\logs" }
-    $msiLog = "$($env:SystemDrive)\Octopus\logs\Tentacle.msi.log"
+    if (-not (Test-Path "$TentacleHomeDirectory\logs")) { New-Item -type Directory "$TentacleHomeDirectory\logs" }
+    $msiLog = "$TentacleHomeDirectory\logs\Tentacle.msi.log"
     $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $tentaclePath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
     Write-Verbose "Tentacle MSI installer returned exit code $msiExitCode"
     if ($msiExitCode -ne 0)
@@ -366,7 +371,8 @@ function New-Tentacle
         [int]$serverPort=10943,
         [ValidateSet("PublicIp", "FQDN", "ComputerName", "Custom")]
         [string]$publicHostNameConfiguration = "PublicIp",
-        [string]$customPublicHostName
+        [string]$customPublicHostName,
+        [string]$tentacleHomeDirectory = "$($env:SystemDrive)\Octopus"
     )
 
     if ($port -eq 0)
@@ -374,7 +380,7 @@ function New-Tentacle
         $port = 10933
     }
 
-    Install-Tentacle $tentacleDownloadUrl $tentacleDownloadUrl64
+    Install-Tentacle $tentacleDownloadUrl $tentacleDownloadUrl64 $tentacleHomeDirectory
 
     if ($communicationMode -eq "Listen")
     {
@@ -394,9 +400,8 @@ function New-Tentacle
 
     Push-Location "${env:ProgramFiles}\Octopus Deploy\Tentacle"
 
-    $tentacleHomeDirectory = "$($env:SystemDrive)\Octopus"
     $tentacleAppDirectory = $DefaultApplicationDirectory
-    $tentacleConfigFile = "$($env:SystemDrive)\Octopus\$Name\Tentacle.config"
+    $tentacleConfigFile = "$tentacleHomeDirectory\$Name\Tentacle.config"
     Invoke-AndAssert { & .\tentacle.exe create-instance --instance $name --config $tentacleConfigFile --console }
     Invoke-AndAssert { & .\tentacle.exe configure --instance $name --home $tentacleHomeDirectory --console }
     Invoke-AndAssert { & .\tentacle.exe configure --instance $name --app $tentacleAppDirectory --console }

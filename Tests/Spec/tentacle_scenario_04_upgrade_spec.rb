@@ -40,7 +40,7 @@ end
 
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\Tentacle') do
   it { should exist }
-  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\Tentacle\Tentacle.config') }
+  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config') }
 end
 
 describe command('$ProgressPreference = "SilentlyContinue"; try { Get-DSCConfiguration -ErrorAction Stop; write-output "Get-DSCConfiguration succeeded"; $true } catch { write-output "Get-DSCConfiguration failed"; write-output $_; $false }') do

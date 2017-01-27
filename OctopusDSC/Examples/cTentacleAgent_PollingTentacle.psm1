@@ -27,6 +27,9 @@ Configuration SampleConfig
 
             # Where deployed applications will be installed by Octopus
             DefaultApplicationDirectory = "C:\Applications"
+
+            # Where Octopus should store its working files, logs, packages etc
+            TentacleHomeDirectory = "C:\Octopus"
         }
     }
 }

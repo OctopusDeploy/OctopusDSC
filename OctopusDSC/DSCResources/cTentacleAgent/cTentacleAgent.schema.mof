@@ -17,4 +17,5 @@ class cTentacleAgent : OMI_BaseResource
   [Write] string TentacleDownloadUrl;
   [Write] string TentacleDownloadUrl64;
   [Write, ValueMap{"PublicIp", "FQDN", "ComputerName", "Custom"}, Values{"PublicIp", "FQDN", "ComputerName", "Custom"}] string PublicHostNameConfiguration;
+  [Write] string TentacleHomeDirectory;
 };
