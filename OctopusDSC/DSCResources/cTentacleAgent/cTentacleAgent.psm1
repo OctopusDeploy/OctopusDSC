@@ -18,7 +18,9 @@ function Get-TargetResource
         [string]$DisplayName = "$($env:COMPUTERNAME)_$Name",
         [string]$OctopusServerUrl,
         [string[]]$Environments,
+        [string]$EnvironmentsFilePath,
         [string[]]$Roles,
+        [string]$RolesFilePath,
         [string]$DefaultApplicationDirectory,
         [int]$ListenPort=10933,
         [int]$ServerPort=10943,
@@ -89,7 +91,9 @@ function Set-TargetResource
         [string]$OctopusServerUrl,
         [string]$DisplayName = "$($env:COMPUTERNAME)_$Name",
         [string[]]$Environments,
+        [string]$EnvironmentsFilePath,
         [string[]]$Roles,
+        [string]$RolesFilePath,
         [string]$DefaultApplicationDirectory = "$($env:SystemDrive)\Applications",
         [int]$ListenPort = 10933,
         [int]$ServerPort = 10943,
@@ -161,6 +165,52 @@ function Set-TargetResource
     elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Absent")
     {
         Write-Verbose "Installing Tentacle..."
+        
+        #Let's read the environments file
+        if ([string]::IsNullOrEmpty($EnvironmentsFilePath) -eq $false)
+        {
+            try {
+                $fileContent = Get-Content $EnvironmentsFilePath
+                foreach ($line in $fileContent) 
+                {
+                    if ([string]::IsNullOrEmpty($line) -eq $false)
+                    {
+                        $Environments += $line
+                    }
+                    #I need to do this because powershell seems to initialize empty string arrays to string.
+                    #For eg
+                    #A,B,C
+                    #D,E
+                    #becomes A,B,CD,E when joined
+                    $Environments += ","
+                }
+            }
+            catch [System.Exception] 
+            {
+                throw "Error reading Environments File - $($EnvironmentFilePath)"
+            }
+        }
+        
+        if ([string]::IsNullOrEmpty($RolesFilePath) -eq $false)
+        {
+            try {
+                #Let's read the roles file
+                $fileContent = Get-Content $RolesFilePath
+                foreach ($line in $fileContent) 
+                {
+                    if ([string]::IsNullOrEmpty($line) -eq $false)
+                    {
+                        $Roles += $line
+                    }
+                    $Roles += ","
+                }                
+            }
+            catch [System.Exception] {
+                throw "Error reading Roles File - $($RolesFilePath)"
+            }
+        }
+
+        #Creating Tentacle
         New-Tentacle -name $Name `
                      -apiKey $ApiKey `
                      -octopusServerUrl $OctopusServerUrl `
@@ -215,7 +265,9 @@ function Test-TargetResource
         [string]$OctopusServerUrl,
         [string]$DisplayName = "$($env:COMPUTERNAME)_$Name",
         [string[]]$Environments,
+        [string]$EnvironmentsFilePath,
         [string[]]$Roles,
+        [string]$RolesFilePath,
         [string]$DefaultApplicationDirectory,
         [int]$ListenPort=10933,
         [int]$ServerPort=10943,
@@ -428,16 +480,22 @@ function New-Tentacle
     {
         foreach ($e2 in $environment.Split(','))
         {
-            $registerArguments += "--environment"
-            $registerArguments += $e2.Trim()
+            if ([string]::IsNullOrEmpty($e2) -eq $false)
+	        {
+                $registerArguments += "--environment"
+                $registerArguments += $e2.Trim()
+            }
         }
     }
     foreach ($role in $roles)
     {
         foreach ($r2 in $role.Split(','))
         {
-            $registerArguments += "--role"
-            $registerArguments += $r2.Trim()
+            if ([string]::IsNullOrEmpty($r2) -eq $false)
+	        {
+                $registerArguments += "--role"
+                $registerArguments += $r2.Trim()
+            }
         }
     }
 
