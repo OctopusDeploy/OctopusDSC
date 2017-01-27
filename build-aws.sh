@@ -97,25 +97,10 @@ time vagrant up --provider aws # --debug &> vagrant.log
 VAGRANT_UP_EXIT_CODE=$?
 echo "'vagrant up' exited with exit code $VAGRANT_UP_EXIT_CODE"
 
-echo "Running 'vagrant destroy -f'"
-vagrant destroy -f
-VAGRANT_DESTROY_EXIT_CODE=$?
-echo "'vagrant destroy' exited with exit code $VAGRANT_DESTROY_EXIT_CODE"
-
-echo "Removing local key-pair"
-rm -f $KEY_NAME.pem
-
-echo "Deleting aws key-pair"
-aws ec2 delete-key-pair --key-name $KEY_NAME --region ap-southeast-2
-
 if [ $VAGRANT_UP_EXIT_CODE != 0 ]; then
   echo "Vagrant up failed with exit code $VAGRANT_UP_EXIT_CODE"
   echo "##teamcity[buildStatus text='{build.status.text}. Vagrant failed.']"
   exit $VAGRANT_UP_EXIT_CODE
 fi
 
-if [ $VAGRANT_DESTROY_EXIT_CODE != 0 ]; then
-  echo "Vagrant destroy failed with exit code $VAGRANT_DESTROY_EXIT_CODE"
-  echo "##teamcity[buildStatus text='{build.status.text}. Vagrant cleanup failed. Action required!']"
-  exit $VAGRANT_DESTROY_EXIT_CODE
-fi
+echo "Dont forget to run 'cleanup-aws.sh' when you have finished"
