@@ -42,7 +42,7 @@ end
 
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\ListeningTentacle') do
   it { should exist }
-  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\ListeningTentacle\Tentacle.config') }
+  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\ListeningTentacleHome\ListeningTentacle\Tentacle.config') }
 end
 
 ### polling tentacle:
@@ -65,7 +65,7 @@ end
 
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\PollingTentacle') do
   it { should exist }
-  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\PollingTentacle\Tentacle.config') }
+  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\PollingTentacleHome\PollingTentacle\Tentacle.config') }
 end
 
 describe command('$ProgressPreference = "SilentlyContinue"; try { Get-DSCConfiguration -ErrorAction Stop; write-output "Get-DSCConfiguration succeeded"; $true } catch { write-output "Get-DSCConfiguration failed"; write-output $_; $false }') do

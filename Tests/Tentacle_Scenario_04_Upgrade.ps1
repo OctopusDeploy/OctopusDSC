@@ -30,6 +30,7 @@ Configuration Tentacle_Scenario_04_Upgrade
             ListenPort = $ListenPort;
             DefaultApplicationDirectory = "C:\Applications"
             PublicHostNameConfiguration = "ComputerName"
+            TentacleHomeDirectory = "C:\Octopus\OctopusTentacleHome"
         }
     }
 }

@@ -34,6 +34,7 @@ Configuration SampleConfig
             # Optional settings
             ListenPort = $ListenPort
             DefaultApplicationDirectory = "C:\Applications"
+            TentacleHomeDirectory = "C:\Octopus"
         }
     }
 }
@@ -83,6 +84,7 @@ When `State` is `Started`, the resource will ensure that the Tentacle windows se
 | `tentacleDownloadUrl64`       | `string`                                                   | `http://octopusdeploy.com/downloads/latest/OctopusTentacle64` | The url to use to download the Tentacle, when run on an `x64` architecture. |
 | `PublicHostNameConfiguration` | `string` - `PublicIp`, `FQDN`, `ComputerName` or `Custom`  | `PublicIp`                                                    | The method used to specify the `PublicHostName` of the Tentacle. If `PublicIp`, it uses [api.ipify.org](api.ipify.org) to get the machines public IP address. If `FQDN`, it uses WMI to detemine the DNS host name and the domain. If `ComputerName`, it uses the local computers host name. If `Custom`, it uses the value specified by `CustomPublicHostName`. |
 | `CustomPublicHostName`        | `string`                                                   |                                                               | The `PublicHostName` to use when registering the Tentacle when `PublicHostNameConfiguration` is set to `Custom`. |
+| `TentacleHomeDirectory`       | `string`                                                   | `$($env:SystemDrive)\Octopus`                                 | The location where Octopus should store its working files, logs, packages etc. |
 
 
 ## Drift
