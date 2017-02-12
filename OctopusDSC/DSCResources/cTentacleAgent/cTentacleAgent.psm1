@@ -19,6 +19,8 @@ function Get-TargetResource
         [string]$OctopusServerUrl,
         [string[]]$Environments,
         [string[]]$Roles,
+        [string[]]$Tenants = "",
+        [string[]]$TenantTags = "",
         [string]$DefaultApplicationDirectory,
         [int]$ListenPort=10933,
         [int]$ServerPort=10943,
@@ -91,6 +93,8 @@ function Set-TargetResource
         [string]$DisplayName = "$($env:COMPUTERNAME)_$Name",
         [string[]]$Environments,
         [string[]]$Roles,
+        [string[]]$Tenants = "",
+        [string[]]$TenantTags = "",
         [string]$DefaultApplicationDirectory = "$($env:SystemDrive)\Applications",
         [int]$ListenPort = 10933,
         [int]$ServerPort = 10943,
@@ -170,6 +174,8 @@ function Set-TargetResource
                      -displayName $DisplayName `
                      -environments $Environments `
                      -roles $Roles `
+                     -tenants $Tenants `
+                     -tenanttags $TenantTags `
                      -DefaultApplicationDirectory $DefaultApplicationDirectory `
                      -tentacleDownloadUrl $tentacleDownloadUrl `
                      -tentacleDownloadUrl64 $tentacleDownloadUrl64 `
@@ -219,6 +225,8 @@ function Test-TargetResource
         [string]$DisplayName = "$($env:COMPUTERNAME)_$Name",
         [string[]]$Environments,
         [string[]]$Roles,
+        [string[]]$Tenants = "",
+        [string[]]$TenantTags = "",
         [string]$DefaultApplicationDirectory,
         [int]$ListenPort=10933,
         [int]$ServerPort=10943,
@@ -361,6 +369,10 @@ function New-Tentacle
         [string[]]$environments,
         [Parameter(Mandatory=$True)]
         [string[]]$roles,
+        [Parameter(Mandatory=$False)]
+        [string[]]$Tenants = "",
+        [Parameter(Mandatory=$False)]
+        [string[]]$TenantTags = "",
         [int]$port=10933,
         [string]$displayName,
         [string]$DefaultApplicationDirectory,
@@ -437,12 +449,37 @@ function New-Tentacle
             $registerArguments += $e2.Trim()
         }
     }
+
     foreach ($role in $roles)
     {
         foreach ($r2 in $role.Split(','))
         {
             $registerArguments += "--role"
             $registerArguments += $r2.Trim()
+        }
+    }
+
+    if ($tenants -ne "")
+    {
+        foreach ($tenant in $tenants)
+        {
+            foreach ($t2 in $tenant.Split(','))
+            {
+                $registerArguments += "--tenant"
+                $registerArguments += $t2.Trim()
+            }
+        }
+    }
+
+    if ($tenanttags -ne "")
+    {
+        foreach ($tenanttag in $tenanttags)
+        {
+            foreach ($tt2 in $tenanttag.Split(','))
+            {
+                $registerArguments += "--tenanttag"
+                $registerArguments += $tt2.Trim()
+            }
         }
     }
 
