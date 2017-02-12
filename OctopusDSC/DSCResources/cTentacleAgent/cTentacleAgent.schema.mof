@@ -1,4 +1,4 @@
-﻿[ClassVersion("1.0.0"), FriendlyName("cTentacleAgent")]
+[ClassVersion("1.0.0"), FriendlyName("cTentacleAgent")]
 class cTentacleAgent : OMI_BaseResource
 {
   [Key] string Name;
@@ -11,6 +11,8 @@ class cTentacleAgent : OMI_BaseResource
   [Write] string DisplayName;
   [Write] string Environments[];
   [Write] string Roles[];
+  [Write] string Tenants[];
+  [Write] string TenantTags[];
   [Write] UInt32 ListenPort;
   [Write] UInt32 ServerPort;
   [Write] string DefaultApplicationDirectory;
