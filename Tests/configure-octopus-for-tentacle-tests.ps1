@@ -38,6 +38,37 @@ try
     $environment.Name = "The-Env"
     $repository.Environments.Create($environment) | Out-Null
 
+    #create a project
+    $projectGroup = $repository.ProjectGroups.FindByName("All projects")
+    $lifecycle = $repository.Lifecycles.FindByName("Default Lifecycle")
+    $project = $repository.Projects.CreateOrModify("Multi tenant project", $projectGroup, $lifecycle)
+    $project.Save()
+
+    #enable Tenants feature
+    $featureConfig = $repository.FeaturesConfiguration.GetFeaturesConfiguration()
+    $featureConfig.IsMultiTenancyEnabled = $true
+    $repository.FeaturesConfiguration.ModifyFeaturesConfiguration($featureConfig)
+
+    #reconnect after changing the feature config as the OctopusRepository caches some stuff
+    $endpoint = new-object Octopus.Client.OctopusServerEndpoint $OctopusURI
+    $repository = new-object Octopus.Client.OctopusRepository $endpoint
+    $repository.Users.SignIn($credentials)
+
+    # setup tag set
+    $tagSetEditor = $repository.TagSets.CreateOrModify("Hosting")
+    $tagSetEditor.AddOrUpdateTag("On premises", "Hosted on site", [Octopus.Client.Model.TagResource+StandardColor]::DarkGreen)
+    $tagSetEditor.AddOrUpdateTag("Cloud", "Hosted in the cloud", [Octopus.Client.Model.TagResource+StandardColor]::LightBlue)
+    $tagSetEditor.Save()
+    $tagSet = $tagSetEditor.Instance
+
+    $project = $repository.Projects.FindByName("Multi tenant project")
+    $environment = $repository.Environments.FindByName("The-Env")
+
+    $tenantEditor = $repository.Tenants.CreateOrModify("John")
+    $tenantEditor.WithTag($tagSet.Tags[0])
+    $tenantEditor.ConnectToProjectAndEnvironments($project, $environment)
+    $tenantEditor.Save()
+
     set-content "c:\temp\octopus-configured.marker" ""
   }
 }
