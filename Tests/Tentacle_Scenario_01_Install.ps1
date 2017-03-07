@@ -33,6 +33,9 @@ Configuration Tentacle_Scenario_01_Install
             DefaultApplicationDirectory = "C:\Applications"
             PublicHostNameConfiguration = "ComputerName"
             TentacleHomeDirectory = "C:\Octopus\ListeningTentacleHome"
+
+            Tenants = "John"
+            TenantTags = "Hosting/Cloud"
         }
 
         cTentacleAgent PollingTentacle
