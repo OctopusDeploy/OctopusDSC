@@ -85,6 +85,8 @@ When `State` is `Started`, the resource will ensure that the Tentacle windows se
 | `PublicHostNameConfiguration` | `string` - `PublicIp`, `FQDN`, `ComputerName` or `Custom`  | `PublicIp`                                                    | The method used to specify the `PublicHostName` of the Tentacle. If `PublicIp`, it uses [api.ipify.org](api.ipify.org) to get the machines public IP address. If `FQDN`, it uses WMI to detemine the DNS host name and the domain. If `ComputerName`, it uses the local computers host name. If `Custom`, it uses the value specified by `CustomPublicHostName`. |
 | `CustomPublicHostName`        | `string`                                                   |                                                               | The `PublicHostName` to use when registering the Tentacle when `PublicHostNameConfiguration` is set to `Custom`. |
 | `TentacleHomeDirectory`       | `string`                                                   | `$($env:SystemDrive)\Octopus`                                 | The location where Octopus should store its working files, logs, packages etc. |
+| `Tenants`                     | `string[]`                                                 |                                                               | The Tenants to assign to this Tentacle. Multi-tenancy must be enabled on the Octopus Server. |
+| `TenantTags`                  | `string[]`                                                 |                                                               | The TenantTags to assign to this Tentacle, in the format `CustomerType/VIP`. Multi-tenancy must be enabled on the Octopus Server. |
 
 
 ## Drift

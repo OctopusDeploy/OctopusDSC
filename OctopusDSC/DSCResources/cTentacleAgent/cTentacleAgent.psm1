@@ -175,8 +175,8 @@ function Set-TargetResource
                      -environments $Environments `
                      -roles $Roles `
                      -tenants $Tenants `
-                     -tenanttags $TenantTags `
-                     -DefaultApplicationDirectory $DefaultApplicationDirectory `
+                     -tenantTags $TenantTags `
+                     -defaultApplicationDirectory $DefaultApplicationDirectory `
                      -tentacleDownloadUrl $tentacleDownloadUrl `
                      -tentacleDownloadUrl64 $tentacleDownloadUrl64 `
                      -communicationMode $CommunicationMode `
@@ -370,12 +370,12 @@ function New-Tentacle
         [Parameter(Mandatory=$True)]
         [string[]]$roles,
         [Parameter(Mandatory=$False)]
-        [string[]]$Tenants = "",
+        [string[]]$tenants = "",
         [Parameter(Mandatory=$False)]
-        [string[]]$TenantTags = "",
+        [string[]]$tenantTags = "",
         [int]$port=10933,
         [string]$displayName,
-        [string]$DefaultApplicationDirectory,
+        [string]$defaultApplicationDirectory,
         [string]$tentacleDownloadUrl,
         [string]$tentacleDownloadUrl64,
         [ValidateSet("Listen", "Poll")]
@@ -471,11 +471,11 @@ function New-Tentacle
         }
     }
 
-    if ($tenanttags -ne "")
+    if ($tenantTags -ne "")
     {
-        foreach ($tenanttag in $tenanttags)
+        foreach ($tenantTag in $tenantTags)
         {
-            foreach ($tt2 in $tenanttag.Split(','))
+            foreach ($tt2 in $tenantTag.Split(','))
             {
                 $registerArguments += "--tenanttag"
                 $registerArguments += $tt2.Trim()
