@@ -19,6 +19,7 @@ function Get-TargetResource
         [string]$OctopusServerUrl,
         [string[]]$Environments,
         [string[]]$Roles,
+        [string]$Policy,
         [string[]]$Tenants = "",
         [string[]]$TenantTags = "",
         [string]$DefaultApplicationDirectory,
@@ -93,6 +94,7 @@ function Set-TargetResource
         [string]$DisplayName = "$($env:COMPUTERNAME)_$Name",
         [string[]]$Environments,
         [string[]]$Roles,
+        [string]$Policy,
         [string[]]$Tenants = "",
         [string[]]$TenantTags = "",
         [string]$DefaultApplicationDirectory = "$($env:SystemDrive)\Applications",
@@ -174,6 +176,7 @@ function Set-TargetResource
                      -displayName $DisplayName `
                      -environments $Environments `
                      -roles $Roles `
+                     -policy $Policy `
                      -tenants $Tenants `
                      -tenanttags $TenantTags `
                      -DefaultApplicationDirectory $DefaultApplicationDirectory `
@@ -225,6 +228,7 @@ function Test-TargetResource
         [string]$DisplayName = "$($env:COMPUTERNAME)_$Name",
         [string[]]$Environments,
         [string[]]$Roles,
+        [string]$Policy,
         [string[]]$Tenants = "",
         [string[]]$TenantTags = "",
         [string]$DefaultApplicationDirectory,
@@ -373,6 +377,8 @@ function New-Tentacle
         [string[]]$Tenants = "",
         [Parameter(Mandatory=$False)]
         [string[]]$TenantTags = "",
+        [Parameter(Mandatory=$False)]
+        [string]$policy,
         [int]$port=10933,
         [string]$displayName,
         [string]$DefaultApplicationDirectory,
@@ -424,6 +430,7 @@ function New-Tentacle
                            "--server", $octopusServerUrl,
                            "--name", $displayName,
                            "--apiKey", $apiKey,
+                           "--policy", $policy,
                            "--force",
                            "--console")
 

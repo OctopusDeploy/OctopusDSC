@@ -9,6 +9,7 @@ class cTentacleAgent : OMI_BaseResource
   [Write] string ApiKey;
   [Write] string OctopusServerUrl;
   [Write] string DisplayName;
+  [Write] string Policy;
   [Write] string Environments[];
   [Write] string Roles[];
   [Write] string Tenants[];
