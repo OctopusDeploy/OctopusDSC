@@ -17,6 +17,7 @@ describe service('OctopusDeploy Tentacle: ListeningTentacle') do
   it { should_not be_installed }
 end
 
+# Listening Tentacle
 describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "ListeningTentacle") do
   it { should_not exist }
 end
@@ -25,11 +26,39 @@ describe port(10933) do
   it { should_not be_listening.with('tcp') }
 end
 
+# Polling Tentacle
 describe service('OctopusDeploy Tentacle: PollingTentacle') do
   it { should_not be_installed }
 end
 
 describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "PollingTentacle") do
+  it { should_not exist }
+end
+
+# Polling Tentacle
+describe service('OctopusDeploy Tentacle: PollingTentacle') do
+  it { should_not be_installed }
+end
+
+describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "PollingTentacle") do
+  it { should_not exist }
+end
+
+# Polling Tentacle with autoregister disabled
+describe service('OctopusDeploy Tentacle: PollingTentacleWithoutAutoRegister') do
+  it { should_not be_installed }
+end
+
+describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "PollingTentacleWithoutAutoRegister") do
+  it { should_not exist }
+end
+
+# Polling Tentacle with autoregister disabled but thumbprint set
+describe service('OctopusDeploy Tentacle: PollingTentacleWithThumbprintWithoutAutoRegister') do
+  it { should_not be_installed }
+end
+
+describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "PollingTentacleWithThumbprintWithoutAutoRegister") do
   it { should_not exist }
 end
 

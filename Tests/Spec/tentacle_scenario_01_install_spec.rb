@@ -35,6 +35,7 @@ describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], 
   it { should exist }
   it { should be_registered_with_the_server }
   it { should be_online }
+  it { should be_listening_tentacle }
   it { should be_in_environment('The-Env') }
   it { should have_role('Test-Tentacle') }
   it { should have_display_name('My Listening Tentacle')}
@@ -60,6 +61,7 @@ describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], 
   it { should exist }
   it { should be_registered_with_the_server }
   it { should be_online }
+  it { should be_polling_tentacle }
   it { should be_in_environment('The-Env') }
   it { should have_role('Test-Tentacle') }
   it { should have_display_name("#{ENV['COMPUTERNAME']}_PollingTentacle")}
@@ -68,6 +70,59 @@ end
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\PollingTentacle') do
   it { should exist }
   it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\PollingTentacleHome\PollingTentacle\Tentacle.config') }
+end
+
+### listening tentacle (without autoregister, no thumbprint):
+
+describe service('OctopusDeploy Tentacle: ListeningTentacleWithoutAutoRegister') do
+  it { should be_installed }
+  it { should be_running }
+  it { should have_start_mode('Automatic') }
+  it { should run_under_account('LocalSystem') }
+end
+
+describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "ListeningTentacleWithoutAutoRegister") do
+  it { should exist }
+  it { should_not be_registered_with_the_server }
+end
+
+describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\ListeningTentacleWithoutAutoRegister') do
+  it { should exist }
+  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\ListeningTentacleWithoutAutoRegisterHome\ListeningTentacleWithoutAutoRegister\Tentacle.config') }
+end
+
+describe file('C:\Octopus\ListeningTentacleWithoutAutoRegisterHome\ListeningTentacleWithoutAutoRegister\Tentacle.config') do
+  it { should be_file }
+  its(:content) { should_not match /Tentacle.Communication.TrustedOctopusServers/}
+end
+
+### listening tentacle (without autoregister, with thumbprint set):
+
+describe service('OctopusDeploy Tentacle: ListeningTentacleWithThumbprintWithoutAutoRegister') do
+  it { should be_installed }
+  it { should be_running }
+  it { should have_start_mode('Automatic') }
+  it { should run_under_account('LocalSystem') }
+end
+
+describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "ListeningTentacleWithThumbprintWithoutAutoRegister") do
+  it { should exist }
+  it { should be_registered_with_the_server }
+  it { should be_online }
+  it { should be_listening_tentacle }
+  it { should be_in_environment('The-Env') }
+  it { should have_role('Test-Tentacle') }
+  it { should have_display_name("ListeningTentacleWithThumbprintWithoutAutoRegister")}
+end
+
+describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\ListeningTentacleWithThumbprintWithoutAutoRegister') do
+  it { should exist }
+  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\ListeningTentacleWithThumbprintWithoutAutoRegisterHome\ListeningTentacleWithThumbprintWithoutAutoRegister\Tentacle.config') }
+end
+
+describe file('C:\Octopus\ListeningTentacleWithThumbprintWithoutAutoRegisterHome\ListeningTentacleWithThumbprintWithoutAutoRegister\Tentacle.config') do
+  it { should be_file }
+  its(:content) { should match /Tentacle\.Communication\.TrustedOctopusServers.*#{ENV['OctopusServerThumbprint']}/}
 end
 
 describe command('$ProgressPreference = "SilentlyContinue"; try { Get-DSCConfiguration -ErrorAction Stop; write-output "Get-DSCConfiguration succeeded"; $true } catch { write-output "Get-DSCConfiguration failed"; write-output $_; $false }') do
