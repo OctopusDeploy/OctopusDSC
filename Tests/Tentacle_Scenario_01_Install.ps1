@@ -36,6 +36,8 @@ Configuration Tentacle_Scenario_01_Install
 
             Tenants = "John"
             TenantTags = "Hosting/Cloud"
+            
+            Policy = "Test Policy"
         }
 
         cTentacleAgent PollingTentacle
@@ -58,6 +60,7 @@ Configuration Tentacle_Scenario_01_Install
             DefaultApplicationDirectory = "C:\Applications"
             CommunicationMode = "Poll"
             TentacleHomeDirectory = "C:\Octopus\PollingTentacleHome"
+            Policy = "Test Policy"
         }
     }
 }
