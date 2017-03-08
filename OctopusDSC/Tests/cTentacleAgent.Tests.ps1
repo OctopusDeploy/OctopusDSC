@@ -18,7 +18,7 @@ try
             function Get-Service {}
         }
 
-        Describe '*-TargetResource Functions' {
+        Describe 'cTentacleAgent' {
             BeforeEach {
                 $desiredConfiguration = @{
                      Name                   = 'Stub'

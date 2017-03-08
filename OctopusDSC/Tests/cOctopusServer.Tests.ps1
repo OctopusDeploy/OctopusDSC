@@ -18,7 +18,7 @@ try
             function Get-Service {}
         }
 
-        Describe '*-TargetResource Functions' {
+        Describe 'cOctopusServer' {
             BeforeEach {
                 $desiredConfiguration = @{
                      Name                   = 'Stub'
