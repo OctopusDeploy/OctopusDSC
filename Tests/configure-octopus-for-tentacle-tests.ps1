@@ -33,6 +33,11 @@ try
     [environment]::SetEnvironmentVariable("OctopusApiKey", $createApiKeyResult.ApiKey, "User")
     [environment]::SetEnvironmentVariable("OctopusApiKey", $createApiKeyResult.ApiKey, "Machine")
 
+    #store the thumbprint of the server so wec an access it in tests
+    $certificate = Invoke-RestMethod "$OctopusURI/api/configuration/certificates/certificate-global?apikey=$($createApiKeyResult.ApiKey)"
+    [environment]::SetEnvironmentVariable("OctopusServerThumbprint", $certificate.Thumbprint, "User")
+    [environment]::SetEnvironmentVariable("OctopusServerThumbprint", $certificate.Thumbprint, "Machine")
+
     #create an environment for the tentacles to go into
     $environment = New-Object Octopus.Client.Model.EnvironmentResource
     $environment.Name = "The-Env"

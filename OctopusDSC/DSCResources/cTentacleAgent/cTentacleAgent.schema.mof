@@ -21,4 +21,6 @@ class cTentacleAgent : OMI_BaseResource
   [Write, ValueMap{"PublicIp", "FQDN", "ComputerName", "Custom"}, Values{"PublicIp", "FQDN", "ComputerName", "Custom"}] string PublicHostNameConfiguration;
   [Write] string CustomPublicHostName;
   [Write] string TentacleHomeDirectory;
+  [Write] Boolean RegisterWithServer;
+  [Write] String OctopusServerThumbprint;
 };

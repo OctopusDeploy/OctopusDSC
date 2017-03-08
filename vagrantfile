@@ -78,43 +78,38 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     dsc.manifests_path = "Tests"
     dsc.abort_on_dsc_failure = true
   end
-
-  #run tests for server scenario 1 (initial install)
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_01_install')
 
+  # remove the server
   config.vm.provision "dsc" do |dsc|
     dsc.configuration_file  = "Server_Scenario_02_Remove.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.abort_on_dsc_failure = true
   end
-
-  #run tests for server scenario 2 (remove)
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_02_remove')
 
+  # re-install old version
   config.vm.provision "dsc" do |dsc|
     dsc.configuration_file  = "Server_Scenario_03_Reinstall.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.abort_on_dsc_failure = true
   end
-
-  #run tests for server scenario 3 (reinstall old version)
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_03_reinstall')
 
+  # upgrade to the latest
   config.vm.provision "dsc" do |dsc|
     dsc.configuration_file  = "Server_Scenario_04_Upgrade.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.abort_on_dsc_failure = true
   end
-
-  #run tests for server scenario 4 (upgrade)
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_04_upgrade')
 
   config.vm.provision "shell", path: "Tests/configure-octopus-for-tentacle-tests.ps1"
 
-  # Run DSC for scenario 1 (initial install)
+  # initial tentacle install
   config.vm.provision "dsc" do |dsc|
     dsc.configuration_file  = "Tentacle_Scenario_01_Install.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
@@ -125,15 +120,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       "-ApiKey" => "$ENV:OctopusApiKey",
       "-Environments" => "The-Env",
       "-Roles" => "Test-Tentacle",
-      "-ListenPort" => "10933"
+      "-ServerThumbprint" => "$ENV:OctopusServerThumbprint"
     }
   end
-
-  #run tests for tentacle scenario 1 (initial install)
+  config.vm.provision "shell", inline: "& c:\\temp\\Tests\\register-polling-tentacle.ps1; exit $LASTEXITCODE"
   config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_01_install')
 
-  # Run DSC for tentacle scenario 2 (uninstall)
+  # uninstall tentacle
   config.vm.provision "dsc" do |dsc|
     dsc.configuration_file  = "Tentacle_Scenario_02_Remove.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
@@ -144,15 +138,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       "-ApiKey" => "$ENV:OctopusApiKey",
       "-Environments" => "The-Env",
       "-Roles" => "Test-Tentacle",
-      "-ListenPort" => "10933"
+      "-ServerThumbprint" => "$ENV:OctopusServerThumbprint"
     }
   end
-
-  #run tests for tentacle scenario 2 (initial install)
   config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_02_remove')
 
-  # Run DSC for tentacle scenario 3 (subsequent re-install)
+  # Install old version
   config.vm.provision "dsc" do |dsc|
     dsc.configuration_file  = "Tentacle_Scenario_03_Reinstall.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
@@ -162,16 +154,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       "-OctopusServerUrl" => "$ENV:OctopusServerUrl",
       "-ApiKey" => "$ENV:OctopusApiKey",
       "-Environments" => "The-Env",
-      "-Roles" => "Test-Tentacle",
-      "-ListenPort" => "10933"
+      "-Roles" => "Test-Tentacle"
     }
   end
-
-  #run tests for tentacle scenario 3 (subsequent re-install)
   config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_03_reinstall')
 
-  # Run DSC for tentacle scenario 4 (upgrade)
+  # Upgrade it
   config.vm.provision "dsc" do |dsc|
     dsc.configuration_file  = "Tentacle_Scenario_04_Upgrade.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
@@ -181,12 +170,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       "-OctopusServerUrl" => "$ENV:OctopusServerUrl",
       "-ApiKey" => "$ENV:OctopusApiKey",
       "-Environments" => "The-Env",
-      "-Roles" => "Test-Tentacle",
-      "-ListenPort" => "10933"
+      "-Roles" => "Test-Tentacle"
     }
   end
-
-  #run tests for tentacle scenario 4 (upgrade)
   config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_04_upgrade')
 

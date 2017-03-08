@@ -1,6 +1,6 @@
 Configuration Tentacle_Scenario_04_Upgrade
 {
-    param ($OctopusServerUrl, $ApiKey, $Environments, $Roles, $ListenPort)
+    param ($OctopusServerUrl, $ApiKey, $Environments, $Roles)
 
     Import-DscResource -ModuleName OctopusDSC
 
@@ -27,7 +27,7 @@ Configuration Tentacle_Scenario_04_Upgrade
             Roles = $Roles;
 
             # Optional settings
-            ListenPort = $ListenPort;
+            ListenPort = 10933;
             DefaultApplicationDirectory = "C:\Applications"
             PublicHostNameConfiguration = "ComputerName"
             TentacleHomeDirectory = "C:\Octopus\OctopusTentacleHome"

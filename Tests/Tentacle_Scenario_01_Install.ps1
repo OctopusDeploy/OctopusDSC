@@ -1,6 +1,6 @@
 Configuration Tentacle_Scenario_01_Install
 {
-    param ($OctopusServerUrl, $ApiKey, $Environments, $Roles, $ListenPort)
+    param ($OctopusServerUrl, $ApiKey, $Environments, $Roles, $ServerThumbprint)
 
     Import-DscResource -ModuleName OctopusDSC
 
@@ -29,7 +29,7 @@ Configuration Tentacle_Scenario_01_Install
             Roles = $Roles;
 
             # Optional settings
-            ListenPort = $ListenPort;
+            ListenPort = 10933;
             DefaultApplicationDirectory = "C:\Applications"
             PublicHostNameConfiguration = "ComputerName"
             TentacleHomeDirectory = "C:\Octopus\ListeningTentacleHome"
@@ -58,6 +58,51 @@ Configuration Tentacle_Scenario_01_Install
             DefaultApplicationDirectory = "C:\Applications"
             CommunicationMode = "Poll"
             TentacleHomeDirectory = "C:\Octopus\PollingTentacleHome"
+        }
+
+        cTentacleAgent ListeningTentacleWithoutAutoRegister
+        {
+            Ensure = "Present";
+            State = "Started";
+
+            # Tentacle instance name. Leave it as 'Tentacle' unless you have more
+            # than one instance
+            Name = "ListeningTentacleWithoutAutoRegister";
+
+            # Registration - all parameters required
+            ApiKey = $ApiKey;
+            OctopusServerUrl = $OctopusServerUrl;
+
+            # Optional settings
+            ListenPort = 10934;
+            DefaultApplicationDirectory = "C:\Applications"
+            CommunicationMode = "Listen"
+            TentacleHomeDirectory = "C:\Octopus\ListeningTentacleWithoutAutoRegisterHome"
+
+            RegisterWithServer = $false
+        }
+
+        cTentacleAgent ListeningTentacleWithThumbprintWithoutAutoRegister
+        {
+            Ensure = "Present";
+            State = "Started";
+
+            # Tentacle instance name. Leave it as 'Tentacle' unless you have more
+            # than one instance
+            Name = "ListeningTentacleWithThumbprintWithoutAutoRegister";
+
+            # Registration - all parameters required
+            ApiKey = $ApiKey;
+            OctopusServerUrl = $OctopusServerUrl;
+
+            # Optional settings
+            ListenPort = 10935;
+            DefaultApplicationDirectory = "C:\Applications"
+            CommunicationMode = "Listen"
+            TentacleHomeDirectory = "C:\Octopus\ListeningTentacleWithThumbprintWithoutAutoRegisterHome"
+
+            RegisterWithServer = $false
+            OctopusServerThumbprint = $ServerThumbprint
         }
     }
 }

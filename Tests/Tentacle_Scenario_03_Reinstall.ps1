@@ -1,6 +1,6 @@
 Configuration Tentacle_Scenario_03_Reinstall
 {
-    param ($OctopusServerUrl, $ApiKey, $Environments, $Roles, $ListenPort)
+    param ($OctopusServerUrl, $ApiKey, $Environments, $Roles)
 
     Import-DscResource -ModuleName OctopusDSC
 
@@ -27,7 +27,7 @@ Configuration Tentacle_Scenario_03_Reinstall
             Roles = $Roles;
 
             # Optional settings
-            ListenPort = $ListenPort;
+            ListenPort = 10933;
             DefaultApplicationDirectory = "C:\Applications"
             TentacleDownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.Tentacle.3.3.24.msi"
             TentacleDownloadUrl64 = "https://download.octopusdeploy.com/octopus/Octopus.Tentacle.3.3.24-x64.msi"

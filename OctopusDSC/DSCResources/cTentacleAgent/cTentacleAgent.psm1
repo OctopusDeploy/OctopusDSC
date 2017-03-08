@@ -17,8 +17,8 @@ function Get-TargetResource
         [string]$ApiKey,
         [string]$DisplayName = "$($env:COMPUTERNAME)_$Name",
         [string]$OctopusServerUrl,
-        [string[]]$Environments,
-        [string[]]$Roles,
+        [string[]]$Environments = "",
+        [string[]]$Roles = "",
         [string[]]$Tenants = "",
         [string[]]$TenantTags = "",
         [string]$DefaultApplicationDirectory,
@@ -29,7 +29,9 @@ function Get-TargetResource
         [ValidateSet("PublicIp", "FQDN", "ComputerName", "Custom")]
         [string]$PublicHostNameConfiguration = "PublicIp",
         [string]$CustomPublicHostName,
-        [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus"
+        [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
+        [bool]$RegisterWithServer = $true,
+        [string]$OctopusServerThumbprint
     )
 
     Write-Verbose "Checking if Tentacle is installed"
@@ -91,8 +93,8 @@ function Set-TargetResource
         [string]$ApiKey,
         [string]$OctopusServerUrl,
         [string]$DisplayName = "$($env:COMPUTERNAME)_$Name",
-        [string[]]$Environments,
-        [string[]]$Roles,
+        [string[]]$Environments = "",
+        [string[]]$Roles = "",
         [string[]]$Tenants = "",
         [string[]]$TenantTags = "",
         [string]$DefaultApplicationDirectory = "$($env:SystemDrive)\Applications",
@@ -103,7 +105,9 @@ function Set-TargetResource
         [ValidateSet("PublicIp", "FQDN", "ComputerName", "Custom")]
         [string]$PublicHostNameConfiguration = "PublicIp",
         [string]$CustomPublicHostName,
-        [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus"
+        [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
+        [bool]$RegisterWithServer = $true,
+        [string]$OctopusServerThumbprint
     )
 
     if ($Ensure -eq "Absent" -and $State -eq "Started")
@@ -126,7 +130,9 @@ function Set-TargetResource
 
     if ($Ensure -eq "Absent" -and $currentResource["Ensure"] -eq "Present")
     {
-        Remove-TentacleRegistration -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl
+        if ($RegisterWithServer) {
+            Remove-TentacleRegistration -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl
+        }
 
         $serviceName = (Get-TentacleServiceName $Name)
         Write-Verbose "Deleting service $serviceName..."
@@ -183,7 +189,10 @@ function Set-TargetResource
                      -serverPort $ServerPort `
                      -publicHostNameConfiguration $PublicHostNameConfiguration `
                      -customPublicHostName $CustomPublicHostName `
-                     -tentacleHomeDirectory $TentacleHomeDirectory
+                     -tentacleHomeDirectory $TentacleHomeDirectory `
+                     -registerWithServer $RegisterWithServer `
+                     -octopusServerThumbprint $OctopusServerThumbprint
+
         Write-Verbose "Tentacle installed!"
     }
     elseif ($Ensure -eq "Present" -and $currentResource["TentacleDownloadUrl"] -ne (Get-TentacleDownloadUrl $tentacleDownloadUrl $tentacleDownloadUrl64))
@@ -223,8 +232,8 @@ function Test-TargetResource
         [string]$ApiKey,
         [string]$OctopusServerUrl,
         [string]$DisplayName = "$($env:COMPUTERNAME)_$Name",
-        [string[]]$Environments,
-        [string[]]$Roles,
+        [string[]]$Environments = "",
+        [string[]]$Roles = "",
         [string[]]$Tenants = "",
         [string[]]$TenantTags = "",
         [string]$DefaultApplicationDirectory,
@@ -235,7 +244,9 @@ function Test-TargetResource
         [ValidateSet("PublicIp", "FQDN", "ComputerName", "Custom")]
         [string]$PublicHostNameConfiguration = "PublicIp",
         [string]$CustomPublicHostName,
-        [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus"
+        [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
+        [bool]$RegisterWithServer = $true,
+        [string]$OctopusServerThumbprint
     )
 
     $currentResource = (Get-TargetResource -Name $Name)
@@ -365,10 +376,10 @@ function New-Tentacle
         [string]$apiKey,
         [Parameter(Mandatory=$True)]
         [string]$octopusServerUrl,
-        [Parameter(Mandatory=$True)]
-        [string[]]$environments,
-        [Parameter(Mandatory=$True)]
-        [string[]]$roles,
+        [Parameter(Mandatory=$False)]
+        [string[]]$environments = "",
+        [Parameter(Mandatory=$False)]
+        [string[]]$roles = "",
         [Parameter(Mandatory=$False)]
         [string[]]$tenants = "",
         [Parameter(Mandatory=$False)]
@@ -384,7 +395,10 @@ function New-Tentacle
         [ValidateSet("PublicIp", "FQDN", "ComputerName", "Custom")]
         [string]$publicHostNameConfiguration = "PublicIp",
         [string]$customPublicHostName,
-        [string]$tentacleHomeDirectory = "$($env:SystemDrive)\Octopus"
+        [string]$tentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
+        [bool]$registerWithServer = $true,
+        [Parameter(Mandatory=$False)]
+        [string]$octopusServerThumbprint
     )
 
     if ($port -eq 0)
@@ -427,6 +441,10 @@ function New-Tentacle
                            "--force",
                            "--console")
 
+    if (($null -ne $octopusServerThumbprint) -and ($octopusServerThumbprint -ne "")) {
+        Invoke-AndAssert { & .\tentacle.exe configure --instance $name --trust $octopusServerThumbprint --console }
+    }
+
     if ($CommunicationMode -eq "Listen") {
         Invoke-AndAssert { & .\tentacle.exe configure --instance $name --port $port --console }
         $publicHostName = Get-PublicHostName $publicHostNameConfiguration $customPublicHostName
@@ -441,51 +459,60 @@ function New-Tentacle
     }
     Invoke-AndAssert { & .\tentacle.exe service --install --instance $name --console }
 
-    foreach ($environment in $environments)
-    {
-        foreach ($e2 in $environment.Split(','))
+    if ($registerWithServer) {
+        if ($environments -ne "")
         {
-            $registerArguments += "--environment"
-            $registerArguments += $e2.Trim()
-        }
-    }
-
-    foreach ($role in $roles)
-    {
-        foreach ($r2 in $role.Split(','))
-        {
-            $registerArguments += "--role"
-            $registerArguments += $r2.Trim()
-        }
-    }
-
-    if ($tenants -ne "")
-    {
-        foreach ($tenant in $tenants)
-        {
-            foreach ($t2 in $tenant.Split(','))
+            foreach ($environment in $environments)
             {
-                $registerArguments += "--tenant"
-                $registerArguments += $t2.Trim()
+                foreach ($e2 in $environment.Split(','))
+                {
+                    $registerArguments += "--environment"
+                    $registerArguments += $e2.Trim()
+                }
             }
         }
-    }
 
-    if ($tenantTags -ne "")
-    {
-        foreach ($tenantTag in $tenantTags)
+        if ($roles -ne "")
         {
-            foreach ($tt2 in $tenantTag.Split(','))
+            foreach ($role in $roles)
             {
-                $registerArguments += "--tenanttag"
-                $registerArguments += $tt2.Trim()
+                foreach ($r2 in $role.Split(','))
+                {
+                    $registerArguments += "--role"
+                    $registerArguments += $r2.Trim()
+                }
             }
         }
+
+        if ($tenants -ne "")
+        {
+            foreach ($tenant in $tenants)
+            {
+                foreach ($t2 in $tenant.Split(','))
+                {
+                    $registerArguments += "--tenant"
+                    $registerArguments += $t2.Trim()
+                }
+            }
+        }
+
+        if ($tenantTags -ne "")
+        {
+            foreach ($tenantTag in $tenantTags)
+            {
+                foreach ($tt2 in $tenantTag.Split(','))
+                {
+                    $registerArguments += "--tenanttag"
+                    $registerArguments += $tt2.Trim()
+                }
+            }
+        }
+
+        Write-Verbose "Registering with arguments: $registerArguments"
+        Invoke-AndAssert { & .\tentacle.exe ($registerArguments) }
+    } else {
+        Write-Verbose "Skipping registration with server as 'RegisterWithServer' is set to '$registerWithServer'"
     }
-
-    Write-Verbose "Registering with arguments: $registerArguments"
-    Invoke-AndAssert { & .\tentacle.exe ($registerArguments) }
-
     Pop-Location
     Write-Verbose "Tentacle commands complete"
 }
