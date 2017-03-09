@@ -306,7 +306,7 @@ function Request-File
 
 function Invoke-AndAssert {
     param ($block)
-
+    Write-Verbose $block
     & $block | Write-Verbose
     if ($LASTEXITCODE -ne 0 -and $null -ne $LASTEXITCODE)
     {
