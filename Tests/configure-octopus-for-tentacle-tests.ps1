@@ -74,6 +74,13 @@ try
     $tenantEditor.ConnectToProjectAndEnvironments($project, $environment)
     $tenantEditor.Save()
 
+    # create a non-default Test Machine Policy w/ defaults
+    $policyResource = new-object Octopus.Client.Model.MachinePolicyResource
+    $policyResource.Name = "Test Policy"
+    $policyResource.IsDefault = $false
+    $policyResource.Description = "Test Machine Policy"
+    $repository.MachinePolicies.Create($policyResource)
+
     set-content "c:\temp\octopus-configured.marker" ""
   }
 }

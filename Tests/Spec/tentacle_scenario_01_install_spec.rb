@@ -38,9 +38,10 @@ describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], 
   it { should be_listening_tentacle }
   it { should be_in_environment('The-Env') }
   it { should have_role('Test-Tentacle') }
-  it { should have_display_name('My Listening Tentacle')}
+  it { should have_display_name('My Listening Tentacle') }
   it { should have_tenant('John') }
   it { should have_tenant_tag('Hosting', 'Cloud') }
+  it { should have_policy('Test Policy') }
 end
 
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\ListeningTentacle') do
@@ -64,7 +65,8 @@ describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], 
   it { should be_polling_tentacle }
   it { should be_in_environment('The-Env') }
   it { should have_role('Test-Tentacle') }
-  it { should have_display_name("#{ENV['COMPUTERNAME']}_PollingTentacle")}
+  it { should have_display_name("#{ENV['COMPUTERNAME']}_PollingTentacle") }
+  it { should have_policy('Default Machine Policy') }
 end
 
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\PollingTentacle') do
@@ -84,6 +86,7 @@ end
 describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "ListeningTentacleWithoutAutoRegister") do
   it { should exist }
   it { should_not be_registered_with_the_server }
+  it { should have_policy('Default Machine Policy') }
 end
 
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\ListeningTentacleWithoutAutoRegister') do
@@ -113,6 +116,7 @@ describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], 
   it { should be_in_environment('The-Env') }
   it { should have_role('Test-Tentacle') }
   it { should have_display_name("ListeningTentacleWithThumbprintWithoutAutoRegister")}
+  it { should have_policy('Default Machine Policy') }
 end
 
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\ListeningTentacleWithThumbprintWithoutAutoRegister') do

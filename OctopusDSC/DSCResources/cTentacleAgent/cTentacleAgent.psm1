@@ -19,6 +19,7 @@ function Get-TargetResource
         [string]$OctopusServerUrl,
         [string[]]$Environments = "",
         [string[]]$Roles = "",
+        [string]$Policy = "Default Machine Policy",
         [string[]]$Tenants = "",
         [string[]]$TenantTags = "",
         [string]$DefaultApplicationDirectory,
@@ -95,6 +96,7 @@ function Set-TargetResource
         [string]$DisplayName = "$($env:COMPUTERNAME)_$Name",
         [string[]]$Environments = "",
         [string[]]$Roles = "",
+        [string]$Policy = "Default Machine Policy",
         [string[]]$Tenants = "",
         [string[]]$TenantTags = "",
         [string]$DefaultApplicationDirectory = "$($env:SystemDrive)\Applications",
@@ -180,6 +182,7 @@ function Set-TargetResource
                      -displayName $DisplayName `
                      -environments $Environments `
                      -roles $Roles `
+                     -policy $Policy `
                      -tenants $Tenants `
                      -tenantTags $TenantTags `
                      -defaultApplicationDirectory $DefaultApplicationDirectory `
@@ -234,6 +237,7 @@ function Test-TargetResource
         [string]$DisplayName = "$($env:COMPUTERNAME)_$Name",
         [string[]]$Environments = "",
         [string[]]$Roles = "",
+        [string]$Policy = "Default Machine Policy",
         [string[]]$Tenants = "",
         [string[]]$TenantTags = "",
         [string]$DefaultApplicationDirectory,
@@ -383,6 +387,8 @@ function New-Tentacle
         [string[]]$tenants = "",
         [Parameter(Mandatory=$False)]
         [string[]]$tenantTags = "",
+        [Parameter(Mandatory=$False)]
+        [string]$policy = "Default Machine Policy",
         [int]$port=10933,
         [string]$displayName,
         [string]$defaultApplicationDirectory,
@@ -438,6 +444,7 @@ function New-Tentacle
                            "--server", $octopusServerUrl,
                            "--name", $displayName,
                            "--apiKey", $apiKey,
+                           "--policy", $policy,
                            "--force",
                            "--console")
 

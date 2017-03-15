@@ -36,6 +36,8 @@ Configuration Tentacle_Scenario_01_Install
 
             Tenants = "John"
             TenantTags = "Hosting/Cloud"
+
+            Policy = "Test Policy"
         }
 
         cTentacleAgent PollingTentacle
