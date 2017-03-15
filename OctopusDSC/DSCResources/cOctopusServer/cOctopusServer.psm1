@@ -623,6 +623,21 @@ function Invoke-AndAssert {
     }
 }
 
+function Get-RegistryValue {
+  param (
+    [parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]$Path,
+    [parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]$Value
+  )
+  try {
+    return Get-ItemProperty -Path $Path | Select-Object -ExpandProperty $Value -ErrorAction Stop
+  }
+  catch {
+    return ""
+  }
+}
+
 function Install-OctopusDeploy
 {
   param (
@@ -650,6 +665,13 @@ function Install-OctopusDeploy
   )
 
   Write-Verbose "Installing Octopus Deploy..."
+
+  Write-Log "Checking to make sure .net 4.5.1+ is installed"
+  $dotnetVersion = Get-RegistryValue "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" "Release"
+  if (($dotnetVersion -eq "") -or ([int]$dotnetVersion -lt 378675)) {
+    throw "Octopus Server requires .NET 4.5.1. Please install it before attempting to install Octopus Server."
+  }
+
   Write-Log "Setting up new instance of Octopus Deploy with name '$name'"
   Install-MSI $downloadUrl
 
