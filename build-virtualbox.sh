@@ -21,12 +21,6 @@ function check_env_var() {
     fi
 }
 
-#not required when running locally in VirtualBox?
-#check_env_var AWS_ACCESS_KEY_ID
-#check_env_var AWS_SECRET_ACCESS_KEY
-#check_env_var AWS_SUBNET_ID
-#check_env_var AWS_SECURITY_GROUP_ID
-
 which vagrant > /dev/null
 if [ $? != 0 ]; then
   echo "Please install vagrant from vagrantup.com."
@@ -50,9 +44,6 @@ else
   echo "Powershell installed - good."
 fi
 
-#not required when running locally in VirtualBox?
-#check_plugin_installed "vagrant-aws"
-#check_plugin_installed "vagrant-aws-winrm"
 check_plugin_installed "vagrant-dsc"
 check_plugin_installed "vagrant-winrm"
 check_plugin_installed "vagrant-winrm-syncedfolders"
