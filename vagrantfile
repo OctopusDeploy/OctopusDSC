@@ -1,6 +1,6 @@
 # -*- mode: ruby -*-
 
-VAGRANTFILE_API_VERSION = "2"
+VAGRANT_FILE_API_VERSION = "2"
 
 $run_test_scenario_script = <<SCRIPT
   write-output "##teamcity[blockOpened name='Testing Scenario {scenario_name}']"
@@ -12,7 +12,7 @@ $run_test_scenario_script = <<SCRIPT
   exit $LASTEXITCODE
 SCRIPT
 
-Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   hostname = "vagrantdsc.local"
   config.vm.guest = :windows
@@ -61,6 +61,25 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     override.winrm.transport = :ssl
     override.winrm.port = 5986
     override.winrm.ssl_peer_verification = false
+  end
+
+  config.vm.provider :azure do |azure, override|
+    azure.resource_group_name = "OctopusDSCTesting"
+    azure.location = 'AustraliaEast'
+    azure.vm_name = "DSCTestVM"
+    azure.vm_size = 'Standard_DS2_v2'
+    azure.vm_image_urn = 'MicrosoftSQLServer:SQL2016SP1-WS2016:Express:latest'
+    azure.instance_ready_timeout = 600
+    azure.vm_password = ENV['AZURE_VM_PASSWORD']
+    azure.admin_username = "OctoAdmin"
+    azure.admin_password = ENV['AZURE_VM_PASSWORD']
+    override.vm.box = "dummy"
+    override.vm.box_url = "azure.dummy.box"
+    override.winrm.transport = :ssl
+    override.winrm.port = 5986
+    override.winrm.ssl_peer_verification = false
+    azure.winrm_install_self_signed_cert = true
+    azure.wait_for_destroy = true
   end
 
   # delete existing tests if they exist (for dev)
