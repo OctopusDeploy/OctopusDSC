@@ -86,7 +86,6 @@ end
 describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "ListeningTentacleWithoutAutoRegister") do
   it { should exist }
   it { should_not be_registered_with_the_server }
-  it { should have_policy('Default Machine Policy') }
 end
 
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\ListeningTentacleWithoutAutoRegister') do

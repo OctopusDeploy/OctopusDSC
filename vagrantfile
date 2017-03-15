@@ -6,8 +6,8 @@ $run_test_scenario_script = <<SCRIPT
   write-output "##teamcity[blockOpened name='Testing Scenario {scenario_name}']"
   $env:TEAMCITY_PROJECT_NAME="#{ENV['TEAMCITY_PROJECT_NAME']}"
   set-location c:/temp/tests
-  write-host executing bundle.bat _1.14.4_ exec rspec Spec/{scenario_name}_spec.rb
-  C:/tools/ruby23/bin/bundle.bat _1.14.4_ exec rspec Spec/{scenario_name}_spec.rb
+  write-host "executing bundle.bat _1.14.4_ exec rspec Spec/{scenario_name}_spec.rb --format documentation"
+  C:/tools/ruby23/bin/bundle.bat _1.14.4_ exec rspec Spec/{scenario_name}_spec.rb --format documentation
   write-output "##teamcity[blockClosed name='Testing Scenario {scenario_name}']"
   exit $LASTEXITCODE
 SCRIPT
