@@ -34,7 +34,6 @@ function Get-TargetResource
         [bool]$RegisterWithServer = $true,
         [string]$OctopusServerThumbprint
     )
-
     Write-Verbose "Checking if Tentacle is installed"
     $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\Tentacle" -ErrorAction SilentlyContinue).InstallLocation
     $present = ($null -ne $installLocation)
@@ -79,6 +78,7 @@ function Get-TargetResource
     };
 }
 
+
 function Set-TargetResource
 {
     param (
@@ -116,7 +116,13 @@ function Set-TargetResource
     {
         throw "Invalid configuration requested. " + `
               "You have asked for the service to not exist, but also be running at the same time. " +`
-              "You probably want 'State = `"Stopped`"."
+              "You probably want 'State = `"Stopped`"'."
+    }
+
+    if(!$RegisterWithServer -and ($Roles.Length -gt 0 -or $Environments.Length -gt 0 -or $Tenants.Length -gt 0 -or $TenantTags.Length -gt -0)) {
+        throw "Invalid configuration requested. " + `
+            "You have asked for the Tentacle not to be registered with the server, but still provided a server specific configuration argument (Roles, Environments, Tenants or TenantTags). " + `
+            "Please clear the server configuration argument or set 'RegisterWithServer = `$True'."
     }
 
     $currentResource = (Get-TargetResource -Name $Name)
