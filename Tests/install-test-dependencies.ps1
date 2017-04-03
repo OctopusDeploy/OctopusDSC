@@ -123,7 +123,7 @@ if ($LASTEXITCODE -ne 0) {
 
 write-output "Configuring SQL Server to mixed mode authentication"
 [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SMO') | out-null
-$s = new-object ('Microsoft.SqlServer.Management.Smo.Server') '(local)'
+$s = new-object ('Microsoft.SqlServer.Management.Smo.Server') '.\SQLEXPRESS'
 $s.Settings.LoginMode = [Microsoft.SqlServer.Management.SMO.ServerLoginMode]::Mixed
 $s.Alter()
 
