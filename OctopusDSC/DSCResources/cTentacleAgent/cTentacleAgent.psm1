@@ -78,6 +78,37 @@ function Get-TargetResource
     };
 }
 
+function Validate-RegistraionParameters(){
+    param (
+        [bool]$RegisterWithServer = $true,
+        [string[]]$Environments = @(),
+        [string[]]$Roles = @(),
+        [string]$Policy,
+        [string[]]$Tenants = @(),
+        [string[]]$TenantTags = @()
+    )
+    if(!$RegisterWithServer -and ($Roles.Length -gt 0 -or $Environments.Length -gt 0 -or $Tenants.Length -gt 0 -or $TenantTags.Length -gt -0)) {
+        throw "Invalid configuration requested. " + `
+            "You have asked for the Tentacle not to be registered with the server, but still provided a server specific configuration argument (Roles, Environments, Tenants or TenantTags). " + `
+            "Please clear the server configuration argument or set 'RegisterWithServer = `$True'."
+    }
+}
+
+
+function Validate-RequestedState() {
+    param (
+        [ValidateSet("Present", "Absent")]
+        [string]$Ensure = "Present",
+        [ValidateSet("Started", "Stopped")]
+        [string]$State = "Started"
+    )
+        if ($Ensure -eq "Absent" -and $State -eq "Started")
+    {
+        throw "Invalid configuration requested. " + `
+              "You have asked for the service to not exist, but also be running at the same time. " +`
+              "You probably want 'State = `"Stopped`"'."
+    }
+}
 
 function Set-TargetResource
 {
@@ -111,19 +142,13 @@ function Set-TargetResource
         [bool]$RegisterWithServer = $true,
         [string]$OctopusServerThumbprint
     )
-
-    if ($Ensure -eq "Absent" -and $State -eq "Started")
-    {
-        throw "Invalid configuration requested. " + `
-              "You have asked for the service to not exist, but also be running at the same time. " +`
-              "You probably want 'State = `"Stopped`"'."
-    }
-
-    if(!$RegisterWithServer -and ($Roles.Length -gt 0 -or $Environments.Length -gt 0 -or $Tenants.Length -gt 0 -or $TenantTags.Length -gt -0)) {
-        throw "Invalid configuration requested. " + `
-            "You have asked for the Tentacle not to be registered with the server, but still provided a server specific configuration argument (Roles, Environments, Tenants or TenantTags). " + `
-            "Please clear the server configuration argument or set 'RegisterWithServer = `$True'."
-    }
+    Validate-RequestedState $Ensure $State
+    Validate-RegistraionParameters $RegisterWithServer 
+        -Environments $Environments `
+        -Roles $Roles `
+        -Policy $Policy `
+        -Tenants $Tenants `
+        -TenantTags$TenantTags    
 
     $currentResource = (Get-TargetResource -Name $Name)
 

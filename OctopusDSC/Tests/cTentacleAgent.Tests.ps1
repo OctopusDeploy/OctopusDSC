@@ -27,6 +27,24 @@ try
                 }
             }
 
+            Context 'Validate-RegistraionParameters' {
+                It 'Throws if RegisterWithServer is false but environment provided' {
+                      { Validate-RegistraionParameters -RegisterWithServer $False -Environments @('My Env') } | Should Throw "Invalid configuration requested"
+                }
+
+                It 'Does not throws if RegisterWithServer is false and no environment provided' {
+                      { Validate-RegistraionParameters -RegisterWithServer $False } | Should Not Throw
+                }
+            }
+
+            Context 'Validate-RequestedState' {
+                It 'Throws if RegisterWithServer is false but environment provided' {
+                    
+                      { Validate-RequestedState -Ensure "Absent" -State "Started" } | Should Throw "Invalid configuration requested"
+                }
+            }
+
+
             Context 'Get-TargetResource' {
                 Mock Get-ItemProperty { return @{ InstallLocation = "c:\Octopus\Tentacle\Stub" }}
                 Mock Get-Service { return @{ Status = "Running" }}
