@@ -27,20 +27,20 @@ try
                 }
             }
 
-            Context 'Validate-RegistraionParameters' {
+            Context 'Confirm-RegistraionParameters' {
                 It 'Throws if RegisterWithServer is false but environment provided' {
-                      { Validate-RegistraionParameters -RegisterWithServer $False -Environments @('My Env') } | Should Throw "Invalid configuration requested"
+                      { Confirm-RegistraionParameters -RegisterWithServer $False -Environments @('My Env') } | Should Throw "Invalid configuration requested"
                 }
 
                 It 'Does not throws if RegisterWithServer is false and no environment provided' {
-                      { Validate-RegistraionParameters -RegisterWithServer $False } | Should Not Throw
+                      { Confirm-RegistraionParameters -RegisterWithServer $False } | Should Not Throw
                 }
             }
 
-            Context 'Validate-RequestedState' {
+            Context 'Confirm-RequestedState' {
                 It 'Throws if RegisterWithServer is false but environment provided' {
                     
-                      { Validate-RequestedState -Ensure "Absent" -State "Started" } | Should Throw "Invalid configuration requested"
+                      { Confirm-RequestedState -Ensure "Absent" -State "Started" } | Should Throw "Invalid configuration requested"
                 }
             }
 

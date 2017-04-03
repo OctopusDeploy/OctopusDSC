@@ -78,7 +78,7 @@ function Get-TargetResource
     };
 }
 
-function Validate-RegistraionParameters(){
+function Confirm-RegistraionParameters(){
     param (
         [bool]$RegisterWithServer = $true,
         [string[]]$Environments = @(),
@@ -95,7 +95,7 @@ function Validate-RegistraionParameters(){
 }
 
 
-function Validate-RequestedState() {
+function Confirm-RequestedState() {
     param (
         [ValidateSet("Present", "Absent")]
         [string]$Ensure = "Present",
@@ -142,8 +142,8 @@ function Set-TargetResource
         [bool]$RegisterWithServer = $true,
         [string]$OctopusServerThumbprint
     )
-    Validate-RequestedState $Ensure $State
-    Validate-RegistraionParameters $RegisterWithServer 
+    Confirm-RequestedState $Ensure $State
+    Confirm-RegistraionParameters $RegisterWithServer 
         -Environments $Environments `
         -Roles $Roles `
         -Policy $Policy `
