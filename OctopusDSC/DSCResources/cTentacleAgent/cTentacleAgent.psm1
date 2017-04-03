@@ -143,7 +143,7 @@ function Set-TargetResource
         [string]$OctopusServerThumbprint
     )
     Confirm-RequestedState $Ensure $State
-    Confirm-RegistraionParameters $RegisterWithServer 
+    Confirm-RegistraionParameters $RegisterWithServer `
         -Environments $Environments `
         -Roles $Roles `
         -Policy $Policy `
