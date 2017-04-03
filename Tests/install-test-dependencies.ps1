@@ -85,8 +85,8 @@ write-output "Configuring SQL Server to allow TCP/IP connections"
 $wmi = new-object ('Microsoft.SqlServer.Management.Smo.Wmi.ManagedComputer')
 
 # Enable the TCP protocol on the default instance.
-$uri = "ManagedComputer[@Name='$($env:computername)']/ ServerInstance[@Name='$serviceName']/ServerProtocol[@Name='Tcp']"
-$tcp = $wmi.GetSmoObject($uri)
+$uri = "ManagedComputer[@Name='$($env:computername)']"
+$tcp = ($wmi.GetSmoObject($uri).ServerInstances[0].ServerProtocols | Where-Object {$_.Name -eq "Tcp"});
 $tcp.IsEnabled = $true
 $tcp.Alter()
 
@@ -109,13 +109,13 @@ if (-not (Test-Path $oSqlPath)) {
 write-output " - found it at $oSqlPath"
 
 write-output " - creating login for 'NT AUTHORITY\SYSTEM'"
-& "$oSqlPath" "-E" "-S" "(local)\SQLEXPRESS" "-Q" "`"CREATE LOGIN [NT AUTHORITY\SYSTEM] FROM WINDOWS`""
+& "$oSqlPath" "-E" "-S" ".\SQLEXPRESS" "-Q" "`"CREATE LOGIN [NT AUTHORITY\SYSTEM] FROM WINDOWS`""
 if ($LASTEXITCODE -ne 0) {
   write-output " - failed with exit code $LASTEXITCODE"
   exit 1
 }
 write-output " - adding 'NT AUTHORITY\SYSTEM' to SYSADMIN role"
-& "$oSqlPath" "-E" "-S" "(local)\SQLEXPRESS" "-Q" "`"SP_ADDSRVROLEMEMBER 'NT AUTHORITY\SYSTEM','SYSADMIN'`""
+& "$oSqlPath" "-E" "-S" ".\SQLEXPRESS" "-Q" "`"SP_ADDSRVROLEMEMBER 'NT AUTHORITY\SYSTEM','SYSADMIN'`""
 if ($LASTEXITCODE -ne 0) {
   write-output " - failed with exit code $LASTEXITCODE"
   exit 1
