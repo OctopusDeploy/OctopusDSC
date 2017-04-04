@@ -6,6 +6,10 @@ $OctopusURI = "http://localhost:81"
 $octopusAdminUsername="OctoAdmin"
 $octopusAdminPassword="SuperS3cretPassw0rd!"
 
+# we have setup the tentacle via DSC, and given it a thumbprint, but have requested it to
+# not register with the server. (ie, simulating the situation where tentacles cannot see the server)
+# so, we need to register the tentacle outside of DSC
+
 try
 {
     Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Newtonsoft.Json.dll"
