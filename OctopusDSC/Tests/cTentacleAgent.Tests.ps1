@@ -27,23 +27,41 @@ try
                 }
             }
 
-            Context 'Confirm-RegistraionParameters' {
+            Context 'Confirm-RegistrationParameters' {
                 It 'Throws if RegisterWithServer is false but environment provided' {
-                      { Confirm-RegistraionParameters -RegisterWithServer $False -Environments @('My Env') } | Should Throw "Invalid configuration requested"
+                    { Confirm-RegistrationParameters -RegisterWithServer $False -Environments @('My Env') } | Should Throw "Invalid configuration requested"
                 }
-
-                It 'Does not throws if RegisterWithServer is false and no environment provided' {
-                      { Confirm-RegistraionParameters -RegisterWithServer $False } | Should Not Throw
+                It 'Throws if RegisterWithServer is false but roles provided' {
+                    { Confirm-RegistrationParameters -RegisterWithServer $False -Roles @('app-server') } | Should Throw "Invalid configuration requested"
+                }
+                It 'Throws if RegisterWithServer is false but tenants provided' {
+                    { Confirm-RegistrationParameters -RegisterWithServer $False -Tenants @('Jim-Bob') } | Should Throw "Invalid configuration requested"
+                }
+                It 'Throws if RegisterWithServer is false but tenant Tags provided' {
+                    { Confirm-RegistrationParameters -RegisterWithServer $False -TenantTags @('CustomerType/VIP', 'Hosting/OnPrem') } | Should Throw "Invalid configuration requested"
+                }
+                It 'Throws if RegisterWithServer is false but policy provided' {
+                    { Confirm-RegistrationParameters -RegisterWithServer $False -Policy "my policy" } | Should Throw "Invalid configuration requested"
+                }
+                It 'Does not throw if RegisterWithServer is false and environment provided as empty string' {
+                    Confirm-RegistrationParameters -RegisterWithServer $False -Environments ""
+                }
+                It 'Does not throw if RegisterWithServer is false and environment provided as empty array' {
+                    Confirm-RegistrationParameters -RegisterWithServer $False -Environments @()
+                }
+                It 'Does not throw if RegisterWithServer is false and environment provided as array with empty element' {
+                    Confirm-RegistrationParameters -RegisterWithServer $False -Environments @('')
+                }
+                It 'Does not throw if RegisterWithServer is false and no environment provided' {
+                    Confirm-RegistrationParameters -RegisterWithServer $False
                 }
             }
 
             Context 'Confirm-RequestedState' {
                 It 'Throws if RegisterWithServer is false but environment provided' {
-                    
-                      { Confirm-RequestedState -Ensure "Absent" -State "Started" } | Should Throw "Invalid configuration requested"
+                    { Confirm-RequestedState -Ensure "Absent" -State "Started" } | Should Throw "Invalid configuration requested"
                 }
             }
-
 
             Context 'Get-TargetResource' {
                 Mock Get-ItemProperty { return @{ InstallLocation = "c:\Octopus\Tentacle\Stub" }}

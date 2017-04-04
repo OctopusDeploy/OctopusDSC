@@ -78,19 +78,31 @@ function Get-TargetResource
     };
 }
 
-function Confirm-RegistraionParameters(){
+# test a variable has a value (whether its an array or string)
+function Test-Value($value) {
+    if ($value -eq "") { return $false }
+    if ($value.length -eq 0) { return $false }
+    if ($value.length -eq 1 -and $value[0].length -eq 0) { return $false }
+    return $true
+}
+
+function Confirm-RegistrationParameters {
     param (
-        [bool]$RegisterWithServer = $true,
-        [string[]]$Environments = @(),
-        [string[]]$Roles = @(),
+        [bool]$RegisterWithServer,
+        [string[]]$Environments,
+        [string[]]$Roles,
         [string]$Policy,
-        [string[]]$Tenants = @(),
-        [string[]]$TenantTags = @()
+        [string[]]$Tenants,
+        [string[]]$TenantTags
     )
-    if(!$RegisterWithServer -and ($Roles.Length -gt 0 -or $Environments.Length -gt 0 -or $Tenants.Length -gt 0 -or $TenantTags.Length -gt -0)) {
+    if ($RegisterWithServer) {
+        return
+    }
+
+    if ((Test-Value($Roles)) -or (Test-Value($Environments)) -or (Test-Value($Tenants)) -or (Test-Value($TenantTags)) -or (Test-Value($Policy))) {
         throw "Invalid configuration requested. " + `
-            "You have asked for the Tentacle not to be registered with the server, but still provided a server specific configuration argument (Roles, Environments, Tenants or TenantTags). " + `
-            "Please clear the server configuration argument or set 'RegisterWithServer = `$True'."
+            "You have asked for the Tentacle not to be registered with the server, but still provided a server specific configuration argument (Roles, Environments, Tenants, TenantTags or Policy). " + `
+            "Please remove the configuration argument or set 'RegisterWithServer = `$True'."
     }
 }
 
@@ -102,7 +114,7 @@ function Confirm-RequestedState() {
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started"
     )
-        if ($Ensure -eq "Absent" -and $State -eq "Started")
+    if ($Ensure -eq "Absent" -and $State -eq "Started")
     {
         throw "Invalid configuration requested. " + `
               "You have asked for the service to not exist, but also be running at the same time. " +`
@@ -143,12 +155,12 @@ function Set-TargetResource
         [string]$OctopusServerThumbprint
     )
     Confirm-RequestedState $Ensure $State
-    Confirm-RegistraionParameters $RegisterWithServer `
+    Confirm-RegistrationParameters $RegisterWithServer `
         -Environments $Environments `
         -Roles $Roles `
         -Policy $Policy `
         -Tenants $Tenants `
-        -TenantTags$TenantTags    
+        -TenantTags $TenantTags
 
     $currentResource = (Get-TargetResource -Name $Name)
 
