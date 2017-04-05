@@ -44,9 +44,10 @@ vagrant up --provider azure # --debug &> vagrant.log
 echo "'vagrant up' exited with exit code $LASTEXITCODE"
 
 if ($LASTEXITCODE -ne 0)
+{
   echo "Vagrant up failed with exit code $LASTEXITCODE"
   echo "##teamcity[buildStatus text='{build.status.text}. Vagrant failed.']"
   exit $LASTEXITCODE
-fi
+}
 
 echo "Dont forget to run 'cleanup-azure.ps1' when you have finished"
