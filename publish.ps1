@@ -1,7 +1,7 @@
 param(
     [string]$buildVersion,
     [string]$psGalleryApiKey,
-    [strnig]$gitHubApiKey
+    [string]$gitHubApiKey
 )
 
 function Publish-ToGitHub($versionNumber, $commitId, $preRelease, $artifact, $gitHubApiKey)
