@@ -409,6 +409,7 @@ function Install-Tentacle
         throw "Installation of the Tentacle MSI failed; MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
     }
 
+    if (-not (Test-Path "$($env:SystemDrive)\Octopus")) { New-Item -type Directory "$($env:SystemDrive)\Octopus" }
     @{ "TentacleDownloadUrl" = $actualTentacleDownloadUrl } | ConvertTo-Json | set-content "$($env:SystemDrive)\Octopus\Octopus.DSC.installstate"
 
 }
