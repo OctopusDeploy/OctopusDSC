@@ -60,6 +60,12 @@ else {
   write-host "chmod not found, skipping setting permissions on pem file"
 }
 
+write-host "Adding vagrant box"
+vagrant box add OctopusDeploy/dsc-test-server-windows-2012-r2 https://s3-ap-southeast-2.amazonaws.com/octopus-vagrant-boxes/vagrant/json/OctopusDeploy/amazon-ebs/dsc-test-server-windows-2012-r2.json --force
+
+write-host "Ensuring vagrant box is latest"
+vagrant box update --box OctopusDeploy/dsc-test-server-windows-2012-r2 --provider aws
+
 write-host "Running 'vagrant up --provider aws'"
 vagrant up --provider aws # --debug &> vagrant.log
 echo "'vagrant up' exited with exit code $LASTEXITCODE"
