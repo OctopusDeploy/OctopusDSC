@@ -1,4 +1,4 @@
-Configuration Server_Scenario_04_Upgrade
+Configuration Server_Scenario_05_Reinstall
 {
     Import-DscResource -ModuleName OctopusDSC
 
@@ -21,12 +21,15 @@ Configuration Server_Scenario_04_Upgrade
             # The url that Octopus will listen on
             WebListenPrefix = "http://localhost:81"
 
-            # use a new database, as old one is not removed
             SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusDeploy;Trusted_Connection=True;"
+
+            LegacyWebAuthenticationMode = "UsernamePassword"
 
             # The admin user to create
             OctopusAdminUsername = "OctoAdmin"
             OctopusAdminPassword = "SuperS3cretPassw0rd!"
+
+            DownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.3.3.24-x64.msi"
 
             # dont mess with stats
             AllowCollectionOfAnonymousUsageStatistics = $false
