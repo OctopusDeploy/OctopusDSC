@@ -47,12 +47,12 @@ try
     $projectGroup = $repository.ProjectGroups.FindByName("All projects")
     $lifecycle = $repository.Lifecycles.FindByName("Default Lifecycle")
     $project = $repository.Projects.CreateOrModify("Multi tenant project", $projectGroup, $lifecycle)
-    $project.Save()
+    $project.Save() | Out-Null
 
     #enable Tenants feature
     $featureConfig = $repository.FeaturesConfiguration.GetFeaturesConfiguration()
     $featureConfig.IsMultiTenancyEnabled = $true
-    $repository.FeaturesConfiguration.ModifyFeaturesConfiguration($featureConfig)
+    $repository.FeaturesConfiguration.ModifyFeaturesConfiguration($featureConfig) | Out-Null
 
     #reconnect after changing the feature config as the OctopusRepository caches some stuff
     $endpoint = new-object Octopus.Client.OctopusServerEndpoint $OctopusURI
@@ -61,25 +61,25 @@ try
 
     # setup tag set
     $tagSetEditor = $repository.TagSets.CreateOrModify("Hosting")
-    $tagSetEditor.AddOrUpdateTag("On premises", "Hosted on site", [Octopus.Client.Model.TagResource+StandardColor]::DarkGreen)
-    $tagSetEditor.AddOrUpdateTag("Cloud", "Hosted in the cloud", [Octopus.Client.Model.TagResource+StandardColor]::LightBlue)
-    $tagSetEditor.Save()
+    $tagSetEditor.AddOrUpdateTag("On premises", "Hosted on site", [Octopus.Client.Model.TagResource+StandardColor]::DarkGreen) | Out-Null
+    $tagSetEditor.AddOrUpdateTag("Cloud", "Hosted in the cloud", [Octopus.Client.Model.TagResource+StandardColor]::LightBlue) | Out-Null
+    $tagSetEditor.Save() | Out-Null
     $tagSet = $tagSetEditor.Instance
 
     $project = $repository.Projects.FindByName("Multi tenant project")
     $environment = $repository.Environments.FindByName("The-Env")
 
     $tenantEditor = $repository.Tenants.CreateOrModify("John")
-    $tenantEditor.WithTag($tagSet.Tags[0])
+    $tenantEditor.WithTag($tagSet.Tags[0]) | Out-Null
     $tenantEditor.ConnectToProjectAndEnvironments($project, $environment)
-    $tenantEditor.Save()
+    $tenantEditor.Save() | Out-Null
 
     # create a non-default Test Machine Policy w/ defaults
     $policyResource = new-object Octopus.Client.Model.MachinePolicyResource
     $policyResource.Name = "Test Policy"
     $policyResource.IsDefault = $false
     $policyResource.Description = "Test Machine Policy"
-    $repository.MachinePolicies.Create($policyResource)
+    $repository.MachinePolicies.Create($policyResource) | Out-Null
 
     set-content "c:\temp\octopus-configured.marker" ""
   }
