@@ -1,5 +1,5 @@
 # If for whatever reason this doesn't work, check this file:
-Start-Transcript -path "C:\Octopus\Logs\configure-octopus-for-tentacle-tests.txt" -append
+Start-Transcript -path "C:\Octopus\Logs\register-polling-tentacle.txt" -append
 
 $OFS = "`r`n"
 $OctopusURI = "http://localhost:81"
