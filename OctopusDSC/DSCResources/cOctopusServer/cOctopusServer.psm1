@@ -37,7 +37,7 @@ function Get-TargetResource
   )
 
   Write-Verbose "Checking if Octopus Server is installed"
-  $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\Octopus" -ErrorAction SilentlyContinue).InstallLocation
+  $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\OctopusServer" -ErrorAction SilentlyContinue).InstallLocation
   $present = ($null -ne $installLocation)
   Write-Verbose "Octopus Server present: $present"
 
@@ -79,7 +79,7 @@ function Get-TargetResource
   $existingAutoLoginEnabled = $null
 
   if ($existingEnsure -eq "Present") {
-    $existingConfig = Import-ServerConfig "$($env:SystemDrive)\Octopus\OctopusServer.config"
+    $existingConfig = Import-ServerConfig "$($env:SystemDrive)\Octopus\OctopusServer.config" $Name
     $existingSqlDbConnectionString = $existingConfig.OctopusStorageExternalDatabaseConnectionString
     $existingWebListenPrefix = $existingConfig.OctopusWebPortalListenPrefixes
     $existingForceSSL = $existingConfig.OctopusWebPortalForceSsl
@@ -121,7 +121,9 @@ function Import-ServerConfig
   [CmdletBinding()]
   param (
     [Parameter(Mandatory)]
-    [string] $Path
+    [string] $Path,
+    [Parameter(Mandatory)]
+    [string] $InstanceName
   )
 
   Write-Verbose "Importing server configuration file from '$Path'"
@@ -138,7 +140,7 @@ function Import-ServerConfig
   }
 
   if (Test-OctopusVersionSupportsShowConfiguration) {
-    $rawConfig = & $octopusServerExePath show-configuration --format=json-hierarchical --noconsolelogging --console
+    $rawConfig = & $octopusServerExePath show-configuration --format=json-hierarchical --noconsolelogging --console --instance $InstanceName
     $config = $rawConfig | ConvertFrom-Json
 
     $result = [pscustomobject] @{
