@@ -37,6 +37,12 @@ Configuration Server_Scenario_01_Install
             Enabled = $true
         }
 
+        cOctopusServerGuestAuthentication "Enable Guest Login"
+        {
+            InstanceName = "OctopusServer"
+            Enabled = $true
+        }
+
         cOctopusServerActiveDirectoryAuthentication "Enable Active Directory Auth"
         {
             InstanceName = "OctopusServer"
