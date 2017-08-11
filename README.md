@@ -2,15 +2,19 @@
 
 This repository contains a PowerShell module with DSC resources that can be used to install and configure an [Octopus Deploy](http://octopusdeploy.com) Server and Tentacle agent.
 
-Read about the [cTentacleAgent](README-cTentacleAgent.md) or [cOctopusServer](README-cOctopusServer.md) resources.
+There are two main resources:
 
-Authentication can be configured to use:
+* [cOctopusServer](README-cOctopusServer.md) to install and configure an Octopus Server, and
+* [cTentacleAgent](README-cTentacleAgent.md) to install and configure a Tentacle.
 
-* Active Directory Domain with [cOctopusServerActiveDirectoryAuthentication](README-cOctopusServerActiveDirectoryAuthentication.md)
+Server authentication can be configured to use:
+
+* Active Directory with [cOctopusServerActiveDirectoryAuthentication](README-cOctopusServerActiveDirectoryAuthentication.md)
 * Azure AD with [cOctopusServerAzureADAuthentication](README-cOctopusServerAzureADAuthentication.md)
 * GoogleApps with [cOctopusServerGoogleAppsAuthentication](README-cOctopusServerGoogleAppsAuthentication.md)
 * Okta with [cOctopusServerOktaAuthentication](README-cOctopusServerOktaAuthentication.md)
 * Username/passwords stored in Octopus with [cOctopusServerUsernamePasswordAuthentication](README-cOctopusServerUsernamePasswordAuthentication.md)
+* Read-only guest account login with [cOctopusServerGuestAuthentication](README-cOctopusServerGuestAuthentication.md)
 
 ## Development
 
