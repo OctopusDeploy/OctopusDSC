@@ -57,9 +57,9 @@ Configuration Tentacle_Scenario_01_Install
 
             # Optional settings
             ListenPort = $ListenPort;
-            DefaultApplicationDirectory = "C:\Applications"
+            DefaultApplicationDirectory = "C:\Octopus\Applications Directory"
             CommunicationMode = "Poll"
-            TentacleHomeDirectory = "C:\Octopus\PollingTentacleHome"
+            TentacleHomeDirectory = "C:\Octopus\Polling Tentacle Home"
         }
 
         cTentacleAgent ListeningTentacleWithoutAutoRegister

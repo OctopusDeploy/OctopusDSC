@@ -71,7 +71,7 @@ end
 
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\PollingTentacle') do
   it { should exist }
-  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\PollingTentacleHome\PollingTentacle\Tentacle.config') }
+  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\Polling Tentacle Home\PollingTentacle\Tentacle.config') }
 end
 
 ### listening tentacle (without autoregister, no thumbprint):

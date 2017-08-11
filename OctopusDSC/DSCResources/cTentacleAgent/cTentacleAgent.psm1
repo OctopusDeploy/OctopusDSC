@@ -194,7 +194,7 @@ function Set-TargetResource
             $msiLog = "$TentacleHomeDirectory\logs\Tentacle.msi.uninstall.log"
             if (test-path $tentaclePath)
             {
-                $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/x $tentaclePath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
+                $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/x `"$tentaclePath`" /quiet /l*v `"$msiLog`"" -Wait -Passthru).ExitCode
                 Write-Verbose "Tentacle MSI installer returned exit code $msiExitCode"
                 if ($msiExitCode -ne 0)
                 {
@@ -402,7 +402,7 @@ function Install-Tentacle
     Write-Verbose "Installing MSI..."
     if (-not (Test-Path "$TentacleHomeDirectory\logs")) { New-Item -type Directory "$TentacleHomeDirectory\logs" }
     $msiLog = "$TentacleHomeDirectory\logs\Tentacle.msi.log"
-    $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $tentaclePath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
+    $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$tentaclePath`" /quiet /l*v `"$msiLog`"" -Wait -Passthru).ExitCode
     Write-Verbose "Tentacle MSI installer returned exit code $msiExitCode"
     if ($msiExitCode -ne 0)
     {
@@ -478,9 +478,9 @@ function New-Tentacle
     $tentacleAppDirectory = $DefaultApplicationDirectory
     $tentacleConfigFile = "$tentacleHomeDirectory\$Name\Tentacle.config"
     Write-Verbose "Tentacle configuration set as $tentacleConfigFile"
-    Invoke-AndAssert { & .\tentacle.exe create-instance --instance $name --config $tentacleConfigFile --console }
-    Invoke-AndAssert { & .\tentacle.exe configure --instance $name --home $tentacleHomeDirectory --console }
-    Invoke-AndAssert { & .\tentacle.exe configure --instance $name --app $tentacleAppDirectory --console }
+    Invoke-AndAssert { & .\tentacle.exe create-instance --instance $name --config "$tentacleConfigFile" --console }
+    Invoke-AndAssert { & .\tentacle.exe configure --instance $name --home "$tentacleHomeDirectory" --console }
+    Invoke-AndAssert { & .\tentacle.exe configure --instance $name --app "$tentacleAppDirectory" --console }
     Invoke-AndAssert { & .\tentacle.exe new-certificate --instance $name --console }
 
     $registerArguments = @("register-with",
