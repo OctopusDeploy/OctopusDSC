@@ -9,6 +9,7 @@ Authentication can be configured to use:
 * Active Directory Domain with [cOctopusServerActiveDirectoryAuthentication](README-cOctopusServerActiveDirectoryAuthentication.md)
 * Azure AD with [cOctopusServerAzureADAuthentication](README-cOctopusServerAzureADAuthentication.md)
 * GoogleApps with [cOctopusServerGoogleAppsAuthentication](README-cOctopusServerGoogleAppsAuthentication.md)
+* Okta with [cOctopusServerOktaAuthentication](README-cOctopusServerOktaAuthentication.md)
 * Username/passwords stored in Octopus with [cOctopusServerUsernamePasswordAuthentication](README-cOctopusServerUsernamePasswordAuthentication.md)
 
 ## Development

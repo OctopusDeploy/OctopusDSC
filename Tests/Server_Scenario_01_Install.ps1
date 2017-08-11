@@ -53,6 +53,14 @@ Configuration Server_Scenario_01_Install
             ClientID = "0272262a-b31d-4acf-8891-56e96d302018"
         }
 
+        cOctopusServerOktaAuthentication "Enable Okta Auth"
+        {
+            InstanceName = "OctopusServer"
+            Enabled = $true
+            Issuer = "https://dev-258251.oktapreview.com"
+            ClientID = "752nx5basdskrsbqansE"
+        }
+
         cOctopusServerGoogleAppsAuthentication "Enable GoogleApps Auth"
         {
             InstanceName = "OctopusServer"
