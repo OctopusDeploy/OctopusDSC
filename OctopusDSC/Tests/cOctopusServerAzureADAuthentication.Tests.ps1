@@ -88,7 +88,7 @@ try
 
                 It 'Returns false when the clientid is currently different' {
                     $response['Enabled'] = $true
-                    $response['Issuer'] = "https://login.microsoftonline.com/32a1d0a11c8a-b91ebf6a-84be-4c6f-97f3"
+                    $response['Issuer'] = "https://login.microsoftonline.com/b91ebf6a-84be-4c6f-97f3-32a1d0a11c8a"
                     $response['ClientID'] = "56e96d302018-0272262a-b31d-4acf-8891"
                     Test-TargetResource @desiredConfiguration | Should Be $false
                 }
