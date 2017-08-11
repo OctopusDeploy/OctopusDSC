@@ -16,6 +16,20 @@ Server authentication can be configured to use:
 * Username/passwords stored in Octopus with [cOctopusServerUsernamePasswordAuthentication](README-cOctopusServerUsernamePasswordAuthentication.md)
 * Read-only guest account login with [cOctopusServerGuestAuthentication](README-cOctopusServerGuestAuthentication.md)
 
+## Installation
+
+### [PowerShellGet](https://technet.microsoft.com/en-us/library/dn807169.aspx) / PowerShell 5 (recommended)
+1. Install PowerShellGet from [PowerShell Gallery](https://www.powershellgallery.com/GettingStarted)
+2. Install DSC module via `PowerShellGet\Install-Module -Name OctopusDSC`
+
+### Manual ###
+1. Download the [latest release](https://github.com/OctopusDeploy/OctopusDSC/releases) 
+2. If required, unblock the zip file
+3. Extract the zip file to a folder called OctopusDSC under your modules folder (usually `%USERPROFILE%\Documents\WindowsPowerShell\Modules`)
+4. To confirm it's installed correctly, in a new powershell session run `Get-Module -ListAvailable -Name OctopusDSC`
+
+The community has also submitted a few [other options](https://github.com/OctopusDeploy/OctopusDSC/issues/14).
+
 ## Development
 
 This project is setup to use [Vagrant](vagrant.io) to provide a dev/test environment. Once you've installed Vagrant, you can use [build-virtualbox.sh](build-virtualbox.sh) to spin up a local virtual machine using [VirtualBox](virtualbox.org) and run the test scenarios (**NOTE:** The first time you run `vagrant up` it has to download the `octopusdeploy/dsc-test-server` box and this can take some time depending on your Internet speed, so be patient and go grab a coffee while it downloads). On a build server, you most likely want to use [build-aws.sh](build-aws.sh) to spin up a virtual machine on AWS to run the tests.
