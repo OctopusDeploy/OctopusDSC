@@ -189,7 +189,11 @@ function Set-TargetResource
         {
             # Uninstall msi
             Write-Verbose "Uninstalling Tentacle..."
-            if (-not (Test-Path "$TentacleHomeDirectory\logs")) { New-Item -type Directory "$TentacleHomeDirectory\logs" }
+            if (-not (Test-Path "$TentacleHomeDirectory\logs")) 
+            {
+                Write-Verbose "Log directory does not exist. Creating..." 
+                New-Item -type Directory "$TentacleHomeDirectory\logs" | Out-Null
+            }
             $tentaclePath = "$TentacleHomeDirectory\Tentacle.msi"
             $msiLog = "$TentacleHomeDirectory\logs\Tentacle.msi.uninstall.log"
             if (test-path $tentaclePath)
@@ -391,7 +395,8 @@ function Install-Tentacle
 
     if(-not (Test-Path $tentacleHomeDirectory))
     {
-        New-Item -Path "$tentacleHomeDirectory" -ItemType Directory 
+        Write-Verbose "Tentacle Home directory does not exist. Creating..."
+        New-Item -Path "$tentacleHomeDirectory" -ItemType Directory | Out-Null
     }
     $tentaclePath = "$tentacleHomeDirectory\Tentacle.msi"
     if ((Test-Path $tentaclePath) -eq $true)
@@ -405,10 +410,14 @@ function Install-Tentacle
     if(-not (Test-Path $env:TEMP))
     {
         Write-Verbose "Configured temp folder does not currently exist, creating..."
-        New-Item $env:TEMP -ItemType Directory -force # an edge case when the env var exists but the folder does not
+        New-Item $env:TEMP -ItemType Directory -force | Out-Null # an edge case when the env var exists but the folder does not
     }
 
-    if (-not (Test-Path "$TentacleHomeDirectory\logs")) { New-Item -type Directory "$TentacleHomeDirectory\logs" -force  }
+    if (-not (Test-Path "$TentacleHomeDirectory\logs")) 
+    { 
+        Write-Verbose "Log directory not found. Creating..."
+        New-Item -type Directory "$TentacleHomeDirectory\logs" -force | Out-Null 
+    }
     $msiLog = "$TentacleHomeDirectory\logs\Tentacle.msi.log"
     $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$tentaclePath`" /quiet /l*v `"$msiLog`"" -Wait -Passthru).ExitCode
     Write-Verbose "Tentacle MSI installer returned exit code $msiExitCode"
@@ -417,7 +426,11 @@ function Install-Tentacle
         throw "Installation of the Tentacle MSI failed; MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
     }
 
-    if (-not (Test-Path "$($env:SystemDrive)\Octopus")) { New-Item -type Directory "$($env:SystemDrive)\Octopus" -Force }
+    if (-not (Test-Path "$($env:SystemDrive)\Octopus")) 
+    { 
+        Write-Verbose "$($env:SystemDrive)\Octopus not found. Creating..."
+        New-Item -type Directory "$($env:SystemDrive)\Octopus" -Force | Out-Null
+    }
     @{ "TentacleDownloadUrl" = $actualTentacleDownloadUrl } | ConvertTo-Json | set-content "$($env:SystemDrive)\Octopus\Octopus.DSC.installstate"
 
 }
