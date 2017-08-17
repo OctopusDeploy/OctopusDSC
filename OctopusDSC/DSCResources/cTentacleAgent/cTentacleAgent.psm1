@@ -389,8 +389,10 @@ function Install-Tentacle
 
     $actualTentacleDownloadUrl = Get-TentacleDownloadUrl $tentacleDownloadUrl $tentacleDownloadUrl64
 
-    mkdir "$tentacleHomeDirectory" -ErrorAction SilentlyContinue
-
+    if(-not (Test-Path $tentacleHomeDirectory))
+    {
+        New-Item -Path "$tentacleHomeDirectory" -ItemType Directory 
+    }
     $tentaclePath = "$tentacleHomeDirectory\Tentacle.msi"
     if ((Test-Path $tentaclePath) -eq $true)
     {
@@ -400,7 +402,13 @@ function Install-Tentacle
     Request-File $actualTentacleDownloadUrl $tentaclePath
 
     Write-Verbose "Installing MSI..."
-    if (-not (Test-Path "$TentacleHomeDirectory\logs")) { New-Item -type Directory "$TentacleHomeDirectory\logs" }
+    if(-not (Test-Path $env:TEMP))
+    {
+        Write-Verbose "Configured temp folder does not currently exist, creating..."
+        New-Item $env:TEMP -ItemType Directory -force # an edge case when the env var exists but the folder does not
+    }
+
+    if (-not (Test-Path "$TentacleHomeDirectory\logs")) { New-Item -type Directory "$TentacleHomeDirectory\logs" -force  }
     $msiLog = "$TentacleHomeDirectory\logs\Tentacle.msi.log"
     $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$tentaclePath`" /quiet /l*v `"$msiLog`"" -Wait -Passthru).ExitCode
     Write-Verbose "Tentacle MSI installer returned exit code $msiExitCode"
@@ -409,7 +417,7 @@ function Install-Tentacle
         throw "Installation of the Tentacle MSI failed; MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
     }
 
-    if (-not (Test-Path "$($env:SystemDrive)\Octopus")) { New-Item -type Directory "$($env:SystemDrive)\Octopus" }
+    if (-not (Test-Path "$($env:SystemDrive)\Octopus")) { New-Item -type Directory "$($env:SystemDrive)\Octopus" -Force }
     @{ "TentacleDownloadUrl" = $actualTentacleDownloadUrl } | ConvertTo-Json | set-content "$($env:SystemDrive)\Octopus\Octopus.DSC.installstate"
 
 }
