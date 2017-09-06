@@ -97,7 +97,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   # Run DSC to install server
   config.vm.provision "dsc" do |dsc|
-    dsc.configuration_file  = "Server_Scenario_01_Install.ps1"
+    dsc.configuration_file  = "Scenarios/Server_Scenario_01_Install.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.abort_on_dsc_failure = true
@@ -106,7 +106,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   # remove the server
   config.vm.provision "dsc" do |dsc|
-    dsc.configuration_file  = "Server_Scenario_02_Remove.ps1"
+    dsc.configuration_file  = "Scenarios/Server_Scenario_02_Remove.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.abort_on_dsc_failure = true
@@ -115,7 +115,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   # Run DSC to install server with a custom instance name
   config.vm.provision "dsc" do |dsc|
-    dsc.configuration_file  = "Server_Scenario_03_Install_Custom_Instance.ps1"
+    dsc.configuration_file  = "Scenarios/Server_Scenario_03_Install_Custom_Instance.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.abort_on_dsc_failure = true
@@ -124,7 +124,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   # remove the server with a custom instance name
   config.vm.provision "dsc" do |dsc|
-    dsc.configuration_file  = "Server_Scenario_04_Remove_Custom_Instance.ps1"
+    dsc.configuration_file  = "Scenarios/Server_Scenario_04_Remove_Custom_Instance.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.abort_on_dsc_failure = true
@@ -133,7 +133,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   # re-install old version
   config.vm.provision "dsc" do |dsc|
-    dsc.configuration_file  = "Server_Scenario_05_Reinstall.ps1"
+    dsc.configuration_file  = "Scenarios/Server_Scenario_05_Reinstall.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.abort_on_dsc_failure = true
@@ -142,7 +142,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   # upgrade to the latest
   config.vm.provision "dsc" do |dsc|
-    dsc.configuration_file  = "Server_Scenario_06_Upgrade.ps1"
+    dsc.configuration_file  = "Scenarios/Server_Scenario_06_Upgrade.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.abort_on_dsc_failure = true
@@ -153,7 +153,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   # initial tentacle install
   config.vm.provision "dsc" do |dsc|
-    dsc.configuration_file  = "Tentacle_Scenario_01_Install.ps1"
+    dsc.configuration_file  = "Scenarios/Tentacle_Scenario_01_Install.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.abort_on_dsc_failure = true
@@ -171,7 +171,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   # uninstall tentacle
   config.vm.provision "dsc" do |dsc|
-    dsc.configuration_file  = "Tentacle_Scenario_02_Remove.ps1"
+    dsc.configuration_file  = "Scenarios/Tentacle_Scenario_02_Remove.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.abort_on_dsc_failure = true
@@ -188,7 +188,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   # Install old version
   config.vm.provision "dsc" do |dsc|
-    dsc.configuration_file  = "Tentacle_Scenario_03_Reinstall.ps1"
+    dsc.configuration_file  = "Scenarios/Tentacle_Scenario_03_Reinstall.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.abort_on_dsc_failure = true
@@ -204,7 +204,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   # Upgrade it
   config.vm.provision "dsc" do |dsc|
-    dsc.configuration_file  = "Tentacle_Scenario_04_Upgrade.ps1"
+    dsc.configuration_file  = "Scenarios/Tentacle_Scenario_04_Upgrade.ps1"
     dsc.configuration_data_file  = "Tests/Configuration.psd1"
     dsc.manifests_path = "Tests"
     dsc.abort_on_dsc_failure = true
