@@ -2,6 +2,9 @@ Configuration Server_Scenario_01_Install
 {
     Import-DscResource -ModuleName OctopusDSC
 
+    $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
+    $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
+
     Node "localhost"
     {
         LocalConfigurationManager
@@ -24,8 +27,9 @@ Configuration Server_Scenario_01_Install
             SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=Octopus;Trusted_Connection=True;"
 
             # The admin user to create
-            OctopusAdminUsername = "OctoAdmin"
-            OctopusAdminPassword = "SuperS3cretPassw0rd!"
+            OctopusAdminCredential = $cred
+            #OctopusAdminUsername = "OctoAdmin"
+            #OctopusAdminPassword = "SuperS3cretPassw0rd!"
 
             # dont mess with stats
             AllowCollectionOfAnonymousUsageStatistics = $false
