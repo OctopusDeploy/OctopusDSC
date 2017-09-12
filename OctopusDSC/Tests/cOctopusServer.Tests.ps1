@@ -19,15 +19,21 @@ try
         }
 
         Describe 'cOctopusServer' {
+
+
+
             BeforeEach {
+
+                $pass = ConvertTo-SecureString "Password" -AsPlainText -Force
+                $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
+
                 $desiredConfiguration = @{
                      Name                   = 'Stub'
                      Ensure                 = 'Present'
                      State                  = 'Started'
                      WebListenPrefix        = "http://localhost:80"
                      SqlDbConnectionString  = "conn-string"
-                     OctopusAdminUsername   = "Admin"
-                     OctopusAdminPassword   = "Password"
+                     OctopusAdminCredential = $cred 
                 }
                 $mockConfig = [pscustomobject] @{
                     OctopusStorageExternalDatabaseConnectionString         = 'StubConnectionString'

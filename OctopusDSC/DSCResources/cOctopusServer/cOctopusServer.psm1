@@ -246,7 +246,7 @@ function Set-TargetResource
                                          -DownloadUrl $DownloadUrl `
                                          -WebListenPrefix $WebListenPrefix `
                                          -SqlDbConnectionString $SqlDbConnectionString `
-                                         -OctopusAdminUserCredential $OctopusAdminCredential `
+                                         -OctopusAdminCredential $OctopusAdminCredential `
                                          -AllowUpgradeCheck $AllowUpgradeCheck `
                                          -AllowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
                                          -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
@@ -272,7 +272,7 @@ function Set-TargetResource
                           -downloadUrl $DownloadUrl `
                           -webListenPrefix $WebListenPrefix `
                           -sqlDbConnectionString $SqlDbConnectionString `
-                          -OctopusAdminUsername $OctopusAdminCredential `
+                          -OctopusAdminCredential $OctopusAdminCredential `
                           -allowUpgradeCheck $AllowUpgradeCheck `
                           -allowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
                           -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
@@ -852,8 +852,7 @@ function Test-TargetResource
                                          -DownloadUrl $DownloadUrl `
                                          -WebListenPrefix $WebListenPrefix `
                                          -SqlDbConnectionString $SqlDbConnectionString `
-                                         -OctopusAdminUsername $OctopusAdminUsername `
-                                         -OctopusAdminPassword $OctopusAdminPassword `
+                                         -OctopusAdminCredential $OctopusAdminCredential `
                                          -AllowUpgradeCheck $AllowUpgradeCheck `
                                          -AllowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
                                          -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `

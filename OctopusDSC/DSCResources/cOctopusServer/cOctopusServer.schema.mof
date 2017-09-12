@@ -6,7 +6,7 @@ class cOctopusServer : OMI_BaseResource
   [Write, ValueMap{"Started", "Stopped"}, Values{"Started", "Stopped"}] string State;
   [Write] string WebListenPrefix;
   [Write] string SqlDbConnectionString;
-  [Write] PSCredential OctopusAdminCredential;
+  [Write, EmbeddedInstance ("MSFT_Credential")] string OctopusAdminCredential;
   [Write] boolean AllowUpgradeCheck;
   [Write] boolean AllowCollectionOfAnonymousUsageStatistics;
   [Write] string DownloadUrl;
