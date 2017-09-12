@@ -23,10 +23,7 @@ function Get-TargetResource
     [string]$SqlDbConnectionString,
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
-    [string]$OctopusAdminUsername,
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [string]$OctopusAdminPassword,
+    [PSCredential]$OctopusAdminCredential,
     [bool]$AllowUpgradeCheck = $true,
     [bool]$AllowCollectionOfAnonymousUsageStatistics = $true,
     [ValidateSet("UsernamePassword", "Domain", "Ignore")]
@@ -233,10 +230,7 @@ function Set-TargetResource
     [string]$SqlDbConnectionString,
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
-    [string]$OctopusAdminUsername,
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [string]$OctopusAdminPassword,
+    [PSCredential]$OctopusAdminCredential,
     [bool]$AllowUpgradeCheck = $true,
     [bool]$AllowCollectionOfAnonymousUsageStatistics = $true,
     [ValidateSet("UsernamePassword", "Domain", "Ignore")]
@@ -252,8 +246,7 @@ function Set-TargetResource
                                          -DownloadUrl $DownloadUrl `
                                          -WebListenPrefix $WebListenPrefix `
                                          -SqlDbConnectionString $SqlDbConnectionString `
-                                         -OctopusAdminUsername $OctopusAdminUsername `
-                                         -OctopusAdminPassword $OctopusAdminPassword `
+                                         -OctopusAdminUserCredential $OctopusAdminCredential `
                                          -AllowUpgradeCheck $AllowUpgradeCheck `
                                          -AllowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
                                          -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
@@ -279,8 +272,7 @@ function Set-TargetResource
                           -downloadUrl $DownloadUrl `
                           -webListenPrefix $WebListenPrefix `
                           -sqlDbConnectionString $SqlDbConnectionString `
-                          -OctopusAdminUsername $OctopusAdminUsername `
-                          -OctopusAdminPassword $OctopusAdminPassword `
+                          -OctopusAdminUsername $OctopusAdminCredential `
                           -allowUpgradeCheck $AllowUpgradeCheck `
                           -allowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
                           -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
@@ -653,10 +645,7 @@ function Install-OctopusDeploy
     [string]$sqlDbConnectionString,
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
-    [string]$octopusAdminUsername,
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [string]$octopusAdminPassword,
+    [PSCredential]$octopusAdminCredential,
     [bool]$allowUpgradeCheck = $true,
     [bool]$allowCollectionOfAnonymousUsageStatistics = $true,
     [ValidateSet("UsernamePassword", "Domain", "Ignore")]
@@ -673,6 +662,9 @@ function Install-OctopusDeploy
   if (($dotnetVersion -eq "") -or ([int]$dotnetVersion -lt 378675)) {
     throw "Octopus Server requires .NET 4.5.1. Please install it before attempting to install Octopus Server."
   }
+
+  $extractedUserName = $octopusAdminCredential.GetNetworkCredential().UserName
+  $extractedPassword = $octopusAdminCredential.GetNetworkCredential().Password
 
   Write-Log "Setting up new instance of Octopus Deploy with name '$name'"
   Install-MSI $downloadUrl
@@ -751,12 +743,12 @@ function Install-OctopusDeploy
     'admin',
     '--console',
     '--instance', $name,
-    '--username', $octopusAdminUsername,
-    '--password', $octopusAdminPassword
+    '--username', $extractedUsername,
+    '--password', $extractedPassword
   )
   Invoke-OctopusServerCommand $args
-  Update-InstallState "OctopusAdminUsername" $octopusAdminUsername
-  Update-InstallState "OctopusAdminPassword" (Get-EncryptedString $octopusAdminPassword)
+  Update-InstallState "OctopusAdminUsername" $extractedUsername
+  Update-InstallState "OctopusAdminPassword" (Get-EncryptedString $extractedPassword)
 
   Write-Log "Configuring Octopus Deploy instance to use free license ..."
   $args = @(
@@ -844,10 +836,7 @@ function Test-TargetResource
     [string]$SqlDbConnectionString,
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
-    [string]$OctopusAdminUsername,
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [string]$OctopusAdminPassword,
+    [PSCredential]$OctopusAdminCredential,
     [bool]$AllowUpgradeCheck = $true,
     [bool]$AllowCollectionOfAnonymousUsageStatistics = $true,
     [ValidateSet("UsernamePassword", "Domain", "Ignore")]
