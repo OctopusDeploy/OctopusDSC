@@ -30,8 +30,6 @@ Configuration Server_Scenario_05_Reinstall
 
             # The admin user to create
             OctopusAdminCredential = $cred
-            #OctopusAdminUsername = "OctoAdmin"
-            #OctopusAdminPassword = "SuperS3cretPassw0rd!"
 
             DownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.3.3.24-x64.msi"
 

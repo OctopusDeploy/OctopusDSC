@@ -28,8 +28,6 @@ Configuration Server_Scenario_02_Remove
 
             # The admin user to create
             OctopusAdminCredential = $cred
-            #OctopusAdminUsername = "OctoAdmin"
-            #OctopusAdminPassword = "SuperS3cretPassw0rd!"
 
             # dont mess with stats
             AllowCollectionOfAnonymousUsageStatistics = $false
