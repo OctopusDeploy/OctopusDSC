@@ -869,12 +869,19 @@ function Test-TargetResource
     $requestedValue = $params.Item($key)
     if ($key -eq "OctopusAdminCredential") 
     {
-      $currentUsername = $currentValue.GetNetworkCredential().UserName
-      $currentPassword = $currentValue.GetNetworkCredential().Password
+      if($null -ne $currentValue)
+      {
+        $currentUsername = $currentValue.GetNetworkCredential().UserName
+        $currentPassword = $currentValue.GetNetworkCredential().Password
+      }
+      else
+      {
+        $currentUserName = ""
+        $currentPassword = ""
+      }
 
       $requestedUsername = $requestedValue.GetNetworkCredential().UserName
-      $requestedPassword = $requestedValue.GetNetworkCredential().Password
-
+      $requestedPassword = $requestedValue.GetNetworkCredential().Password      
 
       if ($currentPassword -ne $requestedPassword -or $currentUsername -ne $requestedUserName)
       {
