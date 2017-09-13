@@ -867,7 +867,7 @@ function Test-TargetResource
   {
     $currentValue = $currentResource.Item($key)
     $requestedValue = $params.Item($key)
-    if ($key -eq "OctopusAdminPassword")
+    if ($key -eq "OctopusAdminPassword")  # problem
     {
       if ((Get-DecryptedSecureString $currentValue) -ne $requestedValue)
       {
