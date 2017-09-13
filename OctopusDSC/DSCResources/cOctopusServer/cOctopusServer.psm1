@@ -71,8 +71,7 @@ function Get-TargetResource
   $existingOctopusUpgradesAllowChecking = $null
   $existingOctopusUpgradesIncludeStatistics = $null
   $existingListenPort = $null
-  $existingOctopusAdminUsername = $null
-  $existingOctopusAdminPassword = $null
+  $existingOctopusAdminCredential = $null
   $existingAutoLoginEnabled = $null
 
   if ($existingEnsure -eq "Present") {
@@ -88,10 +87,12 @@ function Get-TargetResource
     if (Test-Path $installStateFile) {
       $installState = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json)
       $existingDownloadUrl = $installState.DownloadUrl
-      $existingOctopusAdminUsername = $installState.OctopusAdminUsername
-      $existingOctopusAdminPassword = $installState.OctopusAdminPassword
+      $pass = ConvertTo-SecureString $installState.OctopusAdminPassword -AsPlainText -Force
+      $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($installState.OctopusAdminUsername, $pass)
     }
   }
+
+  
 
   $currentResource = @{
     Name = $Name;
@@ -104,8 +105,7 @@ function Get-TargetResource
     AllowUpgradeCheck = $existingOctopusUpgradesAllowChecking
     AllowCollectionOfAnonymousUsageStatistics = $AllowCollectionOfAnonymousUsageStatistics
     ListenPort = $existingListenPort
-    OctopusAdminUsername = $existingOctopusAdminUsername
-    OctopusAdminPassword = $existingOctopusAdminPassword
+    OctopusAdminCredential = $existingOctopusAdminCredential
     LegacyWebAuthenticationMode = $existingLegacyWebAuthenticationMode
     AutoLoginEnabled = $existingAutoLoginEnabled
   }
@@ -867,9 +867,16 @@ function Test-TargetResource
   {
     $currentValue = $currentResource.Item($key)
     $requestedValue = $params.Item($key)
-    if ($key -eq "OctopusAdminPassword")  # problem
+    if ($key -eq "OctopusAdminCredential") 
     {
-      if ((Get-DecryptedSecureString $currentValue) -ne $requestedValue)
+      $currentUsername = $currentValue.GetNetworkCredential().UserName
+      $currentPassword = $currentValue.GetNetworkCredential().Password
+
+      $requestedUsername = $requestedValue.GetNetworkCredential().UserName
+      $requestedPassword = $requestedValue.GetNetworkCredential().Password
+
+
+      if ($currentPassword -ne $requestedPassword -or $currentUsername -ne $requestedUserName)
       {
         Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '********' mismatched the specified value '********'"
         $currentConfigurationMatchesRequestedConfiguration = $false
@@ -878,6 +885,8 @@ function Test-TargetResource
       {
         Write-Verbose "Configuration parameter '$key' matches the requested value '********'"
       }
+
+
     }
     elseif ($currentValue -ne $requestedValue)
     {
