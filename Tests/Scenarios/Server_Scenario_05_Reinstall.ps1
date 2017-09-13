@@ -2,6 +2,9 @@ Configuration Server_Scenario_05_Reinstall
 {
     Import-DscResource -ModuleName OctopusDSC
 
+    $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
+    $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
+
     Node "localhost"
     {
         LocalConfigurationManager
@@ -26,8 +29,9 @@ Configuration Server_Scenario_05_Reinstall
             LegacyWebAuthenticationMode = "UsernamePassword"
 
             # The admin user to create
-            OctopusAdminUsername = "OctoAdmin"
-            OctopusAdminPassword = "SuperS3cretPassw0rd!"
+            OctopusAdminCredential = $cred
+            #OctopusAdminUsername = "OctoAdmin"
+            #OctopusAdminPassword = "SuperS3cretPassw0rd!"
 
             DownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.3.3.24-x64.msi"
 
