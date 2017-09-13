@@ -28,8 +28,6 @@ Configuration Server_Scenario_03_Install_Custom_Instance
 
             # The admin user to create
             OctopusAdminCredential = $cred
-            #OctopusAdminUsername = "OctoAdmin"
-            #OctopusAdminPassword = "SuperS3cretPassw0rd!"
 
             # dont mess with stats
             AllowCollectionOfAnonymousUsageStatistics = $false
