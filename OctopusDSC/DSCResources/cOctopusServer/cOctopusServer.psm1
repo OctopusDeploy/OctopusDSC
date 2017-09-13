@@ -33,7 +33,9 @@ function Get-TargetResource
     [string]$LegacyWebAuthenticationMode = 'Ignore',
     [bool]$ForceSSL = $false,
     [int]$ListenPort = 10943,
-    [bool]$AutoLoginEnabled = $false
+    [bool]$AutoLoginEnabled = $false,
+    [string]$HomeDirectory,
+    [string]$ConfigFilePath
   )
 
   Write-Verbose "Checking if Octopus Server is installed"
@@ -243,7 +245,9 @@ function Set-TargetResource
     [string]$LegacyWebAuthenticationMode = 'Ignore',
     [bool]$ForceSSL = $false,
     [int]$ListenPort = 10943,
-    [bool]$AutoLoginEnabled = $false
+    [bool]$AutoLoginEnabled = $false,
+    [string]$HomeDirectory,
+    [string]$ConfigFilePath
   )
 
   $currentResource = (Get-TargetResource -Ensure $Ensure `
@@ -286,7 +290,9 @@ function Set-TargetResource
                           -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
                           -forceSSL $ForceSSL `
                           -listenPort $ListenPort `
-                          -autoLoginEnabled $AutoLoginEnabled
+                          -autoLoginEnabled $AutoLoginEnabled `
+                          -CustomHomeDirectory $HomeDirectory `
+                          -CustomConfigFilePath $ConfigFilePath
   }
   else
   {
@@ -663,7 +669,9 @@ function Install-OctopusDeploy
     [string]$legacyWebAuthenticationMode = 'Ignore',
     [bool]$forceSSL = $false,
     [int]$listenPort = 10943,
-    [bool]$autoLoginEnabled = $false
+    [bool]$autoLoginEnabled = $false,
+    [string]$HomeDirectory,
+    [string]$ConfigFilePath
   )
 
   Write-Verbose "Installing Octopus Deploy..."
@@ -676,13 +684,29 @@ function Install-OctopusDeploy
 
   Write-Log "Setting up new instance of Octopus Deploy with name '$name'"
   Install-MSI $downloadUrl
+  
+  if ($HomeDirectory -ne $null){
+    Write-Log "Home directory is set to: '$HomeDirectory'"
+  }
+  else {
+    $HomeDirectory = "$($env:SystemDrive)\Octopus"
+    Write-Log "Home Directory is set to (Default): $HomeDirectory"
+  }
 
+  if ($ConfigFilePath -ne $null)
+  {
+    Write-Log "Config File Path is set to: '$ConfigFilePath'"
+  }
+  else{
+    $ConfigFilePath = "$($env:SystemDrive)\Octopus\OctopusServer.config"
+    Write-Log "Config File Path is set to (Default): $ConfigFilePath"
+  }
   Write-Log "Creating Octopus Deploy instance ..."
   $args = @(
     'create-instance',
     '--console',
     '--instance', $name,
-    '--config', "$($env:SystemDrive)\Octopus\OctopusServer.config"
+    '--config', $ConfigFilePath
   )
   Invoke-OctopusServerCommand $args
 
@@ -691,7 +715,7 @@ function Install-OctopusDeploy
     'configure',
     '--console',
     '--instance', $name,
-    '--home', "$($env:SystemDrive)\Octopus",
+    '--home', $HomeDirectory,
     '--upgradeCheck', $allowUpgradeCheck,
     '--upgradeCheckWithStatistics', $allowCollectionOfAnonymousUsageStatistics,
     '--webForceSSL', $forceSSL,

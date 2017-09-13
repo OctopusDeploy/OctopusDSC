@@ -15,4 +15,6 @@ class cOctopusServer : OMI_BaseResource
   [Write] boolean ForceSSL;
   [Write, ValueMap{"UsernamePassword", "Domain", "Ignore"}, Values{"UsernamePassword", "Domain", "Ignore"}] string LegacyWebAuthenticationMode;
   [Write] boolean AutoLoginEnabled;
+  [Write] string CustomHomeDirectory;
+  [Write] string CustomConfigFilePath;
 };
