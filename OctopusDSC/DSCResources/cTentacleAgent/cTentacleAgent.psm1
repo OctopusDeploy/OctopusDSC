@@ -32,7 +32,8 @@ function Get-TargetResource
         [string]$CustomPublicHostName,
         [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
         [bool]$RegisterWithServer = $true,
-        [string]$OctopusServerThumbprint
+        [string]$OctopusServerThumbprint,
+        [PSCredential]$TentacleServiceCredential
     )
     Write-Verbose "Checking if Tentacle is installed"
     $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\Tentacle" -ErrorAction SilentlyContinue).InstallLocation
@@ -152,7 +153,8 @@ function Set-TargetResource
         [string]$CustomPublicHostName,
         [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
         [bool]$RegisterWithServer = $true,
-        [string]$OctopusServerThumbprint
+        [string]$OctopusServerThumbprint,
+        [PSCredential]$TentacleServiceCredential
     )
     Confirm-RequestedState $Ensure $State
     Confirm-RegistrationParameters $RegisterWithServer `
@@ -297,7 +299,8 @@ function Test-TargetResource
         [string]$CustomPublicHostName,
         [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
         [bool]$RegisterWithServer = $true,
-        [string]$OctopusServerThumbprint
+        [string]$OctopusServerThumbprint,
+        [PSCredential]$TentacleServiceCredential
     )
 
     $currentResource = (Get-TargetResource -Name $Name)
@@ -468,7 +471,8 @@ function New-Tentacle
         [string]$tentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
         [bool]$registerWithServer = $true,
         [Parameter(Mandatory=$False)]
-        [string]$octopusServerThumbprint
+        [string]$octopusServerThumbprint,
+        [PSCredential]$TentacleServiceCredential
     )
 
     if ($port -eq 0)

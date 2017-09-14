@@ -89,7 +89,7 @@ function Get-TargetResource
     if (Test-Path $installStateFile) {
       $installState = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json)
       $existingDownloadUrl = $installState.DownloadUrl
-      $pass = ConvertTo-SecureString $installState.OctopusAdminPassword -Force
+      $pass = $installState.OctopusAdminPassword | ConvertTo-SecureString
       $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($installState.OctopusAdminUsername, $pass)
     }
   }
@@ -753,7 +753,7 @@ function Install-OctopusDeploy
   )
   Invoke-OctopusServerCommand $args
   Update-InstallState "OctopusAdminUsername" $extractedUsername
-  Update-InstallState "OctopusAdminPassword" $OctopusAdminCredential.Password #(Get-EncryptedString $extractedPassword)
+  Update-InstallState "OctopusAdminPassword" ($OctopusAdminCredential.Password | ConvertFrom-SecureString)
 
   Write-Log "Configuring Octopus Deploy instance to use free license ..."
   $args = @(
