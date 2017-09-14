@@ -21,9 +21,8 @@ Test-PluginInstalled "vagrant-winrm-syncedfolders"
 Import-Module PSScriptAnalyzer
 $excludedRules = @(
     'PSUseShouldProcessForStateChangingFunctions', 
-    'PSAvoidUsingPlainTextForPassword', 
-    'PSUseSingularNouns', 
-    'PSAvoidUsingConvertToSecureStringWithPlainText'
+    'PSUseSingularNouns'# , 
+    # 'PSAvoidUsingConvertToSecureStringWithPlainText'
     )
 $results = Invoke-ScriptAnalyzer ./OctopusDSC/DSCResources -recurse -exclude $excludedRules
 write-output $results
@@ -34,9 +33,9 @@ if ($results.length -gt 0) {
 }
 
 echo "Running Pester Tests"
-Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml # -EnableExit
+Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -EnableExit
 
 echo "Running 'vagrant up --provider virtualbox'"
-vagrant up --provider virtualbox # --debug &> vagrant.log
+vagrant up --provider virtualbox  --debug > vagrant.log
 
 echo "Dont forget to run 'vagrant destroy -f' when you have finished"

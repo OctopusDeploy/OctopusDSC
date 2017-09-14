@@ -30,7 +30,8 @@ function Get-TargetResource
     [string]$LegacyWebAuthenticationMode = 'Ignore',
     [bool]$ForceSSL = $false,
     [int]$ListenPort = 10943,
-    [bool]$AutoLoginEnabled = $false
+    [bool]$AutoLoginEnabled = $false,
+    [PSCredential]$OctopusServiceCredential
   )
 
   Write-Verbose "Checking if Octopus Server is installed"
@@ -73,6 +74,7 @@ function Get-TargetResource
   $existingListenPort = $null
   $existingOctopusAdminCredential = $null
   $existingAutoLoginEnabled = $null
+  $existingOctopusServiceCredential = $null
 
   if ($existingEnsure -eq "Present") {
     $existingConfig = Import-ServerConfig "$($env:SystemDrive)\Octopus\OctopusServer.config" $Name
@@ -87,7 +89,7 @@ function Get-TargetResource
     if (Test-Path $installStateFile) {
       $installState = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json)
       $existingDownloadUrl = $installState.DownloadUrl
-      $pass = ConvertTo-SecureString $installState.OctopusAdminPassword -AsPlainText -Force
+      $pass = ConvertTo-SecureString $installState.OctopusAdminPassword -Force
       $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($installState.OctopusAdminUsername, $pass)
     }
   }
@@ -108,6 +110,7 @@ function Get-TargetResource
     OctopusAdminCredential = $existingOctopusAdminCredential
     LegacyWebAuthenticationMode = $existingLegacyWebAuthenticationMode
     AutoLoginEnabled = $existingAutoLoginEnabled
+    OctopusServiceCredential = $existingOctopusServiceCredential
   }
 
   return $currentResource
@@ -237,7 +240,8 @@ function Set-TargetResource
     [string]$LegacyWebAuthenticationMode = 'Ignore',
     [bool]$ForceSSL = $false,
     [int]$ListenPort = 10943,
-    [bool]$AutoLoginEnabled = $false
+    [bool]$AutoLoginEnabled = $false,
+    [PSCredential]$OctopusServiceCredential
   )
 
   $currentResource = (Get-TargetResource -Ensure $Ensure `
@@ -252,7 +256,8 @@ function Set-TargetResource
                                          -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
                                          -ForceSSL $ForceSSL `
                                          -ListenPort $ListenPort `
-                                         -AutoLoginEnabled $AutoLoginEnabled)
+                                         -AutoLoginEnabled $AutoLoginEnabled `
+                                         -OctopusServiceCredential $OctopusServiceCredential)
 
   $params = Get-Parameters $MyInvocation.MyCommand.Parameters
   Test-RequestedConfiguration $currentResource $params
@@ -748,7 +753,7 @@ function Install-OctopusDeploy
   )
   Invoke-OctopusServerCommand $args
   Update-InstallState "OctopusAdminUsername" $extractedUsername
-  Update-InstallState "OctopusAdminPassword" (Get-EncryptedString $extractedPassword)
+  Update-InstallState "OctopusAdminPassword" $OctopusAdminCredential.Password #(Get-EncryptedString $extractedPassword)
 
   Write-Log "Configuring Octopus Deploy instance to use free license ..."
   $args = @(
@@ -772,20 +777,7 @@ function Install-OctopusDeploy
   Write-Verbose "Octopus Deploy installed!"
 }
 
-function Get-EncryptedString($string)
-{
-  return $string | ConvertTo-SecureString -AsPlainText -Force | ConvertFrom-SecureString
-}
-
-function Get-DecryptedSecureString($encryptedString)
-{
-  if (($null -eq $encryptedString) -or ($encryptedString -eq "")) { return "" }
-  $secureString = ConvertTo-SecureString -string $encryptedString
-  $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureString)
-  return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
-}
-
-function Invoke-OctopusServerCommand ($arguments)
+Function Invoke-OctopusServerCommand ($arguments)
 {
   $exe = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
   Write-Log "Executing command '$exe $($arguments -join ' ')'"
@@ -843,7 +835,8 @@ function Test-TargetResource
     [string]$LegacyWebAuthenticationMode = 'Ignore',
     [bool]$ForceSSL = $false,
     [int]$ListenPort = 10943,
-    [bool]$AutoLoginEnabled = $false
+    [bool]$AutoLoginEnabled = $false,
+    [PSCredential]$OctopusServiceCredential
   )
 
   $currentResource = (Get-TargetResource -Ensure $Ensure `
@@ -858,7 +851,8 @@ function Test-TargetResource
                                          -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
                                          -ForceSSL $ForceSSL `
                                          -ListenPort $ListenPort `
-                                         -AutoLoginEnabled $AutoLoginEnabled)
+                                         -AutoLoginEnabled $AutoLoginEnabled `
+                                         -OctopusServiceCredential $OctopusServiceCredential)
 
   $params = Get-Parameters $MyInvocation.MyCommand.Parameters
 
