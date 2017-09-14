@@ -28,6 +28,7 @@ try
                      SqlDbConnectionString  = "conn-string"
                      OctopusAdminUsername   = "Admin"
                      OctopusAdminPassword   = "Password"
+                     HomeDirectory          = "C:\OctopusHome"
                 }
                 $mockConfig = [pscustomobject] @{
                     OctopusStorageExternalDatabaseConnectionString         = 'StubConnectionString'

@@ -32,6 +32,8 @@ Configuration SampleConfig
             # for pre 3.5, valid values are "UsernamePassword" or "Domain"
             # for 3.5 and above, only "Ignore" is valid (this is the default value)
             LegacyWebAuthenticationMode = "UsernamePassword"
+
+            HomeDirectory = "C:\Octopus"
         }
     }
 }
