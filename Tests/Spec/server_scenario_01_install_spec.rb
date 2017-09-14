@@ -4,6 +4,30 @@ describe file('c:/Octopus') do
   it { should be_directory }
 end
 
+describe file('c:/ChezOctopus') do
+  it { should be_directory }
+end
+
+describe file('c:/ChezOctopus/Artifacts') do
+  it { should be_directory }
+end
+
+describe file('c:/ChezOctopus/Logs') do
+  it { should be_directory }
+end
+
+describe file('c:/ChezOctopus/OctopusServer') do
+  it { should be_directory }
+end
+
+describe file('c:/ChezOctopus/Packages') do
+  it { should be_directory }
+end
+
+describe file('c:/ChezOctopus/TaskLogs') do
+  it { should be_directory }
+end
+
 describe file('C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe') do
   it { should be_file }
 end
