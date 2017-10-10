@@ -24,6 +24,7 @@ function Get-TargetResource
         [string[]]$TenantTags = "",
         [string]$DefaultApplicationDirectory,
         [int]$ListenPort=10933,
+        [int]$TentacleCommsPort=0,
         [int]$ServerPort=10943,
         [string]$tentacleDownloadUrl = $defaultTentacleDownloadUrl,
         [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64,
@@ -144,6 +145,7 @@ function Set-TargetResource
         [string[]]$TenantTags = "",
         [string]$DefaultApplicationDirectory = "$($env:SystemDrive)\Applications",
         [int]$ListenPort = 10933,
+        [int]$TentacleCommsPort=0,
         [int]$ServerPort = 10943,
         [string]$tentacleDownloadUrl = $defaultTentacleDownloadUrl,
         [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64,
@@ -226,6 +228,7 @@ function Set-TargetResource
                      -apiKey $ApiKey `
                      -octopusServerUrl $OctopusServerUrl `
                      -port $ListenPort `
+                     -tentacleCommsPort $TentacleCommsPort `
                      -displayName $DisplayName `
                      -environments $Environments `
                      -roles $Roles `
@@ -289,6 +292,7 @@ function Test-TargetResource
         [string[]]$TenantTags = "",
         [string]$DefaultApplicationDirectory,
         [int]$ListenPort=10933,
+        [int]$TentacleCommsPort=0,
         [int]$ServerPort=10943,
         [string]$tentacleDownloadUrl = $defaultTentacleDownloadUrl,
         [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64,
@@ -455,6 +459,7 @@ function New-Tentacle
         [Parameter(Mandatory=$False)]
         [string]$policy,
         [int]$port=10933,
+        [int]$tentacleCommsPort=0,
         [string]$displayName,
         [string]$defaultApplicationDirectory,
         [string]$tentacleDownloadUrl,
@@ -474,6 +479,10 @@ function New-Tentacle
     if ($port -eq 0)
     {
         $port = 10933
+    }
+    if ($tentacleCommsPort -eq 0)
+    {
+        $tentacleCommsPort = $port
     }
 
     Install-Tentacle $tentacleDownloadUrl $tentacleDownloadUrl64 $tentacleHomeDirectory
@@ -526,6 +535,9 @@ function New-Tentacle
         Write-Verbose "Public host name: $publicHostName"
         $registerArguments += @("--comms-style", "TentaclePassive",
                                 "--publicHostName", $publicHostName)
+        if($tentacleCommsPort -ne $port) {
+            $registerArguments += @("--tentacle-comms-port", $tentacleCommsPort)
+        }
     }
     else {
         Invoke-AndAssert { & .\tentacle.exe configure --instance $name --port $port --noListen "True" --console }
