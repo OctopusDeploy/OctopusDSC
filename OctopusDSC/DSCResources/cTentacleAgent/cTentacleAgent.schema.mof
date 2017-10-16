@@ -24,4 +24,5 @@ class cTentacleAgent : OMI_BaseResource
   [Write] string TentacleHomeDirectory;
   [Write] Boolean RegisterWithServer;
   [Write] String OctopusServerThumbprint;
+  [Write, EmbeddedInstance ("MSFT_Credential")] string TentacleServiceCredential;
 };

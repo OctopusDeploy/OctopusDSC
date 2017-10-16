@@ -106,5 +106,42 @@ Configuration Tentacle_Scenario_01_Install
             RegisterWithServer = $false
             OctopusServerThumbprint = $ServerThumbprint
         }
+
+        # create a custom user. 2012 requires some ADSI
+        # Create new local Admin user for script purposes
+
+        
+        $randPass = (-Join (((65..90) | % { [char]$_ }) + (0..9)  | Get-Random -Count 8)) 
+        $secRandPass = $randPass | ConvertTo-SecureString -AsPlainText -Force
+
+        NET USER serviceuser "$randpass" /ADD
+        NET LOCALGROUP "users" "serviceuser" /ADD
+
+        # load the credential for said user
+        $serviceusercredential = [PSCredential]::new("serviceuser", $secRandPass)
+        
+        cTentacleAgent ListeningTentacleWithCustomAccount
+        {
+            Ensure = "Present";
+            State = "Started";
+
+            # Tentacle instance name. Leave it as 'Tentacle' unless you have more
+            # than one instance
+            Name = "ListeningTentacleWithCustomAccount";
+
+            # Registration - all parameters required
+            ApiKey = $ApiKey;
+            OctopusServerUrl = $OctopusServerUrl;
+
+            # Optional settings
+            ListenPort = 10935;
+            DefaultApplicationDirectory = "C:\Applications"
+            CommunicationMode = "Listen"
+            TentacleHomeDirectory = "C:\Octopus\ListeningTentacleWithThumbprintWithoutAutoRegisterHome"
+
+            TentacleServiceCredential = $serviceusercredential
+        }
+
+
     }
 }

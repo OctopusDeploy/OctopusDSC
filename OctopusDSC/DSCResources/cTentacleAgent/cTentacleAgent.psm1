@@ -123,6 +123,22 @@ function Confirm-RequestedState() {
     }
 }
 
+function Set-ServiceCredential
+{
+    param([string]$Name,
+        [PSCredential]$credential)
+    
+    $serviceName = (Get-TentacleServiceName $Name)
+
+    $srv = Get-CimInstance win32_service -filter "displayname='$serviceName'" 
+    $arguments = @{
+        StartName=$credential.UserName;
+        StartPassword=$credential.GetNetworkCredential().Password;
+    }
+    $srv | Invoke-CimMethod -Name Change -Arguments $arguments
+   
+}
+
 function Set-TargetResource
 {
     param (
