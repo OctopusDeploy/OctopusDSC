@@ -139,6 +139,14 @@ function Set-ServiceCredential
    
 }
 
+Function Get-ServiceUsername
+{
+    param([string]$Name)
+    
+    $serviceName = (Get-TentacleServiceName $Name)
+    Get-CIMInstance -ClassName "win32_service" -Filter "displayname='$serviceName'" | Select-Object -expand StartName
+}
+
 function Set-TargetResource
 {
     param (

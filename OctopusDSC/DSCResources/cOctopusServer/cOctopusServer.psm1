@@ -192,6 +192,7 @@ function Test-OctopusVersionSupportsShowConfiguration
   return Test-OctopusVersionNewerThan (New-Object System.Version 3, 5, 0)
 }
 
+
 function Test-OctopusVersionNewerThan($targetVersion)
 {
   if (-not (Test-Path -LiteralPath $octopusServerExePath))
@@ -684,6 +685,16 @@ function Install-OctopusDeploy
   Invoke-OctopusServerCommand $args
 
   Write-Log "Configuring Octopus Deploy instance ..."
+
+  # 4.0.0+ doesn't support --storageConnectionString any more. use --connectionstring
+  $sprefix = "storage"
+  if(Test-OctopusVersionNewerThan (New-Object System.Version 4,0,0))
+  {
+    Write-Log "Version newer than 4.0 detected, using --connectionstring"
+    $sprefix = ""
+  }
+
+
   $args = @(
     'configure',
     '--console',
@@ -694,7 +705,7 @@ function Install-OctopusDeploy
     '--webForceSSL', $forceSSL,
     '--webListenPrefixes', $webListenPrefix,
     '--commsListenPort', $listenPort,
-    '--storageConnectionString', $sqlDbConnectionString
+    "--$sprefixConnectionString", $sqlDbConnectionString
   )
 
   if (Test-OctopusVersionSupportsAutoLoginEnabled)
