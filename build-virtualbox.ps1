@@ -4,6 +4,14 @@ param(
   [switch]$offline
 )
 
+if($version -ne 'latest')
+{
+# https://s3-ap-southeast-1.amazonaws.com/octopus-testing/server/Octopus.4.0.0-v4-14812.msi
+
+# go get the 4.0 installer.
+
+}
+
 . Tests/powershell-helpers.ps1
 
 if (-not (Test-AppExists "vagrant")) {

@@ -149,6 +149,24 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_06_upgrade')
 
+ # remove again prior to installing 4
+    config.vm.provision "dsc" do |dsc|
+      dsc.configuration_file  = "Server_Scenario_07_Remove.ps1" 
+      dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
+      dsc.manifests_path = "Tests/Scenarios"
+      dsc.abort_on_dsc_failure = true
+    end
+    config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_07_Remove')
+
+ # install 4
+ config.vm.provision "dsc" do |dsc|
+  dsc.configuration_file  = "Server_Scenario_07_Remove.ps1" 
+  dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
+  dsc.manifests_path = "Tests/Scenarios"
+  dsc.abort_on_dsc_failure = true
+end
+config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_08_Install4')
+
   config.vm.provision "shell", path: "Tests/configure-octopus-for-tentacle-tests.ps1"
 
   # initial tentacle install

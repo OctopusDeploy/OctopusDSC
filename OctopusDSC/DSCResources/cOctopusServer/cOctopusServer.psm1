@@ -705,7 +705,7 @@ function Install-OctopusDeploy
     '--webForceSSL', $forceSSL,
     '--webListenPrefixes', $webListenPrefix,
     '--commsListenPort', $listenPort,
-    "--$sprefixConnectionString", $sqlDbConnectionString
+    "--$sprefix`ConnectionString", $sqlDbConnectionString
   )
 
   if (Test-OctopusVersionSupportsAutoLoginEnabled)
