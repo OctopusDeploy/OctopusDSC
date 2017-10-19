@@ -193,7 +193,7 @@ function Test-OctopusVersionSupportsShowConfiguration
 }
 
 
-function Test-OctopusVersionNewerThan($targetVersion)
+function Test-OctopusVersionNewerThan($targetVersion) # -ge. Should be "NewerThanOrEqualTo" really.
 {
   if (-not (Test-Path -LiteralPath $octopusServerExePath))
   {

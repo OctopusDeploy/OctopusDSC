@@ -1,4 +1,8 @@
 #!/usr/local/bin/powershell
+param(
+  $version = 'latest',
+  [switch]$offline
+)
 
 . Tests/powershell-helpers.ps1
 
@@ -36,6 +40,6 @@ echo "Running Pester Tests"
 Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -EnableExit
 
 echo "Running 'vagrant up --provider virtualbox'"
-vagrant up --provider virtualbox --no-destroy-on-error | Tee-Object -FilePath vagrant.log   # --debug > vagrant.log
+vagrant up --provider virtualbox --no-destroy-on-error --debug | Tee-Object -FilePath vagrant.log  
 
 echo "Dont forget to run 'vagrant destroy -f' when you have finished"

@@ -147,6 +147,11 @@ Function Get-ServiceUsername
     Get-CIMInstance -ClassName "win32_service" -Filter "displayname='$serviceName'" | Select-Object -expand StartName
 }
 
+Function Get-InstalledOctopusVersion
+{
+    
+}
+
 function Set-TargetResource
 {
     param (
