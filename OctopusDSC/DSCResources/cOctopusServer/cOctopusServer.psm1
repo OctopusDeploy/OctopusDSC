@@ -31,11 +31,8 @@ function Get-TargetResource
     [bool]$ForceSSL = $false,
     [int]$ListenPort = 10943,
     [bool]$AutoLoginEnabled = $false,
-<<<<<<< HEAD
-    [PSCredential]$OctopusServiceCredential
-=======
+    [PSCredential]$OctopusServiceCredential,
     [string]$HomeDirectory
->>>>>>> master
   )
 
   Write-Verbose "Checking if Octopus Server is installed"
@@ -78,11 +75,8 @@ function Get-TargetResource
   $existingListenPort = $null
   $existingOctopusAdminCredential = $null
   $existingAutoLoginEnabled = $null
-<<<<<<< HEAD
   $existingOctopusServiceCredential = $null
-=======
   $existingHomeDirectory = $null
->>>>>>> master
 
   if ($existingEnsure -eq "Present") {
     $existingConfig = Import-ServerConfig "$($env:SystemDrive)\Octopus\OctopusServer.config" $Name
@@ -112,18 +106,15 @@ function Get-TargetResource
     DownloadUrl = $existingDownloadUrl;
     WebListenPrefix = $existingWebListenPrefix;
     SqlDbConnectionString = $existingSqlDbConnectionString;
-    ForceSSL = $existingForceSSL
-    AllowUpgradeCheck = $existingOctopusUpgradesAllowChecking
-    AllowCollectionOfAnonymousUsageStatistics = $AllowCollectionOfAnonymousUsageStatistics
-    ListenPort = $existingListenPort
-    OctopusAdminCredential = $existingOctopusAdminCredential
-    LegacyWebAuthenticationMode = $existingLegacyWebAuthenticationMode
-    AutoLoginEnabled = $existingAutoLoginEnabled
-<<<<<<< HEAD
-    OctopusServiceCredential = $existingOctopusServiceCredential
-=======
-    HomeDirectory = $existingHomeDirectory
->>>>>>> master
+    ForceSSL = $existingForceSSL;
+    AllowUpgradeCheck = $existingOctopusUpgradesAllowChecking;
+    AllowCollectionOfAnonymousUsageStatistics = $AllowCollectionOfAnonymousUsageStatistics;
+    ListenPort = $existingListenPort;
+    OctopusAdminCredential = $existingOctopusAdminCredential;
+    LegacyWebAuthenticationMode = $existingLegacyWebAuthenticationMode;
+    AutoLoginEnabled = $existingAutoLoginEnabled;
+    OctopusServiceCredential = $existingOctopusServiceCredential;
+    HomeDirectory = $existingHomeDirectory;
   }
 
   return $currentResource
@@ -262,11 +253,8 @@ function Set-TargetResource
     [bool]$ForceSSL = $false,
     [int]$ListenPort = 10943,
     [bool]$AutoLoginEnabled = $false,
-<<<<<<< HEAD
-    [PSCredential]$OctopusServiceCredential
-=======
+    [PSCredential]$OctopusServiceCredential,
     [string]$HomeDirectory
->>>>>>> master
   )
 
   $currentResource = (Get-TargetResource -Ensure $Ensure `
@@ -282,11 +270,8 @@ function Set-TargetResource
                                          -ForceSSL $ForceSSL `
                                          -ListenPort $ListenPort `
                                          -AutoLoginEnabled $AutoLoginEnabled `
-<<<<<<< HEAD
-                                         -OctopusServiceCredential $OctopusServiceCredential)
-=======
+                                         -OctopusServiceCredential $OctopusServiceCredential `
                                          -HomeDirectory $HomeDirectory)
->>>>>>> master
 
   $params = Get-Parameters $MyInvocation.MyCommand.Parameters
   Test-RequestedConfiguration $currentResource $params
@@ -898,11 +883,8 @@ function Test-TargetResource
     [bool]$ForceSSL = $false,
     [int]$ListenPort = 10943,
     [bool]$AutoLoginEnabled = $false,
-<<<<<<< HEAD
-    [PSCredential]$OctopusServiceCredential
-=======
+    [PSCredential]$OctopusServiceCredential,
     [string]$HomeDirectory
->>>>>>> master
   )
 
   $currentResource = (Get-TargetResource -Ensure $Ensure `
@@ -918,11 +900,8 @@ function Test-TargetResource
                                          -ForceSSL $ForceSSL `
                                          -ListenPort $ListenPort `
                                          -AutoLoginEnabled $AutoLoginEnabled `
-<<<<<<< HEAD
-                                         -OctopusServiceCredential $OctopusServiceCredential)
-=======
+                                         -OctopusServiceCredential $OctopusServiceCredential `
                                          -HomeDirectory $HomeDirectory)
->>>>>>> master
 
   $params = Get-Parameters $MyInvocation.MyCommand.Parameters
 
