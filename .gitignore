@@ -182,3 +182,6 @@ packer_cache/
 vagrant_*.pem
 
 PesterTestResults.xml
+
+*.msi
+offline.config 

@@ -584,12 +584,13 @@ function Update-InstallState
   $currentInstallState | ConvertTo-Json | set-content $installStateFile
 }
 
-function Request-File
+function Request-File 
 {
-    param (
-        [string]$url,
-        [string]$saveAs
-    )
+  param (
+      [string]$url,
+      [string]$saveAs
+  )
+
 
     Write-Verbose "Downloading $url to $saveAs"
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12,[System.Net.SecurityProtocolType]::Tls11,[System.Net.SecurityProtocolType]::Tls
@@ -601,6 +602,7 @@ function Request-File
     {
        throw $_.Exception.InnerException
     }
+  
 }
 
 function Write-Log

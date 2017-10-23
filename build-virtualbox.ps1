@@ -1,16 +1,34 @@
 #!/usr/local/bin/powershell
 param(
-  $version = 'latest',
   [switch]$offline
 )
 
-if($version -ne 'latest')
+if($offline)   # if you want to use offline, then you need a v3 and a v4 installer locally in the .\Tests folder (gitignored)
 {
-# https://s3-ap-southeast-1.amazonaws.com/octopus-testing/server/Octopus.4.0.0-v4-14812.msi
+  Write-Warning "Offline run requested, writing an offline.config file"
 
-# go get the 4.0 installer.
+  if(-not (gci .\Tests | ? {$_.Name -like "Octopus.4.*.msi"}))
+  {
+    Write-Warning "To run tests offline, you will need a v4 installer in the .\Tests folder"
+    throw
+  }
 
+  if(-not (gci .\Tests | ? {$_.Name -like "Octopus.3.*.msi"}))
+  {
+    Write-Warning "To run tests offline, you will need a v3 installer in the .\Tests folder"
+    throw 
+  }
+
+  [pscustomobject]@{
+      v4file = (gci .\Tests | ? {$_.Name -like "Octopus.3.*.msi"} | select -first 1 | select -expand Name);
+      v3file = (gci .\Tests | ? {$_.Name -like "Octopus.4.*.msi"} | select -first 1 | select -expand Name);
+  } | ConvertTo-Json | Out-File ".\Tests\offline.config"
 }
+else {
+  # make sure the offline.config is not there
+  Remove-item ".\tests\offline.config" -verbose -ErrorAction SilentlyContinue
+}
+
 
 . Tests/powershell-helpers.ps1
 
@@ -48,6 +66,6 @@ echo "Running Pester Tests"
 Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -EnableExit
 
 echo "Running 'vagrant up --provider virtualbox'"
-vagrant up --provider virtualbox --no-destroy-on-error --debug | Tee-Object -FilePath vagrant.log  
+vagrant up --provider virtualbox | Tee-Object -FilePath vagrant.log  #  --no-destroy-on-error --debug
 
 echo "Dont forget to run 'vagrant destroy -f' when you have finished"
