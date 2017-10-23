@@ -149,23 +149,42 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_06_upgrade')
 
- # remove again prior to installing 4
-    config.vm.provision "dsc" do |dsc|
-      dsc.configuration_file  = "Server_Scenario_07_Remove.ps1" 
-      dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
-      dsc.manifests_path = "Tests/Scenarios"
-      dsc.abort_on_dsc_failure = true
-    end
-    config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_07_Remove')
 
- # install 4
+  # install watchdog
+  config.vm.provision "dsc" do |dsc|
+    dsc.configuration_file  = "Server_Scenario_07_Watchdog_Create.ps1"
+    dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
+    dsc.manifests_path = "Tests/Scenarios"
+    dsc.abort_on_dsc_failure = true
+  end
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_07_watchdog_create')
+
+  # delete watchdog
+  config.vm.provision "dsc" do |dsc|
+    dsc.configuration_file  = "Server_Scenario_08_Watchdog_Delete.ps1"
+    dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
+    dsc.manifests_path = "Tests/Scenarios"
+    dsc.abort_on_dsc_failure = true
+  end
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_08_watchdog_delete')
+
+ # remove again prior to installing 4
  config.vm.provision "dsc" do |dsc|
-  dsc.configuration_file  = "Server_Scenario_08_Install4.ps1" 
+  dsc.configuration_file  = "Server_Scenario_09_Remove.ps1" 
   dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
   dsc.manifests_path = "Tests/Scenarios"
   dsc.abort_on_dsc_failure = true
 end
-config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_08_Install4')
+config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_09_Remove')
+
+# install 4
+config.vm.provision "dsc" do |dsc|
+dsc.configuration_file  = "Server_Scenario_10_Install4.ps1" 
+dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
+dsc.manifests_path = "Tests/Scenarios"
+dsc.abort_on_dsc_failure = true
+end
+config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_10_Install4')
 
   config.vm.provision "shell", path: "Tests/configure-octopus-for-tentacle-tests.ps1"
 
@@ -235,5 +254,51 @@ config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_n
   end
   config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_04_upgrade')
+
+  # install watchdog
+  config.vm.provision "dsc" do |dsc|
+    dsc.configuration_file  = "Tentacle_Scenario_05_Watchdog_Create.ps1"
+    dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
+    dsc.manifests_path = "Tests/Scenarios"
+    dsc.abort_on_dsc_failure = true
+  end
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_05_watchdog_create')
+
+  # delete watchdog
+  config.vm.provision "dsc" do |dsc|
+    dsc.configuration_file  = "Tentacle_Scenario_06_Watchdog_Delete.ps1"
+    dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
+    dsc.manifests_path = "Tests/Scenarios"
+    dsc.abort_on_dsc_failure = true
+  end
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_06_watchdog_delete')
+
+  # remove in preparation for testing comms port
+  config.vm.provision "dsc" do |dsc|
+    dsc.configuration_file  = "Tentacle_Scenario_07_Remove.ps1"
+    dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
+    dsc.manifests_path = "Tests/Scenarios"
+    dsc.abort_on_dsc_failure = true
+    dsc.configuration_params = {
+      "-OctopusServerUrl" => "$ENV:OctopusServerUrl",
+      "-ApiKey" => "$ENV:OctopusApiKey",
+      "-Environments" => "The-Env",
+      "-Roles" => "Test-Tentacle"
+    }  end
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_07_remove')
+
+  # tentacle comms port
+  config.vm.provision "dsc" do |dsc|
+    dsc.configuration_file  = "Tentacle_Scenario_08_TentacleCommsPort.ps1"
+    dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
+    dsc.manifests_path = "Tests/Scenarios"
+    dsc.abort_on_dsc_failure = true
+    dsc.configuration_params = {
+      "-OctopusServerUrl" => "$ENV:OctopusServerUrl",
+      "-ApiKey" => "$ENV:OctopusApiKey",
+      "-Environments" => "The-Env",
+      "-Roles" => "Test-Tentacle"
+    }  end
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_08_tentacle_comms_port')
 
 end

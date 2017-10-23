@@ -31,7 +31,11 @@ function Get-TargetResource
     [bool]$ForceSSL = $false,
     [int]$ListenPort = 10943,
     [bool]$AutoLoginEnabled = $false,
+<<<<<<< HEAD
     [PSCredential]$OctopusServiceCredential
+=======
+    [string]$HomeDirectory
+>>>>>>> master
   )
 
   Write-Verbose "Checking if Octopus Server is installed"
@@ -74,7 +78,11 @@ function Get-TargetResource
   $existingListenPort = $null
   $existingOctopusAdminCredential = $null
   $existingAutoLoginEnabled = $null
+<<<<<<< HEAD
   $existingOctopusServiceCredential = $null
+=======
+  $existingHomeDirectory = $null
+>>>>>>> master
 
   if ($existingEnsure -eq "Present") {
     $existingConfig = Import-ServerConfig "$($env:SystemDrive)\Octopus\OctopusServer.config" $Name
@@ -86,6 +94,7 @@ function Get-TargetResource
     $existingListenPort = $existingConfig.OctopusCommunicationsServicesPort
     $existingAutoLoginEnabled = $existingConfig.OctopusWebPortalAutoLoginEnabled
     $existingLegacyWebAuthenticationMode = $existingConfig.OctopusWebPortalAuthenticationMode
+    $existingHomeDirectory = $existingConfig.OctopusHome
     if (Test-Path $installStateFile) {
       $installState = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json)
       $existingDownloadUrl = $installState.DownloadUrl
@@ -110,7 +119,11 @@ function Get-TargetResource
     OctopusAdminCredential = $existingOctopusAdminCredential
     LegacyWebAuthenticationMode = $existingLegacyWebAuthenticationMode
     AutoLoginEnabled = $existingAutoLoginEnabled
+<<<<<<< HEAD
     OctopusServiceCredential = $existingOctopusServiceCredential
+=======
+    HomeDirectory = $existingHomeDirectory
+>>>>>>> master
   }
 
   return $currentResource
@@ -152,6 +165,7 @@ function Import-ServerConfig
       OctopusCommunicationsServicesPort                      = $config.Octopus.Communications.ServicesPort
       OctopusWebPortalAuthenticationMode                     = "Ignore"
       OctopusWebPortalAutoLoginEnabled                       = [System.Convert]::ToBoolean($config.Octopus.WebPortal.AutoLoginEnabled)
+      OctopusHomeDirectory                                   = $config.Octopus.Home
     }
   }
   else {
@@ -174,6 +188,7 @@ function Import-ServerConfig
       OctopusCommunicationsServicesport                      = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Communications.ServicesPort"]/text()').Value
       OctopusWebPortalAuthenticationMode                     = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.WebPortal.AuthenticationMode"]/text()').Value
       OctopusWebPortalAutoLoginEnabled                       = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.WebPortal.AutoLoginEnabled"]/text()').Value
+      OctopusHomeDirectory                                   = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Home"]/text()').Value
     }
 
     if ($result.OctopusWebPortalAuthenticationMode -eq '0') { $result.OctopusWebPortalAuthenticationMode = 'UsernamePassword' }
@@ -193,7 +208,12 @@ function Test-OctopusVersionSupportsShowConfiguration
 }
 
 
-function Test-OctopusVersionNewerThan($targetVersion) # -ge. Should be "NewerThanOrEqualTo" really.
+function Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance
+{
+  return Test-OctopusVersionNewerThan (New-Object System.Version 3, 16, 4)
+}
+
+function Test-OctopusVersionNewerThan($targetVersion)
 {
   if (-not (Test-Path -LiteralPath $octopusServerExePath))
   {
@@ -242,7 +262,11 @@ function Set-TargetResource
     [bool]$ForceSSL = $false,
     [int]$ListenPort = 10943,
     [bool]$AutoLoginEnabled = $false,
+<<<<<<< HEAD
     [PSCredential]$OctopusServiceCredential
+=======
+    [string]$HomeDirectory
+>>>>>>> master
   )
 
   $currentResource = (Get-TargetResource -Ensure $Ensure `
@@ -258,7 +282,11 @@ function Set-TargetResource
                                          -ForceSSL $ForceSSL `
                                          -ListenPort $ListenPort `
                                          -AutoLoginEnabled $AutoLoginEnabled `
+<<<<<<< HEAD
                                          -OctopusServiceCredential $OctopusServiceCredential)
+=======
+                                         -HomeDirectory $HomeDirectory)
+>>>>>>> master
 
   $params = Get-Parameters $MyInvocation.MyCommand.Parameters
   Test-RequestedConfiguration $currentResource $params
@@ -284,7 +312,8 @@ function Set-TargetResource
                           -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
                           -forceSSL $ForceSSL `
                           -listenPort $ListenPort `
-                          -autoLoginEnabled $AutoLoginEnabled
+                          -autoLoginEnabled $AutoLoginEnabled `
+                          -homeDirectory $HomeDirectory
   }
   else
   {
@@ -304,7 +333,8 @@ function Set-TargetResource
                                      -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
                                      -forceSSL $ForceSSL `
                                      -listenPort $ListenPort `
-                                     -autoLoginEnabled $AutoLoginEnabled
+                                     -autoLoginEnabled $AutoLoginEnabled `
+                                     -homeDirectory $HomeDirectory
     }
   }
 
@@ -357,7 +387,8 @@ function Set-OctopusDeployConfiguration
     [string]$legacyWebAuthenticationMode = 'Ignore',
     [bool]$forceSSL = $false,
     [int]$listenPort = 10943,
-    [bool]$autoLoginEnabled = $false
+    [bool]$autoLoginEnabled = $false,
+    [string]$homeDirectory = $null
   )
 
   Write-Log "Configuring Octopus Deploy instance ..."
@@ -371,6 +402,9 @@ function Set-OctopusDeployConfiguration
     '--webListenPrefixes', $webListenPrefix,
     '--commsListenPort', $listenPort
   )
+  if (($homeDirectory -ne "") -and ($null -ne $homeDirectory)) {
+    $args += @('--home', $homeDirectory)
+  }
   if (Test-OctopusVersionSupportsAutoLoginEnabled)
   {
     $args += @('--autoLoginEnabled', $autoLoginEnabled)
@@ -404,7 +438,7 @@ function Set-OctopusDeployConfiguration
 
 function Test-ReconfigurationRequired($currentState, $desiredState)
 {
-  $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'AllowCollectionOfAnonymousUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode')
+  $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'AllowCollectionOfAnonymousUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'Home')
   foreach($property in $reconfigurableProperties)
   {
     if ($currentState.Item($property) -ne ($desiredState.Item($property)))
@@ -660,7 +694,8 @@ function Install-OctopusDeploy
     [string]$legacyWebAuthenticationMode = 'Ignore',
     [bool]$forceSSL = $false,
     [int]$listenPort = 10943,
-    [bool]$autoLoginEnabled = $false
+    [bool]$autoLoginEnabled = $false,
+    [string]$homeDirectory = $null
   )
 
   Write-Verbose "Installing Octopus Deploy..."
@@ -684,6 +719,13 @@ function Install-OctopusDeploy
     '--instance', $name,
     '--config', "$($env:SystemDrive)\Octopus\OctopusServer.config"
   )
+  if (Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance) {
+    if (($homeDirectory -ne "") -and ($null -ne $homeDirectory)) {
+      $args += @('--home', $homeDirectory)
+    } else {
+      $args += @('--home', "$($env:SystemDrive)\Octopus")
+    }
+  }
   Invoke-OctopusServerCommand $args
 
   Write-Log "Configuring Octopus Deploy instance ..."
@@ -701,7 +743,6 @@ function Install-OctopusDeploy
     'configure',
     '--console',
     '--instance', $name,
-    '--home', "$($env:SystemDrive)\Octopus",
     '--upgradeCheck', $allowUpgradeCheck,
     '--upgradeCheckWithStatistics', $allowCollectionOfAnonymousUsageStatistics,
     '--webForceSSL', $forceSSL,
@@ -709,6 +750,14 @@ function Install-OctopusDeploy
     '--commsListenPort', $listenPort,
     "--$sprefix`ConnectionString", $sqlDbConnectionString
   )
+
+  if (-not (Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance)) {
+    if (($homeDirectory -ne "") -and ($null -ne $homeDirectory)) {
+      $args += @('--home', $homeDirectory)
+    } else {
+      $args += @('--home', "$($env:SystemDrive)\Octopus")
+    }
+  }
 
   if (Test-OctopusVersionSupportsAutoLoginEnabled)
   {
@@ -849,7 +898,11 @@ function Test-TargetResource
     [bool]$ForceSSL = $false,
     [int]$ListenPort = 10943,
     [bool]$AutoLoginEnabled = $false,
+<<<<<<< HEAD
     [PSCredential]$OctopusServiceCredential
+=======
+    [string]$HomeDirectory
+>>>>>>> master
   )
 
   $currentResource = (Get-TargetResource -Ensure $Ensure `
@@ -865,7 +918,11 @@ function Test-TargetResource
                                          -ForceSSL $ForceSSL `
                                          -ListenPort $ListenPort `
                                          -AutoLoginEnabled $AutoLoginEnabled `
+<<<<<<< HEAD
                                          -OctopusServiceCredential $OctopusServiceCredential)
+=======
+                                         -HomeDirectory $HomeDirectory)
+>>>>>>> master
 
   $params = Get-Parameters $MyInvocation.MyCommand.Parameters
 

@@ -25,6 +25,9 @@ Configuration SampleConfig
             CommunicationMode = "Listen"
             ListenPort = $ListenPort
 
+            # Only required if the external port is different to the ListenPort. e.g the tentacle is behind a loadbalancer
+            TentacleCommsPort = 10900
+
             # Where deployed applications will be installed by Octopus
             DefaultApplicationDirectory = "C:\Applications"
 

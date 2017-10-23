@@ -15,6 +15,7 @@ class cTentacleAgent : OMI_BaseResource
   [Write] string Tenants[];
   [Write] string TenantTags[];
   [Write] UInt32 ListenPort;
+  [Write] UInt32 TentacleCommsPort;
   [Write] UInt32 ServerPort;
   [Write] string DefaultApplicationDirectory;
   [Write] string TentacleDownloadUrl;
