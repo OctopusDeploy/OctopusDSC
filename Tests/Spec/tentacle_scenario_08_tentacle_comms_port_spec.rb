@@ -32,7 +32,7 @@ describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], 
   it { should be_in_environment('The-Env') }
   it { should have_role('Test-Tentacle') }
   it { should have_policy('Default Machine Policy') }
-  it { should have_endpoint('https://vagrant-2012-r2:10900/') }
+  it { should have_endpoint("https://#{ENV['COMPUTERNAME']}:10900/") }
 end
 
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle') do
