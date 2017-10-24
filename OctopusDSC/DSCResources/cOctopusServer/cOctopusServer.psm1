@@ -758,7 +758,7 @@ function Install-OctopusDeploy
     Invoke-OctopusServerCommand $dbargs
 
   } else {
-    $args += @("--ConnectionString", $sqlDbConnectionString)
+    $args += @("--StorageConnectionString", $sqlDbConnectionString)
   }
 
 
@@ -855,8 +855,8 @@ function Install-OctopusDeploy
     $args += @("--username", $octopusServiceCredential.UserName
               "--password", $octopusServiceCredential.Password | ConvertFrom-SecureString)
 
-              Update-InstallState "OctopusServiceUsername" $octopusServiceCredential.UserName
-              Update-InstallState "OctopusServicePassword" ($octopusServiceCredential.Password | ConvertFrom-SecureString)
+    Update-InstallState "OctopusServiceUsername" $octopusServiceCredential.UserName
+    Update-InstallState "OctopusServicePassword" ($octopusServiceCredential.Password | ConvertFrom-SecureString)
   }
   else
   {

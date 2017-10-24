@@ -23,7 +23,7 @@ else
 }
 
 
-Configuration Server_Scenario_01_Install
+Configuration Server_Scenario_10_Install4
 {
     Import-DscResource -ModuleName OctopusDSC
 

@@ -1,4 +1,4 @@
-Configuration Server_Scenario_07_Install4
+Configuration Server_Scenario_09_Remove
 {
     Import-DscResource -ModuleName OctopusDSC
 

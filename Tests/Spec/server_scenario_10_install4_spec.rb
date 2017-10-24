@@ -4,27 +4,23 @@ describe file('c:/Octopus') do
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopus') do
+describe file('c:/Octopus/Artifacts') do
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopus/Artifacts') do
+describe file('c:/Octopus/Logs') do
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopus/Logs') do
+describe file('c:/Octopus/OctopusServer') do
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopus/OctopusServer') do
+describe file('c:/Octopus/Packages') do
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopus/Packages') do
-  it { should be_directory }
-end
-
-describe file('c:/ChezOctopus/TaskLogs') do
+describe file('c:/Octopus/TaskLogs') do
   it { should be_directory }
 end
 
