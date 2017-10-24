@@ -204,6 +204,11 @@ function Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance
   return Test-OctopusVersionNewerThan (New-Object System.Version 3, 16, 4)
 }
 
+Function Test-OctopusVersionRequiresDatabaseBeforeConfigure
+{
+  return Test-OctopusVersionNewerThan (New-Object System.Version 4, 0, 0)
+}
+
 function Test-OctopusVersionNewerThan($targetVersion)
 {
   if (-not (Test-Path -LiteralPath $octopusServerExePath))
@@ -324,8 +329,6 @@ function Set-TargetResource
                                      -octopusServiceCredential $OctopusServiceCredential
     }
   }
-
-  #
 
   if ($State -eq "Started" -and $currentResource["State"] -eq "Stopped")
   {
@@ -720,17 +723,14 @@ function Install-OctopusDeploy
 
   Write-Log "Configuring Octopus Deploy instance ..."
 
-  # 4.0.0+ doesn't support --storageConnectionString any more. use database
-  $sprefix = "storage"
-
-if($OctopusServiceCredential)
-{
-  $databaseusername = $OctopusServiceCredential.UserName 
-}
-else
-{
-  $databaseusername = "NT AUTHORITY\SYSTEM"
-}
+  if($OctopusServiceCredential)
+  {
+    $databaseusername = $OctopusServiceCredential.UserName 
+  }
+  else
+  {
+    $databaseusername = "NT AUTHORITY\SYSTEM"
+  }
 
   $args = @(
     'configure',
@@ -743,7 +743,7 @@ else
     '--commsListenPort', $listenPort
   )
 
-  if(Test-OctopusVersionNewerThan (New-Object System.Version 4,0,0))
+  if(Test-OctopusVersionRequiresDatabaseBeforeConfigure)
   {
     Write-Log "Creating Octopus Deploy database for v4"
     

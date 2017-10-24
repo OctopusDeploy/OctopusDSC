@@ -101,7 +101,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     dsc.configuration_file  = "Server_Scenario_01_Install.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = false
+    dsc.abort_on_dsc_failure = true
   end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_01_install')
 
@@ -110,7 +110,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     dsc.configuration_file  = "Server_Scenario_02_Remove.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = false
+    dsc.abort_on_dsc_failure = true
   end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_02_remove')
 
@@ -119,7 +119,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     dsc.configuration_file  = "Server_Scenario_03_Install_Custom_Instance.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = false
+    dsc.abort_on_dsc_failure = true
   end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_03_install_custom_instance')
 
@@ -128,7 +128,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     dsc.configuration_file  = "Server_Scenario_04_Remove_Custom_Instance.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = false
+    dsc.abort_on_dsc_failure = true
   end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_04_remove_custom_instance')
 
@@ -137,7 +137,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     dsc.configuration_file  = "Server_Scenario_05_Reinstall.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = false
+    dsc.abort_on_dsc_failure = true
   end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_05_reinstall')
 
@@ -146,7 +146,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     dsc.configuration_file  = "Server_Scenario_06_Upgrade.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = false
+    dsc.abort_on_dsc_failure = true
   end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_06_upgrade')
 
@@ -156,7 +156,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     dsc.configuration_file  = "Server_Scenario_07_Watchdog_Create.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = false
+    dsc.abort_on_dsc_failure = true
   end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_07_watchdog_create')
 
@@ -165,7 +165,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     dsc.configuration_file  = "Server_Scenario_08_Watchdog_Delete.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = false
+    dsc.abort_on_dsc_failure = true
   end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_08_watchdog_delete')
 
@@ -174,7 +174,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   dsc.configuration_file  = "Server_Scenario_09_Remove.ps1" 
   dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
   dsc.manifests_path = "Tests/Scenarios"
-  dsc.abort_on_dsc_failure = false
+  dsc.abort_on_dsc_failure = true
 end
 config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_09_Remove')
 
@@ -183,7 +183,7 @@ config.vm.provision "dsc" do |dsc|
 dsc.configuration_file  = "Server_Scenario_10_Install4.ps1" 
 dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
 dsc.manifests_path = "Tests/Scenarios"
-dsc.abort_on_dsc_failure = false
+dsc.abort_on_dsc_failure = true
 end
 config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_10_Install4')
 
