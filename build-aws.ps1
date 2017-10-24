@@ -26,8 +26,11 @@ Test-PluginInstalled "vagrant-winrm"
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
 Import-Module PSScriptAnalyzer
-$excludedRules = @('PSUseShouldProcessForStateChangingFunctions', 
-    'PSAvoidUsingUserNameAndPassWordParams')
+$excludedRules = @(
+  'PSUseShouldProcessForStateChangingFunctions', 
+  'PSUseSingularNouns' # , 
+  # 'PSAvoidUsingConvertToSecureStringWithPlainText'
+  )
 $results = Invoke-ScriptAnalyzer ./OctopusDSC/DSCResources -recurse -exclude $excludedRules
 write-output $results
 write-output "PSScriptAnalyzer found $($results.length) issues"
@@ -68,7 +71,7 @@ write-host "Ensuring vagrant box is latest"
 vagrant box update --box OctopusDeploy/dsc-test-server-windows-2012-r2 --provider aws
 
 write-host "Running 'vagrant up --provider aws'"
-vagrant up --provider aws # --debug &> vagrant.log
+vagrant up --provider aws  | Tee-Object -FilePath vagrant.log
 echo "'vagrant up' exited with exit code $LASTEXITCODE"
 
 if ($LASTEXITCODE -ne 0)

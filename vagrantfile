@@ -33,6 +33,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   config.vm.provider "virtualbox" do |v, override|
     v.gui = true
+    v.linked_clone = true
     v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
     v.customize ["modifyvm", :id, "--audio", "none"]
     v.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
@@ -50,7 +51,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     aws.access_key_id = aws_access_key_id
     aws.secret_access_key = aws_secret_access_key
     aws.region = "ap-southeast-2"
-    aws.instance_type = "c4.xlarge"
+    aws.instance_type = "c4.large"
     aws.keypair_name = "#{aws_key_name}"
     aws.tags = {
       'Name' => 'Vagrant DSC testing'
@@ -100,7 +101,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     dsc.configuration_file  = "Server_Scenario_01_Install.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = true
+    dsc.abort_on_dsc_failure = false
   end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_01_install')
 
@@ -109,7 +110,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     dsc.configuration_file  = "Server_Scenario_02_Remove.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = true
+    dsc.abort_on_dsc_failure = false
   end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_02_remove')
 
@@ -118,7 +119,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     dsc.configuration_file  = "Server_Scenario_03_Install_Custom_Instance.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = true
+    dsc.abort_on_dsc_failure = false
   end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_03_install_custom_instance')
 
@@ -127,7 +128,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     dsc.configuration_file  = "Server_Scenario_04_Remove_Custom_Instance.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = true
+    dsc.abort_on_dsc_failure = false
   end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_04_remove_custom_instance')
 
@@ -136,7 +137,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     dsc.configuration_file  = "Server_Scenario_05_Reinstall.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = true
+    dsc.abort_on_dsc_failure = false
   end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_05_reinstall')
 
@@ -145,7 +146,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     dsc.configuration_file  = "Server_Scenario_06_Upgrade.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = true
+    dsc.abort_on_dsc_failure = false
   end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_06_upgrade')
 
@@ -155,7 +156,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     dsc.configuration_file  = "Server_Scenario_07_Watchdog_Create.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = true
+    dsc.abort_on_dsc_failure = false
   end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_07_watchdog_create')
 
@@ -164,7 +165,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     dsc.configuration_file  = "Server_Scenario_08_Watchdog_Delete.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = true
+    dsc.abort_on_dsc_failure = false
   end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_08_watchdog_delete')
 
@@ -173,7 +174,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   dsc.configuration_file  = "Server_Scenario_09_Remove.ps1" 
   dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
   dsc.manifests_path = "Tests/Scenarios"
-  dsc.abort_on_dsc_failure = true
+  dsc.abort_on_dsc_failure = false
 end
 config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_09_Remove')
 
@@ -182,7 +183,7 @@ config.vm.provision "dsc" do |dsc|
 dsc.configuration_file  = "Server_Scenario_10_Install4.ps1" 
 dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
 dsc.manifests_path = "Tests/Scenarios"
-dsc.abort_on_dsc_failure = true
+dsc.abort_on_dsc_failure = false
 end
 config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'server_scenario_10_Install4')
 
@@ -193,7 +194,7 @@ config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_n
     dsc.configuration_file  = "Tentacle_Scenario_01_Install.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = true
+    dsc.abort_on_dsc_failure = false
     dsc.configuration_params = {
       "-OctopusServerUrl" => "$ENV:OctopusServerUrl",
       "-ApiKey" => "$ENV:OctopusApiKey",
@@ -211,7 +212,7 @@ config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_n
     dsc.configuration_file  = "Tentacle_Scenario_02_Remove.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = true
+    dsc.abort_on_dsc_failure = false
     dsc.configuration_params = {
       "-OctopusServerUrl" => "$ENV:OctopusServerUrl",
       "-ApiKey" => "$ENV:OctopusApiKey",

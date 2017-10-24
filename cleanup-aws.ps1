@@ -55,3 +55,11 @@ if ($VagrantDestroyExitCode -ne 0) {
 
   exit $VagrantDestroyExitCode
 }
+
+# cleanup SMB shares
+
+$path = Get-Item .\Tests\Scenarios | select -expand FullName
+$shares = Get-SMBShare | ? { $_.Path -eq $path}  
+$shares | %  {
+  Remove-SMBShare -Name $_.Name -verbose -force
+}

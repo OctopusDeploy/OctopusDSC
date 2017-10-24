@@ -30,11 +30,23 @@ Configuration Server_Scenario_01_Install
     $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
     $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
 
+    $svcpass = ConvertTo-SecureString "HyperS3cretPassw0rd!" -AsPlainText -Force
+    $svccred = New-Object System.Management.Automation.PSCredential ("OctoSquid", $svcpass)
+
+
     Node "localhost"
     {
         LocalConfigurationManager
         {
             DebugMode = "ForceModuleImport"
+        }
+
+        User OctoSquid
+        {
+            Ensure = "Present"
+            UserName = "OctoSquid"
+            Password = $svccred
+            PasswordChangeRequired = $false 
         }
 
         cOctopusServer OctopusServer
@@ -59,6 +71,9 @@ Configuration Server_Scenario_01_Install
 
             # DownloadUrl = "https://s3-ap-southeast-1.amazonaws.com/octopus-testing/server/Octopus.4.0.0-v4-14812.msi"
             DownloadUrl = $downloadUrl
+
+            OctopusServiceCredential = $svccred 
+            DependsOn = "[user]OctoSquid"
         }
 
         cOctopusServerUsernamePasswordAuthentication "Enable Username/Password Auth"

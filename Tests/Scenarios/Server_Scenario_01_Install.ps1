@@ -22,12 +22,13 @@ else
     $downloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer"   # when 4.0 drops, this should change!
 }
 
+$pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
+$cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
+
 Configuration Server_Scenario_01_Install
 {
     Import-DscResource -ModuleName OctopusDSC
 
-    $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
-    $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
 
     Node "localhost"
     {

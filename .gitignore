@@ -185,3 +185,5 @@ PesterTestResults.xml
 
 *.msi
 offline.config 
+
+.scratch

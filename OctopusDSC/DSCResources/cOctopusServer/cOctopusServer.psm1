@@ -93,11 +93,11 @@ function Get-TargetResource
       $installState = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json)
       $existingDownloadUrl = $installState.DownloadUrl
       $pass = $installState.OctopusAdminPassword | ConvertTo-SecureString
+      $svcpass = $installState.OctopusServicePassword | ConvertTo-SecureString 
       $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($installState.OctopusAdminUsername, $pass)
+      $existingOctopusServiceCredential = New-Object System.Management.Automation.PSCredential ($installState.OctopusServiceUsername, $svcpass)
     }
   }
-
-  
 
   $currentResource = @{
     Name = $Name;
@@ -298,7 +298,8 @@ function Set-TargetResource
                           -forceSSL $ForceSSL `
                           -listenPort $ListenPort `
                           -autoLoginEnabled $AutoLoginEnabled `
-                          -homeDirectory $HomeDirectory
+                          -homeDirectory $HomeDirectory `
+                          -octopusServiceCredential $OctopusServiceCredential
   }
   else
   {
@@ -319,9 +320,12 @@ function Set-TargetResource
                                      -forceSSL $ForceSSL `
                                      -listenPort $ListenPort `
                                      -autoLoginEnabled $AutoLoginEnabled `
-                                     -homeDirectory $HomeDirectory
+                                     -homeDirectory $HomeDirectory `
+                                     -octopusServiceCredential $OctopusServiceCredential
     }
   }
+
+  #
 
   if ($State -eq "Started" -and $currentResource["State"] -eq "Stopped")
   {
@@ -680,7 +684,8 @@ function Install-OctopusDeploy
     [bool]$forceSSL = $false,
     [int]$listenPort = 10943,
     [bool]$autoLoginEnabled = $false,
-    [string]$homeDirectory = $null
+    [string]$homeDirectory = $null,
+    [PSCredential]$octopusServiceCredential
   )
 
   Write-Verbose "Installing Octopus Deploy..."
@@ -715,14 +720,17 @@ function Install-OctopusDeploy
 
   Write-Log "Configuring Octopus Deploy instance ..."
 
-  # 4.0.0+ doesn't support --storageConnectionString any more. use --connectionstring
+  # 4.0.0+ doesn't support --storageConnectionString any more. use database
   $sprefix = "storage"
-  if(Test-OctopusVersionNewerThan (New-Object System.Version 4,0,0))
-  {
-    Write-Log "Version newer than 4.0 detected, using --connectionstring"
-    $sprefix = ""
-  }
 
+if($OctopusServiceCredential)
+{
+  $databaseusername = $OctopusServiceCredential.UserName 
+}
+else
+{
+  $databaseusername = "NT AUTHORITY\SYSTEM"
+}
 
   $args = @(
     'configure',
@@ -732,9 +740,27 @@ function Install-OctopusDeploy
     '--upgradeCheckWithStatistics', $allowCollectionOfAnonymousUsageStatistics,
     '--webForceSSL', $forceSSL,
     '--webListenPrefixes', $webListenPrefix,
-    '--commsListenPort', $listenPort,
-    "--$sprefix`ConnectionString", $sqlDbConnectionString
+    '--commsListenPort', $listenPort
   )
+
+  if(Test-OctopusVersionNewerThan (New-Object System.Version 4,0,0))
+  {
+    Write-Log "Creating Octopus Deploy database for v4"
+    
+    $dbargs =@(
+      'database',
+      '--instance', $name,
+      '--connectionstring', $sqlDbConnectionString,
+      '--create',
+      '--grant', $databaseusername
+    )
+
+    Invoke-OctopusServerCommand $dbargs
+
+  } else {
+    $args += @("--ConnectionString", $sqlDbConnectionString)
+  }
+
 
   if (-not (Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance)) {
     if (($homeDirectory -ne "") -and ($null -ne $homeDirectory)) {
@@ -772,14 +798,17 @@ function Install-OctopusDeploy
 
   Invoke-OctopusServerCommand $args
 
-  Write-Log "Creating Octopus Deploy database ..."
-  $args = @(
-    'database',
-    '--console',
-    '--instance', $name,
-    '--create'
-  )
-  Invoke-OctopusServerCommand $args
+  if(-not (Test-OctopusVersionNewerThan (New-Object System.Version 4,0,0)))
+  {
+    Write-Log "Creating Octopus Deploy database for v3..."
+    $args = @(
+      'database',
+      '--console',
+      '--instance', $name,
+      '--create'
+    )
+    Invoke-OctopusServerCommand $args
+  }
 
   Write-Log "Stopping Octopus Deploy instance ..."
   $args = @(
@@ -820,6 +849,21 @@ function Install-OctopusDeploy
     '--reconfigure',
     '--stop'
   )
+
+  if($octopusServiceCredential)
+  {
+    $args += @("--username", $octopusServiceCredential.UserName
+              "--password", $octopusServiceCredential.Password | ConvertFrom-SecureString)
+
+              Update-InstallState "OctopusServiceUsername" $octopusServiceCredential.UserName
+              Update-InstallState "OctopusServicePassword" ($octopusServiceCredential.Password | ConvertFrom-SecureString)
+  }
+  else
+  {
+    Update-InstallState "OctopusServiceUsername" $null
+    Update-InstallState "OctopusServicePassword" $null
+  }
+
   Invoke-OctopusServerCommand $args
   Write-Verbose "Octopus Deploy installed!"
 }
