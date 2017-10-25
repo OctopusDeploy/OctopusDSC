@@ -3,6 +3,8 @@ param(
   [switch]$offline
 )
 
+Start-Transcript .\build-virtualbox.log
+
 if($offline)   # if you want to use offline, then you need a v3 and a v4 installer locally in the .\Tests folder (gitignored)
 {
   Write-Warning "Offline run requested, writing an offline.config file"
@@ -69,3 +71,5 @@ echo "Running 'vagrant up --provider virtualbox'"
 vagrant up --provider virtualbox | Tee-Object -FilePath vagrant.log  #  --no-destroy-on-error --debug
 
 echo "Dont forget to run 'vagrant destroy -f' when you have finished"
+
+stop-transcript 

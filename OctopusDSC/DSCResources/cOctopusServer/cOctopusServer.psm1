@@ -93,9 +93,16 @@ function Get-TargetResource
       $installState = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json)
       $existingDownloadUrl = $installState.DownloadUrl
       $pass = $installState.OctopusAdminPassword | ConvertTo-SecureString
-      $svcpass = $installState.OctopusServicePassword | ConvertTo-SecureString 
+      
+      if($installState.OctopusServicePassword -ne "")
+      {
+        $svcpass = $installState.OctopusServicePassword | ConvertTo-SecureString 
+        $existingOctopusServiceCredential = New-Object System.Management.Automation.PSCredential ($installState.OctopusServiceUsername, $svcpass)
+      } else {
+        $svcpass = ""
+        $existingOctopusServiceCredential = [PSCredential]::Empty
+      }
       $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($installState.OctopusAdminUsername, $pass)
-      $existingOctopusServiceCredential = New-Object System.Management.Automation.PSCredential ($installState.OctopusServiceUsername, $svcpass)
     }
   }
 
@@ -198,7 +205,6 @@ function Test-OctopusVersionSupportsShowConfiguration
   return Test-OctopusVersionNewerThan (New-Object System.Version 3, 5, 0)
 }
 
-
 function Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance
 {
   return Test-OctopusVersionNewerThan (New-Object System.Version 3, 16, 4)
@@ -249,7 +255,7 @@ function Set-TargetResource
     [ValidateNotNullOrEmpty()]
     [string]$SqlDbConnectionString,
     [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
+    [ValidateNotNullOrEmpty()] # TODO maybe remove?
     [PSCredential]$OctopusAdminCredential,
     [bool]$AllowUpgradeCheck = $true,
     [bool]$AllowCollectionOfAnonymousUsageStatistics = $true,

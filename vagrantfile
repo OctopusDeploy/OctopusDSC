@@ -300,5 +300,6 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
       "-Roles" => "Test-Tentacle"
     }  end
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_08_tentacle_comms_port')
+  
 
 end
