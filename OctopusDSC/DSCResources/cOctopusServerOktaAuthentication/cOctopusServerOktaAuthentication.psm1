@@ -17,7 +17,7 @@ function Get-TargetResource
   )
   # check octopus installed
   if (-not (Test-Path -LiteralPath $octopusServerExePath)) {
-    throw "Unable to find Octopus (checked for existance of file '$octopusServerExePath')."
+    throw "Unable to find Octopus (checked for existence of file '$octopusServerExePath')."
   }
   # check octopus version >= 3.16.0
   if (-not (Test-OctopusVersionSupportsOktaAuthenticationProvider)) {

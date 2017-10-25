@@ -48,7 +48,7 @@ try
                 It 'Throws an exception if Octopus is not installed' {
                     Mock Test-Path { return $false } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe" }
                     Mock Test-TentacleSupportsShowConfiguration { return $true }
-                    { Get-TargetResource @desiredConfiguration } | Should Throw "Unable to find Tentacle (checked for existance of file '$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe')."
+                    { Get-TargetResource @desiredConfiguration } | Should Throw "Unable to find Tentacle (checked for existence of file '$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe')."
                 }
 
                 It 'Throws an exception if its an old version of Tentacle' {

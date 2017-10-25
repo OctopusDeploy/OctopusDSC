@@ -48,7 +48,7 @@ try
                 It 'Throws an exception if Octopus is not installed' {
                     Mock Test-Path { return $false } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-OctopusVersionSupportsAuthenticationProviders { return $true }
-                    { Get-TargetResource @desiredConfiguration } | Should Throw "Unable to find Octopus (checked for existance of file '$octopusServerExePath')."
+                    { Get-TargetResource @desiredConfiguration } | Should Throw "Unable to find Octopus (checked for existence of file '$octopusServerExePath')."
                 }
 
                 It 'Throws an exception if its an old version of Octopus' {

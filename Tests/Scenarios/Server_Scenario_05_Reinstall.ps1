@@ -1,26 +1,3 @@
-Function Test-IsOffline
-{
-    return Test-Path c:\Temp\Tests\Offline.config
-}
-
-Function Find-V4Installer
-{
-    return (gci C:\temp\Tests | ? {$_.Name -like "Octopus.4s.*.msi"} | select -first 1 | select -expand Name)
-}
-
-Function Find-V3Installer
-{
-    return (gci C:\temp\Tests | ? {$_.Name -like "Octopus.3.*.msi"} | select -first 1 | select -expand Name)
-}
-
-if(Test-IsOffline)
-{
-    $downloadUrl = Find-V3Installer
-}
-else
-{
-    $downloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.3.3.24-x64.msi"   # when 4.0 drops, this should change!
-}
 
 
 Configuration Server_Scenario_05_Reinstall
@@ -55,8 +32,6 @@ Configuration Server_Scenario_05_Reinstall
 
             # The admin user to create
             OctopusAdminCredential = $cred
-
-            DownloadUrl = $downloadUrl 
 
             # dont mess with stats
             AllowCollectionOfAnonymousUsageStatistics = $false

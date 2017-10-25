@@ -15,7 +15,7 @@ function Get-TargetResource
   )
   # check octopus installed
   if (-not (Test-Path -LiteralPath $tentacleExePath)) {
-    throw "Unable to find Tentacle (checked for existance of file '$tentacleExePath')."
+    throw "Unable to find Tentacle (checked for existence of file '$tentacleExePath')."
   }
   # check octopus version >= 3.17.0
   if (-not (Test-TentacleSupportsShowConfiguration
