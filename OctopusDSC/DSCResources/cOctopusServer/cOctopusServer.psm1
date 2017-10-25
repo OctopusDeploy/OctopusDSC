@@ -386,7 +386,8 @@ function Set-OctopusDeployConfiguration
     [bool]$forceSSL = $false,
     [int]$listenPort = 10943,
     [bool]$autoLoginEnabled = $false,
-    [string]$homeDirectory = $null
+    [string]$homeDirectory = $null,
+    [PSCredential]$OctopusServiceCredential
   )
 
   Write-Log "Configuring Octopus Deploy instance ..."
@@ -432,6 +433,22 @@ function Set-OctopusDeployConfiguration
   }
 
   Invoke-OctopusServerCommand $args
+
+  if($octopusServiceCredential)
+  {
+    $args += @("--username", $octopusServiceCredential.UserName
+              "--password", $octopusServiceCredential.Password | ConvertFrom-SecureString)
+
+    Update-InstallState "OctopusServiceUsername" $octopusServiceCredential.UserName
+    Update-InstallState "OctopusServicePassword" ($octopusServiceCredential.Password | ConvertFrom-SecureString)
+    Invoke-OctopusServerCommand $args 
+  }
+  else
+  {
+    Update-InstallState "OctopusServiceUsername" $null
+    Update-InstallState "OctopusServicePassword" $null
+  }
+
 }
 
 function Test-ReconfigurationRequired($currentState, $desiredState)
