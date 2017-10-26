@@ -26,6 +26,13 @@ Configuration Server_Scenario_10_Install4
             PasswordChangeRequired = $false 
         }
 
+        Group AddUserToLocalAdminGroup
+        {
+            GroupName='Administrators'   
+            Ensure= 'Present'             
+            MembersToInclude= ".\OctoSquid"
+        }
+
         cOctopusServer OctopusServer
         {
             Ensure = "Present"
