@@ -8,7 +8,7 @@ Configuration Server_Scenario_10_Install4
     $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
 
     $svcpass = ConvertTo-SecureString "HyperS3cretPassw0rd!" -AsPlainText -Force
-    $svccred = New-Object System.Management.Automation.PSCredential ("OctoSquid", $svcpass)
+    $svccred = New-Object System.Management.Automation.PSCredential (".\OctoSquid", $svcpass)
 
 
     Node "localhost"
@@ -21,7 +21,7 @@ Configuration Server_Scenario_10_Install4
         User OctoSquid
         {
             Ensure = "Present"
-            UserName = "OctoSquid"
+            UserName = ".\OctoSquid"
             Password = $svccred
             PasswordChangeRequired = $false 
         }
