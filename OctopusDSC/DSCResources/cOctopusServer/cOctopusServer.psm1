@@ -875,8 +875,12 @@ function Install-OctopusDeploy
 
   if($octopusServiceCredential)
   {
+    Write-Log "Adding Service identity to installation command"
+
     $args += @("--username", $octopusServiceCredential.UserName
-              "--password", $octopusServiceCredential.Password | ConvertFrom-SecureString)
+              "--password", $octopusServiceCredential.GetNetworkCredential().Password )
+
+    Write-Log "Adding Service identity to installation command"
 
     Update-InstallState "OctopusServiceUsername" $octopusServiceCredential.UserName
     Update-InstallState "OctopusServicePassword" ($octopusServiceCredential.Password | ConvertFrom-SecureString)
@@ -888,6 +892,7 @@ function Install-OctopusDeploy
   }
 
   Invoke-OctopusServerCommand $args
+
   Write-Verbose "Octopus Deploy installed!"
 }
 
