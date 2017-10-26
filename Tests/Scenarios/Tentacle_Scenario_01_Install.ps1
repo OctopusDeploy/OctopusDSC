@@ -1,18 +1,3 @@
-Function Test-IsOffline
-{
-    return Test-Path c:\Temp\Tests\Offline.config
-}
-
-if(Test-IsOffline)
-{
-    $downloadUrl = gci C:\temp\Tests | ? {$_.Name -like "Octopus.Tentacle.3.*.msi"} | select -first 1 | select -expand Name)
-}
-else
-{
-    $downloadUrl = "http://octopusdeploy.com/downloads/latest/OctopusTentacle64" 
-}
-
-
 Configuration Tentacle_Scenario_01_Install
 {
     param ($OctopusServerUrl, $ApiKey, $Environments, $Roles, $ServerThumbprint)
@@ -48,8 +33,6 @@ Configuration Tentacle_Scenario_01_Install
             DefaultApplicationDirectory = "C:\Applications"
             PublicHostNameConfiguration = "ComputerName"
             TentacleHomeDirectory = "C:\Octopus\ListeningTentacleHome"
-
-            TentacleDownloadUrl64 = $downloadUrl
 
             Tenants = "John"
             TenantTags = "Hosting/Cloud"
