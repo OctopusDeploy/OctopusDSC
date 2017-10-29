@@ -25,7 +25,7 @@ try
             Context 'Get-TargetResource' {
                 It 'Returns the proper data' {
                     Mock Test-Path { return $true } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
-                    Mock Test-OctopusVersionSupportsAuthenticationProviders { return $true }
+                    Mock Test-OctopusVersionSupportsAuthenticationProvider { return $true }
                     Mock Get-Configuration {
                         return  @{
                             Octopus = @{
@@ -47,13 +47,13 @@ try
 
                 It 'Throws an exception if Octopus is not installed' {
                     Mock Test-Path { return $false } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
-                    Mock Test-OctopusVersionSupportsAuthenticationProviders { return $true }
+                    Mock Test-OctopusVersionSupportsAuthenticationProvider { return $true }
                     { Get-TargetResource @desiredConfiguration } | Should Throw "Unable to find Octopus (checked for existence of file '$octopusServerExePath')."
                 }
 
                 It 'Throws an exception if its an old version of Octopus' {
                     Mock Test-Path { return $true } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
-                    Mock Test-OctopusVersionSupportsAuthenticationProviders { return $false }
+                    Mock Test-OctopusVersionSupportsAuthenticationProvider { return $false }
                     { Get-TargetResource @desiredConfiguration } | Should Throw "This resource only supports Octopus Deploy 3.5.0+."
                 }
             }

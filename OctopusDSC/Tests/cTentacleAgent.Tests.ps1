@@ -27,33 +27,33 @@ try
                 }
             }
 
-            Context 'Confirm-RegistrationParameters' {
+            Context 'Confirm-RegistrationParameter' {
                 It 'Throws if RegisterWithServer is false but environment provided' {
-                    { Confirm-RegistrationParameters -RegisterWithServer $False -Environments @('My Env') } | Should Throw "Invalid configuration requested"
+                    { Confirm-RegistrationParameter -RegisterWithServer $False -Environments @('My Env') } | Should Throw "Invalid configuration requested"
                 }
                 It 'Throws if RegisterWithServer is false but roles provided' {
-                    { Confirm-RegistrationParameters -RegisterWithServer $False -Roles @('app-server') } | Should Throw "Invalid configuration requested"
+                    { Confirm-RegistrationParameter -RegisterWithServer $False -Roles @('app-server') } | Should Throw "Invalid configuration requested"
                 }
                 It 'Throws if RegisterWithServer is false but tenants provided' {
-                    { Confirm-RegistrationParameters -RegisterWithServer $False -Tenants @('Jim-Bob') } | Should Throw "Invalid configuration requested"
+                    { Confirm-RegistrationParameter -RegisterWithServer $False -Tenants @('Jim-Bob') } | Should Throw "Invalid configuration requested"
                 }
                 It 'Throws if RegisterWithServer is false but tenant Tags provided' {
-                    { Confirm-RegistrationParameters -RegisterWithServer $False -TenantTags @('CustomerType/VIP', 'Hosting/OnPrem') } | Should Throw "Invalid configuration requested"
+                    { Confirm-RegistrationParameter -RegisterWithServer $False -TenantTags @('CustomerType/VIP', 'Hosting/OnPrem') } | Should Throw "Invalid configuration requested"
                 }
                 It 'Throws if RegisterWithServer is false but policy provided' {
-                    { Confirm-RegistrationParameters -RegisterWithServer $False -Policy "my policy" } | Should Throw "Invalid configuration requested"
+                    { Confirm-RegistrationParameter -RegisterWithServer $False -Policy "my policy" } | Should Throw "Invalid configuration requested"
                 }
                 It 'Does not throw if RegisterWithServer is false and environment provided as empty string' {
-                    Confirm-RegistrationParameters -RegisterWithServer $False -Environments ""
+                    Confirm-RegistrationParameter -RegisterWithServer $False -Environments ""
                 }
                 It 'Does not throw if RegisterWithServer is false and environment provided as empty array' {
-                    Confirm-RegistrationParameters -RegisterWithServer $False -Environments @()
+                    Confirm-RegistrationParameter -RegisterWithServer $False -Environments @()
                 }
                 It 'Does not throw if RegisterWithServer is false and environment provided as array with empty element' {
-                    Confirm-RegistrationParameters -RegisterWithServer $False -Environments @('')
+                    Confirm-RegistrationParameter -RegisterWithServer $False -Environments @('')
                 }
                 It 'Does not throw if RegisterWithServer is false and no environment provided' {
-                    Confirm-RegistrationParameters -RegisterWithServer $False
+                    Confirm-RegistrationParameter -RegisterWithServer $False
                 }
             }
 

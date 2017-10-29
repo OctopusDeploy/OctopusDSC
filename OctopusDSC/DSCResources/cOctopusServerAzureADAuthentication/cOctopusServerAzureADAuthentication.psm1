@@ -20,7 +20,7 @@ function Get-TargetResource
     throw "Unable to find Octopus (checked for existence of file '$octopusServerExePath')."
   }
   # check octopus version >= 3.5.0
-  if (-not (Test-OctopusVersionSupportsAuthenticationProviders)) {
+  if (-not (Test-OctopusVersionSupportsAuthenticationProvider)) {
     throw "This resource only supports Octopus Deploy 3.5.0+."
   }
 
@@ -80,7 +80,7 @@ function Test-TargetResource
                                          -Issuer $Issuer `
                                          -ClientId $ClientId)
 
-  $params = Get-Parameters $MyInvocation.MyCommand.Parameters
+  $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
 
   $currentConfigurationMatchesRequestedConfiguration = $true
   foreach($key in $currentResource.Keys)
@@ -138,7 +138,7 @@ function Write-CommandOutput
   Write-Verbose ""
 }
 
-function Test-OctopusVersionSupportsAuthenticationProviders
+function Test-OctopusVersionSupportsAuthenticationProvider
 {
   if (-not (Test-Path -LiteralPath $octopusServerExePath))
   {
@@ -158,7 +158,7 @@ function Test-OctopusVersionSupportsAuthenticationProviders
   return ($octopusServerVersion -ge $versionWhereAuthenticationProvidersWereIntroduced)
 }
 
-function Get-Parameters($parameters)
+function Get-ODSCParameter($parameters)
 {
   # unfortunately $PSBoundParameters doesn't contain parameters that weren't supplied (because the default value was okay)
   # credit to https://www.briantist.com/how-to/splatting-psboundparameters-default-values-optional-parameters/

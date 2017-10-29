@@ -88,7 +88,7 @@ function Test-Value($value) {
     return $true
 }
 
-function Confirm-RegistrationParameters {
+function Confirm-RegistrationParameter {
     param (
         [bool]$RegisterWithServer,
         [string[]]$Environments,
@@ -188,7 +188,7 @@ function Set-TargetResource
         [PSCredential]$TentacleServiceCredential
     )
     Confirm-RequestedState $Ensure $State
-    Confirm-RegistrationParameters $RegisterWithServer `
+    Confirm-RegistrationParameter $RegisterWithServer `
         -Environments $Environments `
         -Roles $Roles `
         -Policy $Policy `

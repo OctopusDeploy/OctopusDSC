@@ -81,7 +81,7 @@ function Test-TargetResource
                                          -Interval $Interval `
                                          -Instances $Instances)
 
-  $params = Get-Parameters $MyInvocation.MyCommand.Parameters
+  $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
 
   $currentConfigurationMatchesRequestedConfiguration = $true
   foreach($key in $currentResource.Keys)
@@ -159,7 +159,7 @@ function Test-TentacleSupportsShowConfiguration
   return ($tentacleVersion -ge $versionWhereShowConfigurationWasIntroduced)
 }
 
-function Get-Parameters($parameters)
+function Get-ODSCParameter($parameters)
 {
   # unfortunately $PSBoundParameters doesn't contain parameters that weren't supplied (because the default value was okay)
   # credit to https://www.briantist.com/how-to/splatting-psboundparameters-default-values-optional-parameters/

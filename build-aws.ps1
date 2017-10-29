@@ -25,6 +25,7 @@ Test-PluginInstalled "vagrant-dsc"
 Test-PluginInstalled "vagrant-winrm"
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
+<#  # MOVED TO OctopusDSC.Tests.ps1
 Import-Module PSScriptAnalyzer
 $excludedRules = @(
   'PSUseShouldProcessForStateChangingFunctions', 
@@ -37,6 +38,7 @@ if ($results.length -gt 0) {
   echo "Aborting as PSScriptAnalyzer found issues."
   exit $results.length
 }
+#>
 
 echo "Running Pester Tests"
 Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -EnableExit

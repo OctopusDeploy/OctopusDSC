@@ -284,7 +284,7 @@ function Set-TargetResource
                                          -OctopusServiceCredential $OctopusServiceCredential `
                                          -HomeDirectory $HomeDirectory)
 
-  $params = Get-Parameters $MyInvocation.MyCommand.Parameters
+  $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
   Test-RequestedConfiguration $currentResource $params
 
   if ($State -eq "Stopped" -and $currentResource["State"] -eq "Started")
@@ -975,7 +975,7 @@ function Test-TargetResource
                                          -OctopusServiceCredential $OctopusServiceCredential `
                                          -HomeDirectory $HomeDirectory)
 
-  $params = Get-Parameters $MyInvocation.MyCommand.Parameters
+  $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
 
   $currentConfigurationMatchesRequestedConfiguration = $true
   foreach($key in $currentResource.Keys)
@@ -1024,7 +1024,7 @@ function Test-TargetResource
   return $currentConfigurationMatchesRequestedConfiguration
 }
 
-function Get-Parameters($parameters)
+function Get-ODSCParameter($parameters)
 {
   # unfortunately $PSBoundParameters doesn't contain parameters that weren't supplied (because the default value was okay)
   # credit to https://www.briantist.com/how-to/splatting-psboundparameters-default-values-optional-parameters/
