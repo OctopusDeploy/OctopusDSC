@@ -131,12 +131,14 @@ Configuration Tentacle_Scenario_01_Install
             # Registration - all parameters required
             ApiKey = $ApiKey;
             OctopusServerUrl = $OctopusServerUrl;
+            Environments = $Environments;
+            Roles = $Roles;
 
             # Optional settings
             ListenPort = 10935;
             DefaultApplicationDirectory = "C:\Applications"
             CommunicationMode = "Listen"
-            TentacleHomeDirectory = "C:\Octopus\ListeningTentacleWithThumbprintWithoutAutoRegisterHome"
+            TentacleHomeDirectory = "C:\Octopus\ListeningTentacleWithCustomAccountHome"
 
             TentacleServiceCredential = $serviceusercredential
         }

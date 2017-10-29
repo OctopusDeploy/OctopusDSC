@@ -665,7 +665,7 @@ function Get-PublicHostName
     return $publicHostName
 }
 
-function Get-TentacleDownloadUrl
+function Get-TentacleDownloadUrl # can we validate the specified installer too? # should we?
 {
     param (
         [string]$tentacleDownloadUrl,

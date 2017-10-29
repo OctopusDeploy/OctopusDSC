@@ -102,6 +102,8 @@ try
 
             Context 'Set-TargetResource' {
                 #todo: more tests
+                Mock Invoke-AndAssert { return $true }
+                Mock Install-Tentacle { return $true }
             }
         }
     }
