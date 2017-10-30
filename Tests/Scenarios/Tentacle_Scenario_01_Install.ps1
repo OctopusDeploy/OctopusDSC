@@ -135,7 +135,7 @@ Configuration Tentacle_Scenario_01_Install
             Roles = $Roles;
 
             # Optional settings
-            ListenPort = 10935;
+            ListenPort = 10936;
             DefaultApplicationDirectory = "C:\Applications"
             CommunicationMode = "Listen"
             TentacleHomeDirectory = "C:\Octopus\ListeningTentacleWithCustomAccountHome"

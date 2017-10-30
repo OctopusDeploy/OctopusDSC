@@ -83,6 +83,10 @@ describe service('OctopusDeploy Tentacle: ListeningTentacleWithoutAutoRegister')
   it { should run_under_account('LocalSystem') }
 end
 
+describe port(10934) do
+  it { should be_listening.with('tcp') }
+end
+
 describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "ListeningTentacleWithoutAutoRegister") do
   it { should exist }
   it { should_not be_registered_with_the_server }
@@ -105,6 +109,10 @@ describe service('OctopusDeploy Tentacle: ListeningTentacleWithThumbprintWithout
   it { should be_running }
   it { should have_start_mode('Automatic') }
   it { should run_under_account('LocalSystem') }
+end
+
+describe port(10935) do
+  it { should be_listening.with('tcp') }
 end
 
 describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "ListeningTentacleWithThumbprintWithoutAutoRegister") do
