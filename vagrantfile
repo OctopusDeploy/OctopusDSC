@@ -16,7 +16,7 @@ $run_test_scenario_script = <<SCRIPT
   write-host "executing bundle.bat _1.14.4_ exec rspec Spec/{scenario_name}_spec.rb --format documentation"
   C:/tools/ruby23/bin/bundle.bat _1.14.4_ exec rspec Spec/{scenario_name}_spec.rb --format documentation
   write-output "##teamcity[blockClosed name='Testing Scenario {scenario_name}']"
-  # exit 0 #$LASTEXITCODE
+  exit $LASTEXITCODE
 SCRIPT
 
 Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
@@ -193,7 +193,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     dsc.configuration_file  = "Tentacle_Scenario_01_Install.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = false
+    dsc.abort_on_dsc_failure = true
     dsc.configuration_params = {
       "-OctopusServerUrl" => "$ENV:OctopusServerUrl",
       "-ApiKey" => "$ENV:OctopusApiKey",
@@ -211,7 +211,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     dsc.configuration_file  = "Tentacle_Scenario_02_Remove.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
-    dsc.abort_on_dsc_failure = false
+    dsc.abort_on_dsc_failure = true
     dsc.configuration_params = {
       "-OctopusServerUrl" => "$ENV:OctopusServerUrl",
       "-ApiKey" => "$ENV:OctopusApiKey",
