@@ -110,7 +110,7 @@ Configuration Tentacle_Scenario_01_Install
         # create a custom user. 2012 requires some ADSI
         # Create new local Admin user for script purposes
         
-        $randPass = (-Join (((65..90) | % { [char]$_ }) + (0..9)  | Get-Random -Count 8)) 
+        $randPass = (-Join (((65..90) | % { [char]$_ }) + (0..9)  | Get-Random -Count 10)) + "_"
         $secRandPass = $randPass | ConvertTo-SecureString -AsPlainText -Force
 
         NET USER serviceuser "$randpass" /ADD
