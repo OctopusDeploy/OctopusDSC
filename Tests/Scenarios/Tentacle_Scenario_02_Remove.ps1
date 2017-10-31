@@ -98,5 +98,30 @@ Configuration Tentacle_Scenario_02_Remove
             RegisterWithServer = $false
             OctopusServerThumbprint = $ServerThumbprint
         }
+        
+        cTentacleAgent ListeningTentacleWithCustomAccount
+        {
+            Ensure = "Absent";
+            State = "Stopped";
+
+            # Tentacle instance name. Leave it as 'Tentacle' unless you have more
+            # than one instance
+            Name = "ListeningTentacleWithCustomAccount";
+
+            # Registration - all parameters required
+            ApiKey = $ApiKey;
+            OctopusServerUrl = $OctopusServerUrl;
+            Environments = $Environments;
+            Roles = $Roles;
+
+            # Optional settings
+            ListenPort = 10936;
+            DefaultApplicationDirectory = "C:\Applications"
+            CommunicationMode = "Listen"
+            TentacleHomeDirectory = "C:\Octopus\ListeningTentacleWithCustomAccountHome"
+
+            TentacleServiceCredential = $serviceusercredential
+        }
+
     }
 }
