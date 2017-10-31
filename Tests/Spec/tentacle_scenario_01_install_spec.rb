@@ -136,6 +136,42 @@ describe file('C:\Octopus\ListeningTentacleWithThumbprintWithoutAutoRegisterHome
   its(:content) { should match /Tentacle\.Communication\.TrustedOctopusServers.*#{ENV['OctopusServerThumbprint']}/}
 end
 
+### listening tentacle with specific service account
+
+describe service('OctopusDeploy Tentacle: ListeningTentacleWithCustomAccount') do
+  it { should be_installed }
+  it { should be_running }
+  it { should have_start_mode('Automatic') }
+  it { should run_under_account('serviceuser') }
+end
+
+describe port(10936) do
+  it { should be_listening.with('tcp') }
+end
+
+describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "ListeningTentacleWithCustomAccount") do
+  it { should exist }
+  it { should be_registered_with_the_server }
+  it { should be_online }
+  it { should be_listening_tentacle }
+  it { should be_in_environment('The-Env') }
+  it { should have_role('Test-Tentacle') }
+  it { should have_display_name("ListeningTentacleWithCustomAccount")}
+  it { should have_policy('Default Machine Policy') }
+end
+
+describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\ListeningTentacleWithCustomAccount') do
+  it { should exist }
+  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\ListeningTentacleWithCustomAccountHome\ListeningTentacleWithCustomAccount\Tentacle.config') }
+end
+
+describe file('C:\Octopus\ListeningTentacleWithCustomAccountHome\ListeningTentacleWithCustomAccount\Tentacle.config') do
+  it { should be_file }
+  its(:content) { should match /Tentacle\.Communication\.TrustedOctopusServers.*#{ENV['OctopusServerThumbprint']}/}
+end
+
+### DSC success
+
 describe command('$ProgressPreference = "SilentlyContinue"; try { Get-DSCConfiguration -ErrorAction Stop; write-output "Get-DSCConfiguration succeeded"; $true } catch { write-output "Get-DSCConfiguration failed"; write-output $_; $false }') do
   its(:exit_status) { should eq 0 }
   its(:stdout) { should match /Get-DSCConfiguration succeeded/ }

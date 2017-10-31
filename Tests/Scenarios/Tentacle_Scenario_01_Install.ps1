@@ -109,15 +109,25 @@ Configuration Tentacle_Scenario_01_Install
 
         # create a custom user. 2012 requires some ADSI
         # Create new local Admin user for script purposes
-        
-        $randPass = (-Join (((65..90) | % { [char]$_ }) + (0..9)  | Get-Random -Count 8)) 
-        $secRandPass = $randPass | ConvertTo-SecureString -AsPlainText -Force
-
-        NET USER serviceuser "$randpass" /ADD
-        NET LOCALGROUP "users" "serviceuser" /ADD
 
         # load the credential for said user
-        $serviceusercredential = [PSCredential]::new("serviceuser", $secRandPass)
+        $svcpass = ConvertTo-SecureString "HyperS3cretPassw0rd!" -AsPlainText -Force
+        $svccred = New-Object System.Management.Automation.PSCredential (($env:computername + "\ServiceUser"), $svcpass)
+
+        User ServiceUser
+        {
+            Ensure = "Present"
+            UserName = "ServiceUser"
+            Password = $svccred
+            PasswordChangeRequired = $false 
+        }
+
+        Group AddUserToLocalAdminGroup
+        {
+            GroupName='Administrators'   
+            Ensure= 'Present'             
+            MembersToInclude= ".\ServiceUser"
+        }
         
         cTentacleAgent ListeningTentacleWithCustomAccount
         {
@@ -137,10 +147,12 @@ Configuration Tentacle_Scenario_01_Install
             # Optional settings
             ListenPort = 10936;
             DefaultApplicationDirectory = "C:\Applications"
+            PublicHostNameConfiguration = "ComputerName"
             CommunicationMode = "Listen"
             TentacleHomeDirectory = "C:\Octopus\ListeningTentacleWithCustomAccountHome"
 
             TentacleServiceCredential = $serviceusercredential
+            DependsOn = "[user]ServiceUser"
         }
 
 
