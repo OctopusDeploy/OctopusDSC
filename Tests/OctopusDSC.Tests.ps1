@@ -22,3 +22,7 @@ Describe "PSScriptAnalyzer" {
         $results.length | Should Be 0
     }
 }
+
+Describe "Scenarios are valid" {
+    
+}

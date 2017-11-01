@@ -27,8 +27,6 @@ Configuration Tentacle_Scenario_03_Reinstall
             Environments = $Environments;
             Roles = $Roles;
 
-            TentacleDownloadUrl64 = $downloadUrl
-
             # Optional settings
             ListenPort = 10933;
             DefaultApplicationDirectory = "C:\Applications"
