@@ -148,6 +148,7 @@ Configuration Tentacle_Scenario_01_Install
             ListenPort = 10936;
             DefaultApplicationDirectory = "C:\Applications"
             PublicHostNameConfiguration = "ComputerName"
+            DisplayName = "ListeningTentacleWithCustomAccount"
             CommunicationMode = "Listen"
             TentacleHomeDirectory = "C:\Octopus\ListeningTentacleWithCustomAccountHome"
 
