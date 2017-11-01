@@ -9,6 +9,7 @@ Configuration Tentacle_Scenario_04_Upgrade
         LocalConfigurationManager
         {
             DebugMode = "ForceModuleImport"
+            ConfigurationMode = 'ApplyOnly'
         }
 
         cTentacleAgent OctopusTentacle

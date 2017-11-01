@@ -12,6 +12,7 @@ Configuration Server_Scenario_05_Reinstall
         LocalConfigurationManager
         {
             DebugMode = "ForceModuleImport"
+            ConfigurationMode = 'ApplyOnly'
         }
 
         cOctopusServer OctopusServer

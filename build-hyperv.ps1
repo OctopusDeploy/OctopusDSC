@@ -5,6 +5,12 @@ param(
 
 Start-Transcript .\vagrant-hyperv.log
 
+# remove psreadline as it interferes with the SMB password prompt
+if(gmo PSReadLine)
+{
+  rmo PSReadLine
+}
+
 if($offline)   # if you want to use offline, then you need a v3 and a v4 installer locally in the .\Tests folder (gitignored)
 {
   Write-Warning "Offline run requested, writing an offline.config file"

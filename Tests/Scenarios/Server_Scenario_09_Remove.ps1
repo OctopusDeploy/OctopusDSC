@@ -10,6 +10,7 @@ Configuration Server_Scenario_09_Remove
         LocalConfigurationManager
         {
             DebugMode = "ForceModuleImport"
+            ConfigurationMode = 'ApplyOnly'
         }
 
         cOctopusServer OctopusServer

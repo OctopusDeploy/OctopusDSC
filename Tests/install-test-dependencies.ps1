@@ -13,7 +13,7 @@ if (-not (Test-Path "C:\tools\ruby23")) {
 
   echo "##teamcity[blockOpened name='Install Ruby']"
 
-  choco install ruby --allow-empty-checksums --yes
+  choco install ruby --allow-empty-checksums --yes --version 2.3.3
   if ($LASTEXITCODE -ne 0) { exit 1 }
 
   refreshenv

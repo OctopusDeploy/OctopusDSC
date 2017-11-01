@@ -12,6 +12,7 @@ Configuration Server_Scenario_06_Upgrade
         LocalConfigurationManager
         {
             DebugMode = "ForceModuleImport"
+            ConfigurationMode = 'ApplyOnly'
         }
 
         cOctopusServer OctopusServer

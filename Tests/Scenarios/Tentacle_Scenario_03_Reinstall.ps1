@@ -9,6 +9,7 @@ Configuration Tentacle_Scenario_03_Reinstall
         LocalConfigurationManager
         {
             DebugMode = "ForceModuleImport"
+            ConfigurationMode = 'ApplyOnly'
         }
 
         cTentacleAgent OctopusTentacle

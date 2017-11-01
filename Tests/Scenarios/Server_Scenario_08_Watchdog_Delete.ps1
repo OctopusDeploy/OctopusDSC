@@ -7,6 +7,7 @@ Configuration Server_Scenario_08_Watchdog_Delete
         LocalConfigurationManager
         {
             DebugMode = "ForceModuleImport"
+            ConfigurationMode = 'ApplyOnly'
         }
 
         cOctopusServerWatchdog OctopusServerWatchdog

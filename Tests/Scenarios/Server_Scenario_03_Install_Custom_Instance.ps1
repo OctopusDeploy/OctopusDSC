@@ -10,6 +10,7 @@ Configuration Server_Scenario_03_Install_Custom_Instance
         LocalConfigurationManager
         {
             DebugMode = "ForceModuleImport"
+            ConfigurationMode = 'ApplyOnly'
         }
 
         cOctopusServer OctopusServer

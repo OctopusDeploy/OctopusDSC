@@ -7,6 +7,7 @@ Configuration Tentacle_Scenario_06_Watchdog_Delete
         LocalConfigurationManager
         {
             DebugMode = "ForceModuleImport"
+            ConfigurationMode = 'ApplyOnly'
         }
 
         cTentacleWatchdog TentacleWatchdog

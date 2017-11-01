@@ -9,6 +9,7 @@ Configuration Tentacle_Scenario_01_Install
         LocalConfigurationManager
         {
             DebugMode = "ForceModuleImport"
+            ConfigurationMode = 'ApplyOnly'
         }
 
         cTentacleAgent ListeningTentacle

@@ -9,6 +9,7 @@ Configuration Tentacle_Scenario_08_TentacleCommsPort
         LocalConfigurationManager
         {
             DebugMode = "ForceModuleImport"
+            ConfigurationMode = 'ApplyOnly'
         }
 
         cTentacleAgent OctopusTentacle

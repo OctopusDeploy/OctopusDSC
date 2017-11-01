@@ -16,6 +16,7 @@ Configuration Server_Scenario_10_Install4
         LocalConfigurationManager
         {
             DebugMode = "ForceModuleImport"
+            ConfigurationMode = 'ApplyOnly'
         }
 
         User OctoSquid

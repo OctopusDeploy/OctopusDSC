@@ -7,6 +7,7 @@ Configuration Tentacle_Scenario_05_Watchdog_Create
         LocalConfigurationManager
         {
             DebugMode = "ForceModuleImport"
+            ConfigurationMode = 'ApplyOnly'
         }
 
         cTentacleWatchdog TentacleWatchdog
