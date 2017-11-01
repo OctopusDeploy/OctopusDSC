@@ -32,8 +32,8 @@ Configuration Tentacle_Scenario_03_Reinstall
             # Optional settings
             ListenPort = 10933;
             DefaultApplicationDirectory = "C:\Applications"
-            #TentacleDownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.Tentacle.3.3.24.msi"
-            #TentacleDownloadUrl64 = "https://download.octopusdeploy.com/octopus/Octopus.Tentacle.3.3.24-x64.msi"
+            TentacleDownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.Tentacle.3.3.24.msi"
+            TentacleDownloadUrl64 = "https://download.octopusdeploy.com/octopus/Octopus.Tentacle.3.3.24-x64.msi"
             PublicHostNameConfiguration = "ComputerName"
             TentacleHomeDirectory = "C:\Octopus\OctopusTentacleHome"
         }
