@@ -119,16 +119,16 @@ Configuration Tentacle_Scenario_01_Install
             Ensure = "Present"
             UserName = "ServiceUser"
             Password = $svccred
-            PasswordChangeRequired = $false 
+            PasswordChangeRequired = $false
         }
 
         Group AddUserToLocalAdminGroup
         {
-            GroupName='Administrators'   
-            Ensure= 'Present'             
+            GroupName='Administrators'
+            Ensure= 'Present'
             MembersToInclude= ".\ServiceUser"
         }
-        
+
         cTentacleAgent ListeningTentacleWithCustomAccount
         {
             Ensure = "Present";
@@ -155,7 +155,5 @@ Configuration Tentacle_Scenario_01_Install
             TentacleServiceCredential = $serviceusercredential
             DependsOn = "[user]ServiceUser"
         }
-
-
     }
 }
