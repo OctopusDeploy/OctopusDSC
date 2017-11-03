@@ -156,7 +156,7 @@ describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], 
   it { should be_listening_tentacle }
   it { should be_in_environment('The-Env') }
   it { should have_role('Test-Tentacle') }
-  it { should have_display_name("ListeningTentacleWithCustomAccount")}
+  it { should have_display_name('ListeningTentacleWithCustomAccount')}
   it { should have_policy('Default Machine Policy') }
 end
 

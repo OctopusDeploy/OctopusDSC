@@ -55,12 +55,3 @@ if ($VagrantDestroyExitCode -ne 0) {
 
   exit $VagrantDestroyExitCode
 }
-
-# cleanup SMB shares (doesn't work on w2012)
-<#
-$path = Get-Item .\Tests\Scenarios | select -expand FullName
-$shares = Get-SMBShare | ? { $_.Path -eq $path}  
-$shares | %  {
-  Remove-SMBShare -Name $_.Name -verbose -force
-}
-#>

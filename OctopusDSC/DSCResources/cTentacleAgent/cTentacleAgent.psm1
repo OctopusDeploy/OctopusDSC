@@ -148,11 +148,6 @@ Function Get-ServiceUsername
     Get-CIMInstance -ClassName "win32_service" -Filter "displayname='$serviceName'" | Select-Object -expand StartName
 }
 
-Function Get-InstalledOctopusVersion
-{
-    
-}
-
 function Set-TargetResource
 {
     param (
@@ -665,7 +660,7 @@ function Get-PublicHostName
     return $publicHostName
 }
 
-function Get-TentacleDownloadUrl # can we validate the specified installer too? # should we?
+function Get-TentacleDownloadUrl
 {
     param (
         [string]$tentacleDownloadUrl,

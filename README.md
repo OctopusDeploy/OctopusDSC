@@ -32,20 +32,20 @@ The community has also submitted a few [other options](https://github.com/Octopu
 
 ## Development
 
-This project is setup to use [Vagrant](vagrant.io) to provide a dev/test environment. Once you've installed Vagrant, you can use the build scripts to spin up a local virtual machine and run the test scenarios (**NOTE:** The first time you run `vagrant up` it has to download the `octopusdeploy/dsc-test-server` box and this can take some time depending on your Internet speed, so be patient and go grab a coffee while it downloads).
+This project is setup to use [Vagrant](vagrant.io) to provide a dev/test environment. Once you've installed Vagrant, you can use the build scripts to spin up a local virtual machine and run the test scenarios (**NOTE:** The first time you run `vagrant up` in Virtualbox or Hyper-V it has to download the `octopusdeploy/dsc-test-server` box and this can take some time depending on your Internet speed, so be patient and go grab a coffee while it downloads).
 
 There are four options provided:
 
  - [build-aws.ps1](build-aws.ps1) 
  - [build-azure.ps1](build-azure.ps1)
- - [build-hyperv-ps1](build-hyperv-ps1) - windows virtualisation
+ - [build-hyperv-ps1](build-hyperv-ps1) - windows virtualisation (new)
  - [build-virtualbox.ps1](build-virtualbox.ps1) - cross-platform virtualisation
 
 On a build server, you most likely want to use [build-aws.ps1](build-aws.ps1) to spin up a virtual machine on AWS to run the tests.
 
-Configuration is handled by environment variables. The shell scripts will show a message letting you know what variables need to be set.
+Configuration is handled by environment variables. The shell scripts will show a message letting you know what variables need to be set. `The build-*` scripts also invoke [Pester](https://github.com/Pester/Pester) and [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer) tests, so you'll need those modules installed.
 
-To run tests locally, follow these steps
+To run just the scenarios locally, follow these steps:
 
 1. Install Vagrant from [vagrantup.com](http://vagrantup.com)
 2. Install VirtualBox from [virtualbox.org](http://virtualbox.org) or Hyper-V (`Install-WindowsFeature –Name Hyper-V -IncludeManagementTools -Restart`  )
@@ -55,7 +55,12 @@ To run tests locally, follow these steps
     - Run `vagrant plugin install vagrant-winrm`
     - Run `vagrant plugin install vagrant-winrm-syncedfolders`
     - Run `vagrant up -- provider virtualbox`. This will run all the scenarios under the [Tests](Tests) folder.
-5. If you want to test using AWS or Azure
+5. If you want to test locally using Hyper-V
+    - Run `vagrant plugin install vagrant-dsc`
+    - Run `vagrant plugin install vagrant-winrm`
+    - Run `vagrant plugin install vagrant-winrm-syncedfolders`
+    - Run `vagrant up -- provider hyperv`. This will run all the scenarios under the [Tests](Tests) folder.
+6. If you want to test using AWS
     - Run `vagrant plugin install vagrant-aws`
     - Run `vagrant plugin install vagrant-aws-winrm`
     - Set an environment variable `AWS_ACCESS_KEY_ID` to a valid value
@@ -63,7 +68,15 @@ To run tests locally, follow these steps
     - Set an environment variable `AWS_SUBNET_ID` to a valid subnet where you want the instance launched
     - Set an environment variable `AWS_SECURITY_GROUP_ID` to a valid security group you want to assign to the instance
     - Run `vagrant up --provider aws`. This will run all the scenarios under the [Tests](Tests) folder.
-6. Run `vagrant destroy -f` once you have finished to kill the virtual machine.
+7. If you want to test using Azure
+    - Run `vagrant plugin install vagrant-azure`
+    - Set an environment variable `AZURE_VM_PASSWORD` to a valid value
+    - Set an environment variable `AZURE_SUBSCRIPTION_ID` to a valid value
+    - Set an environment variable `AZURE_TENANT_ID` to a valid value
+    - Set an environment variable `AZURE_CLIENT_ID` to a valid value
+    - Srt an environment variable `AZURE_CLIENT_SECRET` to a valid value
+    - Run `vagrant up --provider azure`. This will run all the scenarios under the [Tests](Tests) folder.
+8. Run `vagrant destroy -f` once you have finished to kill the virtual machine.
 
 Tests are written in [ServerSpec](serverspec.org), which is an infrastructure oriented layer over [RSpec](rspec.info).
 

@@ -37,7 +37,6 @@ else {
   Remove-item ".\tests\offline.config" -verbose -ErrorAction SilentlyContinue
 }
 
-
 . Tests/powershell-helpers.ps1
 
 if (-not (Test-AppExists "vagrant")) {
@@ -55,7 +54,6 @@ write-host "VirtualBox installed - good."
 Test-PluginInstalled "vagrant-dsc"
 Test-PluginInstalled "vagrant-winrm"
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
-
 
 echo "Running Pester Tests"
 Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -EnableExit

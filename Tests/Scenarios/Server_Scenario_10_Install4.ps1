@@ -1,4 +1,10 @@
+<#
+    Install Octopus Server v4 pre-release
 
+    When v4 is released and becomes "latest", Server_Scenario_01_Install.ps1 will start installing v4 by default
+    At that point, this test becomes redundant. 
+    Server_Scenario_05_Reinstall.ps1 will install v3
+#>
 
 Configuration Server_Scenario_10_Install4
 {

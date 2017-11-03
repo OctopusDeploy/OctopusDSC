@@ -1,5 +1,3 @@
-
-
 $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
 $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
 

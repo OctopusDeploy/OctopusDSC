@@ -10,8 +10,6 @@ try
     $prefix = [guid]::NewGuid().Guid -replace '-'
 
     $module = Import-Module $modulePath -Prefix $prefix -PassThru -ErrorAction Stop
-    #$targetFile = (Split-Path $modulePath -Leaf).replace(".psm1", ".ps1")
-    #copy-item $modulePath $env:tmp\$targetfile -verbose
 
     InModuleScope $module.Name {
 
@@ -22,9 +20,6 @@ try
         }
 
         Describe 'cOctopusServer' {
-
-
-
             BeforeEach {
 
                 $pass = ConvertTo-SecureString "Password" -AsPlainText -Force

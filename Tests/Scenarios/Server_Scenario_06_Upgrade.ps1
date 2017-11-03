@@ -1,5 +1,3 @@
-
-
 Configuration Server_Scenario_06_Upgrade
 {
     Import-DscResource -ModuleName OctopusDSC

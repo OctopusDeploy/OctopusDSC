@@ -255,7 +255,7 @@ function Set-TargetResource
     [ValidateNotNullOrEmpty()]
     [string]$SqlDbConnectionString,
     [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()] # TODO maybe remove?
+    [ValidateNotNullOrEmpty()]
     [PSCredential]$OctopusAdminCredential,
     [bool]$AllowUpgradeCheck = $true,
     [bool]$AllowCollectionOfAnonymousUsageStatistics = $true,

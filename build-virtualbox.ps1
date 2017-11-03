@@ -31,7 +31,6 @@ else {
   Remove-item ".\tests\offline.config" -verbose -ErrorAction SilentlyContinue
 }
 
-
 . Tests/powershell-helpers.ps1
 
 if (-not (Test-AppExists "vagrant")) {

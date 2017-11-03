@@ -108,9 +108,6 @@ Configuration Tentacle_Scenario_01_Install
             OctopusServerThumbprint = $ServerThumbprint
         }
 
-        # create a custom user. 2012 requires some ADSI
-        # Create new local Admin user for script purposes
-
         # load the credential for said user
         $svcpass = ConvertTo-SecureString "HyperS3cretPassw0rd!" -AsPlainText -Force
         $svccred = New-Object System.Management.Automation.PSCredential (($env:computername + "\ServiceUser"), $svcpass)
