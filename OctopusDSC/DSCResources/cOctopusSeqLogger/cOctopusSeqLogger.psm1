@@ -170,6 +170,10 @@ function Set-TargetResourceInternal {
     [HashTable]$Properties
   )
 
+  if ((($null -eq $SeqServer) -or ("" -eq $SeqServer)) -and ($Ensure -eq 'Present')) {
+    throw "Property 'SeqServer' should be supplied if 'Ensure' is set to 'Present'"
+  }
+
   Get-TargetResource -InstanceType $InstanceType `
                      -Ensure $Ensure `
                      -SeqServer $SeqServer `
@@ -190,10 +194,16 @@ function Set-TargetResourceInternal {
 
   if ($Ensure -eq "Absent") {
     if (Test-Path $dllPath) {
-      # todo: do we need to stop the octopus service here?
-      Remove-Item $dllPath -Force
+      try {
+        Remove-Item $dllPath -Force
+      }
+      catch {
+        Write-Verbose "We tried to removing the seq dll from $dllPath"
+        Write-Verbose "But, we couldn't actually remove it, as its locked by Octopus.Server.exe / Tentacle.exe"
+      }
     }
     if (Test-Path $nlogConfigFile) {
+      Write-Verbose "Removing settings from $nlogConfigFile"
       $nlogConfig = Get-NLogConfig $nlogConfigFile
 
       $nlogExtensionElement = ($nlogConfig.nlog.extensions.add | where-object { $_.assembly -eq "Seq.Client.NLog" })
@@ -208,12 +218,14 @@ function Set-TargetResourceInternal {
       if ($null -ne $nlogRuleElement) {
         $nlogConfig.nlog.rules.RemoveChild($nlogRuleElement)
       }
+      Write-Verbose "Saving updated config file $nlogConfigFile"
       Save-NlogConfig $nlogConfig $nlogConfigFile
     }
   } else {
      if (-not (Test-Path $dllPath)) {
       Request-SeqClientNlogDll $dllPath
     }
+    Write-Verbose "Modifying config file $nlogConfigFile"
     $nlogConfig = Get-NLogConfig $nlogConfigFile
 
     #remove then re-add "<add assembly="Seq.Client.NLog"/>" to //nlog/extensions
@@ -265,6 +277,7 @@ function Set-TargetResourceInternal {
     $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "writeTo" "seq"))
     $nlogConfig.nlog.rules.AppendChild($newChild)
 
+    Write-Verbose "Saving config file $nlogConfigFile"
     Save-NlogConfig $nlogConfig $nlogConfigFile
   }
 }
@@ -351,6 +364,8 @@ function ConvertTo-HashTable {
 }
 
 function Request-SeqClientNlogDll ($dllPath) {
+  Write-Verbose "Downloading Seq.Client.NLog.dll version 2.3.25 from nuget to $dllPath"
+
   $ProgressPreference = "SilentlyContinue"
   $folder = [System.IO.Path]::GetTempPath()
   Invoke-WebRequest https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -outfile "$folder\nuget.exe"
@@ -382,7 +397,7 @@ function Test-HashTable($currentValue, $requestedValue) {
 }
 
 function Test-PSCredential($currentValue, $requestedValue) {
-  if($null -ne $currentValue) {
+  if ($null -ne $currentValue) {
     $currentUsername = $currentValue.GetNetworkCredential().UserName
     $currentPassword = $currentValue.GetNetworkCredential().Password
   } else {
@@ -390,16 +405,13 @@ function Test-PSCredential($currentValue, $requestedValue) {
     $currentPassword = ""
   }
 
-  if($null -ne $requestedValue) {
+  if ($null -ne $requestedValue) {
     $requestedUsername = $requestedValue.GetNetworkCredential().UserName
     $requestedPassword = $requestedValue.GetNetworkCredential().Password
   } else {
     $requestedUsername = ""
     $requestedPassword = ""
   }
-
-  $requestedUsername = $requestedValue.GetNetworkCredential().UserName
-  $requestedPassword = $requestedValue.GetNetworkCredential().Password
 
   if ($currentPassword -ne $requestedPassword -or $currentUsername -ne $requestedUserName) {
     Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '********' mismatched the specified value '********'"
