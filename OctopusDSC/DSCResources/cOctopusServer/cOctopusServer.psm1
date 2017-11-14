@@ -706,7 +706,7 @@ function Install-OctopusDeploy
     [bool]$allowUpgradeCheck = $true,
     [bool]$allowCollectionOfAnonymousUsageStatistics = $true,
     [ValidateSet("UsernamePassword", "Domain", "Ignore")]
-    [string]$legacyWebAuthenticationMode = 'Ignore',
+    [string]$legacyWebAuthenticationMode = 'Ignore', 
     [bool]$forceSSL = $false,
     [int]$listenPort = 10943,
     [bool]$autoLoginEnabled = $false,
@@ -724,6 +724,9 @@ function Install-OctopusDeploy
 
   $extractedUserName = $octopusAdminCredential.GetNetworkCredential().UserName
   $extractedPassword = $octopusAdminCredential.GetNetworkCredential().Password
+
+  # check if we're upgrading an existing instance
+  $isUpgrade = (Test-Path -LiteralPath $OctopusServerExePath)
 
   Write-Log "Setting up new instance of Octopus Deploy with name '$name'"
   Install-MSI $downloadUrl
@@ -768,13 +771,22 @@ function Install-OctopusDeploy
 
   if(Test-OctopusVersionRequiresDatabaseBeforeConfigure)
   {
-    Write-Log "Creating Octopus Deploy database for v4"
+    if($isUpgrade -eq $true)
+    {
+      Write-Log "Upgrading Octopus Deploy database for v4"
+      $action = '--upgrade'
+    }
+    else 
+    {
+      Write-Log "Creating Octopus Deploy database for v4"
+      $action = '--create'
+    }
     
     $dbargs =@(
       'database',
       '--instance', $name,
       '--connectionstring', $sqlDbConnectionString,
-      '--create',
+      $action,
       '--grant', $databaseusername
     )
 
