@@ -16,6 +16,8 @@ Server authentication can be configured to use:
 * Username/passwords stored in Octopus with [cOctopusServerUsernamePasswordAuthentication](README-cOctopusServerUsernamePasswordAuthentication.md)
 * Read-only guest account login with [cOctopusServerGuestAuthentication](README-cOctopusServerGuestAuthentication.md)
 
+Version 3.0 of OctopusDSC supports Octopus Deploy 4.x with backwards compatibility to 3.x
+
 ## Installation
 
 ### [PowerShellGet](https://technet.microsoft.com/en-us/library/dn807169.aspx) / PowerShell 5 (recommended)
