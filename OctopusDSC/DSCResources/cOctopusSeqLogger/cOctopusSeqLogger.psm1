@@ -18,7 +18,7 @@ function Get-TargetResource {
     [Microsoft.Management.Infrastructure.CimInstance[]]$Properties
   )
 
-  $propertiesAsHashTable = ToHashTable $properties
+  $propertiesAsHashTable = ConvertTo-HashTable $properties
   return Get-TargetResourceInternal -InstanceType $InstanceType `
                                     -Ensure $Ensure `
                                     -SeqServer $SeqServer `
@@ -41,7 +41,7 @@ function Set-TargetResource {
     [PSCredential]$SeqApiKey,
     [Microsoft.Management.Infrastructure.CimInstance[]]$Properties
   )
-  $propertiesAsHashTable = ToHashTable $properties
+  $propertiesAsHashTable = ConvertTo-HashTable $properties
   Set-TargetResourceInternal -InstanceType $InstanceType `
                              -Ensure $Ensure `
                              -SeqServer $SeqServer `
@@ -66,7 +66,7 @@ function Test-TargetResource {
     [Microsoft.Management.Infrastructure.CimInstance[]]$Properties
   )
 
-  $propertiesAsHashTable = ToHashTable $properties
+  $propertiesAsHashTable = ConvertTo-HashTable $properties
   return Test-TargetResourceInternal -InstanceType $InstanceType `
                                      -Ensure $Ensure `
                                      -SeqServer $SeqServer `
@@ -155,14 +155,6 @@ function Get-TargetResourceInternal {
   return $result
 }
 
-function Get-NLogConfig ([string] $fileName) {
-  return [xml] (Get-Content $fileName)
-}
-
-function Test-NLogDllExists ([string] $fileName) {
-  return Test-Path $fileName
-}
-
 function Set-TargetResourceInternal {
   param (
     [Parameter(Mandatory)]
@@ -230,9 +222,7 @@ function Set-TargetResourceInternal {
       $nlogConfig.nlog.extensions.RemoveChild($nlogExtensionElement)
     }
     $newChild = $nlogConfig.CreateElement("add", $nlogConfig.DocumentElement.NamespaceURI)
-    $attribute = $nlogConfig.CreateAttribute("assembly")
-    $attribute.Value = "Seq.Client.NLog"
-    $newChild.Attributes.Append($attribute)
+    $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "assembly" "Seq.Client.NLog"))
     $nlogConfig.nlog.extensions.AppendChild($newChild)
 
     #remove then re-add "
@@ -245,30 +235,20 @@ function Set-TargetResourceInternal {
       $nlogConfig.nlog.targets.RemoveChild($nlogTargetElement)
     }
     $newChild = $nlogConfig.CreateElement("target", $nlogConfig.DocumentElement.NamespaceURI)
-    $attribute = $nlogConfig.CreateAttribute("name")
-    $attribute.Value = "seq"
-    $newChild.Attributes.Append($attribute)
+    $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "name" "seq"))
     $attribute = $nlogConfig.CreateAttribute("xsi:type", "http://www.w3.org/2001/XMLSchema-instance")
     $attribute.Value = "Seq"
     $newChild.Attributes.Append($attribute)
-    $attribute = $nlogConfig.CreateAttribute("serverUrl")
-    $attribute.Value = $SeqServer
-    $newChild.Attributes.Append($attribute)
+    $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "serverUrl" $SeqServer))
     if ($null -ne $SeqApiKey) {
-      $attribute = $nlogConfig.CreateAttribute("apiKey")
-      $attribute.Value = $SeqApiKey.GetNetworkCredential().Password
-      $newChild.Attributes.Append($attribute)
+      $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "apiKey" $SeqApiKey.GetNetworkCredential().Password))
     }
     if ($null -ne $properties) {
       $sortedProperties = ($Properties.GetEnumerator() | Sort-Object -Property Key)
       foreach($property in $sortedProperties) {
         $propertyChild = $nlogConfig.CreateElement("property", $nlogConfig.DocumentElement.NamespaceURI)
-        $attribute = $nlogConfig.CreateAttribute("name")
-        $attribute.Value = $property.Key
-        $propertyChild.Attributes.Append($attribute)
-        $attribute = $nlogConfig.CreateAttribute("value")
-        $attribute.Value = $property.Value
-        $propertyChild.Attributes.Append($attribute)
+        $propertyChild.Attributes.Append((New-XmlAttribute $nlogConfig "name" $property.Key))
+        $propertyChild.Attributes.Append((New-XmlAttribute $nlogConfig "value" $property.value))
         $newChild.AppendChild($propertyChild)
       }
     }
@@ -280,45 +260,13 @@ function Set-TargetResourceInternal {
       $nlogConfig.nlog.rules.RemoveChild($nlogRuleElement)
     }
     $newChild = $nlogConfig.CreateElement("logger", $nlogConfig.DocumentElement.NamespaceURI)
-    $attribute = $nlogConfig.CreateAttribute("name")
-    $attribute.Value = "*"
-    $newChild.Attributes.Append($attribute)
-    $attribute = $nlogConfig.CreateAttribute("minlevel")
-    $attribute.Value = "Info"
-    $newChild.Attributes.Append($attribute)
-    $attribute = $nlogConfig.CreateAttribute("writeTo")
-    $attribute.Value = "seq"
-    $newChild.Attributes.Append($attribute)
+    $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "name" "*"))
+    $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "minlevel" "Info"))
+    $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "writeTo" "seq"))
     $nlogConfig.nlog.rules.AppendChild($newChild)
 
     Save-NlogConfig $nlogConfig $nlogConfigFile
   }
-}
-
-function ToHashTable {
-  [CmdletBinding()]
-  [OutputType([HashTable])]
-  param
-  (
-    [Microsoft.Management.Infrastructure.CimInstance[]] $tokens
-  )
-  $HashTable = @{}
-  foreach($token in $tokens) {
-    $HashTable.Add($token.Key, $token.Value)
-  }
-  return $HashTable
-}
-
-function Request-SeqClientNlogDll ($dllPath) {
-  $ProgressPreference = "SilentlyContinue"
-  $folder = [System.IO.Path]::GetTempPath()
-  Invoke-WebRequest https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -outfile "$folder\nuget.exe"
-  & "$folder\nuget.exe" install Seq.Client.NLog -outputdirectory $folder -version 2.3.24
-  Copy-Item "$folder\Seq.Client.NLog.2.3.24\lib\net40\Seq.Client.NLog.dll" $dllPath
-}
-
-function Save-NlogConfig ($nlogConfig, $filename) {
-  $nlogConfig.Save($filename)
 }
 
 function Test-TargetResourceInternal {
@@ -351,47 +299,13 @@ function Test-TargetResourceInternal {
     $requestedValue = $params.Item($key)
 
     if ($currentValue -is [PSCredential]) {
-      if($null -ne $currentValue) {
-        $currentUsername = $currentValue.GetNetworkCredential().UserName
-        $currentPassword = $currentValue.GetNetworkCredential().Password
-      } else {
-        $currentUserName = ""
-        $currentPassword = ""
-      }
-
-      if($null -ne $requestedValue) {
-        $requestedUsername = $requestedValue.GetNetworkCredential().UserName
-        $requestedPassword = $requestedValue.GetNetworkCredential().Password
-      } else {
-        $requestedUsername = ""
-        $requestedPassword = ""
-      }
-
-      $requestedUsername = $requestedValue.GetNetworkCredential().UserName
-      $requestedPassword = $requestedValue.GetNetworkCredential().Password
-
-      if ($currentPassword -ne $requestedPassword -or $currentUsername -ne $requestedUserName) {
-        Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '********' mismatched the specified value '********'"
+      if (-not (Test-PSCredential $currentValue $requestedValue)) {
         $currentConfigurationMatchesRequestedConfiguration = $false
-      }
-      else {
-        Write-Verbose "Configuration parameter '$key' matches the requested value '********'"
       }
     }
     elseif ($currentValue -is [HashTable]) {
-      if ($currentValue.Count -ne $requestedValue.Count) {
-        Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with $($currentValue.count) values mismatched the specified $($requestedValue.Count) values"
+      if (-not (Test-HashTable $currentValue $requestedValue)) {
         $currentConfigurationMatchesRequestedConfiguration = $false
-      } else {
-        foreach($value in $currentValue.Keys) {
-          $curr = $currentValue[$value]
-          $req = $requestedValue[$value]
-          if ($curr -ne $req)
-          {
-            Write-Verbose "(FOUND MISMATCH) Configuration parameter `"$key['$value']`" with value '$curr' mismatched the specified value '$req'"
-            $currentConfigurationMatchesRequestedConfiguration = $false
-          }
-        }
       }
     }
     elseif ($currentValue -ne $requestedValue)
@@ -406,6 +320,95 @@ function Test-TargetResourceInternal {
   }
 
   return $currentConfigurationMatchesRequestedConfiguration
+}
+
+function Get-NLogConfig ([string] $fileName) {
+  return [xml] (Get-Content $fileName)
+}
+
+function Test-NLogDllExists ([string] $fileName) {
+  return Test-Path $fileName
+}
+
+function New-XmlAttribute($xml, $name, $value) {
+  $attribute = $xml.CreateAttribute($name)
+  $attribute.Value = $value
+  return $attribute
+}
+
+function ConvertTo-HashTable {
+  [CmdletBinding()]
+  [OutputType([HashTable])]
+  param
+  (
+    [Microsoft.Management.Infrastructure.CimInstance[]] $tokens
+  )
+  $HashTable = @{}
+  foreach($token in $tokens) {
+    $HashTable.Add($token.Key, $token.Value)
+  }
+  return $HashTable
+}
+
+function Request-SeqClientNlogDll ($dllPath) {
+  $ProgressPreference = "SilentlyContinue"
+  $folder = [System.IO.Path]::GetTempPath()
+  Invoke-WebRequest https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -outfile "$folder\nuget.exe"
+  & "$folder\nuget.exe" install Seq.Client.NLog -outputdirectory $folder -version 2.3.24
+  Copy-Item "$folder\Seq.Client.NLog.2.3.24\lib\net40\Seq.Client.NLog.dll" $dllPath
+}
+
+function Save-NlogConfig ($nlogConfig, $filename) {
+  $nlogConfig.Save($filename)
+}
+
+function Test-HashTable($currentValue, $requestedValue) {
+  $currentConfigurationMatchesRequestedConfiguration = $true
+  if ($currentValue.Count -ne $requestedValue.Count) {
+    Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with $($currentValue.count) values mismatched the specified $($requestedValue.Count) values"
+    $currentConfigurationMatchesRequestedConfiguration = $false
+  } else {
+    foreach($value in $currentValue.Keys) {
+      $curr = $currentValue[$value]
+      $req = $requestedValue[$value]
+      if ($curr -ne $req)
+      {
+        Write-Verbose "(FOUND MISMATCH) Configuration parameter `"$key['$value']`" with value '$curr' mismatched the specified value '$req'"
+        $currentConfigurationMatchesRequestedConfiguration = $false
+      }
+    }
+  }
+  return $currentConfigurationMatchesRequestedConfiguration
+}
+
+function Test-PSCredential($currentValue, $requestedValue) {
+  if($null -ne $currentValue) {
+    $currentUsername = $currentValue.GetNetworkCredential().UserName
+    $currentPassword = $currentValue.GetNetworkCredential().Password
+  } else {
+    $currentUserName = ""
+    $currentPassword = ""
+  }
+
+  if($null -ne $requestedValue) {
+    $requestedUsername = $requestedValue.GetNetworkCredential().UserName
+    $requestedPassword = $requestedValue.GetNetworkCredential().Password
+  } else {
+    $requestedUsername = ""
+    $requestedPassword = ""
+  }
+
+  $requestedUsername = $requestedValue.GetNetworkCredential().UserName
+  $requestedPassword = $requestedValue.GetNetworkCredential().Password
+
+  if ($currentPassword -ne $requestedPassword -or $currentUsername -ne $requestedUserName) {
+    Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '********' mismatched the specified value '********'"
+    return $false
+  }
+  else {
+    Write-Verbose "Configuration parameter '$key' matches the requested value '********'"
+  }
+  return $true
 }
 
 function Get-OctopusDSCParameter($parameters) {
