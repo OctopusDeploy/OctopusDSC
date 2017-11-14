@@ -66,7 +66,6 @@ try
                     $response['Enabled'] = $true
                     $response['Interval'] = 5
                     $response['Instances'] = "*"
-                    write-host @desiredConfiguration
                     Test-TargetResource @desiredConfiguration | Should Be $true
                 }
 
