@@ -226,7 +226,7 @@ try
                     Test-TargetResourceInternal @desiredConfiguration | Should Be $false
                 }
 
-               It 'Returns false when its currently disabled' {
+               It 'Returns false when its currently disabled and installation requested' {
                     $desiredPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
                     $desiredApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $desiredPassword)
 
@@ -236,14 +236,30 @@ try
                     $desiredConfiguration['SeqApiKey'] = $desiredApiKey
                     $desiredConfiguration['Properties'] = @{ Application = "Octopus"; Server = "MyServer" }
 
-                    $actualPassword = ConvertTo-SecureString "abcd1234" -AsPlainText -Force
-                    $actualApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $actualPassword)
-
                     $response['InstanceType'] = 'OctopusServer'
                     $response['Ensure'] = 'Absent'
                     $response['SeqServer'] = $null
                     $response['SeqApiKey'] = $null
                     $response['Properties'] = @{ }
+
+                    Test-TargetResourceInternal @desiredConfiguration | Should Be $false
+                }
+
+               It 'Returns false when its currently enabled and removal requested' {
+                    $desiredConfiguration['InstanceType'] = 'OctopusServer'
+                    $desiredConfiguration['Ensure'] = 'Absent'
+                    $desiredConfiguration['SeqServer'] = $null
+                    $desiredConfiguration['SeqApiKey'] = $null
+                    $desiredConfiguration['Properties'] = @{ }
+
+                    $actualPassword = ConvertTo-SecureString "abcd1234" -AsPlainText -Force
+                    $actualApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $actualPassword)
+
+                    $response['InstanceType'] = 'OctopusServer'
+                    $response['Ensure'] = 'Present'
+                    $response['SeqServer'] = 'https://seq.example.com'
+                    $response['SeqApiKey'] = $actualApiKey
+                    $response['Properties'] = @{ Application = "Octopus"; Server = "MyServer" }
 
                     Test-TargetResourceInternal @desiredConfiguration | Should Be $false
                 }
@@ -256,7 +272,7 @@ try
 
             Context 'Set-TargetResource' {
                 It 'Calls Get-TargetResource (and therefore inherits its checks)' {
-                    $response = @{ InstanceType="OctopusServer"; Ensure='Present' }
+                    $response = @{ InstanceType="OctopusServer"; Ensure='Present'; SeqServer = 'https://seq.example.com' }
                     Mock Get-TargetResourceInternal { return $response }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Get-NLogConfig { return  [xml] (Get-Content $sampleConfigPath\octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml) }
@@ -329,7 +345,7 @@ try
                 It 'Add the settings to the nlog config file if ensure is set to present with an api key' {
                     #octopus is installed
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
-                    # the nlog dll is NOT installed
+                    # the nlog dll is installed
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
                     Mock Get-NLogConfig { return  [xml] (Get-Content $sampleConfigPath\octopus.server.exe.nlog-when-not-configured.xml) }
                     $expected = [xml](Get-Content $sampleConfigPath\octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml)
@@ -346,6 +362,17 @@ try
                                        -Properties @{ Application = "Octopus"; Server="MyServer" }
 
                     Assert-MockCalled Save-NlogConfig
+                }
+
+                It 'Throws if ensure is set to present and SeqServer is not supplied' {
+                    #octopus is installed
+                    Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
+                    # the nlog dll is installed
+                    Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
+                    Mock Save-NlogConfig
+
+                    #call the internal one, as we cant figure out how to mock the ciminstance
+                    { Set-TargetResourceInternal -InstanceType 'OctopusServer' -Ensure 'Present' } | Should Throw "Property 'SeqServer' should be supplied if 'Ensure' is set to 'Present'"
                 }
             }
         }
