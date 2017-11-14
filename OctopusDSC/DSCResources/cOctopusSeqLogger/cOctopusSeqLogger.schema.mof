@@ -1,0 +1,9 @@
+[ClassVersion("1.0.0"), FriendlyName("cOctopusSeqLogger")]
+class cOctopusSeqLogger : OMI_BaseResource
+{
+  [Key, ValueMap{"OctopusServer", "Tentacle"},Values{"OctopusServer", "Tentacle"}] string InstanceType;
+  [Required, ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
+  [Required] string SeqServer;
+  [Write, EmbeddedInstance("MSFT_Credential")] string SeqApiKey;
+  [Write, EmbeddedInstance("MSFT_KeyValuePair")] string Properties[]
+};
