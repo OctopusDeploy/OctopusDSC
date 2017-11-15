@@ -238,8 +238,8 @@ function Set-TargetResourceInternal {
     $nlogConfig.nlog.extensions.AppendChild($newChild)
 
     #remove then re-add "
-    #  <target name="seq" xsi:type="Seq" serverUrl="https://seq.octopushq.com" apiKey="wGdZV8CUL92KsGqZNVDX">
-    #    <property name="tentacle-army-id" value="$tentacleArmyId" />
+    #  <target name="seq" xsi:type="Seq" serverUrl="https://seq.example.com" apiKey="my-magic-api-key">
+    #    <property name="Application" value="Octopus" />
     #  </target>
     #to //nlog/targets"
     $nlogTargetElement = ($nlogConfig.nlog.targets.target | where-object {$_.name -eq "seq" -and $_.type -eq "Seq"})
