@@ -13,6 +13,12 @@ Configuration Server_Scenario_02_Remove
             ConfigurationMode = 'ApplyOnly'
         }
 
+        cOctopusSeqLogger "Disable logging to seq"
+        {
+            InstanceType = 'OctopusServer'
+            Ensure = 'Absent'
+        }
+
         cOctopusServer OctopusServer
         {
             Ensure = "Absent"

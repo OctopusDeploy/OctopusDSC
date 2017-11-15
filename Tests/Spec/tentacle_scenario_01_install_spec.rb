@@ -170,8 +170,21 @@ describe file('C:\Octopus\ListeningTentacleWithCustomAccountHome\ListeningTentac
   its(:content) { should match /Tentacle\.Communication\.TrustedOctopusServers.*#{ENV['OctopusServerThumbprint']}/}
 end
 
-### DSC success
+#seq logging
+describe file('C:/Program Files/Octopus Deploy/Tentacle/Seq.Client.NLog.dll') do
+  it { should be_file }
+end
 
+describe file('C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe.nlog') do
+  it { should be_file }
+  its(:content) { should match /<add assembly="Seq.Client.NLog" \/>/ }
+  its(:content) { should match /<logger name="\*" minlevel="Info" writeTo="seq" \/>/ }
+  its(:content) { should match /<target name="seq" xsi:type="Seq" serverUrl="http:\/\/localhost\/seq" apiKey="MyMagicSeqApiKey">/ }
+  its(:content) { should match /<property name="Application" value="Octopus" \/>/ }
+  its(:content) { should match /<property name="Server" value="MyServer" \/>/ }
+end
+
+### DSC success
 describe command('$ProgressPreference = "SilentlyContinue"; try { Get-DSCConfiguration -ErrorAction Stop; write-output "Get-DSCConfiguration succeeded"; $true } catch { write-output "Get-DSCConfiguration failed"; write-output $_; $false }') do
   its(:exit_status) { should eq 0 }
   its(:stdout) { should match /Get-DSCConfiguration succeeded/ }
