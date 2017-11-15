@@ -73,7 +73,7 @@ CmdletsToExport = @()
 AliasesToExport = @()
 
 # DSC resources to export from this module
-DscResourcesToExport = @('cOctopusServer', 'cOctopusServerActiveDirectoryAuthentication', 'cOctopusServerAzureADAuthentication', 'cOctopusServerGoogleAppsAuthentication', 'cOctopusServerUsernamePasswordAuthentication', 'cTentacleAgent', 'cOctopusSeqLogger')
+DscResourcesToExport = @('cOctopusSeqLogger', 'cOctopusServer', 'cOctopusServerActiveDirectoryAuthentication', 'cOctopusServerAzureADAuthentication', 'cOctopusServerGoogleAppsAuthentication', 'cOctopusServerGuestAuthentication', 'cOctopusServerOktaAuthentication', 'cOctopusServerUsernamePasswordAuthentication', 'cOctopusServerWatchdog', 'cTentacleAgent', 'cTentacleWatchdog')
 
 # List of all modules packaged with this module
 # ModuleList = @()
