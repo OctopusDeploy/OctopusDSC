@@ -134,7 +134,8 @@ function Remove-Environment {
   $credentials.Password = $OctopusCredentials.GetNetworkCredential().Password
   $repository.Users.SignIn($credentials)
 
-  $repository.Environments.Delete($EnvironmentName)
+  $environment = $repository.Environments.FindByName($EnvironmentName)
+  $repository.Environments.Delete($environment)
 }
 
 function New-Environment {
