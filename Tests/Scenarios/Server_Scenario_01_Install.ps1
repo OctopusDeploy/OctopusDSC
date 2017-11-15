@@ -1,6 +1,9 @@
 $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
 $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
 
+$seqPlainTextApiKey = ConvertTo-SecureString "MyMagicSeqApiKey" -AsPlainText -Force
+$seqApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $seqPlainTextApiKey)
+
 Configuration Server_Scenario_01_Install
 {
     Import-DscResource -ModuleName OctopusDSC
@@ -35,6 +38,15 @@ Configuration Server_Scenario_01_Install
             AllowCollectionOfAnonymousUsageStatistics = $false
 
             HomeDirectory = "C:\ChezOctopus"
+        }
+
+        cOctopusSeqLogger "Enable logging to seq"
+        {
+            InstanceType = "OctopusServer"
+            Ensure = "Present"
+            SeqServer = "http://localhost/seq"
+            SeqApiKey = $seqApiKey
+            Properties = @{ Application = "Octopus"; Server = "MyServer" }
         }
 
         cOctopusServerUsernamePasswordAuthentication "Enable Username/Password Auth"

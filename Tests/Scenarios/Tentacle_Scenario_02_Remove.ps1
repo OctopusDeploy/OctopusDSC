@@ -33,6 +33,12 @@ Configuration Tentacle_Scenario_02_Remove
             TentacleHomeDirectory = "C:\Octopus\ListeningTentacleHome"
         }
 
+        cOctopusSeqLogger "Disable logging to seq"
+        {
+            InstanceType = 'Tentacle'
+            Ensure = 'Absent'
+        }
+
         cTentacleAgent PollingTentacle
         {
             Ensure = "Absent";

@@ -1,3 +1,6 @@
+$seqPlainTextApiKey = ConvertTo-SecureString "MyMagicSeqApiKey" -AsPlainText -Force
+$seqApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $seqPlainTextApiKey)
+
 Configuration Tentacle_Scenario_01_Install
 {
     param ($OctopusServerUrl, $ApiKey, $Environments, $Roles, $ServerThumbprint)
@@ -39,6 +42,15 @@ Configuration Tentacle_Scenario_01_Install
             TenantTags = "Hosting/Cloud"
 
             Policy = "Test Policy"
+        }
+
+        cOctopusSeqLogger "Enable logging to seq"
+        {
+            InstanceType = "Tentacle"
+            Ensure = "Present"
+            SeqServer = "http://localhost/seq"
+            SeqApiKey = $seqApiKey
+            Properties = @{ Application = "Octopus"; Server = "MyServer" }
         }
 
         cTentacleAgent PollingTentacle
