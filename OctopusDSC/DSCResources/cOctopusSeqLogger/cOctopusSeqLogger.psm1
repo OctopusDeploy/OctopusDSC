@@ -195,7 +195,7 @@ function Set-TargetResourceInternal {
   if ($Ensure -eq "Absent") {
     if (Test-Path $dllPath) {
       try {
-        Remove-Item $dllPath -Force
+        Remove-Item $dllPath -Force -ErrorAction SilentlyContinue
       }
       catch {
         Write-Verbose "We tried to removing the seq dll from $dllPath"
