@@ -63,6 +63,43 @@ Configuration Server_Scenario_01_Install
             EnvironmentName = "Production"
         }
 
+        Script "Create Api Key and set environment variables for tests"
+        {
+            SetScript =
+            {
+                Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Newtonsoft.Json.dll"
+                Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Octopus.Client.dll"
+
+                #connect
+                $endpoint = new-object Octopus.Client.OctopusServerEndpoint "http://localhost:81"
+                $repository = new-object Octopus.Client.OctopusRepository $endpoint
+
+                #sign in
+                $credentials = New-Object Octopus.Client.Model.LoginCommand
+                $credentials.Username = "OctoAdmin"
+                $credentials.Password = "SuperS3cretPassw0rd!"
+                $repository.Users.SignIn($credentials)
+
+                #create the api key
+                $user = $repository.Users.GetCurrent()
+                $createApiKeyResult = $repository.Users.CreateApiKey($user, "Octopus DSC Testing")
+
+                #save it to enviornment variables for tests to use
+                [environment]::SetEnvironmentVariable("OctopusServerUrl", "http://localhost:81", "User")
+                [environment]::SetEnvironmentVariable("OctopusServerUrl", "http://localhost:81", "Machine")
+                [environment]::SetEnvironmentVariable("OctopusApiKey", $createApiKeyResult.ApiKey, "User")
+                [environment]::SetEnvironmentVariable("OctopusApiKey", $createApiKeyResult.ApiKey, "Machine")
+            }
+            TestScript = {
+                return $false #probably bad
+            }
+            GetScript = {
+                @{
+                    Result = "" #probably bad
+                }
+            }
+        }
+
         cOctopusServerGuestAuthentication "Enable Guest Login"
         {
             InstanceName = "OctopusServer"
