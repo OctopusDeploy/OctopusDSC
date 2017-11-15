@@ -55,6 +55,14 @@ Configuration Server_Scenario_01_Install
             Enabled = $true
         }
 
+        cOctopusEnvironment "Create 'Production' Environment"
+        {
+            Url = "http://localhost:81"
+            Ensure = "Present"
+            OctopusCredentials = $cred
+            EnvironmentName = "Production"
+        }
+
         cOctopusServerGuestAuthentication "Enable Guest Login"
         {
             InstanceName = "OctopusServer"

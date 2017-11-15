@@ -34,5 +34,14 @@ Configuration Server_Scenario_06_Upgrade
             # dont mess with stats
             AllowCollectionOfAnonymousUsageStatistics = $false
         }
+
+        cOctopusEnvironment "Delete 'UAT 1' Environment"
+        {
+            Url = "http://localhost:81"
+            Ensure = "Absent"
+            OctopusCredentials = $cred
+            EnvironmentName = "UAT 1"
+        }
+
     }
 }
