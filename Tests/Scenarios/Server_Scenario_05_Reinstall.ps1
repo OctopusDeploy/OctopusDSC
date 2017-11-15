@@ -39,5 +39,14 @@ Configuration Server_Scenario_05_Reinstall
             # dont mess with stats
             AllowCollectionOfAnonymousUsageStatistics = $false
         }
+
+        cOctopusEnvironment "Create 'UAT 1' Environment"
+        {
+            Url = "http://localhost:81"
+            Ensure = "Present"
+            OctopusCredentials = $cred
+            EnvironmentName = "UAT 1"
+        }
+
     }
 }
