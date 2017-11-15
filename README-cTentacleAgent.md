@@ -86,6 +86,7 @@ When `State` is `Started`, the resource will ensure that the Tentacle windows se
 | `TentacleDownloadUrl64`       | `string`                                                   | `http://octopusdeploy.com/downloads/latest/OctopusTentacle64` | The url to use to download the Tentacle, when run on an `x64` architecture. |
 | `TentacleDownloadUrl`         | `string`                                                   | `http://octopusdeploy.com/downloads/latest/OctopusTentacle`   | The url to use to download the Tentacle, when run on an `x86` architecture. |
 | `TentacleHomeDirectory`       | `string`                                                   | `$($env:SystemDrive)\Octopus`                                 | The location where Octopus should store its working files, logs, packages etc. |
+| `TentacleServiceCredential`   | `PSCredential`                                             |                                                               | Credentials of the account used to run the Tentacle Service
 
 ## Drift
 
