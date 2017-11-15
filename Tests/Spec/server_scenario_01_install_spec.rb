@@ -57,6 +57,11 @@ describe port(81) do
   it { should be_listening.with('tcp') }
 end
 
+#environment
+describe octopus_deploy_environment(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "Production") do
+  it { should exist }
+end
+
 #seq logging
 describe file('C:/Program Files/Octopus Deploy/Octopus/Seq.Client.NLog.dll') do
   it { should be_file }
@@ -71,6 +76,7 @@ describe file('C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe.nlog')
   its(:content) { should match /<property name="Server" value="MyServer" \/>/ }
 end
 
+#dsc overall status
 describe command('$ProgressPreference = "SilentlyContinue"; try { Get-DSCConfiguration -ErrorAction Stop; write-output "Get-DSCConfiguration succeeded"; $true } catch { write-output "Get-DSCConfiguration failed"; write-output $_; $false }') do
   its(:exit_status) { should eq 0 }
   its(:stdout) { should match /Get-DSCConfiguration succeeded/ }
