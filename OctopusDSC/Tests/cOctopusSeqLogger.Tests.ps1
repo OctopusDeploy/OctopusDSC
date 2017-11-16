@@ -16,7 +16,8 @@ try
 
         Describe 'cOctopusSeqLogger' {
             BeforeEach {
-                $password = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                # password is "S3cur3P4ssphraseHere!", loaded from an AES encrypted file
+                $password = ConvertTo-SecureString -string (Get-Content .\Password.txt) -key (Get-Content .\AESKey.key)
                 $apiKey = New-Object System.Management.Automation.PSCredential ("ignored", $password)
                 $desiredConfiguration = @{
                      InstanceType           = 'OctopusServer'
@@ -95,7 +96,7 @@ try
                 Mock Get-TargetResourceInternal { return $response }
 
                 It 'Returns True when its got the expected values' {
-                    $desiredPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                    $desiredPassword = ConvertTo-SecureString -string (Get-Content .\SeqKey.txt) -key (Get-Content .\AESKey.key)
                     $desiredApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $desiredPassword)
 
                     $desiredConfiguration['InstanceType'] = 'OctopusServer'
@@ -104,7 +105,7 @@ try
                     $desiredConfiguration['SeqApiKey'] = $desiredApiKey
                     $desiredConfiguration['Properties'] = @{ Application = "Octopus"; Server = "MyServer" }
 
-                    $actualPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                    $actualPassword = ConvertTo-SecureString -string (Get-Content .\SeqKey.txt) -key (Get-Content .\AESKey.key)
                     $actualApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $actualPassword)
 
                     $response['InstanceType'] = 'OctopusServer'
@@ -117,7 +118,7 @@ try
                 }
 
                 It 'Returns false when there are a different number of properties' {
-                    $desiredPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                    $desiredPassword = ConvertTo-SecureString -string (Get-Content .\SeqKey.txt) -key (Get-Content .\AESKey.key)
                     $desiredApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $desiredPassword)
 
                     $desiredConfiguration['InstanceType'] = 'OctopusServer'
@@ -126,7 +127,7 @@ try
                     $desiredConfiguration['SeqApiKey'] = $desiredApiKey
                     $desiredConfiguration['Properties'] = @{ Application = "Octopus"; Server = "MyServer" }
 
-                    $actualPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                    $actualPassword = ConvertTo-SecureString -string (Get-Content .\SeqKey.txt) -key (Get-Content .\AESKey.key)
                     $actualApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $actualPassword)
 
                     $response['InstanceType'] = 'OctopusServer'
@@ -139,7 +140,7 @@ try
                 }
 
                 It 'Returns false when there the properties have different names' {
-                    $desiredPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                    $desiredPassword = ConvertTo-SecureString -string (Get-Content .\SeqKey.txt) -key (Get-Content .\AESKey.key)
                     $desiredApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $desiredPassword)
 
                     $desiredConfiguration['InstanceType'] = 'OctopusServer'
@@ -148,7 +149,7 @@ try
                     $desiredConfiguration['SeqApiKey'] = $desiredApiKey
                     $desiredConfiguration['Properties'] = @{ Application = "Octopus"; Server = "MyServer" }
 
-                    $actualPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                    $actualPassword = ConvertTo-SecureString -string (Get-Content .\SeqKey.txt) -key (Get-Content .\AESKey.key)
                     $actualApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $actualPassword)
 
                     $response['InstanceType'] = 'OctopusServer'
@@ -161,7 +162,7 @@ try
                 }
 
                 It 'Returns false when there the properties have different values' {
-                    $desiredPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                    $desiredPassword = ConvertTo-SecureString -string (Get-Content .\SeqKey.txt) -key (Get-Content .\AESKey.key)
                     $desiredApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $desiredPassword)
 
                     $desiredConfiguration['InstanceType'] = 'OctopusServer'
@@ -170,7 +171,7 @@ try
                     $desiredConfiguration['SeqApiKey'] = $desiredApiKey
                     $desiredConfiguration['Properties'] = @{ Application = "Octopus"; Server = "MyServer" }
 
-                    $actualPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                    $actualPassword = ConvertTo-SecureString -string (Get-Content .\SeqKey.txt) -key (Get-Content .\AESKey.key)
                     $actualApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $actualPassword)
 
                     $response['InstanceType'] = 'OctopusServer'
@@ -183,7 +184,7 @@ try
                 }
 
                 It 'Returns false when the api key is different' {
-                    $desiredPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                    $desiredPassword = ConvertTo-SecureString -string (Get-Content .\SeqKey.txt) -key (Get-Content .\AESKey.key)
                     $desiredApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $desiredPassword)
 
                     $desiredConfiguration['InstanceType'] = 'OctopusServer'
@@ -192,7 +193,7 @@ try
                     $desiredConfiguration['SeqApiKey'] = $desiredApiKey
                     $desiredConfiguration['Properties'] = @{ Application = "Octopus"; Server = "MyServer" }
 
-                    $actualPassword = ConvertTo-SecureString "abcd1234" -AsPlainText -Force
+                    $actualPassword = ConvertTo-SecureString -string (Get-Content .\SeqKey2.txt) -key (Get-Content .\AESKey.key)
                     $actualApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $actualPassword)
 
                     $response['InstanceType'] = 'OctopusServer'
@@ -205,7 +206,7 @@ try
                 }
 
                 It 'Returns false when the server is different' {
-                    $desiredPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                    $desiredPassword = ConvertTo-SecureString -string (Get-Content .\SeqKey.txt) -key (Get-Content .\AESKey.key)
                     $desiredApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $desiredPassword)
 
                     $desiredConfiguration['InstanceType'] = 'OctopusServer'
@@ -214,7 +215,7 @@ try
                     $desiredConfiguration['SeqApiKey'] = $desiredApiKey
                     $desiredConfiguration['Properties'] = @{ Application = "Octopus"; Server = "MyServer" }
 
-                    $actualPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                    $actualPassword = ConvertTo-SecureString -string (Get-Content .\SeqKey.txt) -key (Get-Content .\AESKey.key)
                     $actualApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $actualPassword)
 
                     $response['InstanceType'] = 'OctopusServer'
@@ -227,7 +228,7 @@ try
                 }
 
                It 'Returns false when its currently disabled and installation requested' {
-                    $desiredPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                    $desiredPassword = ConvertTo-SecureString -string (Get-Content .\SeqKey.txt) -key (Get-Content .\AESKey.key)
                     $desiredApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $desiredPassword)
 
                     $desiredConfiguration['InstanceType'] = 'OctopusServer'
@@ -252,7 +253,7 @@ try
                     $desiredConfiguration['SeqApiKey'] = $null
                     $desiredConfiguration['Properties'] = @{ }
 
-                    $actualPassword = ConvertTo-SecureString "abcd1234" -AsPlainText -Force
+                    $actualPassword = ConvertTo-SecureString -string (Get-Content .\SeqKey.txt) -key (Get-Content .\AESKey.key)
                     $actualApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $actualPassword)
 
                     $response['InstanceType'] = 'OctopusServer'
@@ -316,7 +317,7 @@ try
                     Mock Get-NLogConfig { return  [xml] (Get-Content $sampleConfigPath\octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml) }
                     Mock Request-SeqClientNlogDll
                     Mock Save-NlogConfig
-                    $password = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                    $password = ConvertTo-SecureString -string (Get-Content .\SeqKey.txt) -key (Get-Content .\AESKey.key)
                     $apiKey = New-Object System.Management.Automation.PSCredential ("ignored", $password)
                     Set-TargetResource -InstanceType 'OctopusServer' -Ensure 'Present' -SeqServer "https://seq.example.com" -SeqApiKey $apiKey
                     Assert-MockCalled Request-SeqClientNlogDll -ParameterFilter { $dllPath -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
@@ -351,7 +352,7 @@ try
                     $expected = [xml](Get-Content $sampleConfigPath\octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml)
 
                     Mock Save-NlogConfig { $nlogConfig.OuterXml | Should be $expected.OuterXml }
-                    $password = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                    $password = ConvertTo-SecureString -string (Get-Content .\SeqKey.txt) -key (Get-Content .\AESKey.key)
                     $apiKey = New-Object System.Management.Automation.PSCredential ("ignored", $password)
 
                     #call the internal one, as we cant figure out how to mock the ciminstance
