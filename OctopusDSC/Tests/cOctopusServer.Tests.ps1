@@ -22,7 +22,7 @@ try
         Describe 'cOctopusServer' {
             BeforeEach {
                 # password is "S3cur3P4ssphraseHere!", loaded from an AES encrypted file
-                $pass = ConvertTo-SecureString -string (Get-Content .\Password.txt) -key (Get-Content .\AESKey.key)
+                $pass = ConvertTo-SecureString -string (Get-Content .\OctopusDSC\Tests\Password.txt) -key (Get-Content .\OctopusDSC\Tests\AESKey.key)
                 $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
 
                 $desiredConfiguration = @{
