@@ -9,6 +9,7 @@
 Configuration Server_Scenario_10_Install4
 {
     Import-DscResource -ModuleName OctopusDSC
+    Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
 
     $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
     $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
