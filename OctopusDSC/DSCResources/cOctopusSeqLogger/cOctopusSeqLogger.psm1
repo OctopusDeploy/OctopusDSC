@@ -140,7 +140,7 @@ function Get-TargetResourceInternal {
   }
 
   $existingEnsure = "Absent"
-  if ((Test-NLogDllExists $dllPath) -and $nlogExtensionElementExists -and $nlogTargetElementExists -and $nlogRuleElementExists) {
+  if ((Test-NLogDll $dllPath) -and $nlogExtensionElementExists -and $nlogTargetElementExists -and $nlogRuleElementExists) {
     $existingEnsure = "Present"
   }
 
@@ -339,7 +339,7 @@ function Get-NLogConfig ([string] $fileName) {
   return [xml] (Get-Content $fileName)
 }
 
-function Test-NLogDllExists ([string] $fileName) {
+function Test-NLogDll ([string] $fileName) {
   return Test-Path $fileName
 }
 
