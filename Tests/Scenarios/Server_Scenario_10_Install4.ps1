@@ -2,13 +2,14 @@
     Install Octopus Server v4 pre-release
 
     When v4 is released and becomes "latest", Server_Scenario_01_Install.ps1 will start installing v4 by default
-    At that point, this test becomes redundant. 
+    At that point, this test becomes redundant.
     Server_Scenario_05_Reinstall.ps1 will install v3
 #>
 
 Configuration Server_Scenario_10_Install4
 {
     Import-DscResource -ModuleName OctopusDSC
+    Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
 
     $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
     $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
@@ -30,13 +31,13 @@ Configuration Server_Scenario_10_Install4
             Ensure = "Present"
             UserName = "OctoSquid"
             Password = $svccred
-            PasswordChangeRequired = $false 
+            PasswordChangeRequired = $false
         }
 
         Group AddUserToLocalAdminGroup
         {
-            GroupName='Administrators'   
-            Ensure= 'Present'             
+            GroupName='Administrators'
+            Ensure= 'Present'
             MembersToInclude= ".\OctoSquid"
         }
 
@@ -62,7 +63,7 @@ Configuration Server_Scenario_10_Install4
 
             DownloadUrl = "https://s3-ap-southeast-1.amazonaws.com/octopus-testing/server/Octopus.4.0.0-v4-14812-x64.msi"
 
-            OctopusServiceCredential = $svccred 
+            OctopusServiceCredential = $svccred
             DependsOn = "[user]OctoSquid"
         }
 

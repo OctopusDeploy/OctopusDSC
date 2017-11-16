@@ -633,25 +633,36 @@ function Update-InstallState
   $currentInstallState | ConvertTo-Json | set-content $installStateFile
 }
 
-function Request-File 
+function Request-File
 {
   param (
       [string]$url,
       [string]$saveAs
   )
 
-
+  $retry = $true
+  $retryCount = 0
+  $maxRetries = 5
+  while ($retry) {
     Write-Verbose "Downloading $url to $saveAs"
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12,[System.Net.SecurityProtocolType]::Tls11,[System.Net.SecurityProtocolType]::Tls
     $downloader = new-object System.Net.WebClient
     try {
       $downloader.DownloadFile($url, $saveAs)
+      $retry = $false
     }
     catch
     {
-       throw $_.Exception.InnerException
+      Write-Verbose "Failed to download $url"
+      Write-Verbose "Got exception '$($_.Exception.InnerException.Message)'."
+      Write-Verbose "Retrying up to $maxRetries times."
+      if (($_.Exception.InnerException.Message -notlike "The request was aborted: Could not create SSL/TLS secure channel.") -or ($retryCount -gt $maxRetries)) {
+        throw $_.Exception.InnerException
+      }
+      $retryCount = $retryCount + 1
+      Start-Sleep -Seconds 1
     }
-  
+  }
 }
 
 function Write-Log

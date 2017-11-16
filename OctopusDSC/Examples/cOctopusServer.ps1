@@ -1,3 +1,7 @@
+# deserialize a password from disk
+$password = Get-Content .\ExamplePassword.txt | ConvertTo-SecureString
+$AdminCred = New-Object PSCredential "Admin", $password 
+
 Configuration SampleConfig
 {
     Import-DscResource -Module OctopusDSC
@@ -19,8 +23,7 @@ Configuration SampleConfig
             SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=Octopus;Trusted_Connection=True;"
 
             # The admin user to create
-            OctopusAdminUsername = "Admin"
-            OctopusAdminPassword = "SuperS3cretPassw0rd"
+            OctopusAdminCredential = $AdminCred
 
             # optional parameters
             AllowUpgradeCheck = $true
