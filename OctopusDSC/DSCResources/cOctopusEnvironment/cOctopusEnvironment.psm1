@@ -166,16 +166,23 @@ function Get-OctopusClientRepository
     [PSCredential]$OctopusCredentials
   )
 
-  $folder = [System.IO.Path]::GetTempPath()
-  $folder = Join-Path $folder ([Guid]::NewGuid())
-  New-Item -type Directory $folder | Out-Null
+  $tempFolder = [System.IO.Path]::GetTempPath()
+  $shadowCopyFolder = Join-Path $tempFolder ([Guid]::NewGuid())
+  New-Item -type Directory $shadowCopyFolder | Out-Null
 
-  Copy-Item "${env:ProgramFiles}\Octopus Deploy\Octopus\Newtonsoft.Json.dll" $folder
-  Copy-Item "${env:ProgramFiles}\Octopus Deploy\Octopus\Octopus.Client.dll" $folder
+  $filename = "${env:ProgramFiles}\Octopus Deploy\Octopus\Newtonsoft.Json.dll"
+  $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($filename)
+  Write-Verbose "Shadow copying '$filename' (version $($version.FileVersion)) to $shadowCopyFolder"
+  Copy-Item $filename $shadowCopyFolder
+
+  $filename = "${env:ProgramFiles}\Octopus Deploy\Octopus\Octopus.Client.dll"
+  $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($filename)
+  Write-Verbose "Shadow copying '$filename' (version $($version.FileVersion)) to $shadowCopyFolder"
+  Copy-Item $filename $shadowCopyFolder
 
   #shadow copy these files, so we can uninstall octopus
-  Add-Type -Path (Join-Path $folder "Newtonsoft.Json.dll")
-  Add-Type -Path (Join-Path $folder "Octopus.Client.dll")
+  Add-Type -Path (Join-Path $shadowCopyFolder "Newtonsoft.Json.dll")
+  Add-Type -Path (Join-Path $shadowCopyFolder "Octopus.Client.dll")
 
   #connect
   $endpoint = new-object Octopus.Client.OctopusServerEndpoint $Url
