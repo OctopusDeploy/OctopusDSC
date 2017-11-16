@@ -91,7 +91,25 @@ Configuration Server_Scenario_01_Install
                 [environment]::SetEnvironmentVariable("OctopusApiKey", $createApiKeyResult.ApiKey, "Machine")
             }
             TestScript = {
-                return $false #probably bad
+                Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Newtonsoft.Json.dll"
+                Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Octopus.Client.dll"
+
+                #connect
+                $endpoint = new-object Octopus.Client.OctopusServerEndpoint "http://localhost:81"
+                $repository = new-object Octopus.Client.OctopusRepository $endpoint
+
+                #sign in
+                $credentials = New-Object Octopus.Client.Model.LoginCommand
+                $credentials.Username = "OctoAdmin"
+                $credentials.Password = "SuperS3cretPassw0rd!"
+                $repository.Users.SignIn($credentials)
+
+                #check if the api key exists
+                $user = $repository.Users.GetCurrent()
+                $apiKeys = $repository.Users.GetApiKeys($user)
+                $apiKey = $apiKeys | where-object {$_.Purpose -eq "Octopus DSC Testing"}
+
+                return $null -ne $apiKey
             }
             GetScript = {
                 @{
