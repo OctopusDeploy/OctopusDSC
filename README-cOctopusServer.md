@@ -26,8 +26,7 @@ Configuration SampleConfig
             SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=Octopus;Trusted_Connection=True;"
 
             # The admin user to create
-            OctopusAdminUsername = "Admin"
-            OctopusAdminPassword = "SuperS3cretPassw0rd"
+            OctopusAdminCredential = $PSCredentialObject
 
             # optional parameters
             AllowUpgradeCheck = $true
@@ -80,21 +79,22 @@ When `State` is `Started`, the resource will ensure that the Octopus Servr windo
 | `DownloadUrl`                                | `string`                                            | `https://octopus.com/downloads/latest/WindowsX64/OctopusServer` | The url to use to download the msi. |
 | `SqlDbConnectionString`                      | `string`                                            |                                                                 | The connection string to use to connect to the SQL Server database. |
 | `WebListenPrefix`                            | `string`                                            |                                                                 | A semi-colon (`;`) delimited list of urls on which the server should listen. eg `https://octopus.example.com:81`. |
-| `OctopusAdminUsername`                       | `string`                                            |                                                                 | The name of the administrative user to create on first install. |
-| `OctopusAdminPassword`                       | `string`                                            |                                                                 | The password of the administrative user to create on first install. |
+| `OctopusAdminCredential`                     | `PSCredential`                                      |                                                                 | The name/password of the administrative user to create on first install. |
 | `AllowUpgradeCheck`                          | `boolean`                                           | `$true`                                                         | Whether the server should check for updates periodically. |
 | `AllowCollectionOfAnonymousUsageStatistics`  | `boolean`                                           | `$true`                                                         | Allow anonymous reporting of usage statistics. |
 | `LegacyWebAuthenticationMode`                | `string` - `UsernamePassword`, `Domain` or `Ignore` | `Ignore`                                                        | For Octopus version older than 3.5, allows you to configure how users login. For 3.5 and above, this must be set to `ignore`.  |
 | `ForceSSL`                                   | `boolean`                                           | `$false`                                                        | Whether SSL should be required (HTTP requests get redirected to HTTPS) |
 | `ListenPort`                                 | `int`                                               | `10943`                                                         | The port on which the Server should listen for communication from `Polling` Tentacles. |
 | `AutoLoginEnabled`                           | `boolean`                                           | `$false`                                                        | If an authentication provider is enabled that supports pass through authentcation (eg Active Directory), allow the user to automatically sign in. Only supported from Octopus 3.5. |
+| `OctopusServiceCredential`                   | `PSCredential`                                      |                                                                 | Credentials of the account used to run the Octopus Service
+| `HomeDirectory`                              | `string`                                            | `C:\Octopus`                                                    | Home directory for Octopus logs and config (where supported)
 
 ## Drift
 
-Currently the resource does not consider `SqlDbConnectionString`, `OctopusAdminUsername` or `OctopusAdminPassword` when testing for drift.
+Currently the resource does not consider `SqlDbConnectionString` or `OctopusAdminCredential` when testing for drift.
 
 This means that the server will be automatically reconfigured if you change any properties except the ones listed above.
 
 If the DownloadUrl property changes, it will detect the configuration drift and upgrade the Server as appropriate. However, if you leave it as default (ie 'install latest'), it will not upgrade when a new version is released - it only actions on change of the property.
 
-However if you need to change any of the `SqlDbConnectionString`, `OctopusAdminUsername` or `OctopusAdminPassword` properties, you will need to uninstall then reinstall the server (by changing `Ensure` to `Absent` and then back to `Present`).
+However if you need to change any of the `SqlDbConnectionString`, `OctopusAdminCredential` properties, you will need to uninstall then reinstall the server (by changing `Ensure` to `Absent` and then back to `Present`).

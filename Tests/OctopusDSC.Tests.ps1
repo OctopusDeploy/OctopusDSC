@@ -14,11 +14,13 @@ Describe "PSScriptAnalyzer" {
     }
 }
 
-Describe "OctopusDSC.psd1 is valid" {
-    $modules = Get-ChildItem ./OctopusDSC/DSCResources -Directory
-    Import-LocalizedData -BaseDirectory ./OctopusDSC -FileName OctopusDSC.psd1 -BindingVariable Data
+Describe "OctopusDSC.psd1" {
+    It "Should be valid" {
+        $modules = Get-ChildItem ./OctopusDSC/DSCResources -Directory
+        Import-LocalizedData -BaseDirectory ./OctopusDSC -FileName OctopusDSC.psd1 -BindingVariable Data
 
-    $expected = ($Data.DscResourcesToExport | Sort-Object) -join ","
-    $actual = (($modules | Sort-Object) -join ",")
-    $actual | should be $expected
+        $expected = ($Data.DscResourcesToExport | Sort-Object) -join ","
+        $actual = (($modules | Sort-Object) -join ",")
+        $actual | should be $expected
+    }
 }

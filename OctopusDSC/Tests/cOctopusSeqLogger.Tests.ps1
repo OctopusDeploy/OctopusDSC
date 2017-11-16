@@ -14,7 +14,7 @@ try
         $sampleConfigPath = Split-Path $PSCommandPath -Parent
         $sampleConfigPath = Join-Path $sampleConfigPath "SampleConfigs"
 
-        Describe 'cOctopusseqLogger' {
+        Describe 'cOctopusSeqLogger' {
             BeforeEach {
                 $password = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
                 $apiKey = New-Object System.Management.Automation.PSCredential ("ignored", $password)
