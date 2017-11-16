@@ -19,18 +19,28 @@ $run_test_scenario_script = <<SCRIPT
   exit $LASTEXITCODE
 SCRIPT
 
-def run_scenario(config, scenario, configuration_params = nil)
+def run_octopus_scenario(config, scenario)
   config.vm.provision "shell", inline: "write-output \"##teamcity[blockOpened name='Running Scenario #{scenario}']\""
   config.vm.provision "dsc" do |dsc|
     dsc.configuration_file  = "#{scenario}.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
     dsc.abort_on_dsc_failure = true
-    dsc.configuration_params = configuration_params unless configuration_params.nil?
   end
   config.vm.provision "shell", inline: "write-output \"##teamcity[blockClosed name='Running Scenario #{scenario}']\""
-
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', scenario.downcase)
+end
+
+def run_tentacle_scenario(config, scenario)
+  config.vm.provision "shell", inline: "write-output \"##teamcity[blockOpened name='Running Scenario #{scenario}']\""
+  config.vm.provision "dsc" do |dsc|
+    dsc.configuration_file  = "#{scenario}.ps1"
+    dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
+    dsc.manifests_path = "Tests/Scenarios"
+    dsc.abort_on_dsc_failure = true
+    dsc.configuration_params = configuration_params
+  end
+  config.vm.provision "shell", inline: "write-output \"##teamcity[blockClosed name='Running Scenario #{scenario}']\""
 end
 
 Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
@@ -67,7 +77,6 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     override.vm.network :forwarded_port, guest: 80,   host: 8000, id: "web"
     override.vm.network :forwarded_port, guest: 443, host: 8443,  id: "ssl"
     override.vm.network :forwarded_port, guest: 22, host: 9222,  id: "ssh"
-    
   end
 
   # this relies on the vagrant-aws & vagrant-winrm-syncedfolders plugins
@@ -121,39 +130,39 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   config.vm.provision "file", source: "OctopusDSC", destination: 'C:\Windows\System32\WindowsPowerShell\v1.0\modules\OctopusDSC'
 
   # Run DSC to install server
-  run_scenario(config, 'Server_Scenario_01_Install')
+  run_octopus_scenario(config, 'Server_Scenario_01_Install')
 
   # remove the server
-  run_scenario(config, 'Server_Scenario_02_Remove')
+  run_octopus_scenario(config, 'Server_Scenario_02_Remove')
 
   # Run DSC to install server with a custom instance name
-  run_scenario(config, 'Server_Scenario_03_Install_Custom_Instance')
+  run_octopus_scenario(config, 'Server_Scenario_03_Install_Custom_Instance')
 
   # remove the server with a custom instance name
-  run_scenario(config, 'Server_Scenario_04_Remove_Custom_Instance')
+  run_octopus_scenario(config, 'Server_Scenario_04_Remove_Custom_Instance')
 
   # re-install old version
-  run_scenario(config, 'Server_Scenario_05_Reinstall')
+  run_octopus_scenario(config, 'Server_Scenario_05_Reinstall')
 
   # upgrade to the latest
-  run_scenario(config, 'Server_Scenario_06_Upgrade')
+  run_octopus_scenario(config, 'Server_Scenario_06_Upgrade')
 
   # install watchdog
-  run_scenario(config, 'Server_Scenario_07_Watchdog_Create')
+  run_octopus_scenario(config, 'Server_Scenario_07_Watchdog_Create')
 
   # delete watchdog
-  run_scenario(config, 'Server_Scenario_08_Watchdog_Delete')
+  run_octopus_scenario(config, 'Server_Scenario_08_Watchdog_Delete')
 
   # remove again prior to installing 4
-  run_scenario(config, 'Server_Scenario_09_Remove')
+  run_octopus_scenario(config, 'Server_Scenario_09_Remove')
 
   # install v4
-  run_scenario(config, 'Server_Scenario_10_Install4')
+  run_octopus_scenario(config, 'Server_Scenario_10_Install4')
 
   config.vm.provision "shell", path: "Tests/configure-octopus-for-tentacle-tests.ps1"
 
   # initial tentacle install
-  run_scenario(config, 'Tentacle_Scenario_01_Install', {"-OctopusServerUrl" => "$ENV:OctopusServerUrl",
+  run_tentacle_scenario(config, 'Tentacle_Scenario_01_Install', {"-OctopusServerUrl" => "$ENV:OctopusServerUrl",
                                                         "-ApiKey" => "$ENV:OctopusApiKey",
                                                         "-Environments" => "The-Env",
                                                         "-Roles" => "Test-Tentacle",
@@ -163,7 +172,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_01_install')
 
   # uninstall tentacle
-  run_scenario(config, 'Tentacle_Scenario_02_Remove', {"-OctopusServerUrl" => "$ENV:OctopusServerUrl",
+  run_tentacle_scenario(config, 'Tentacle_Scenario_02_Remove', {"-OctopusServerUrl" => "$ENV:OctopusServerUrl",
                                                        "-ApiKey" => "$ENV:OctopusApiKey",
                                                        "-Environments" => "The-Env",
                                                        "-Roles" => "Test-Tentacle",
@@ -172,7 +181,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_02_remove')
 
   # Install old version
-  run_scenario(config, 'Tentacle_Scenario_03_Reinstall', {"-OctopusServerUrl" => "$ENV:OctopusServerUrl",
+  run_tentacle_scenario(config, 'Tentacle_Scenario_03_Reinstall', {"-OctopusServerUrl" => "$ENV:OctopusServerUrl",
                                                           "-ApiKey" => "$ENV:OctopusApiKey",
                                                           "-Environments" => "The-Env",
                                                           "-Roles" => "Test-Tentacle" })
@@ -180,7 +189,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_03_reinstall')
 
   # Upgrade it
-  run_scenario(config, 'Tentacle_Scenario_04_Upgrade', {"-OctopusServerUrl" => "$ENV:OctopusServerUrl",
+  run_tentacle_scenario(config, 'Tentacle_Scenario_04_Upgrade', {"-OctopusServerUrl" => "$ENV:OctopusServerUrl",
                                                         "-ApiKey" => "$ENV:OctopusApiKey",
                                                         "-Environments" => "The-Env",
                                                         "-Roles" => "Test-Tentacle" })
@@ -188,20 +197,22 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_04_upgrade')
 
   # install watchdog
-  run_scenario(config, 'Tentacle_Scenario_05_Watchdog_Create')
+  run_tentacle_scenario(config, 'Tentacle_Scenario_05_Watchdog_Create')
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_05_watchdog_create')
 
   # delete watchdog
-  run_scenario(config, 'Tentacle_Scenario_06_Watchdog_Delete')
+  run_tentacle_scenario(config, 'Tentacle_Scenario_06_Watchdog_Delete')
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_06_watchdog_delete')
 
   # remove in preparation for testing comms port
-  run_scenario(config, 'Tentacle_Scenario_07_Remove', {"-OctopusServerUrl" => "$ENV:OctopusServerUrl",
+  run_tentacle_scenario(config, 'Tentacle_Scenario_07_Remove', {"-OctopusServerUrl" => "$ENV:OctopusServerUrl",
                                                        "-ApiKey" => "$ENV:OctopusApiKey",
                                                        "-Environments" => "The-Env",
                                                        "-Roles" => "Test-Tentacle" })
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_07_remove')
 
   # tentacle comms port
-  run_scenario(config, 'Tentacle_Scenario_08_TentacleCommsPort', {"-OctopusServerUrl" => "$ENV:OctopusServerUrl",
+  run_tentacle_scenario(config, 'Tentacle_Scenario_08_TentacleCommsPort', {"-OctopusServerUrl" => "$ENV:OctopusServerUrl",
                                                                   "-ApiKey" => "$ENV:OctopusApiKey",
                                                                   "-Environments" => "The-Env",
                                                                   "-Roles" => "Test-Tentacle" })
