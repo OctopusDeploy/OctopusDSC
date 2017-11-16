@@ -13,7 +13,7 @@ Configuration SampleConfig
             Ensure = 'Present'
             SeqServer = 'https://seq.example.com'
             SeqApiKey = $apiKeyCreds
-            Properties = @{ Application = 'Octopus'; 'ApplicationSet': 'BuildAndDeploy' }
+            Properties = @{ Application = 'Octopus'; 'ApplicationSet' = 'BuildAndDeploy' }
         }
     }
 }
