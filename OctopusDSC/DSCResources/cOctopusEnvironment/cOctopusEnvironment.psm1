@@ -121,18 +121,10 @@ function Remove-Environment {
     [string]$EnvironmentName,
     [PSCredential]$OctopusCredentials
   )
-  Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Newtonsoft.Json.dll"
-  Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Octopus.Client.dll"
 
-  #connect
-  $endpoint = new-object Octopus.Client.OctopusServerEndpoint $Url
-  $repository = new-object Octopus.Client.OctopusRepository $endpoint
+  $repository = Get-OctopusClientRepository -Url $Url `
+                                            -OctopusCredentials $OctopusCredentials
 
-  #sign in
-  $credentials = New-Object Octopus.Client.Model.LoginCommand
-  $credentials.Username = $OctopusCredentials.GetNetworkCredential().Username
-  $credentials.Password = $OctopusCredentials.GetNetworkCredential().Password
-  $repository.Users.SignIn($credentials)
 
   $environment = $repository.Environments.FindByName($EnvironmentName)
   $repository.Environments.Delete($environment)
@@ -144,18 +136,8 @@ function New-Environment {
     [string]$EnvironmentName,
     [PSCredential]$OctopusCredentials
   )
-  Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Newtonsoft.Json.dll"
-  Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Octopus.Client.dll"
-
-  #connect
-  $endpoint = new-object Octopus.Client.OctopusServerEndpoint $Url
-  $repository = new-object Octopus.Client.OctopusRepository $endpoint
-
-  #sign in
-  $credentials = New-Object Octopus.Client.Model.LoginCommand
-  $credentials.Username = $OctopusCredentials.GetNetworkCredential().Username
-  $credentials.Password = $OctopusCredentials.GetNetworkCredential().Password
-  $repository.Users.SignIn($credentials)
+  $repository = Get-OctopusClientRepository -Url $Url `
+                                          -OctopusCredentials $OctopusCredentials
 
   $environment = New-Object Octopus.Client.Model.EnvironmentResource
   $environment.Name = $EnvironmentName
@@ -168,8 +150,32 @@ function Get-Environment {
     [string]$EnvironmentName,
     [PSCredential]$OctopusCredentials
   )
-  Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Newtonsoft.Json.dll"
-  Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Octopus.Client.dll"
+
+  $repository = Get-OctopusClientRepository -Url $Url `
+                                            -OctopusCredentials $OctopusCredentials
+
+  $environment = $repository.Environments.FindByName($EnvironmentName)
+  return $environment
+}
+
+function Get-OctopusClientRepository
+{
+  param (
+    [string]$Url,
+    [string]$EnvironmentName,
+    [PSCredential]$OctopusCredentials
+  )
+
+  $folder = [System.IO.Path]::GetTempPath()
+  $folder = Join-Path $folder ([Guid]::NewGuid())
+  New-Item -type Directory $folder | Out-Null
+
+  Copy-Item "${env:ProgramFiles}\Octopus Deploy\Octopus\Newtonsoft.Json.dll" $folder
+  Copy-Item "${env:ProgramFiles}\Octopus Deploy\Octopus\Octopus.Client.dll" $folder
+
+  #shadow copy these files, so we can uninstall octopus
+  Add-Type -Path (Join-Path $folder "Newtonsoft.Json.dll")
+  Add-Type -Path (Join-Path $folder "Octopus.Client.dll")
 
   #connect
   $endpoint = new-object Octopus.Client.OctopusServerEndpoint $Url
@@ -181,8 +187,7 @@ function Get-Environment {
   $credentials.Password = $OctopusCredentials.GetNetworkCredential().Password
   $repository.Users.SignIn($credentials)
 
-  $environment = $repository.Environments.FindByName($EnvironmentName)
-  return $environment
+  return $repository
 }
 
 function Get-OctopusDSCParameter($parameters) {
