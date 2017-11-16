@@ -42,6 +42,5 @@ Configuration Server_Scenario_06_Upgrade
             OctopusCredentials = $cred
             EnvironmentName = "UAT 1"
         }
-
     }
 }
