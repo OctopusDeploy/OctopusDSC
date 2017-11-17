@@ -122,7 +122,7 @@ function Get-TargetResourceInternal {
     $plainTextPassword = ($nlogConfig.nlog.targets.target | where-object { $_.name -eq "seq" -and $_.type -eq "Seq" }).ApiKey
     if ($null -ne $plainTextPassword) {
       $password = new-object securestring
-      # Avoid using "ConvertTo-SeureString ... -AsPlaintext", to fix PSAvoidUsingConvertToSecureStringWithPlainText
+      # Avoid using "ConvertTo-SecureString ... -AsPlaintext", to fix PSAvoidUsingConvertToSecureStringWithPlainText
       # Not sure it actually solves the underlying issue though
       $plainTextPassword.ToCharArray() | Foreach-Object { $password.AppendChar($_) }
       $existingApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $password)
