@@ -13,13 +13,13 @@ function Get-TargetResource {
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
     [string]$EnvironmentName,
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [PSCredential]$OctopusCredentials
+    [PSCredential]$OctopusCredentials,
+    [PSCredential]$OctopusApiKey
   )
   $environment = Get-Environment -Url $Url `
                                  -EnvironmentName $EnvironmentName `
-                                 -OctopusCredentials $OctopusCredentials
+                                 -OctopusCredentials $OctopusCredentials `
+                                 -OctopusApiKey $OctopusApiKey
   $existingEnsure = 'Present'
   if ($null -eq $environment) {
     $existingEnsure = 'Absent'
@@ -30,6 +30,7 @@ function Get-TargetResource {
     Ensure = $existingEnsure
     EnvironmentName = $EnvironmentName
     OctopusCredentials = $OctopusCredentials
+    OctopusApiKey = $OctopusApiKey
   }
 
   return $result
@@ -48,24 +49,26 @@ function Set-TargetResource {
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
     [string]$EnvironmentName,
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [PSCredential]$OctopusCredentials
+    [PSCredential]$OctopusCredentials,
+    [PSCredential]$OctopusApiKey
   )
 
   $currentResource = Get-TargetResource -Url $Url `
                                         -Ensure $Ensure `
                                         -EnvironmentName $EnvironmentName `
-                                        -OctopusCredentials $OctopusCredentials
+                                        -OctopusCredentials $OctopusCredentials `
+                                        -OctopusApiKey $OctopusApiKey
 
   if ($Ensure -eq "Absent" -and $currentResource.Ensure -eq "Present") {
     Remove-Environment -Url $Url `
                        -EnvironmentName $EnvironmentName `
-                       -OctopusCredentials $OctopusCredentials
+                       -OctopusCredentials $OctopusCredentials `
+                       -OctopusApiKey $OctopusApiKey
   } elseif ($Ensure -eq "Present" -and $currentResource.Ensure -eq "Absent") {
     New-Environment -Url $Url `
                     -EnvironmentName $EnvironmentName `
-                    -OctopusCredentials $OctopusCredentials
+                    -OctopusCredentials $OctopusCredentials `
+                    -OctopusApiKey $OctopusApiKey
 
   }
 }
@@ -84,14 +87,14 @@ function Test-TargetResource {
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
     [string]$EnvironmentName,
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [PSCredential]$OctopusCredentials
+    [PSCredential]$OctopusCredentials,
+    [PSCredential]$OctopusApiKey
   )
   $currentResource = (Get-TargetResource -Url $Url `
                                          -Ensure $Ensure `
                                          -EnvironmentName $EnvironmentName `
-                                         -OctopusCredentials $OctopusCredentials)
+                                         -OctopusCredentials $OctopusCredentials `
+                                         -OctopusApiKey $OctopusApiKey)
 
   $params = Get-OctopusDSCParameter $MyInvocation.MyCommand.Parameters
 
@@ -119,11 +122,13 @@ function Remove-Environment {
   param (
     [string]$Url,
     [string]$EnvironmentName,
-    [PSCredential]$OctopusCredentials
+    [PSCredential]$OctopusCredentials,
+    [PSCredential]$OctopusApiKey
   )
 
   $repository = Get-OctopusClientRepository -Url $Url `
-                                            -OctopusCredentials $OctopusCredentials
+                                            -OctopusCredentials $OctopusCredentials `
+                                            -OctopusApiKey $OctopusApiKey
 
 
   $environment = $repository.Environments.FindByName($EnvironmentName)
@@ -134,10 +139,12 @@ function New-Environment {
   param (
     [string]$Url,
     [string]$EnvironmentName,
-    [PSCredential]$OctopusCredentials
+    [PSCredential]$OctopusCredentials,
+    [PSCredential]$OctopusApiKey
   )
   $repository = Get-OctopusClientRepository -Url $Url `
-                                          -OctopusCredentials $OctopusCredentials
+                                            -OctopusCredentials $OctopusCredentials `
+                                            -OctopusApiKey $OctopusApiKey
 
   $environment = New-Object Octopus.Client.Model.EnvironmentResource
   $environment.Name = $EnvironmentName
@@ -148,11 +155,13 @@ function Get-Environment {
   param (
     [string]$Url,
     [string]$EnvironmentName,
-    [PSCredential]$OctopusCredentials
+    [PSCredential]$OctopusCredentials,
+    [PSCredential]$OctopusApiKey
   )
 
   $repository = Get-OctopusClientRepository -Url $Url `
-                                            -OctopusCredentials $OctopusCredentials
+                                            -OctopusCredentials $OctopusCredentials `
+                                            -OctopusApiKey $OctopusApiKey
 
   $environment = $repository.Environments.FindByName($EnvironmentName)
   return $environment
@@ -163,8 +172,16 @@ function Get-OctopusClientRepository
   param (
     [string]$Url,
     [string]$EnvironmentName,
-    [PSCredential]$OctopusCredentials
+    [PSCredential]$OctopusCredentials,
+    [PSCredential]$OctopusApiKey
   )
+
+  if (($null -eq $OctopusCredentials) -and ($null -eq $OctopusApiKey)) {
+    throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey'."
+  }
+  if (($null -ne $OctopusCredentials) -and ($null -ne $OctopusApiKey)) {
+    throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey', not both."
+  }
 
   $tempFolder = [System.IO.Path]::GetTempPath()
   $shadowCopyFolder = Join-Path $tempFolder ([Guid]::NewGuid())
@@ -184,15 +201,22 @@ function Get-OctopusClientRepository
   Add-Type -Path (Join-Path $shadowCopyFolder "Newtonsoft.Json.dll")
   Add-Type -Path (Join-Path $shadowCopyFolder "Octopus.Client.dll")
 
+  $apiKey = $null
+  if ($null -ne $OctopusApiKey) {
+    $apiKey = $OctopusApiKey.GetNetworkCredential().Password
+  }
+
   #connect
-  $endpoint = new-object Octopus.Client.OctopusServerEndpoint $Url
-  $repository = new-object Octopus.Client.OctopusRepository $endpoint
+  $endpoint = New-Object Octopus.Client.OctopusServerEndpoint($Url, $apiKey)
+  $repository = New-Object Octopus.Client.OctopusRepository $endpoint
 
   #sign in
-  $credentials = New-Object Octopus.Client.Model.LoginCommand
-  $credentials.Username = $OctopusCredentials.GetNetworkCredential().Username
-  $credentials.Password = $OctopusCredentials.GetNetworkCredential().Password
-  $repository.Users.SignIn($credentials)
+  if ($null -eq $OctopusApiKey) {
+    $credentials = New-Object Octopus.Client.Model.LoginCommand
+    $credentials.Username = $OctopusCredentials.GetNetworkCredential().Username
+    $credentials.Password = $OctopusCredentials.GetNetworkCredential().Password
+    $repository.Users.SignIn($credentials)
+  }
 
   return $repository
 }

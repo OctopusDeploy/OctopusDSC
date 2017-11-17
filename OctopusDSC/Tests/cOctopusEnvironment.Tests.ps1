@@ -28,6 +28,20 @@ try
             }
 
             Context 'Get-TargetResource' {
+                It 'Throws when both OctopusCredentials and OctopusApiKey are provided' {
+                    {Get-TargetResource -Url 'https://octopus.example.com' `
+                                                 -Ensure 'Present' `
+                                                 -EnvironmentName 'Production' `
+                                                 -OctopusCredentials $creds `
+                                                 -OctopusApiKey $creds } | should throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey', not both."
+                }
+
+                It 'Throws when neither OctopusCredentials and OctopusApiKey are provided' {
+                    {Get-TargetResource -Url 'https://octopus.example.com' `
+                                                 -Ensure 'Present' `
+                                                 -EnvironmentName 'Production'} | should throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey'."
+                }
+
                 It 'Returns present when environment exists' {
                     Mock Get-Environment { return [PSCustomObject]@{ Name = 'Production' } } -Scope It
                     $result = Get-TargetResource -Url 'https://octopus.example.com' `
@@ -53,34 +67,34 @@ try
 
                 It 'Returns false if environment does not exist' {
                     $desiredPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
-                    $apiKey = New-Object System.Management.Automation.PSCredential ("username", $desiredPassword)
+                    $creds = New-Object System.Management.Automation.PSCredential ("username", $desiredPassword)
 
                     $desiredConfiguration['Url'] = 'https://octopus.example.com'
                     $desiredConfiguration['Ensure'] = 'Present'
                     $desiredConfiguration['EnvironmentName'] = 'Production'
-                    $desiredConfiguration['OctopusCredentials'] = $apiKey
+                    $desiredConfiguration['OctopusCredentials'] = $creds
 
                     $response['Url'] = 'https://octopus.example.com'
                     $response['Ensure'] = 'Present'
                     $response['EnvironmentName'] = $null
-                    $response['OctopusCredentials'] = $apiKey
+                    $response['OctopusCredentials'] = $creds
 
                     Test-TargetResource @desiredConfiguration | Should Be $false
                 }
 
                 It 'Returns true if environment does exist' {
                     $desiredPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
-                    $apiKey = New-Object System.Management.Automation.PSCredential ("username", $desiredPassword)
+                    $creds = New-Object System.Management.Automation.PSCredential ("username", $desiredPassword)
 
                     $desiredConfiguration['Url'] = 'https://octopus.example.com'
                     $desiredConfiguration['Ensure'] = 'Present'
                     $desiredConfiguration['EnvironmentName'] = 'Production'
-                    $desiredConfiguration['OctopusCredentials'] = $apiKey
+                    $desiredConfiguration['OctopusCredentials'] = $creds
 
                     $response['Url'] = 'https://octopus.example.com'
                     $response['Ensure'] = 'Present'
                     $response['EnvironmentName'] = 'Production'
-                    $response['OctopusCredentials'] = $apiKey
+                    $response['OctopusCredentials'] = $creds
 
                     Test-TargetResource @desiredConfiguration | Should Be $true
                 }
@@ -92,7 +106,6 @@ try
             }
 
             Context 'Set-TargetResource' {
-
                 It 'Calls New-Environment if not present and ensure set to present' {
                     Mock Get-Environment { return $null } -Scope It
                     Mock New-Environment -Scope It
@@ -120,8 +133,7 @@ try
         }
     }
 }
-finally
-{
+finally {
     if ($module) {
         Remove-Module -ModuleInfo $module
     }
