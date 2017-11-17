@@ -1,9 +1,11 @@
 Configuration Server_Scenario_06_Upgrade
 {
+    param ($ApiKey)
+
     Import-DscResource -ModuleName OctopusDSC
 
-    $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
-    $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
+    $pass = ConvertTo-SecureString $ApiKey -AsPlainText -Force
+    $cred = New-Object System.Management.Automation.PSCredential ("ignored", $pass)
 
     Node "localhost"
     {
@@ -39,7 +41,7 @@ Configuration Server_Scenario_06_Upgrade
         {
             Url = "http://localhost:81"
             Ensure = "Absent"
-            OctopusCredentials = $cred
+            OctopusApiKey = $cred
             EnvironmentName = "UAT 1"
         }
     }

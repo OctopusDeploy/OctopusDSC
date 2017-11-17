@@ -19,13 +19,14 @@ $run_test_scenario_script = <<SCRIPT
   exit $LASTEXITCODE
 SCRIPT
 
-def run_octopus_scenario(config, scenario)
+def run_octopus_scenario(config, scenario, configuration_params = nil)
   config.vm.provision "shell", inline: "write-output \"##teamcity[blockOpened name='Running Scenario #{scenario}']\""
   config.vm.provision "dsc" do |dsc|
     dsc.configuration_file  = "#{scenario}.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios"
     dsc.abort_on_dsc_failure = true
+    dsc.configuration_params = configuration_params unless configuration_params.nil?
   end
   config.vm.provision "shell", inline: "write-output \"##teamcity[blockClosed name='Running Scenario #{scenario}']\""
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', scenario.downcase)
@@ -145,7 +146,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   run_octopus_scenario(config, 'Server_Scenario_05_Reinstall')
 
   # upgrade to the latest
-  run_octopus_scenario(config, 'Server_Scenario_06_Upgrade')
+  run_octopus_scenario(config, 'Server_Scenario_06_Upgrade', { "-ApiKey" => "$ENV:OctopusApiKey" })
 
   # install watchdog
   run_octopus_scenario(config, 'Server_Scenario_07_Watchdog_Create')
