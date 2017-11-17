@@ -118,7 +118,7 @@ function Invoke-OctopusServerCommand ($arguments)
     Write-Error "Command returned exit code $LASTEXITCODE. Aborting."
     exit 1
   }
-  Write-Log "done."
+  Write-Verbose "done."
 }
 
 function Write-CommandOutput
