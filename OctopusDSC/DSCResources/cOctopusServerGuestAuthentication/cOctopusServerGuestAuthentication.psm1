@@ -92,7 +92,7 @@ function Get-Configuration($instanceName)
 
 function Invoke-OctopusServerCommand ($arguments)
 {
-  Write-Log "Executing command '$octopusServerExePath $($arguments -join ' ')'"
+  Write-Verbose "Executing command '$octopusServerExePath $($arguments -join ' ')'"
   $output = .$octopusServerExePath $arguments
 
   Write-CommandOutput $output
@@ -100,7 +100,7 @@ function Invoke-OctopusServerCommand ($arguments)
     Write-Error "Command returned exit code $LASTEXITCODE. Aborting."
     exit 1
   }
-  Write-Log "done."
+  Write-Verbose "done."
 }
 
 function Write-CommandOutput
