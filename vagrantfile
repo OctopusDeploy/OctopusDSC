@@ -31,7 +31,7 @@ def run_octopus_scenario(config, scenario)
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', scenario.downcase)
 end
 
-def run_tentacle_scenario(config, scenario)
+def run_tentacle_scenario(config, scenario, configuration_params)
   config.vm.provision "shell", inline: "write-output \"##teamcity[blockOpened name='Running Scenario #{scenario}']\""
   config.vm.provision "dsc" do |dsc|
     dsc.configuration_file  = "#{scenario}.ps1"
