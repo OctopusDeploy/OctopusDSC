@@ -61,7 +61,7 @@ Configuration Server_Scenario_10_Install4
             # dont mess with stats
             AllowCollectionOfAnonymousUsageStatistics = $false
 
-            DownloadUrl = "https://s3-ap-southeast-1.amazonaws.com/octopus-testing/server/Octopus.4.0.0-v4-14812-x64.msi"
+            DownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.4.0.3-x64.msi"
 
             OctopusServiceCredential = $svccred
             DependsOn = "[user]OctoSquid"
