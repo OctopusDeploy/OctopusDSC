@@ -13,8 +13,8 @@ function Get-TargetResource {
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
     [string]$EnvironmentName,
-    [PSCredential]$OctopusCredentials,
-    [PSCredential]$OctopusApiKey
+    [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
+    [PSCredential]$OctopusApiKey = [PSCredential]::Empty
   )
   $environment = Get-Environment -Url $Url `
                                  -EnvironmentName $EnvironmentName `
@@ -49,8 +49,8 @@ function Set-TargetResource {
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
     [string]$EnvironmentName,
-    [PSCredential]$OctopusCredentials,
-    [PSCredential]$OctopusApiKey
+    [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
+    [PSCredential]$OctopusApiKey = [PSCredential]::Empty
   )
 
   $currentResource = Get-TargetResource -Url $Url `
@@ -87,8 +87,8 @@ function Test-TargetResource {
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
     [string]$EnvironmentName,
-    [PSCredential]$OctopusCredentials,
-    [PSCredential]$OctopusApiKey
+    [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
+    [PSCredential]$OctopusApiKey = [PSCredential]::Empty
   )
   $currentResource = (Get-TargetResource -Url $Url `
                                          -Ensure $Ensure `
@@ -122,8 +122,8 @@ function Remove-Environment {
   param (
     [string]$Url,
     [string]$EnvironmentName,
-    [PSCredential]$OctopusCredentials,
-    [PSCredential]$OctopusApiKey
+    [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
+    [PSCredential]$OctopusApiKey = [PSCredential]::Empty
   )
 
   $repository = Get-OctopusClientRepository -Url $Url `
@@ -139,8 +139,8 @@ function New-Environment {
   param (
     [string]$Url,
     [string]$EnvironmentName,
-    [PSCredential]$OctopusCredentials,
-    [PSCredential]$OctopusApiKey
+    [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
+    [PSCredential]$OctopusApiKey = [PSCredential]::Empty
   )
   $repository = Get-OctopusClientRepository -Url $Url `
                                             -OctopusCredentials $OctopusCredentials `
@@ -155,8 +155,8 @@ function Get-Environment {
   param (
     [string]$Url,
     [string]$EnvironmentName,
-    [PSCredential]$OctopusCredentials,
-    [PSCredential]$OctopusApiKey
+    [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
+    [PSCredential]$OctopusApiKey = [PSCredential]::Empty
   )
 
   $repository = Get-OctopusClientRepository -Url $Url `
@@ -172,14 +172,14 @@ function Get-OctopusClientRepository
   param (
     [string]$Url,
     [string]$EnvironmentName,
-    [PSCredential]$OctopusCredentials,
-    [PSCredential]$OctopusApiKey
+    [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
+    [PSCredential]$OctopusApiKey = [PSCredential]::Empty
   )
 
-  if (($null -eq $OctopusCredentials) -and ($null -eq $OctopusApiKey)) {
+  if ((($null -eq $OctopusCredentials) -or ($OctopusCredentials -eq [PSCredential]::Empty)) -and (($null -eq $OctopusApiKey) -or ($OctopusApiKey -eq [PSCredential]::Empty))) {
     throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey'."
   }
-  if (($null -ne $OctopusCredentials) -and ($null -ne $OctopusApiKey)) {
+  if ((($null -ne $OctopusCredentials) -and ($OctopusCredentials -ne [PSCredential]::Empty)) -or (($null -ne $OctopusApiKey) -and ($OctopusApiKey -ne [PSCredential]::Empty))) {
     throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey', not both."
   }
 
