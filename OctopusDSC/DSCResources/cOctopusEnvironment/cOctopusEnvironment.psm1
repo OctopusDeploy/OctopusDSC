@@ -201,17 +201,17 @@ function Get-OctopusClientRepository
   Add-Type -Path (Join-Path $shadowCopyFolder "Newtonsoft.Json.dll")
   Add-Type -Path (Join-Path $shadowCopyFolder "Octopus.Client.dll")
 
-  $apiKey = $null
-  if ($null -ne $OctopusApiKey) {
+  if (($null -ne $OctopusApiKey) -and ($OctopusApiKey -ne [PSCredential]::Empty)) {
     $apiKey = $OctopusApiKey.GetNetworkCredential().Password
+    $endpoint = New-Object Octopus.Client.OctopusServerEndpoint($Url, $apiKey)
+    $repository = New-Object Octopus.Client.OctopusRepository $endpoint
   }
+  else {
+    #connect
+    $endpoint = New-Object Octopus.Client.OctopusServerEndpoint $Url
+    $repository = New-Object Octopus.Client.OctopusRepository $endpoint
 
-  #connect
-  $endpoint = New-Object Octopus.Client.OctopusServerEndpoint($Url, $apiKey)
-  $repository = New-Object Octopus.Client.OctopusRepository $endpoint
-
-  #sign in
-  if ($null -eq $OctopusApiKey) {
+    #sign in
     $credentials = New-Object Octopus.Client.Model.LoginCommand
     $credentials.Username = $OctopusCredentials.GetNetworkCredential().Username
     $credentials.Password = $OctopusCredentials.GetNetworkCredential().Password
