@@ -9,16 +9,13 @@ function Get-TargetResource()
         [string]$ApiKey,
         [Parameter(Mandatory)]
         [string]$DnsName,
+        [string]$IpAddress = "0.0.0.0",
+        [int]$HttpsPort = 443,
+        [string]$VirtualDirectory = "/",
         [Parameter(Mandatory)]
-        [string]$RegistrationEmailAddress,
+        [string]$RegistrationEmail,
         [Parameter(Mandatory)]
-        [bool]$AcceptLetsEncryptTermsOfService,
-        [Parameter(Mandatory)]
-        [int]$HttpsPort,
-        [Parameter(Mandatory)]
-        [string]$IPAddress,
-        [Parameter(Mandatory)]
-        [string]$Path
+        [bool]$AcceptTos
     )
 
     $existingEnsure = "Present"
@@ -51,16 +48,13 @@ function Set-TargetResource()
         [string]$ApiKey,
         [Parameter(Mandatory)]
         [string]$DnsName,
+        [string]$IpAddress = "0.0.0.0",
+        [int]$HttpsPort = 443,
+        [string]$VirtualDirectory = "/",
         [Parameter(Mandatory)]
-        [string]$RegistrationEmailAddress,
+        [string]$RegistrationEmail,
         [Parameter(Mandatory)]
-        [bool]$AcceptLetsEncryptTermsOfService,
-        [Parameter(Mandatory)]
-        [int]$HttpsPort,
-        [Parameter(Mandatory)]
-        [string]$IPAddress,
-        [Parameter(Mandatory)]
-        [string]$Path
+        [bool]$AcceptTos
     )
 
     $currentResource = Get-TargetResource -Ensure $Ensure `
@@ -99,16 +93,13 @@ function Test-TargetResource()
         [string]$ApiKey,
         [Parameter(Mandatory)]
         [string]$DnsName,
+        [string]$IpAddress = "0.0.0.0",
+        [int]$HttpsPort = 443,
+        [string]$VirtualDirectory = "/",
         [Parameter(Mandatory)]
-        [string]$RegistrationEmailAddress,
+        [string]$RegistrationEmail,
         [Parameter(Mandatory)]
-        [bool]$AcceptLetsEncryptTermsOfService,
-        [Parameter(Mandatory)]
-        [int]$HttpsPort,
-        [Parameter(Mandatory)]
-        [string]$IPAddress,
-        [Parameter(Mandatory)]
-        [string]$Path
+        [bool]$AcceptTos
     )
 
     $currentResource = Get-TargetResource -Ensure $Ensure `
