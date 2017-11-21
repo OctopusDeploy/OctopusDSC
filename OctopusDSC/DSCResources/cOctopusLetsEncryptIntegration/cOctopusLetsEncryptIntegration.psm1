@@ -13,7 +13,7 @@ function Get-TargetResource()
         [int]$HttpsPort = 443,
         [string]$VirtualDirectory = "/",
         [Parameter(Mandatory)]
-        [string]$RegistrationEmail,
+        [string]$RegistrationEmailAddress,
         [Parameter(Mandatory)]
         [bool]$AcceptTos
     )
@@ -27,11 +27,11 @@ function Get-TargetResource()
         Ensure = $existingEnsure
         ApiKey = $ApiKey
         DnsName = $DnsName
-        RegistrationEmailAddress = $RegistrationEmailAddress
-        AcceptLetsEncryptTermsOfService = $AcceptLetsEncryptTermsOfService
+        IpAddress = $IpAddress
         HttpsPort = $HttpsPort
-        IPAddress = $IPAddress
-        Path = $Path
+        VirtualDirectory = $VirtualDirectory
+        RegistrationEmailAddress = $RegistrationEmailAddress
+        AcceptTos = $AcceptTos
     }
 
     return $result
@@ -52,7 +52,7 @@ function Set-TargetResource()
         [int]$HttpsPort = 443,
         [string]$VirtualDirectory = "/",
         [Parameter(Mandatory)]
-        [string]$RegistrationEmail,
+        [string]$RegistrationEmailAddress,
         [Parameter(Mandatory)]
         [bool]$AcceptTos
     )
@@ -60,11 +60,11 @@ function Set-TargetResource()
     $currentResource = Get-TargetResource -Ensure $Ensure `
         -ApiKey $ApiKey `
         -DnsName $DnsName `
-        -RegistrationEmailAddress $RegistrationEmailAddress `
-        -AcceptLetsEncryptTermsOfService $AcceptLetsEncryptTermsOfService `
+        -IpAddress $IpAddress `
         -HttpsPort $HttpsPort `
-        -IPAddress $IPAddress `
-        -Path $Path
+        -VirtualDirectory $VirtualDirectory `
+        -RegistrationEmailAddress $RegistrationEmailAddress `
+        -AcceptTos $AcceptTos
     
     if ($Ensure -eq "Absent" -and $currentResource.Ensure -eq "Present") {
         Remove-LetsEncryptConfiguration -ApiKey $ApiKey -DnsName $DnsName
@@ -72,11 +72,11 @@ function Set-TargetResource()
     elseif ($Ensure -eq "Present" -and $currentResource.Ensure -eq "Absent") {
         $task = (Add-LetsEncryptConfiguration -ApiKey $ApiKey `
             -DnsName $DnsName `
-            -RegistrationEmailAddress $RegistrationEmailAddress `
-            -AcceptLetsEncryptTermsOfService $AcceptLetsEncryptTermsOfService `
+            -IpAddress $IpAddress `
             -HttpsPort $HttpsPort `
-            -IPAddress $IPAddress `
-            -Path $Path)
+            -VirtualDirectory $VirtualDirectory `
+            -RegistrationEmailAddress $RegistrationEmailAddress `
+            -AcceptTos $AcceptTos)
         
         Get-LetsEncryptConfigurationTaskStatus -ApiKey $ApiKey -DnsName $DnsName -Id $task.Id
     }
@@ -97,7 +97,7 @@ function Test-TargetResource()
         [int]$HttpsPort = 443,
         [string]$VirtualDirectory = "/",
         [Parameter(Mandatory)]
-        [string]$RegistrationEmail,
+        [string]$RegistrationEmailAddress,
         [Parameter(Mandatory)]
         [bool]$AcceptTos
     )
@@ -105,11 +105,11 @@ function Test-TargetResource()
     $currentResource = Get-TargetResource -Ensure $Ensure `
         -ApiKey $ApiKey `
         -DnsName $DnsName `
-        -RegistrationEmailAddress $RegistrationEmailAddress `
-        -AcceptLetsEncryptTermsOfService $AcceptLetsEncryptTermsOfService `
+        -IpAddress $IpAddress `
         -HttpsPort $HttpsPort `
-        -IPAddress $IPAddress `
-        -Path $Path
+        -VirtualDirectory $VirtualDirectory `
+        -RegistrationEmailAddress $RegistrationEmailAddress `
+        -AcceptTos $AcceptTos
 
     $params = Get-OctopusDSCParameter $MyInvocation.MyCommand.Parameters
     
@@ -165,11 +165,11 @@ function Add-LetsEncryptConfiguration()
     param (
         [string]$ApiKey,
         [string]$DnsName,
+        [string]$IpAddress = "0.0.0.0",
+        [int]$HttpsPort = 443,
+        [string]$VirtualDirectory = "/",
         [string]$RegistrationEmailAddress,
-        [bool]$AcceptLetsEncryptTermsOfService,
-        [int]$HttpsPort,
-        [string]$IPAddress,
-        [string]$Path
+        [bool]$AcceptTos
     )
 
     $body = @{
@@ -180,10 +180,10 @@ function Add-LetsEncryptConfiguration()
         Arguments = @{
             DnsName = $DnsName
             RegistrationEmailAddress = $RegistrationEmailAddress
-            AcceptLetsEncryptTermsOfService = $AcceptLetsEncryptTermsOfService
+            AcceptLetsEncryptTermsOfService = $AcceptTos
             HttpsPort = $HttpsPort
-            IPAddress = $IPAddress
-            Path = $Path
+            IPAddress = $IpAddress
+            Path = $VirtualDirectory
         }
         Links = $null
     } | ConvertTo-Json -Compress
