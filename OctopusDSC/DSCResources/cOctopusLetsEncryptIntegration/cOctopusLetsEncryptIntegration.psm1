@@ -73,10 +73,10 @@ function Set-TargetResource()
         -Path $Path
     
     if ($Ensure -eq "Absent" -and $currentResource.Ensure -eq "Present") {
-        # do something
+        Remove-LetsEncryptConfiguration -ApiKey $ApiKey -DnsName $DnsName
     }
     elseif ($Ensure -eq "Present" -and $currentResource.Ensure -eq "Absent") {
-        $task = (New-LetsEncryptConfiguration -ApiKey $ApiKey `
+        $task = (Add-LetsEncryptConfiguration -ApiKey $ApiKey `
             -DnsName $DnsName `
             -RegistrationEmailAddress $RegistrationEmailAddress `
             -AcceptLetsEncryptTermsOfService $AcceptLetsEncryptTermsOfService `
@@ -123,7 +123,7 @@ function Test-TargetResource()
     $params = Get-OctopusDSCParameter $MyInvocation.MyCommand.Parameters
     
     $currentConfigurationMatchesRequestedConfiguration = $true
-    
+
     foreach ($key in $currentResource.Keys) {
         $currentValue = $currentResource.Item($key)
         $requestedValue = $params.Item($key)
@@ -169,7 +169,7 @@ function Get-LetsEncryptConfigurationTaskStatus()
     while ($task.State -eq "Queued")
 }
 
-function New-LetsEncryptConfiguration()
+function Add-LetsEncryptConfiguration()
 {
     param (
         [string]$ApiKey,
@@ -198,5 +198,19 @@ function New-LetsEncryptConfiguration()
     } | ConvertTo-Json -Compress
 
     $result = (Invoke-RestMethod -Method "Post" -Headers @{ "X-Octopus-ApiKey" = $ApiKey } -Uri "http://$DnsName/api/tasks" -Body $body -UseBasicParsing)
+    return $result
+}
+
+function Remove-LetsEncryptConfiguration()
+{
+    param (
+        [string]$ApiKey,
+        [string]$DnsName
+    )
+
+    $body = (Get-LetsEncryptConfiguration -ApiKey $ApiKey -DnsName $DnsName)
+    $body.Enabled = $false
+
+    $result = (Invoke-RestMethod -Method "Post" -Headers @{ "X-Octopus-ApiKey" = $ApiKey } -Uri "http://$DnsName/api/letsencryptconfiguration" -Body $body -UseBasicParsing)
     return $result
 }
