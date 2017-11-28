@@ -32,7 +32,8 @@ function Get-TargetResource
     [int]$ListenPort = 10943,
     [bool]$AutoLoginEnabled = $false,
     [PSCredential]$OctopusServiceCredential,
-    [string]$HomeDirectory
+    [string]$HomeDirectory,
+    [PSCredential]$OctopusMasterKey
   )
 
   Write-Verbose "Checking if Octopus Server is installed"
@@ -265,7 +266,8 @@ function Set-TargetResource
     [int]$ListenPort = 10943,
     [bool]$AutoLoginEnabled = $false,
     [PSCredential]$OctopusServiceCredential,
-    [string]$HomeDirectory
+    [string]$HomeDirectory,
+    [PSCredential]$OctopusMasterKey
   )
 
   $currentResource = (Get-TargetResource -Ensure $Ensure `
@@ -282,7 +284,8 @@ function Set-TargetResource
                                          -ListenPort $ListenPort `
                                          -AutoLoginEnabled $AutoLoginEnabled `
                                          -OctopusServiceCredential $OctopusServiceCredential `
-                                         -HomeDirectory $HomeDirectory)
+                                         -HomeDirectory $HomeDirectory `
+                                         -OctopusMasterKey $OctopusMasterKey)
 
   $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
   Test-RequestedConfiguration $currentResource $params
@@ -310,7 +313,8 @@ function Set-TargetResource
                           -listenPort $ListenPort `
                           -autoLoginEnabled $AutoLoginEnabled `
                           -homeDirectory $HomeDirectory `
-                          -octopusServiceCredential $OctopusServiceCredential
+                          -octopusServiceCredential $OctopusServiceCredential `
+                          -OctopusMasterKey $OctopusMasterKey
   }
   else
   {
@@ -332,7 +336,8 @@ function Set-TargetResource
                                      -listenPort $ListenPort `
                                      -autoLoginEnabled $AutoLoginEnabled `
                                      -homeDirectory $HomeDirectory `
-                                     -octopusServiceCredential $OctopusServiceCredential
+                                     -octopusServiceCredential $OctopusServiceCredential `
+                                     -OctopusMasterKey $OctopusMasterKey
     }
   }
 
@@ -979,7 +984,8 @@ function Test-TargetResource
     [int]$ListenPort = 10943,
     [bool]$AutoLoginEnabled = $false,
     [PSCredential]$OctopusServiceCredential,
-    [string]$HomeDirectory
+    [string]$HomeDirectory,
+    [PSCredential]$OctopusMasterKey
   )
 
   $currentResource = (Get-TargetResource -Ensure $Ensure `

@@ -88,10 +88,11 @@ When `State` is `Started`, the resource will ensure that the Octopus Servr windo
 | `AutoLoginEnabled`                           | `boolean`                                           | `$false`                                                        | If an authentication provider is enabled that supports pass through authentcation (eg Active Directory), allow the user to automatically sign in. Only supported from Octopus 3.5. |
 | `OctopusServiceCredential`                   | `PSCredential`                                      |                                                                 | Credentials of the account used to run the Octopus Service
 | `HomeDirectory`                              | `string`                                            | `C:\Octopus`                                                    | Home directory for Octopus logs and config (where supported)
+| `OctopusMasterKey`                           | `PSCredential`                                      | `C:\Octopus`                                                    | Master Key allowing access to an existing database (for advanced scenarios, such as Disaster Recovery, Clustering and Autoscaling)
 
 ## Drift
 
-Currently the resource does not consider `SqlDbConnectionString` or `OctopusAdminCredential` when testing for drift.
+Currently the resource does not consider `SqlDbConnectionString`, `OctopusAdminCredential` or `OctopusMasterKey` when testing for drift.
 
 This means that the server will be automatically reconfigured if you change any properties except the ones listed above.
 

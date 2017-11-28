@@ -39,5 +39,26 @@ Configuration Server_Scenario_02_Remove
             # dont mess with stats
             AllowCollectionOfAnonymousUsageStatistics = $false
         }
+
+        cOctopusServer OctopusServer
+        {
+            Ensure = "Absent"
+            State = "Stopped"
+
+            Name = "HANode"
+
+            # The url that Octopus will listen on
+            WebListenPrefix = "http://localhost:81"
+
+            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=Octopus;Trusted_Connection=True;"
+
+            # The admin user to create
+            OctopusAdminCredential = $cred
+
+            # dont mess with stats
+            AllowCollectionOfAnonymousUsageStatistics = $false
+
+            HomeDirectory = "C:\ChezOctopus"
+        }
     }
 }
