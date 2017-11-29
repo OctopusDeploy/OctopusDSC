@@ -2,7 +2,8 @@ $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
 $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
 
 $MasterKey = octopus.server.exe --console show-master-key --instance=OctopusServer
-$MasterKeyCred = [PSCredential]::new("notused", (ConvertTo-SecureString $MasterKey -AsPlainText -Force))
+$SecureMasterKey = ConvertTo-SecureString $MasterKey -AsPlainText -Force
+$MasterKeyCred = New-Object System.Management.Automation.PSCredential  ("notused", $SecureMasterKey)
 
 Configuration Server_Scenario_01_InstallSecondNode
 {
@@ -39,3 +40,5 @@ Configuration Server_Scenario_01_InstallSecondNode
 
             HomeDirectory = "C:\ChezOctopusSecondNode"
         }
+    }
+}
