@@ -1,9 +1,6 @@
 $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
 $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
 
-$seqPlainTextApiKey = ConvertTo-SecureString "MyMagicSeqApiKey" -AsPlainText -Force
-$seqApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $seqPlainTextApiKey)
-
 $MasterKey = octopus.server.exe --console show-master-key --instance=OctopusServer
 $MasterKeyCred = [PSCredential]::new("notused", (ConvertTo-SecureString $MasterKey -AsPlainText -Force))
 
@@ -40,5 +37,5 @@ Configuration Server_Scenario_01_InstallSecondNode
             # dont mess with stats
             AllowCollectionOfAnonymousUsageStatistics = $false
 
-            HomeDirectory = "C:\ChezOctopus"
+            HomeDirectory = "C:\ChezOctopusSecondNode"
         }
