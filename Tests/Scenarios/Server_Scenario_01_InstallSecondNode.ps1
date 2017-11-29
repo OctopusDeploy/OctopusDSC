@@ -5,6 +5,7 @@ $seqPlainTextApiKey = ConvertTo-SecureString "MyMagicSeqApiKey" -AsPlainText -Fo
 $seqApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $seqPlainTextApiKey)
 
 $MasterKey = octopus.server.exe --console show-master-key --instance=OctopusServer
+$MasterKeyCred = [PSCredential]::new("notused", (ConvertTo-SecureString $MasterKey -AsPlainText -Force))
 
 Configuration Server_Scenario_01_InstallSecondNode
 {
@@ -31,7 +32,7 @@ Configuration Server_Scenario_01_InstallSecondNode
 
             SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=Octopus;Trusted_Connection=True;"
 
-            OctopusMasterKey = $MasterKey
+            OctopusMasterKey = $MasterKeyCred
 
             # The admin user to create
             OctopusAdminCredential = $cred
