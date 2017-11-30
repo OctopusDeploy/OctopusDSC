@@ -2,7 +2,7 @@ $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
 $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
 
 Push-Location "$env:programfiles\Octopus Deploy\Octopus"
-$MasterKey = octopus.server.exe --console show-master-key --instance=OctopusServer
+$MasterKey = .\octopus.server.exe show-master-key --instance=OctopusServer
 Pop-Location
 $SecureMasterKey = ConvertTo-SecureString $MasterKey -AsPlainText -Force
 $MasterKeyCred = New-Object System.Management.Automation.PSCredential  ("notused", $SecureMasterKey)
@@ -10,8 +10,7 @@ $MasterKeyCred = New-Object System.Management.Automation.PSCredential  ("notused
 Configuration Server_Scenario_01_InstallSecondNode
 {
     Import-DscResource -ModuleName OctopusDSC
-
-
+    
     Node "localhost"
     {
         LocalConfigurationManager

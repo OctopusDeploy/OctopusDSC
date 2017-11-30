@@ -59,7 +59,7 @@ echo "Running Pester Tests"
 Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -EnableExit
 
 echo "Running 'vagrant up --provider hyperv'"
-vagrant up --provider hyperv | Tee-Object -FilePath vagrant.log  #  --no-destroy-on-error --debug
+vagrant up --provider hyperv --no-destroy-on-error | Tee-Object -FilePath vagrant.log  #   --debug
 
 echo "Dont forget to run 'vagrant destroy -f' when you have finished"
 
