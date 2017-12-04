@@ -551,7 +551,7 @@ function Start-OctopusDeployService($name, $webListenPrefix)
       Start-Sleep -Seconds 5
   }
 
-  if (-not Test-OctopusDeployServerResponding $url) {
+  if (-not (Test-OctopusDeployServerResponding $url)) {
     throw "Server did not come online at $url after $($timeout.TotalMinutes) minutes"
   }
 }
