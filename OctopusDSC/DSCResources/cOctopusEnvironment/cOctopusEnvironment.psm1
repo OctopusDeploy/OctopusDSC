@@ -197,6 +197,13 @@ function Get-OctopusClientRepository
   Write-Verbose "Shadow copying '$filename' (version $($version.FileVersion)) to $shadowCopyFolder"
   Copy-Item $filename $shadowCopyFolder
 
+  $filename = "${env:ProgramFiles}\Octopus Deploy\Octopus\Octopus.Client.Extensibility.dll"
+  if (Test-Path $filename) {
+    $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($filename)
+    Write-Verbose "Shadow copying '$filename' (version $($version.FileVersion)) to $shadowCopyFolder"
+    Copy-Item $filename $shadowCopyFolder
+  }
+
   #shadow copy these files, so we can uninstall octopus
   Add-Type -Path (Join-Path $shadowCopyFolder "Newtonsoft.Json.dll")
   Add-Type -Path (Join-Path $shadowCopyFolder "Octopus.Client.dll")
