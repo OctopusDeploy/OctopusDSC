@@ -124,30 +124,6 @@ function Confirm-RequestedState() {
     }
 }
 
-function Set-ServiceCredential
-{
-    param([string]$Name,
-        [PSCredential]$credential)
-    
-    $serviceName = (Get-TentacleServiceName $Name)
-
-    $srv = Get-CimInstance win32_service -filter "displayname='$serviceName'" 
-    $arguments = @{
-        StartName=$credential.UserName;
-        StartPassword=$credential.GetNetworkCredential().Password;
-    }
-    $srv | Invoke-CimMethod -Name Change -Arguments $arguments
-   
-}
-
-Function Get-ServiceUsername
-{
-    param([string]$Name)
-    
-    $serviceName = (Get-TentacleServiceName $Name)
-    Get-CIMInstance -ClassName "win32_service" -Filter "displayname='$serviceName'" | Select-Object -expand StartName
-}
-
 function Set-TargetResource
 {
     param (
@@ -270,7 +246,8 @@ function Set-TargetResource
                      -customPublicHostName $CustomPublicHostName `
                      -tentacleHomeDirectory $TentacleHomeDirectory `
                      -registerWithServer $RegisterWithServer `
-                     -octopusServerThumbprint $OctopusServerThumbprint
+                     -octopusServerThumbprint $OctopusServerThumbprint `
+                     -TentacleServiceCredential $TentacleServiceCredential
 
         Write-Verbose "Tentacle installed!"
     }
@@ -591,7 +568,25 @@ function New-Tentacle
         $registerArguments += @("--comms-style", "TentacleActive",
                                 "--server-comms-port", $serverPort)
     }
-    Invoke-AndAssert { & .\tentacle.exe service --install --instance $name --console }
+    $serviceArgs = @(
+        'service',
+        '--install',
+        '--instance', $name,
+        '--console',
+        '--reconfigure'
+        )
+
+    if($TentacleServiceCredential)
+    {
+      Write-Log "Adding Service identity to installation command"
+
+      $serviceArgs += @(
+        '--username', $TentacleServiceCredential.UserName
+        '--password', $TentacleServiceCredential.GetNetworkCredential().Password
+      )
+    }
+
+    Invoke-AndAssert { & .\tentacle.exe ($serviceArgs) }
 
     if ($registerWithServer) {
         if ($environments -ne "")

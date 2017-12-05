@@ -142,7 +142,7 @@ describe service('OctopusDeploy Tentacle: ListeningTentacleWithCustomAccount') d
   it { should be_installed }
   it { should be_running }
   it { should have_start_mode('Automatic') }
-  it { should run_under_account('serviceuser') }
+  it { should run_under_account('.\ServiceUser') }
 end
 
 describe port(10936) do

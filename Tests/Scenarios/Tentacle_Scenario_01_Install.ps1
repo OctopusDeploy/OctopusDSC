@@ -162,7 +162,7 @@ Configuration Tentacle_Scenario_01_Install
             CommunicationMode = "Listen"
             TentacleHomeDirectory = "C:\Octopus\ListeningTentacleWithCustomAccountHome"
 
-            TentacleServiceCredential = $serviceusercredential
+            TentacleServiceCredential = $svccred
             DependsOn = "[user]ServiceUser"
         }
     }

@@ -39,7 +39,7 @@ describe service('OctopusDeploy') do
   it { should be_installed }
   it { should be_running }
   it { should have_start_mode('Automatic') }
-  it { should run_under_account('OctoSquid') }
+  it { should run_under_account('.\OctoSquid') }
 end
 
 describe port(10943) do
