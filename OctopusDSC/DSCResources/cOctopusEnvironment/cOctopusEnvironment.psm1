@@ -165,57 +165,66 @@ function Get-Environment {
     return $environment
 }
 
-function Get-OctopusClientRepository {
-    param (
-        [string]$Url,
-        [string]$EnvironmentName,
-        [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
-        [PSCredential]$OctopusApiKey = [PSCredential]::Empty
-    )
 
-    if ((($null -eq $OctopusCredentials) -or ($OctopusCredentials -eq [PSCredential]::Empty)) -and (($null -eq $OctopusApiKey) -or ($OctopusApiKey -eq [PSCredential]::Empty))) {
-        throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey'."
-    }
-    if ((($null -ne $OctopusCredentials) -and ($OctopusCredentials -ne [PSCredential]::Empty)) -and (($null -ne $OctopusApiKey) -and ($OctopusApiKey -ne [PSCredential]::Empty))) {
-        throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey', not both."
-    }
+function Get-OctopusClientRepository
+{
+  param (
+    [string]$Url,
+    [string]$EnvironmentName,
+    [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
+    [PSCredential]$OctopusApiKey = [PSCredential]::Empty
+  )
 
-    $tempFolder = [System.IO.Path]::GetTempPath()
-    $shadowCopyFolder = Join-Path $tempFolder ([Guid]::NewGuid())
-    New-Item -type Directory $shadowCopyFolder | Out-Null
+  if ((($null -eq $OctopusCredentials) -or ($OctopusCredentials -eq [PSCredential]::Empty)) -and (($null -eq $OctopusApiKey) -or ($OctopusApiKey -eq [PSCredential]::Empty))) {
+    throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey'."
+  }
+  if ((($null -ne $OctopusCredentials) -and ($OctopusCredentials -ne [PSCredential]::Empty)) -and (($null -ne $OctopusApiKey) -and ($OctopusApiKey -ne [PSCredential]::Empty))) {
+    throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey', not both."
+  }
 
-    $filename = "${env:ProgramFiles}\Octopus Deploy\Octopus\Newtonsoft.Json.dll"
+  $tempFolder = [System.IO.Path]::GetTempPath()
+  $shadowCopyFolder = Join-Path $tempFolder ([Guid]::NewGuid())
+  New-Item -type Directory $shadowCopyFolder | Out-Null
+
+  $filename = "${env:ProgramFiles}\Octopus Deploy\Octopus\Newtonsoft.Json.dll"
+  $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($filename)
+  Write-Verbose "Shadow copying '$filename' (version $($version.FileVersion)) to $shadowCopyFolder"
+  Copy-Item $filename $shadowCopyFolder
+
+  $filename = "${env:ProgramFiles}\Octopus Deploy\Octopus\Octopus.Client.dll"
+  $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($filename)
+  Write-Verbose "Shadow copying '$filename' (version $($version.FileVersion)) to $shadowCopyFolder"
+  Copy-Item $filename $shadowCopyFolder
+
+  $filename = "${env:ProgramFiles}\Octopus Deploy\Octopus\Octopus.Client.Extensibility.dll"
+  if (Test-Path $filename) {
     $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($filename)
     Write-Verbose "Shadow copying '$filename' (version $($version.FileVersion)) to $shadowCopyFolder"
     Copy-Item $filename $shadowCopyFolder
+  }
 
-    $filename = "${env:ProgramFiles}\Octopus Deploy\Octopus\Octopus.Client.dll"
-    $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($filename)
-    Write-Verbose "Shadow copying '$filename' (version $($version.FileVersion)) to $shadowCopyFolder"
-    Copy-Item $filename $shadowCopyFolder
+  #shadow copy these files, so we can uninstall octopus
+  Add-Type -Path (Join-Path $shadowCopyFolder "Newtonsoft.Json.dll")
+  Add-Type -Path (Join-Path $shadowCopyFolder "Octopus.Client.dll")
 
-    #shadow copy these files, so we can uninstall octopus
-    Add-Type -Path (Join-Path $shadowCopyFolder "Newtonsoft.Json.dll")
-    Add-Type -Path (Join-Path $shadowCopyFolder "Octopus.Client.dll")
+  if (($null -ne $OctopusApiKey) -and ($OctopusApiKey -ne [PSCredential]::Empty)) {
+    $apiKey = $OctopusApiKey.GetNetworkCredential().Password
+    $endpoint = New-Object Octopus.Client.OctopusServerEndpoint($Url, $apiKey)
+    $repository = New-Object Octopus.Client.OctopusRepository $endpoint
+  }
+  else {
+    #connect
+    $endpoint = New-Object Octopus.Client.OctopusServerEndpoint $Url
+    $repository = New-Object Octopus.Client.OctopusRepository $endpoint
 
-    if (($null -ne $OctopusApiKey) -and ($OctopusApiKey -ne [PSCredential]::Empty)) {
-        $apiKey = $OctopusApiKey.GetNetworkCredential().Password
-        $endpoint = New-Object Octopus.Client.OctopusServerEndpoint($Url, $apiKey)
-        $repository = New-Object Octopus.Client.OctopusRepository $endpoint
-    }
-    else {
-        #connect
-        $endpoint = New-Object Octopus.Client.OctopusServerEndpoint $Url
-        $repository = New-Object Octopus.Client.OctopusRepository $endpoint
+    #sign in
+    $credentials = New-Object Octopus.Client.Model.LoginCommand
+    $credentials.Username = $OctopusCredentials.GetNetworkCredential().Username
+    $credentials.Password = $OctopusCredentials.GetNetworkCredential().Password
+    $repository.Users.SignIn($credentials)
+  }
 
-        #sign in
-        $credentials = New-Object Octopus.Client.Model.LoginCommand
-        $credentials.Username = $OctopusCredentials.GetNetworkCredential().Username
-        $credentials.Password = $OctopusCredentials.GetNetworkCredential().Password
-        $repository.Users.SignIn($credentials)
-    }
-
-    return $repository
+  return $repository
 }
 
 function Get-OctopusDSCParameter($parameters) {
