@@ -16,10 +16,6 @@ describe file('c:/Octopus/OctopusServer') do
   it { should be_directory }
 end
 
-describe file('c:/Octopus/Packages') do
-  it { should be_directory }
-end
-
 describe file('c:/Octopus/TaskLogs') do
   it { should be_directory }
 end
