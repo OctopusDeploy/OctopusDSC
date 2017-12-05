@@ -82,11 +82,13 @@ try
     $repository.MachinePolicies.Create($policyResource) | Out-Null
 
     set-content "c:\temp\octopus-configured.marker" ""
+    Stop-Transcript
   }
 }
 catch
 {
   Write-Output $_
+  Stop-Transcript
   exit 1
 }
 
