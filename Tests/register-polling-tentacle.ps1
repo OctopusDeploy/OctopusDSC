@@ -23,13 +23,13 @@ try
     $credentials = New-Object Octopus.Client.Model.LoginCommand
     $credentials.Username = $octopusAdminUsername
     $credentials.Password = $octopusAdminPassword
-    $repository.Users.SignIn($credentials)
+    $repository.Users.SignIn($credentials) | Out-Null
 
     $environment = $repository.Environments.FindByName("The-Env")
 
     $existingMachine = $repository.machines.findbyname("ListeningTentacleWithThumbprintWithoutAutoRegister")
     if ($null -ne $existingMachine) {
-        $repository.machines.Delete($existingMachine)
+        $repository.machines.Delete($existingMachine) | Out-Null
     }
 
     $tentacleThumbprint = & "C:\Program Files\Octopus Deploy\Tentacle\Tentacle.exe" "show-thumbprint" "--instance=ListeningTentacleWithThumbprintWithoutAutoRegister" "--nologo" "--thumbprint-only" "--console"
@@ -48,7 +48,7 @@ try
     $tentacle.Roles.Add($role)
     $tentacle.Name = $machineName
 
-    $repository.Machines.Create($tentacle)
+    $repository.Machines.Create($tentacle) | Out-Null
 }
 catch
 {

@@ -71,7 +71,7 @@ try
 
     $tenantEditor = $repository.Tenants.CreateOrModify("John")
     $tenantEditor.WithTag($tagSet.Tags[0]) | Out-Null
-    $tenantEditor.ConnectToProjectAndEnvironments($project, $environment)
+    $tenantEditor.ConnectToProjectAndEnvironments($project, $environment) | Out-Null
     $tenantEditor.Save() | Out-Null
 
     # create a non-default Test Machine Policy w/ defaults
