@@ -1,3 +1,5 @@
+# Configures the Tentacle watchdog to watch all Tentacle instances
+
 Configuration SampleConfig
 {
     Import-DscResource -Module OctopusDSC
