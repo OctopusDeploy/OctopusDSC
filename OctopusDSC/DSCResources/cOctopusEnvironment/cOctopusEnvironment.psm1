@@ -1,171 +1,170 @@
 
 function Get-TargetResource {
-  [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSDSCUseVerboseMessageInDSCResource", "")]
-  [OutputType([HashTable])]
-  param (
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [string]$Url,
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [ValidateSet("Present", "Absent")]
-    [string]$Ensure,
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [string]$EnvironmentName,
-    [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
-    [PSCredential]$OctopusApiKey = [PSCredential]::Empty
-  )
-  $environment = Get-Environment -Url $Url `
-                                 -EnvironmentName $EnvironmentName `
-                                 -OctopusCredentials $OctopusCredentials `
-                                 -OctopusApiKey $OctopusApiKey
-  $existingEnsure = 'Present'
-  if ($null -eq $environment) {
-    $existingEnsure = 'Absent'
-  }
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSDSCUseVerboseMessageInDSCResource", "")]
+    [OutputType([HashTable])]
+    param (
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Url,
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [ValidateSet("Present", "Absent")]
+        [string]$Ensure,
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$EnvironmentName,
+        [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
+        [PSCredential]$OctopusApiKey = [PSCredential]::Empty
+    )
+    $environment = Get-Environment -Url $Url `
+        -EnvironmentName $EnvironmentName `
+        -OctopusCredentials $OctopusCredentials `
+        -OctopusApiKey $OctopusApiKey
+    $existingEnsure = 'Present'
+    if ($null -eq $environment) {
+        $existingEnsure = 'Absent'
+    }
 
-  $result = @{
-    Url = $Url;
-    Ensure = $existingEnsure
-    EnvironmentName = $EnvironmentName
-    OctopusCredentials = $OctopusCredentials
-    OctopusApiKey = $OctopusApiKey
-  }
+    $result = @{
+        Url                = $Url;
+        Ensure             = $existingEnsure
+        EnvironmentName    = $EnvironmentName
+        OctopusCredentials = $OctopusCredentials
+        OctopusApiKey      = $OctopusApiKey
+    }
 
-  return $result
+    return $result
 }
 
 function Set-TargetResource {
-  [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSDSCUseVerboseMessageInDSCResource", "")]
-  param (
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [string]$Url,
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [ValidateSet("Present", "Absent")]
-    [string]$Ensure,
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [string]$EnvironmentName,
-    [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
-    [PSCredential]$OctopusApiKey = [PSCredential]::Empty
-  )
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSDSCUseVerboseMessageInDSCResource", "")]
+    param (
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Url,
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [ValidateSet("Present", "Absent")]
+        [string]$Ensure,
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$EnvironmentName,
+        [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
+        [PSCredential]$OctopusApiKey = [PSCredential]::Empty
+    )
 
-  $currentResource = Get-TargetResource -Url $Url `
-                                        -Ensure $Ensure `
-                                        -EnvironmentName $EnvironmentName `
-                                        -OctopusCredentials $OctopusCredentials `
-                                        -OctopusApiKey $OctopusApiKey
+    $currentResource = Get-TargetResource -Url $Url `
+        -Ensure $Ensure `
+        -EnvironmentName $EnvironmentName `
+        -OctopusCredentials $OctopusCredentials `
+        -OctopusApiKey $OctopusApiKey
 
-  if ($Ensure -eq "Absent" -and $currentResource.Ensure -eq "Present") {
-    Remove-Environment -Url $Url `
-                       -EnvironmentName $EnvironmentName `
-                       -OctopusCredentials $OctopusCredentials `
-                       -OctopusApiKey $OctopusApiKey
-  } elseif ($Ensure -eq "Present" -and $currentResource.Ensure -eq "Absent") {
-    New-Environment -Url $Url `
-                    -EnvironmentName $EnvironmentName `
-                    -OctopusCredentials $OctopusCredentials `
-                    -OctopusApiKey $OctopusApiKey
+    if ($Ensure -eq "Absent" -and $currentResource.Ensure -eq "Present") {
+        Remove-Environment -Url $Url `
+            -EnvironmentName $EnvironmentName `
+            -OctopusCredentials $OctopusCredentials `
+            -OctopusApiKey $OctopusApiKey
+    }
+    elseif ($Ensure -eq "Present" -and $currentResource.Ensure -eq "Absent") {
+        New-Environment -Url $Url `
+            -EnvironmentName $EnvironmentName `
+            -OctopusCredentials $OctopusCredentials `
+            -OctopusApiKey $OctopusApiKey
 
-  }
+    }
 }
 
 function Test-TargetResource {
-  [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSDSCUseVerboseMessageInDSCResource", "")]
-  [OutputType([boolean])]
-  param (
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [string]$Url,
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [ValidateSet("Present", "Absent")]
-    [string]$Ensure,
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [string]$EnvironmentName,
-    [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
-    [PSCredential]$OctopusApiKey = [PSCredential]::Empty
-  )
-  $currentResource = (Get-TargetResource -Url $Url `
-                                         -Ensure $Ensure `
-                                         -EnvironmentName $EnvironmentName `
-                                         -OctopusCredentials $OctopusCredentials `
-                                         -OctopusApiKey $OctopusApiKey)
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSDSCUseVerboseMessageInDSCResource", "")]
+    [OutputType([boolean])]
+    param (
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Url,
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [ValidateSet("Present", "Absent")]
+        [string]$Ensure,
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$EnvironmentName,
+        [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
+        [PSCredential]$OctopusApiKey = [PSCredential]::Empty
+    )
+    $currentResource = (Get-TargetResource -Url $Url `
+            -Ensure $Ensure `
+            -EnvironmentName $EnvironmentName `
+            -OctopusCredentials $OctopusCredentials `
+            -OctopusApiKey $OctopusApiKey)
 
-  $params = Get-OctopusDSCParameter $MyInvocation.MyCommand.Parameters
+    $params = Get-OctopusDSCParameter $MyInvocation.MyCommand.Parameters
 
-  $currentConfigurationMatchesRequestedConfiguration = $true
-  foreach($key in $currentResource.Keys)
-  {
-    $currentValue = $currentResource.Item($key)
-    $requestedValue = $params.Item($key)
+    $currentConfigurationMatchesRequestedConfiguration = $true
+    foreach ($key in $currentResource.Keys) {
+        $currentValue = $currentResource.Item($key)
+        $requestedValue = $params.Item($key)
 
-    if ($currentValue -ne $requestedValue)
-    {
-      Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '$currentValue' mismatched the specified value '$requestedValue'"
-      $currentConfigurationMatchesRequestedConfiguration = $false
+        if ($currentValue -ne $requestedValue) {
+            Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '$currentValue' mismatched the specified value '$requestedValue'"
+            $currentConfigurationMatchesRequestedConfiguration = $false
+        }
+        else {
+            Write-Verbose "Configuration parameter '$key' matches the requested value '$requestedValue'"
+        }
     }
-    else
-    {
-      Write-Verbose "Configuration parameter '$key' matches the requested value '$requestedValue'"
-    }
-  }
 
-  return $currentConfigurationMatchesRequestedConfiguration
+    return $currentConfigurationMatchesRequestedConfiguration
 }
 
 function Remove-Environment {
-  param (
-    [string]$Url,
-    [string]$EnvironmentName,
-    [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
-    [PSCredential]$OctopusApiKey = [PSCredential]::Empty
-  )
+    param (
+        [string]$Url,
+        [string]$EnvironmentName,
+        [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
+        [PSCredential]$OctopusApiKey = [PSCredential]::Empty
+    )
 
-  $repository = Get-OctopusClientRepository -Url $Url `
-                                            -OctopusCredentials $OctopusCredentials `
-                                            -OctopusApiKey $OctopusApiKey
+    $repository = Get-OctopusClientRepository -Url $Url `
+        -OctopusCredentials $OctopusCredentials `
+        -OctopusApiKey $OctopusApiKey
 
 
-  $environment = $repository.Environments.FindByName($EnvironmentName)
-  $repository.Environments.Delete($environment)
+    $environment = $repository.Environments.FindByName($EnvironmentName)
+    $repository.Environments.Delete($environment)
 }
 
 function New-Environment {
-  param (
-    [string]$Url,
-    [string]$EnvironmentName,
-    [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
-    [PSCredential]$OctopusApiKey = [PSCredential]::Empty
-  )
-  $repository = Get-OctopusClientRepository -Url $Url `
-                                            -OctopusCredentials $OctopusCredentials `
-                                            -OctopusApiKey $OctopusApiKey
+    param (
+        [string]$Url,
+        [string]$EnvironmentName,
+        [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
+        [PSCredential]$OctopusApiKey = [PSCredential]::Empty
+    )
+    $repository = Get-OctopusClientRepository -Url $Url `
+        -OctopusCredentials $OctopusCredentials `
+        -OctopusApiKey $OctopusApiKey
 
-  $environment = New-Object Octopus.Client.Model.EnvironmentResource
-  $environment.Name = $EnvironmentName
-  $repository.Environments.Create($environment) | Out-Null
+    $environment = New-Object Octopus.Client.Model.EnvironmentResource
+    $environment.Name = $EnvironmentName
+    $repository.Environments.Create($environment) | Out-Null
 }
 
 function Get-Environment {
-  param (
-    [string]$Url,
-    [string]$EnvironmentName,
-    [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
-    [PSCredential]$OctopusApiKey = [PSCredential]::Empty
-  )
+    param (
+        [string]$Url,
+        [string]$EnvironmentName,
+        [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
+        [PSCredential]$OctopusApiKey = [PSCredential]::Empty
+    )
 
-  $repository = Get-OctopusClientRepository -Url $Url `
-                                            -OctopusCredentials $OctopusCredentials `
-                                            -OctopusApiKey $OctopusApiKey
+    $repository = Get-OctopusClientRepository -Url $Url `
+        -OctopusCredentials $OctopusCredentials `
+        -OctopusApiKey $OctopusApiKey
 
-  $environment = $repository.Environments.FindByName($EnvironmentName)
-  return $environment
+    $environment = $repository.Environments.FindByName($EnvironmentName)
+    return $environment
 }
+
 
 function Get-OctopusClientRepository
 {
@@ -229,17 +228,16 @@ function Get-OctopusClientRepository
 }
 
 function Get-OctopusDSCParameter($parameters) {
-  # unfortunately $PSBoundParameters doesn't contain parameters that weren't supplied (because the default value was okay)
-  # credit to https://www.briantist.com/how-to/splatting-psboundparameters-default-values-optional-parameters/
-  $params = @{}
-  foreach($h in $parameters.GetEnumerator()) {
-    $key = $h.Key
-    $var = Get-Variable -Name $key -ErrorAction SilentlyContinue
-    if ($null -ne $var)
-    {
-      $val = Get-Variable -Name $key -ErrorAction Stop | Select-Object -ExpandProperty Value -ErrorAction Stop
-      $params[$key] = $val
+    # unfortunately $PSBoundParameters doesn't contain parameters that weren't supplied (because the default value was okay)
+    # credit to https://www.briantist.com/how-to/splatting-psboundparameters-default-values-optional-parameters/
+    $params = @{}
+    foreach ($h in $parameters.GetEnumerator()) {
+        $key = $h.Key
+        $var = Get-Variable -Name $key -ErrorAction SilentlyContinue
+        if ($null -ne $var) {
+            $val = Get-Variable -Name $key -ErrorAction Stop | Select-Object -ExpandProperty Value -ErrorAction Stop
+            $params[$key] = $val
+        }
     }
-  }
-  return $params
+    return $params
 }
