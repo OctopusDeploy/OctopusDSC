@@ -426,9 +426,7 @@ function New-Tentacle {
     param (
         [Parameter(Mandatory = $True)]
         [string]$name,
-        [Parameter(Mandatory = $True)]
         [string]$apiKey,
-        [Parameter(Mandatory = $True)]
         [string]$octopusServerUrl,
         [Parameter(Mandatory = $False)]
         [string[]]$environments = "",
@@ -491,43 +489,17 @@ function New-Tentacle {
     Invoke-AndAssert { & .\tentacle.exe configure --instance $name --app "$tentacleAppDirectory" --console }
     Invoke-AndAssert { & .\tentacle.exe new-certificate --instance $name --console }
 
-    $registerArguments = @(
-        "register-with",
-        "--instance", $name,
-        "--server", $octopusServerUrl,
-        "--name", $displayName,
-        "--apiKey", $apiKey,
-        "--force",
-        "--console"
-    )
-
-    if (($null -ne $policy) -and ($policy -ne "")) {
-        $registerArguments += @("--policy", $policy)
-    }
-
     if (($null -ne $octopusServerThumbprint) -and ($octopusServerThumbprint -ne "")) {
         Invoke-AndAssert { & .\tentacle.exe configure --instance $name --trust $octopusServerThumbprint --console }
     }
 
     if ($CommunicationMode -eq "Listen") {
         Invoke-AndAssert { & .\tentacle.exe configure --instance $name --port $port --console }
-        $publicHostName = Get-PublicHostName $publicHostNameConfiguration $customPublicHostName
-        Write-Verbose "Public host name: $publicHostName"
-        $registerArguments += @(
-            "--comms-style", "TentaclePassive",
-            "--publicHostName", $publicHostName
-        )
-        if ($tentacleCommsPort -ne $port) {
-            $registerArguments += @("--tentacle-comms-port", $tentacleCommsPort)
-        }
     }
     else {
         Invoke-AndAssert { & .\tentacle.exe configure --instance $name --port $port --noListen "True" --console }
-        $registerArguments += @(
-            "--comms-style", "TentacleActive",
-            "--server-comms-port", $serverPort
-        )
     }
+
     $serviceArgs = @(
         'service',
         '--install',
@@ -548,6 +520,42 @@ function New-Tentacle {
     Invoke-AndAssert { & .\tentacle.exe ($serviceArgs) }
 
     if ($registerWithServer) {
+        $registerArguments = @(
+            "register-with",
+            "--instance", $name,
+            "--server", $octopusServerUrl,
+            "--name", $displayName,
+            "--apiKey", $apiKey,
+            "--force",
+            "--console"
+        )
+
+        if (($null -ne $policy) -and ($policy -ne "")) {
+            $registerArguments += @("--policy", $policy)
+        }
+
+        if (($null -ne $octopusServerThumbprint) -and ($octopusServerThumbprint -ne "")) {
+            Invoke-AndAssert { & .\tentacle.exe configure --instance $name --trust $octopusServerThumbprint --console }
+        }
+
+        if ($CommunicationMode -eq "Listen") {
+            $publicHostName = Get-PublicHostName $publicHostNameConfiguration $customPublicHostName
+            Write-Verbose "Public host name: $publicHostName"
+            $registerArguments += @(
+                "--comms-style", "TentaclePassive",
+                "--publicHostName", $publicHostName
+            )
+            if ($tentacleCommsPort -ne $port) {
+                $registerArguments += @("--tentacle-comms-port", $tentacleCommsPort)
+            }
+        }
+        else {
+            $registerArguments += @(
+                "--comms-style", "TentacleActive",
+                "--server-comms-port", $serverPort
+            )
+        }
+
         if ($environments -ne "") {
             foreach ($environment in $environments) {
                 foreach ($e2 in $environment.Split(',')) {
