@@ -77,6 +77,7 @@ function Get-TargetResource {
 
 # test a variable has a value (whether its an array or string)
 function Test-Value($value) {
+    if ($null -eq $value) { return $false }
     if ($value -eq "") { return $false }
     if ($value.length -eq 0) { return $false }
     if ($value.length -eq 1 -and $value[0].length -eq 0) { return $false }
@@ -90,16 +91,39 @@ function Confirm-RegistrationParameter {
         [string[]]$Roles,
         [string]$Policy,
         [string[]]$Tenants,
-        [string[]]$TenantTags
+        [string[]]$TenantTags,
+        [string]$OctopusServerUrl,
+        [string]$ApiKey
     )
-    if ($RegisterWithServer) {
-        return
-    }
 
-    if ((Test-Value($Roles)) -or (Test-Value($Environments)) -or (Test-Value($Tenants)) -or (Test-Value($TenantTags)) -or (Test-Value($Policy))) {
+    if ((Test-Value($Roles)) -and (-not ($RegisterWithServer))) {
         throw "Invalid configuration requested. " + `
-            "You have asked for the Tentacle not to be registered with the server, but still provided a server specific configuration argument (Roles, Environments, Tenants, TenantTags or Policy). " + `
-            "Please remove the configuration argument or set 'RegisterWithServer = `$True'."
+            "You have asked for the Tentacle not to be registered with the server, but still provided a the 'Roles' configuration argument. " + `
+            "Please remove the 'Roles' configuration argument or set 'RegisterWithServer = `$True'."
+    } elseif ((Test-Value($Environments)) -and (-not ($RegisterWithServer))) {
+        throw "Invalid configuration requested. " + `
+            "You have asked for the Tentacle not to be registered with the server, but still provided a the 'Environments' configuration argument. " + `
+            "Please remove the 'Environments' configuration argument or set 'RegisterWithServer = `$True'."
+    } elseif ((Test-Value($Tenants)) -and (-not ($RegisterWithServer))) {
+        throw "Invalid configuration requested. " + `
+            "You have asked for the Tentacle not to be registered with the server, but still provided a the 'Tenants' configuration argument. " + `
+            "Please remove the 'Tenants' configuration argument or set 'RegisterWithServer = `$True'."
+    } elseif ((Test-Value($TenantTags)) -and (-not ($RegisterWithServer))) {
+        throw "Invalid configuration requested. " + `
+            "You have asked for the Tentacle not to be registered with the server, but still provided a the 'TenantTags' configuration argument. " + `
+            "Please remove the 'TenantTags' configuration argument or set 'RegisterWithServer = `$True'."
+    } elseif ((Test-Value($Policy)) -and (-not ($RegisterWithServer))) {
+        throw "Invalid configuration requested. " + `
+            "You have asked for the Tentacle not to be registered with the server, but still provided a the 'Policy' configuration argument. " + `
+            "Please remove the 'Policy' configuration argument or set 'RegisterWithServer = `$True'."
+    } elseif ((-not (Test-Value($OctopusServerUrl))) -and (($RegisterWithServer))) {
+        throw "Invalid configuration requested. " + `
+            "You have asked for the Tentacle to be registered with the server, but not provided the 'OctopusServerUrl' configuration argument. " + `
+            "Please specify the 'OctopusServerUrl' configuration argument or set 'RegisterWithServer = `$False'."
+    } elseif ((-not (Test-Value($ApiKey))) -and (($RegisterWithServer))) {
+        throw "Invalid configuration requested. " + `
+            "You have asked for the Tentacle to be registered with the server, but not provided the 'ApiKey' configuration argument. " + `
+            "Please specify the 'ApiKey' configuration argument or set 'RegisterWithServer = `$False'."
     }
 }
 
@@ -156,7 +180,10 @@ function Set-TargetResource {
         -Roles $Roles `
         -Policy $Policy `
         -Tenants $Tenants `
-        -TenantTags $TenantTags
+        -TenantTags $TenantTags `
+        -OctopusServerUrl $OctopusServerUrl `
+        -ApiKey $ApiKey
+
 
     $currentResource = (Get-TargetResource -Name $Name)
 
@@ -426,9 +453,7 @@ function New-Tentacle {
     param (
         [Parameter(Mandatory = $True)]
         [string]$name,
-        [Parameter(Mandatory = $True)]
         [string]$apiKey,
-        [Parameter(Mandatory = $True)]
         [string]$octopusServerUrl,
         [Parameter(Mandatory = $False)]
         [string[]]$environments = "",
@@ -491,43 +516,17 @@ function New-Tentacle {
     Invoke-AndAssert { & .\tentacle.exe configure --instance $name --app "$tentacleAppDirectory" --console }
     Invoke-AndAssert { & .\tentacle.exe new-certificate --instance $name --console }
 
-    $registerArguments = @(
-        "register-with",
-        "--instance", $name,
-        "--server", $octopusServerUrl,
-        "--name", $displayName,
-        "--apiKey", $apiKey,
-        "--force",
-        "--console"
-    )
-
-    if (($null -ne $policy) -and ($policy -ne "")) {
-        $registerArguments += @("--policy", $policy)
-    }
-
     if (($null -ne $octopusServerThumbprint) -and ($octopusServerThumbprint -ne "")) {
         Invoke-AndAssert { & .\tentacle.exe configure --instance $name --trust $octopusServerThumbprint --console }
     }
 
     if ($CommunicationMode -eq "Listen") {
         Invoke-AndAssert { & .\tentacle.exe configure --instance $name --port $port --console }
-        $publicHostName = Get-PublicHostName $publicHostNameConfiguration $customPublicHostName
-        Write-Verbose "Public host name: $publicHostName"
-        $registerArguments += @(
-            "--comms-style", "TentaclePassive",
-            "--publicHostName", $publicHostName
-        )
-        if ($tentacleCommsPort -ne $port) {
-            $registerArguments += @("--tentacle-comms-port", $tentacleCommsPort)
-        }
     }
     else {
         Invoke-AndAssert { & .\tentacle.exe configure --instance $name --port $port --noListen "True" --console }
-        $registerArguments += @(
-            "--comms-style", "TentacleActive",
-            "--server-comms-port", $serverPort
-        )
     }
+
     $serviceArgs = @(
         'service',
         '--install',
@@ -548,6 +547,42 @@ function New-Tentacle {
     Invoke-AndAssert { & .\tentacle.exe ($serviceArgs) }
 
     if ($registerWithServer) {
+        $registerArguments = @(
+            "register-with",
+            "--instance", $name,
+            "--server", $octopusServerUrl,
+            "--name", $displayName,
+            "--apiKey", $apiKey,
+            "--force",
+            "--console"
+        )
+
+        if (($null -ne $policy) -and ($policy -ne "")) {
+            $registerArguments += @("--policy", $policy)
+        }
+
+        if (($null -ne $octopusServerThumbprint) -and ($octopusServerThumbprint -ne "")) {
+            Invoke-AndAssert { & .\tentacle.exe configure --instance $name --trust $octopusServerThumbprint --console }
+        }
+
+        if ($CommunicationMode -eq "Listen") {
+            $publicHostName = Get-PublicHostName $publicHostNameConfiguration $customPublicHostName
+            Write-Verbose "Public host name: $publicHostName"
+            $registerArguments += @(
+                "--comms-style", "TentaclePassive",
+                "--publicHostName", $publicHostName
+            )
+            if ($tentacleCommsPort -ne $port) {
+                $registerArguments += @("--tentacle-comms-port", $tentacleCommsPort)
+            }
+        }
+        else {
+            $registerArguments += @(
+                "--comms-style", "TentacleActive",
+                "--server-comms-port", $serverPort
+            )
+        }
+
         if ($environments -ne "") {
             foreach ($environment in $environments) {
                 foreach ($e2 in $environment.Split(',')) {
