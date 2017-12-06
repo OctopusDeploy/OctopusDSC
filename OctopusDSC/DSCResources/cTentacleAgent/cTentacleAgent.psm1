@@ -537,7 +537,7 @@ function New-Tentacle {
     )
 
     if ($TentacleServiceCredential) {
-        Write-Log "Adding Service identity to installation command"
+        Write-Verbose "Adding Service identity to installation command"
 
         $serviceArgs += @(
             '--username', $TentacleServiceCredential.UserName
