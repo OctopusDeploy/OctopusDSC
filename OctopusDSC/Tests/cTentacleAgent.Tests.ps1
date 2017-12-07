@@ -43,6 +43,12 @@ try
                 It 'Throws if RegisterWithServer is false but policy provided' {
                     { Confirm-RegistrationParameter -RegisterWithServer $False -Policy "my policy" } | Should Throw "Invalid configuration requested"
                 }
+                It 'Throws if RegisterWithServer is true but no OctopusServerUrl provided' {
+                    { Confirm-RegistrationParameter -RegisterWithServer $true -OctopusServerUrl $null } | Should Throw "Invalid configuration requested"
+                }
+                It 'Throws if RegisterWithServer is true but no ApiKey provided' {
+                    { Confirm-RegistrationParameter -RegisterWithServer $true -OctopusServerUrl "https://example.octopus.com" -ApiKey $null } | Should Throw "Invalid configuration requested"
+                }
                 It 'Does not throw if RegisterWithServer is false and environment provided as empty string' {
                     Confirm-RegistrationParameter -RegisterWithServer $False -Environments ""
                 }
@@ -54,6 +60,9 @@ try
                 }
                 It 'Does not throw if RegisterWithServer is false and no environment provided' {
                     Confirm-RegistrationParameter -RegisterWithServer $False
+                }
+                It 'Does not throw if RegisterWithServer is true and OctopusServerUrl and ApiKey     provided' {
+                    Confirm-RegistrationParameter -RegisterWithServer $true -OctopusServerUrl "https://example.octopus.com" -ApiKey "API-1234"
                 }
             }
 

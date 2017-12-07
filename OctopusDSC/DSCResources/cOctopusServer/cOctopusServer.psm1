@@ -300,7 +300,7 @@ function Set-TargetResource {
             Update-OctopusDeploy -name $Name `
                 -downloadUrl $DownloadUrl `
                 -state $State `
-                -url ($webListenPrefix -split ';')[0]
+                -webListenPrefix $webListenPrefix
         }
         if (Test-ReconfigurationRequired $currentResource $params) {
             Set-OctopusDeployConfiguration -name $Name `
@@ -318,7 +318,7 @@ function Set-TargetResource {
     }
 
     if ($State -eq "Started" -and $currentResource["State"] -eq "Stopped") {
-        Start-OctopusDeployService -name $Name -url ($webListenPrefix -split ';')[0]
+        Start-OctopusDeployService -name $Name -webListenPrefix $webListenPrefix
     }
 }
 
@@ -472,17 +472,17 @@ function Uninstall-OctopusDeploy($name) {
     }
 }
 
-function Update-OctopusDeploy($name, $downloadUrl, $state, $url) {
+function Update-OctopusDeploy($name, $downloadUrl, $state, $webListenPrefix) {
     Write-Verbose "Upgrading Octopus Deploy..."
     Stop-OctopusDeployService -name $name
     Install-MSI $downloadUrl
     if ($state -eq "Started") {
-        Start-OctopusDeployService -name $name -url $url
+        Start-OctopusDeployService -name $name -webListenPrefix $webListenPrefix
     }
     Write-Verbose "Octopus Deploy upgraded!"
 }
 
-function Start-OctopusDeployService($name, $url) {
+function Start-OctopusDeployService($name, $webListenPrefix) {
     Write-Log "Starting Octopus Deploy instance ..."
     $args = @(
         'service',
@@ -492,11 +492,20 @@ function Start-OctopusDeployService($name, $url) {
     )
     Invoke-OctopusServerCommand $args
 
+    # split on semi colons for backwards compat
+    $url = ($webListenPrefix -split ';')[0]
+    # but also split on commas, as Octopus supports both
+    $url = ($url -split ',')[0]
+
     $timeout = new-timespan -Minutes 5
     $sw = [diagnostics.stopwatch]::StartNew()
     while (($sw.elapsed -lt $timeout) -and (-not (Test-OctopusDeployServerResponding $url))) {
         Write-Verbose "$(date) Waiting until server completes startup"
-        start-sleep 5
+        Start-Sleep -Seconds 5
+    }
+
+    if (-not (Test-OctopusDeployServerResponding $url)) {
+        throw "Server did not come online at $url after $($timeout.TotalMinutes) minutes"
     }
 }
 
@@ -504,6 +513,7 @@ function Test-OctopusDeployServerResponding($url) {
     try {
         Write-Verbose "Checking if $url/api is responding..."
         Invoke-WebRequest "$url/api" -UseBasicParsing | Out-Null
+        Write-Verbose "Got a successful response from $url/api"
         return $true
     }
     catch {

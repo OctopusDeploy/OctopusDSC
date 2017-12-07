@@ -84,10 +84,6 @@ Configuration Tentacle_Scenario_01_Install
             # than one instance
             Name = "ListeningTentacleWithoutAutoRegister";
 
-            # Registration - all parameters required
-            ApiKey = $ApiKey;
-            OctopusServerUrl = $OctopusServerUrl;
-
             # Optional settings
             ListenPort = 10934;
             DefaultApplicationDirectory = "C:\Applications"
@@ -105,10 +101,6 @@ Configuration Tentacle_Scenario_01_Install
             # Tentacle instance name. Leave it as 'Tentacle' unless you have more
             # than one instance
             Name = "ListeningTentacleWithThumbprintWithoutAutoRegister";
-
-            # Registration - all parameters required
-            ApiKey = $ApiKey;
-            OctopusServerUrl = $OctopusServerUrl;
 
             # Optional settings
             ListenPort = 10935;
@@ -162,7 +154,7 @@ Configuration Tentacle_Scenario_01_Install
             CommunicationMode = "Listen"
             TentacleHomeDirectory = "C:\Octopus\ListeningTentacleWithCustomAccountHome"
 
-            TentacleServiceCredential = $serviceusercredential
+            TentacleServiceCredential = $svccred
             DependsOn = "[user]ServiceUser"
         }
     }
