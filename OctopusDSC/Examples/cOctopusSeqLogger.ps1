@@ -1,3 +1,5 @@
+# Configures an Octopus Server to send logs to Seq (https://getseq.net)
+
 Configuration SampleConfig
 {
     Import-DscResource -Module OctopusDSC

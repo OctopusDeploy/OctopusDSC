@@ -1,3 +1,5 @@
+# Creates an environment in an Octopus Server instance
+
 Configuration SampleConfig
 {
     Import-DscResource -Module OctopusDSC

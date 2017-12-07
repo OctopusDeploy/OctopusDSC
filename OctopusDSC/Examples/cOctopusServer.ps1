@@ -1,6 +1,9 @@
+# Installs an Octopus Server instance against a local database
+# please see https://github.com/OctopusDeploy/OctopusDSC/blob/master/README-cOctopusServer.md for all available options
+
 # deserialize a password from disk
 $password = Get-Content .\ExamplePassword.txt | ConvertTo-SecureString
-$AdminCred = New-Object PSCredential "Admin", $password 
+$AdminCred = New-Object PSCredential "Admin", $password
 
 Configuration SampleConfig
 {
