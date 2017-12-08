@@ -31,7 +31,8 @@ function Get-TargetResource {
         [int]$ListenPort = 10943,
         [bool]$AutoLoginEnabled = $false,
         [PSCredential]$OctopusServiceCredential,
-        [string]$HomeDirectory
+        [string]$HomeDirectory,
+        [string]$LicenseKey = $null
     )
 
     Write-Verbose "Checking if Octopus Server is installed"
@@ -117,6 +118,7 @@ function Get-TargetResource {
         AutoLoginEnabled                          = $existingAutoLoginEnabled;
         OctopusServiceCredential                  = $existingOctopusServiceCredential;
         HomeDirectory                             = $existingHomeDirectory;
+        LicenseKey                                = $licenseKey
     }
 
     return $currentResource
@@ -247,7 +249,8 @@ function Set-TargetResource {
         [int]$ListenPort = 10943,
         [bool]$AutoLoginEnabled = $false,
         [PSCredential]$OctopusServiceCredential,
-        [string]$HomeDirectory
+        [string]$HomeDirectory,
+        [string]$LicenseKey = $null
     )
 
     $currentResource = (Get-TargetResource -Ensure $Ensure `
@@ -264,7 +267,8 @@ function Set-TargetResource {
             -ListenPort $ListenPort `
             -AutoLoginEnabled $AutoLoginEnabled `
             -OctopusServiceCredential $OctopusServiceCredential `
-            -HomeDirectory $HomeDirectory)
+            -HomeDirectory $HomeDirectory `
+            -LicenseKey $LicenseKey)
 
     $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
     Test-RequestedConfiguration $currentResource $params
@@ -289,7 +293,8 @@ function Set-TargetResource {
             -listenPort $ListenPort `
             -autoLoginEnabled $AutoLoginEnabled `
             -homeDirectory $HomeDirectory `
-            -octopusServiceCredential $OctopusServiceCredential
+            -octopusServiceCredential $OctopusServiceCredential `
+            -licenseKey $LicenseKey
     }
     else {
         if ($Ensure -eq "Present" -and $currentResource["DownloadUrl"] -ne $DownloadUrl) {
@@ -308,7 +313,8 @@ function Set-TargetResource {
                 -listenPort $ListenPort `
                 -autoLoginEnabled $AutoLoginEnabled `
                 -homeDirectory $HomeDirectory `
-                -octopusServiceCredential $OctopusServiceCredential
+                -octopusServiceCredential $OctopusServiceCredential `
+                -licenseKey $LicenseKey
         }
     }
 
@@ -354,7 +360,8 @@ function Set-OctopusDeployConfiguration {
         [int]$listenPort = 10943,
         [bool]$autoLoginEnabled = $false,
         [string]$homeDirectory = $null,
-        [PSCredential]$OctopusServiceCredential
+        [PSCredential]$OctopusServiceCredential,
+        [string]$licenseKey = $null
     )
 
     Write-Log "Configuring Octopus Deploy instance ..."
@@ -408,6 +415,24 @@ function Set-OctopusDeployConfiguration {
         Update-InstallState "OctopusServicePassword" $null
     }
 
+    if (($null -eq $licenseKey) -or ($licenseKey -eq "")) {
+        Write-Log "Configuring Octopus Deploy instance to use free license ..."
+        $args = @(
+            'license',
+            '--console',
+            '--instance', $name,
+            '--free'
+        )
+    } else {
+        Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
+        $args = @(
+            'license',
+            '--console',
+            '--instance', $name,
+            '--licenseBase64', $licenseKey
+        )
+    }
+    Invoke-OctopusServerCommand $args
 }
 
 function Test-ReconfigurationRequired($currentState, $desiredState) {
@@ -665,7 +690,8 @@ function Install-OctopusDeploy {
         [int]$listenPort = 10943,
         [bool]$autoLoginEnabled = $false,
         [string]$homeDirectory = $null,
-        [PSCredential]$octopusServiceCredential
+        [PSCredential]$octopusServiceCredential,
+        [string]$licenseKey = $null
     )
 
     Write-Verbose "Installing Octopus Deploy..."
@@ -811,13 +837,23 @@ function Install-OctopusDeploy {
     Update-InstallState "OctopusAdminUsername" $extractedUsername
     Update-InstallState "OctopusAdminPassword" ($OctopusAdminCredential.Password | ConvertFrom-SecureString)
 
-    Write-Log "Configuring Octopus Deploy instance to use free license ..."
-    $args = @(
-        'license',
-        '--console',
-        '--instance', $name,
-        '--free'
-    )
+    if (($null -eq $licenseKey) -or ($licenseKey -eq "")) {
+        Write-Log "Configuring Octopus Deploy instance to use free license ..."
+        $args = @(
+            'license',
+            '--console',
+            '--instance', $name,
+            '--free'
+        )
+    } else {
+        Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
+        $args = @(
+            'license',
+            '--console',
+            '--instance', $name,
+            '--licenseBase64', $licenseKey
+        )
+    }
     Invoke-OctopusServerCommand $args
 
     Write-Log "Install Octopus Deploy service ..."
@@ -907,7 +943,8 @@ function Test-TargetResource {
         [int]$ListenPort = 10943,
         [bool]$AutoLoginEnabled = $false,
         [PSCredential]$OctopusServiceCredential,
-        [string]$HomeDirectory
+        [string]$HomeDirectory,
+        [string]$LicenseKey = $null
     )
 
     $currentResource = (Get-TargetResource -Ensure $Ensure `
@@ -924,7 +961,8 @@ function Test-TargetResource {
             -ListenPort $ListenPort `
             -AutoLoginEnabled $AutoLoginEnabled `
             -OctopusServiceCredential $OctopusServiceCredential `
-            -HomeDirectory $HomeDirectory)
+            -HomeDirectory $HomeDirectory `
+            -LicenseKey $LicenseKey)
 
     $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
 

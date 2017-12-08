@@ -40,6 +40,9 @@ Configuration SampleConfig
             LegacyWebAuthenticationMode = "UsernamePassword"
 
             HomeDirectory = "C:\Octopus"
+
+            # if not supplied, Octopus will use a free license
+            LicenseKey = "base64encodedlicense"
         }
     }
 }
@@ -86,8 +89,9 @@ When `State` is `Started`, the resource will ensure that the Octopus Servr windo
 | `ForceSSL`                                   | `boolean`                                           | `$false`                                                        | Whether SSL should be required (HTTP requests get redirected to HTTPS) |
 | `ListenPort`                                 | `int`                                               | `10943`                                                         | The port on which the Server should listen for communication from `Polling` Tentacles. |
 | `AutoLoginEnabled`                           | `boolean`                                           | `$false`                                                        | If an authentication provider is enabled that supports pass through authentcation (eg Active Directory), allow the user to automatically sign in. Only supported from Octopus 3.5. |
-| `OctopusServiceCredential`                   | `PSCredential`                                      |                                                                 | Credentials of the account used to run the Octopus Service
-| `HomeDirectory`                              | `string`                                            | `C:\Octopus`                                                    | Home directory for Octopus logs and config (where supported)
+| `OctopusServiceCredential`                   | `PSCredential`                                      |                                                                 | Credentials of the account used to run the Octopus Service |
+| `HomeDirectory`                              | `string`                                            | `C:\Octopus`                                                    | Home directory for Octopus logs and config (where supported) |
+| `LicenseKey`                                 | `string`                                            |                                                                 | The Base64 (UTF8) encoded license key. If not supplied, uses a free license |
 
 ## Drift
 
