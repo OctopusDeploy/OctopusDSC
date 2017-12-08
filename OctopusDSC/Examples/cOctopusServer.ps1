@@ -40,6 +40,8 @@ Configuration SampleConfig
             LegacyWebAuthenticationMode = "UsernamePassword"
 
             HomeDirectory = "C:\Octopus"
+
+            LicenseKey = "Base64 encoded xml license key"
         }
     }
 }
