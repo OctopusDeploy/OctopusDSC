@@ -32,7 +32,7 @@ function Get-TargetResource {
         [bool]$AutoLoginEnabled = $false,
         [PSCredential]$OctopusServiceCredential,
         [string]$HomeDirectory,
-        [string]$LicenseKey
+        [string]$LicenseKey = $null
     )
 
     Write-Verbose "Checking if Octopus Server is installed"
@@ -250,7 +250,7 @@ function Set-TargetResource {
         [bool]$AutoLoginEnabled = $false,
         [PSCredential]$OctopusServiceCredential,
         [string]$HomeDirectory,
-        [string]$LicenseKey
+        [string]$LicenseKey = $null
     )
 
     $currentResource = (Get-TargetResource -Ensure $Ensure `
@@ -361,7 +361,7 @@ function Set-OctopusDeployConfiguration {
         [bool]$autoLoginEnabled = $false,
         [string]$homeDirectory = $null,
         [PSCredential]$OctopusServiceCredential,
-        [string]$licenseKey
+        [string]$licenseKey = $null
     )
 
     Write-Log "Configuring Octopus Deploy instance ..."
@@ -944,7 +944,7 @@ function Test-TargetResource {
         [bool]$AutoLoginEnabled = $false,
         [PSCredential]$OctopusServiceCredential,
         [string]$HomeDirectory,
-        [string]$LicenseKey
+        [string]$LicenseKey = $null
     )
 
     $currentResource = (Get-TargetResource -Ensure $Ensure `
