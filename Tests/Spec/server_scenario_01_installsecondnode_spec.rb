@@ -8,23 +8,23 @@ describe file('c:/ChezOctopusSecondNode') do
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopusSecondNode/Artifacts') do
+describe file('c:/ChezOctopuse/Artifacts') do # should use the same folders as the first node. They're defined in the DB
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopusSecondNode/Logs') do
+describe file('c:/ChezOctopusSecondNode/Logs') do # node logs go in the local instance folder
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopusSecondNode/OctopusServer') do
+describe file('c:/ChezOctopus/OctopusServer') do # should use the same folders as the first node. They're defined in the DB
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopusSecondNode/Packages') do
+describe file('c:/ChezOctopus/Packages') do # should use the same folders as the first node. They're defined in the DB
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopusSecondNode/TaskLogs') do
+describe file('c:/ChezOctopus/TaskLogs') do # should use the same folders as the first node. They're defined in the DB
   it { should be_directory }
 end
 
