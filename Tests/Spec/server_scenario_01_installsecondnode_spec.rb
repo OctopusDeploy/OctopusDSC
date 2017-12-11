@@ -20,7 +20,7 @@ describe file('c:/ChezOctopus/OctopusServer') do # should use the same folders a
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopusSecondNode/Packages') do 
+describe file('c:/ChezOctopus/Packages') do 
   it { should be_directory }
 end
 
