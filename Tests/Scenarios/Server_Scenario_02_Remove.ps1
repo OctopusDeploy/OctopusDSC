@@ -40,7 +40,7 @@ Configuration Server_Scenario_02_Remove
             AllowCollectionOfAnonymousUsageStatistics = $false
         }
 
-        cOctopusServer OctopusServer
+        cOctopusServer OctopusServerSecondNode
         {
             Ensure = "Absent"
             State = "Stopped"
@@ -48,7 +48,7 @@ Configuration Server_Scenario_02_Remove
             Name = "HANode"
 
             # The url that Octopus will listen on
-            WebListenPrefix = "http://localhost:81"
+            WebListenPrefix = "http://localhost:82"
 
             SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=Octopus;Trusted_Connection=True;"
 
@@ -58,7 +58,7 @@ Configuration Server_Scenario_02_Remove
             # dont mess with stats
             AllowCollectionOfAnonymousUsageStatistics = $false
 
-            HomeDirectory = "C:\ChezOctopus"
+            HomeDirectory = "C:\ChezOctopusSecondNode"
         }
     }
 }

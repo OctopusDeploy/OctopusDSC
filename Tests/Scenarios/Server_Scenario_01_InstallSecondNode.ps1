@@ -19,7 +19,7 @@ Configuration Server_Scenario_01_InstallSecondNode
             ConfigurationMode = 'ApplyOnly'
         }
 
-        cOctopusServer OctopusServer
+        cOctopusServer OctopusServerSecondNode
         {
             Ensure = "Present"
             State = "Started"
@@ -27,7 +27,7 @@ Configuration Server_Scenario_01_InstallSecondNode
             Name = "HANode"
 
             # The url that Octopus will listen on
-            WebListenPrefix = "http://localhost:81"
+            WebListenPrefix = "http://localhost:82"
 
             SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=Octopus;Trusted_Connection=True;"
 
