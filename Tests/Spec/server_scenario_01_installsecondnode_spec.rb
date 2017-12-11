@@ -20,10 +20,6 @@ describe file('c:/ChezOctopus/OctopusServer') do # should use the same folders a
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopus/Packages') do 
-  it { should be_directory }
-end
-
 describe file('c:/ChezOctopus/TaskLogs') do # should use the same folders as the first node. They're defined in the DB
   it { should be_directory }
 end
