@@ -421,17 +421,31 @@ function Set-OctopusDeployConfiguration {
 
     Invoke-OctopusServerCommand $args
 
-    if ($octopusServiceCredential) {
-        $args += @("--username", $octopusServiceCredential.UserName
-            "--password", $octopusServiceCredential.Password | ConvertFrom-SecureString)
+    if (-not (Test-PSCredential $currentState['OctopusServiceCredential'] $OctopusServiceCredential)) {
+        $args = @(
+            'service',
+            '--console'
+            '--uninstall',
+            '--install',
+            '--reconfigure'
+        )
 
-        Update-InstallState "OctopusServiceUsername" $octopusServiceCredential.UserName
-        Update-InstallState "OctopusServicePassword" ($octopusServiceCredential.Password | ConvertFrom-SecureString)
-        Invoke-OctopusServerCommand $args 
-    }
-    else {
-        Update-InstallState "OctopusServiceUsername" $null
-        Update-InstallState "OctopusServicePassword" $null
+        if (($null -ne $octopusServiceCredential) -and ($octopusServiceCredential -ne [PSCredential]::Empty)) {
+            Write-Log "Reconfiguring Octopus Deploy service to use run as $($octopusServiceCredential.UserName) ..."
+            $args += @(
+                '--username', $octopusServiceCredential.UserName,
+                '--password', $octopusServiceCredential.GetNetworkCredential().Password
+            )
+
+            Update-InstallState "OctopusServiceUsername" $octopusServiceCredential.UserName
+            Update-InstallState "OctopusServicePassword" $octopusServiceCredential.GetNetworkCredential().Password
+        }
+        else {
+            Write-Log "Reconfiguring Octopus Deploy service to run as Local System ..."
+            Update-InstallState "OctopusServiceUsername" $null
+            Update-InstallState "OctopusServicePassword" $null
+        }
+        Invoke-OctopusServerCommand $args
     }
 
     if ($currentState['LicenseKey'] -ne $licenseKey) {
@@ -452,10 +466,15 @@ function Set-OctopusDeployConfiguration {
 }
 
 function Test-ReconfigurationRequired($currentState, $desiredState) {
-    #todo: add admin creds and service creds (need to compare as PSCredential)
-    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'AllowCollectionOfAnonymousUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'Home', 'LicenseKey')
+    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'AllowCollectionOfAnonymousUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'LicenseKey', 'OctopusServiceCredential', 'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled')
     foreach ($property in $reconfigurableProperties) {
-        if ($currentState.Item($property) -ne ($desiredState.Item($property))) {
+        write-verbose "Checking property '$property'"
+        if ($currentState.Item($property) -is [PSCredential]) {
+            if (-not (Test-PSCredential $currentState.Item($property) $desiredState.Item($property))) {
+                return $true
+            }
+        }
+        elseif ($currentState.Item($property) -ne ($desiredState.Item($property))) {
             return $true
         }
     }
@@ -884,17 +903,16 @@ function Install-OctopusDeploy {
     )
 
     if ($octopusServiceCredential) {
-        Write-Log "Adding Service identity to installation command"
-
-        $args += @("--username", $octopusServiceCredential.UserName
-            "--password", $octopusServiceCredential.GetNetworkCredential().Password )
-
-        Write-Log "Adding Service identity to installation command"
-
+        Write-Log "Configuring service to run as $($octopusServiceCredential.UserName)"
+        $args += @(
+            "--username", $octopusServiceCredential.UserName
+            "--password", $octopusServiceCredential.GetNetworkCredential().Password
+        )
         Update-InstallState "OctopusServiceUsername" $octopusServiceCredential.UserName
         Update-InstallState "OctopusServicePassword" ($octopusServiceCredential.Password | ConvertFrom-SecureString)
     }
     else {
+        Write-Log "Configuring service to run as Local System"
         Update-InstallState "OctopusServiceUsername" $null
         Update-InstallState "OctopusServicePassword" $null
     }
@@ -987,20 +1005,8 @@ function Test-TargetResource {
     foreach ($key in $currentResource.Keys) {
         $currentValue = $currentResource.Item($key)
         $requestedValue = $params.Item($key)
-        if ($key -eq "OctopusAdminCredential") {
-            if ($null -ne $currentValue) {
-                $currentUsername = $currentValue.GetNetworkCredential().UserName
-                $currentPassword = $currentValue.GetNetworkCredential().Password
-            }
-            else {
-                $currentUserName = ""
-                $currentPassword = ""
-            }
-
-            $requestedUsername = $requestedValue.GetNetworkCredential().UserName
-            $requestedPassword = $requestedValue.GetNetworkCredential().Password      
-
-            if ($currentPassword -ne $requestedPassword -or $currentUsername -ne $requestedUserName) {
+        if ($currentValue -is [PSCredential]) {
+            if (-not (Test-PSCredential $currentValue $requestedValue)) {
                 Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '********' mismatched the specified value '********'"
                 $currentConfigurationMatchesRequestedConfiguration = $false
             }
@@ -1035,4 +1041,29 @@ function Get-ODSCParameter($parameters) {
         }
     }
     return $params
+}
+
+function Test-PSCredential($currentValue, $requestedValue) {
+    if (($null -ne $currentValue) -and ($currentValue -ne [PSCredential]::Empty)) {
+        $currentUsername = $currentValue.GetNetworkCredential().UserName
+        $currentPassword = $currentValue.GetNetworkCredential().Password
+    }
+    else {
+        $currentUsername = ""
+        $currentPassword = ""
+    }
+
+    if (($null -ne $requestedValue) -and ($requestedValue -ne [PSCredential]::Empty)) {
+        $requestedUsername = $requestedValue.GetNetworkCredential().UserName
+        $requestedPassword = $requestedValue.GetNetworkCredential().Password
+    }
+    else {
+        $requestedUsername = ""
+        $requestedPassword = ""
+    }
+
+    if ($currentPassword -ne $requestedPassword -or $currentUsername -ne $requestedUsername) {
+        return $false
+    }
+    return $true
 }
