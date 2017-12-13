@@ -95,8 +95,6 @@ When `State` is `Started`, the resource will ensure that the Octopus Servr windo
 
 ## Drift
 
-Currently the resource does not consider `SqlDbConnectionString` or `OctopusAdminCredential` when testing for drift.
-
 This means that the server will be automatically reconfigured if you change any properties except the ones listed above.
 
 If the DownloadUrl property changes, it will detect the configuration drift and upgrade the Server as appropriate. However, if you leave it as default (ie 'install latest'), it will not upgrade when a new version is released - it only actions on change of the property.
