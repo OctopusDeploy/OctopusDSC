@@ -85,6 +85,11 @@ function Get-TargetResource {
         $existingAutoLoginEnabled = $existingConfig.OctopusWebPortalAutoLoginEnabled
         $existingLegacyWebAuthenticationMode = $existingConfig.OctopusWebPortalAuthenticationMode
         $existingHomeDirectory = $existingConfig.OctopusHome
+        if ($existingConfig.OctopusLicenseKey -eq "<unknown>") {
+            $existingLicenseKey = $LicenseKey #if we weren't able to determine the existing key, assume its correct
+        } else {
+            $existingLicenseKey = $existingConfig.OctopusLicenseKey
+        }
         if (Test-Path $installStateFile) {
             $installState = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json)
             $existingDownloadUrl = $installState.DownloadUrl
@@ -118,7 +123,7 @@ function Get-TargetResource {
         AutoLoginEnabled                          = $existingAutoLoginEnabled;
         OctopusServiceCredential                  = $existingOctopusServiceCredential;
         HomeDirectory                             = $existingHomeDirectory;
-        LicenseKey                                = $licenseKey
+        LicenseKey                                = $existingLicenseKey;
     }
 
     return $currentResource
@@ -148,6 +153,14 @@ function Import-ServerConfig {
         $rawConfig = & $octopusServerExePath show-configuration --format=json-hierarchical --noconsolelogging --console --instance $InstanceName
         $config = $rawConfig | ConvertFrom-Json
 
+        # show-configuration only added support for the license from 4.1.3
+        # unfortunately, $null implies that its the free license, so it would trigger a change every time DSC runs
+        if ([bool]($config.Octopus.Server.psobject.properties.name -match 'License')) {
+            $license = $config.Octopus.Server.License
+        } else {
+            $license = '<unknown>'
+        }
+
         $result = [pscustomobject] @{
             OctopusStorageExternalDatabaseConnectionString = $config.Octopus.Storage.ExternalDatabaseConnectionString
             OctopusWebPortalListenPrefixes                 = $config.Octopus.WebPortal.ListenPrefixes
@@ -158,6 +171,7 @@ function Import-ServerConfig {
             OctopusWebPortalAuthenticationMode             = "Ignore"
             OctopusWebPortalAutoLoginEnabled               = [System.Convert]::ToBoolean($config.Octopus.WebPortal.AutoLoginEnabled)
             OctopusHomeDirectory                           = $config.Octopus.Home
+            OctopusLicenseKey                              = $license
         }
     }
     else {
@@ -179,6 +193,7 @@ function Import-ServerConfig {
             OctopusWebPortalAuthenticationMode             = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.WebPortal.AuthenticationMode"]/text()').Value
             OctopusWebPortalAutoLoginEnabled               = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.WebPortal.AutoLoginEnabled"]/text()').Value
             OctopusHomeDirectory                           = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Home"]/text()').Value
+            OctopusLicenseKey                              = '<unknown>' # we have no easy way to get this
         }
 
         if ($result.OctopusWebPortalAuthenticationMode -eq '0') { $result.OctopusWebPortalAuthenticationMode = 'UsernamePassword' }
@@ -304,7 +319,9 @@ function Set-TargetResource {
                 -webListenPrefix $webListenPrefix
         }
         if (Test-ReconfigurationRequired $currentResource $params) {
-            Set-OctopusDeployConfiguration -name $Name `
+            Set-OctopusDeployConfiguration `
+                -currentState $currentResource `
+                -name $Name `
                 -webListenPrefix $WebListenPrefix `
                 -allowUpgradeCheck $AllowUpgradeCheck `
                 -allowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
@@ -347,6 +364,8 @@ function Test-RequestedConfiguration($currentState, $desiredState) {
 
 function Set-OctopusDeployConfiguration {
     param (
+        [Parameter(Mandatory = $True)]
+        [Hashtable]$currentState,
         [Parameter(Mandatory = $True)]
         [string]$name,
         [Parameter(Mandatory = $True)]
@@ -415,28 +434,26 @@ function Set-OctopusDeployConfiguration {
         Update-InstallState "OctopusServicePassword" $null
     }
 
-    if (($null -eq $licenseKey) -or ($licenseKey -eq "")) {
-        Write-Log "Configuring Octopus Deploy instance to use free license ..."
+    if ($currentState['LicenseKey'] -ne $licenseKey) {
         $args = @(
             'license',
             '--console',
-            '--instance', $name,
-            '--free'
+            '--instance', $name
         )
-    } else {
-        Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
-        $args = @(
-            'license',
-            '--console',
-            '--instance', $name,
-            '--licenseBase64', $licenseKey
-        )
+        if (($null -eq $licenseKey) -or ($licenseKey -eq "")) {
+            Write-Log "Configuring Octopus Deploy instance to use free license ..."
+            $args += @('--free')
+        } else {
+            Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
+            $args += @('--licenseBase64', $licenseKey)
+        }
+        Invoke-OctopusServerCommand $args
     }
-    Invoke-OctopusServerCommand $args
 }
 
 function Test-ReconfigurationRequired($currentState, $desiredState) {
-    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'AllowCollectionOfAnonymousUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'Home')
+    #todo: add admin creds and service creds (need to compare as PSCredential)
+    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'AllowCollectionOfAnonymousUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'Home', 'LicenseKey')
     foreach ($property in $reconfigurableProperties) {
         if ($currentState.Item($property) -ne ($desiredState.Item($property))) {
             return $true
