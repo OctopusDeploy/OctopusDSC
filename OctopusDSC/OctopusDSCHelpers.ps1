@@ -1,14 +1,15 @@
 # Module contains shared code for OctopusDSC
 
+$octopusServerExePath = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
 function Get-ODSCParameter($parameters) {
     # unfortunately $PSBoundParameters doesn't contain parameters that weren't supplied (because the default value was okay)
     # credit to https://www.briantist.com/how-to/splatting-psboundparameters-default-values-optional-parameters/
     $params = @{}
     foreach ($h in $parameters.GetEnumerator()) {
         $key = $h.Key
-        $var = Get-Variable -Name $key -ErrorAction SilentlyContinue
+        $var = Get-Variable -Name $key -ErrorAction SilentlyContinue 
         if ($null -ne $var) {
-            $val = Get-Variable -Name $key -ErrorAction Stop | Select-Object -ExpandProperty Value -ErrorAction Stop
+            $val = Get-Variable -Name $key -ErrorAction Stop  | Select-Object -ExpandProperty Value -ErrorAction Stop
             $params[$key] = $val
         }
     }
@@ -85,4 +86,14 @@ function Write-Log {
     Write-Verbose "[$timestamp] $message"
 }
 
-Export-ModuleMember *
+function Invoke-OctopusServerCommand ($arguments) {
+    Write-Verbose "Executing command '$octopusServerExePath $($arguments -join ' ')'"
+    $output = .$octopusServerExePath $arguments
+
+    Write-CommandOutput $output
+    if (($null -ne $LASTEXITCODE) -and ($LASTEXITCODE -ne 0)) {
+        Write-Error "Command returned exit code $LASTEXITCODE. Aborting."
+        exit 1
+    }
+    Write-Verbose "done."
+}

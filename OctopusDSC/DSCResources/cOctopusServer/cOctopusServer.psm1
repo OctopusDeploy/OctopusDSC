@@ -2,9 +2,8 @@ $ErrorActionPreference = "Stop"
 $octopusServerExePath = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
 $script:instancecontext = ''  # a global to hold the name of the current instance's context
 
-Import-Module -Name (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) `
--ChildPath 'OctopusDSCHelpers.psm1') `
--Force
+# dot-source the helper file (cannot load as a module due to scope considerations)
+. (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1') 
 
 function Get-TargetResource {
     [OutputType([Hashtable])]
@@ -104,7 +103,7 @@ function Get-TargetResource {
 
         $existingAdminPassword = Get-InstallStateValue "OctopusAdminPassword" 
         $existingAdminUser = (Get-InstallStateValue "OctopusAdminUsername")
-        if($existingAdminPassword -ne $null) {
+        if($null -ne $existingAdminPassword) {
             
             $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($existingAdminUser, ($existingAdminPassword | ConvertTo-SecureString))
         } 
@@ -115,7 +114,7 @@ function Get-TargetResource {
     
         $existingServicePassword = Get-InstallStateValue "OctopusServicePassword"
         $existingServiceUser = Get-InstallStateValue "OctopusServiceUser"
-        if ($existingServiceUser -ne $null) {
+        if ($null -ne $existingServiceUser) {
             $existingOctopusServiceCredential = New-Object System.Management.Automation.PSCredential ($existingServiceUser, ($existingServicePassword | ConvertTo-SecureString))
         }
         else {

@@ -1,8 +1,7 @@
 $octopusServerExePath = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
 
-Import-Module -Name (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) `
--ChildPath 'OctopusDSCHelpers.psm1') `
--Force
+# dot-source the helper file (cannot load as a module due to scope considerations)
+. (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1') 
 
 function Get-TargetResource {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSDSCUseVerboseMessageInDSCResource", "")]
@@ -105,18 +104,6 @@ function Get-Configuration($instanceName) {
     return $config
 }
 
-function Invoke-OctopusServerCommand ($arguments) {
-    Write-Verbose "Executing command '$octopusServerExePath $($arguments -join ' ')'"
-    $output = .$octopusServerExePath $arguments
-
-    Write-CommandOutput $output
-    if (($null -ne $LASTEXITCODE) -and ($LASTEXITCODE -ne 0)) {
-        Write-Error "Command returned exit code $LASTEXITCODE. Aborting."
-        exit 1
-    }
-    Write-Verbose "done."
-}
-
 function Write-CommandOutput {
     param (
         [string] $output
@@ -147,19 +134,4 @@ function Test-OctopusVersionSupportsOktaAuthenticationProvider {
     $versionWhereAuthenticationOktaProviderWasIntroduced = New-Object System.Version 3, 16, 0
 
     return ($octopusServerVersion -ge $versionWhereAuthenticationOktaProviderWasIntroduced)
-}
-
-function Get-ODSCParameter($parameters) {
-    # unfortunately $PSBoundParameters doesn't contain parameters that weren't supplied (because the default value was okay)
-    # credit to https://www.briantist.com/how-to/splatting-psboundparameters-default-values-optional-parameters/
-    $params = @{}
-    foreach ($h in $parameters.GetEnumerator()) {
-        $key = $h.Key
-        $var = Get-Variable -Name $key -ErrorAction SilentlyContinue
-        if ($null -ne $var) {
-            $val = Get-Variable -Name $key -ErrorAction Stop | Select-Object -ExpandProperty Value -ErrorAction Stop
-            $params[$key] = $val
-        }
-    }
-    return $params
 }
