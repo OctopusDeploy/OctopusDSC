@@ -1,3 +1,6 @@
+Import-Module -Name (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) `
+-ChildPath 'OctopusDSCHelpers.psm1') `
+-Force
 
 function Get-TargetResource {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSDSCUseVerboseMessageInDSCResource", "")]

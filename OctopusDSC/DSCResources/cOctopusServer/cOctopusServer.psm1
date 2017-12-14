@@ -1,6 +1,10 @@
 $ErrorActionPreference = "Stop"
-$installStateFile = "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate"
 $octopusServerExePath = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
+$script:instancecontext = ''  # a global to hold the name of the current instance's context
+
+Import-Module -Name (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) `
+-ChildPath 'OctopusDSCHelpers.psm1') `
+-Force
 
 function Get-TargetResource {
     [OutputType([Hashtable])]
@@ -34,6 +38,8 @@ function Get-TargetResource {
         [string]$HomeDirectory,
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty
     )
+
+    $script:instancecontext = $Name
 
     Write-Verbose "Checking if Octopus Server is installed"
     $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\OctopusServer" -ErrorAction SilentlyContinue).InstallLocation
@@ -75,7 +81,15 @@ function Get-TargetResource {
     $existingHomeDirectory = $null
 
     if ($existingEnsure -eq "Present") {
-        $existingConfig = Import-ServerConfig "$($env:SystemDrive)\Octopus\OctopusServer.config" $Name
+        if(Test-Path "$($env:SystemDrive)\Octopus\OctopusServer-$Name.config")
+        {
+            $configPath = "$($env:SystemDrive)\Octopus\OctopusServer-$Name.config"
+        }
+        else
+        {
+            $configPath = "$($env:SystemDrive)\Octopus\OctopusServer.config" 
+        }
+        $existingConfig = Import-ServerConfig $configPath $Name
         $existingSqlDbConnectionString = $existingConfig.OctopusStorageExternalDatabaseConnectionString
         $existingWebListenPrefix = $existingConfig.OctopusWebPortalListenPrefixes
         $existingForceSSL = $existingConfig.OctopusWebPortalForceSsl
@@ -85,21 +99,29 @@ function Get-TargetResource {
         $existingAutoLoginEnabled = $existingConfig.OctopusWebPortalAutoLoginEnabled
         $existingLegacyWebAuthenticationMode = $existingConfig.OctopusWebPortalAuthenticationMode
         $existingHomeDirectory = $existingConfig.OctopusHome
-        if (Test-Path $installStateFile) {
-            $installState = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json)
-            $existingDownloadUrl = $installState.DownloadUrl
-            $pass = $installState.OctopusAdminPassword | ConvertTo-SecureString
-      
-            if ($installState.OctopusServicePassword -ne "") {
-                $svcpass = $installState.OctopusServicePassword | ConvertTo-SecureString 
-                $existingOctopusServiceCredential = New-Object System.Management.Automation.PSCredential ($installState.OctopusServiceUsername, $svcpass)
-            }
-            else {
-                $svcpass = ""
-                $existingOctopusServiceCredential = [PSCredential]::Empty
-            }
-            $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($installState.OctopusAdminUsername, $pass)
+
+        $existingDownloadUrl = Get-InstallStateValue "DownloadUrl"
+
+        $existingAdminPassword = Get-InstallStateValue "OctopusAdminPassword" 
+        $existingAdminUser = (Get-InstallStateValue "OctopusAdminUsername")
+        if($existingAdminPassword -ne $null) {
+            
+            $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($existingAdminUser, ($existingAdminPassword | ConvertTo-SecureString))
+        } 
+        else
+        {
+            $existingOctopusAdminCredential = [PSCredential]::Empty
         }
+    
+        $existingServicePassword = Get-InstallStateValue "OctopusServicePassword"
+        $existingServiceUser = Get-InstallStateValue "OctopusServiceUser"
+        if ($existingServiceUser -ne $null) {
+            $existingOctopusServiceCredential = New-Object System.Management.Automation.PSCredential ($existingServiceUser, ($existingServicePassword | ConvertTo-SecureString))
+        }
+        else {
+            $existingOctopusServiceCredential = [PSCredential]::Empty
+        }
+        
     }
 
     $currentResource = @{
@@ -251,6 +273,9 @@ function Set-TargetResource {
         [string]$HomeDirectory,
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty
     )
+
+    # update the global
+    $script:instancecontext = $Name
 
     $currentResource = (Get-TargetResource -Ensure $Ensure `
             -Name $Name `
@@ -574,7 +599,16 @@ function Update-InstallState {
     param (
         [string]$key,
         [string]$value
-    )
+    )    
+
+    if(Test-Path "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate") # do we already have a legacy installstate file?
+    {    
+        $installStateFile = "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate"
+    }
+    else
+    {    
+        $installStateFile = "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.$script:instancecontext.installstate"
+    }
 
     $currentInstallState = @{}
     if (Test-Path $installStateFile) {
@@ -587,53 +621,44 @@ function Update-InstallState {
     $currentInstallState | ConvertTo-Json | set-content $installStateFile
 }
 
-function Request-File {
-    param (
-        [string]$url,
-        [string]$saveAs
-    )
+Function Get-InstallStateValue
+{
+    [CmdletBinding()]
+    param($key)
 
-    $retry = $true
-    $retryCount = 0
-    $maxRetries = 5
-    while ($retry) {
-        Write-Verbose "Downloading $url to $saveAs"
-        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12, [System.Net.SecurityProtocolType]::Tls11, [System.Net.SecurityProtocolType]::Tls
-        $downloader = new-object System.Net.WebClient
-        try {
-            $downloader.DownloadFile($url, $saveAs)
-            $retry = $false
+    if(Test-Path "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate") # do we already have a legacy installstate file?
+    {    
+        $installStateFile = "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate"
+        Write-Verbose "Legacy installstate found"
+    }
+    else
+    {    
+        $installStateFile = "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.$script:instancecontext.installstate"
+        Write-Verbose "New style installstate found"
+    }
+    
+    if(-not (Test-Path $installStateFile))
+    {
+        return $null
+    }
+    else
+    {        
+        $installState = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json)
+
+        $returnValue = $installstate | Select-Object -expand $Key -ErrorAction Ignore
+        if("" -eq $returnValue -or $null -eq $returnValue)
+        {
+            return $null
         }
-        catch {
-            Write-Verbose "Failed to download $url"
-            Write-Verbose "Got exception '$($_.Exception.InnerException.Message)'."
-            Write-Verbose "Retrying up to $maxRetries times."
-            if (($_.Exception.InnerException.Message -notlike "The request was aborted: Could not create SSL/TLS secure channel.") -or ($retryCount -gt $maxRetries)) {
-                throw $_.Exception.InnerException
-            }
-            $retryCount = $retryCount + 1
-            Start-Sleep -Seconds 1
+        else
+        {
+            return $returnvalue
         }
     }
 }
 
-function Write-Log {
-    param (
-        [string] $message
-    )
 
-    $timestamp = ([System.DateTime]::UTCNow).ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss")
-    Write-Verbose "[$timestamp] $message"
-}
 
-function Invoke-AndAssert {
-    param ($block)
-
-    & $block | Write-Verbose
-    if ($LASTEXITCODE -ne 0 -and $null -ne $LASTEXITCODE) {
-        throw "Command returned exit code $LASTEXITCODE"
-    }
-}
 
 function Get-RegistryValue {
     param (
@@ -700,7 +725,7 @@ function Install-OctopusDeploy {
         'create-instance',
         '--console',
         '--instance', $name,
-        '--config', "$($env:SystemDrive)\Octopus\OctopusServer.config"
+        '--config', "$($env:SystemDrive)\Octopus\OctopusServer-$name.config"
     )
     if (Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance) {
         if (($homeDirectory -ne "") -and ($null -ne $homeDirectory)) {
@@ -732,26 +757,34 @@ function Install-OctopusDeploy {
         '--commsListenPort', $listenPort
     )
 
-    if (Test-OctopusVersionRequiresDatabaseBeforeConfigure) {
-        if ($isUpgrade -eq $true) {
-            Write-Log "Upgrading Octopus Deploy database for v4"
-            $action = '--upgrade'
+    if (Test-OctopusVersionRequiresDatabaseBeforeConfigure) { 
+
+        if ($isClusterJoin) {            
+            Write-Log "Running Octopus Deploy database command for Cluster Join"
+            $dbargs = @(
+                'database',
+                '--instance', $name,
+                '--connectionstring', $sqlDbConnectionString,
+                "--masterKey", $OctopusMasterKey.GetNetworkCredential().Password
+            )
         }
         else {
-            Write-Log "Creating Octopus Deploy database for v4"
-            $action = '--create'
-        }
+            if ($isUpgrade -eq $true) {
+                Write-Log "Upgrading Octopus Deploy database for v4"
+                $action = '--upgrade'
+            }
+            else {
+                Write-Log "Creating Octopus Deploy database for v4"
+                $action = '--create'
+            }
     
-        $dbargs = @(
-            'database',
-            '--instance', $name,
-            '--connectionstring', $sqlDbConnectionString,
-            $action,
-            '--grant', $databaseusername
-        )
-
-        if ($isClusterJoin) {
-            $dbargs += @("--masterKey", $OctopusMasterKey.GetNetworkCredential().Password)
+            $dbargs = @(
+                'database',
+                '--instance', $name,
+                '--connectionstring', $sqlDbConnectionString,
+                $action,
+                '--grant', $databaseusername
+            )
         }
 
         Invoke-OctopusServerCommand $dbargs
@@ -942,6 +975,9 @@ function Test-TargetResource {
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty
     )
 
+    # make sure the global is up to date
+    $script:instancecontext = $Name
+
     $currentResource = (Get-TargetResource -Ensure $Ensure `
             -Name $Name `
             -State $State `
@@ -965,7 +1001,7 @@ function Test-TargetResource {
         $currentValue = $currentResource.Item($key)
         $requestedValue = $params.Item($key)
         if ($key -eq "OctopusAdminCredential") {
-            if ($null -ne $currentValue) {
+            if ($null -ne $currentValue -and $currentValue -ne [PSCredential]::Empty) {
                 $currentUsername = $currentValue.GetNetworkCredential().UserName
                 $currentPassword = $currentValue.GetNetworkCredential().Password
             }

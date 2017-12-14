@@ -36,6 +36,9 @@ Configuration Server_Scenario_01_InstallSecondNode
             # The admin user to create
             OctopusAdminCredential = $cred
 
+            # Don't clash the comms port
+            ListenPort = 10935
+
             # dont mess with stats
             AllowCollectionOfAnonymousUsageStatistics = $false
 

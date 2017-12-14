@@ -43,7 +43,7 @@ CLRVersion = '4.0'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-# RequiredModules = @()
+# RequiredModules = @('OctopusDSC')
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -61,7 +61,7 @@ CLRVersion = '4.0'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'Get-TargetResource', 'Set-TargetResource', 'Test-TargetResource'
+FunctionsToExport = 'Get-TargetResource', 'Set-TargetResource', 'Test-TargetResource', 'Sing-Out'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
@@ -76,7 +76,7 @@ AliasesToExport = @()
 DscResourcesToExport = @('cOctopusEnvironment', 'cOctopusSeqLogger', 'cOctopusServer', 'cOctopusServerActiveDirectoryAuthentication', 'cOctopusServerAzureADAuthentication', 'cOctopusServerGoogleAppsAuthentication', 'cOctopusServerGuestAuthentication', 'cOctopusServerOktaAuthentication', 'cOctopusServerUsernamePasswordAuthentication', 'cOctopusServerWatchdog', 'cTentacleAgent', 'cTentacleWatchdog')
 
 # List of all modules packaged with this module
-# ModuleList = @()
+ModuleList = @('OctopusDSC')
 
 # List of all files packaged with this module
 # FileList = @()

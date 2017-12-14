@@ -1,5 +1,9 @@
 $octopusServerExePath = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
 
+Import-Module -Name (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) `
+-ChildPath 'OctopusDSCHelpers.psm1') `
+-Force
+
 function Get-TargetResource {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSDSCUseVerboseMessageInDSCResource", "")]
     [OutputType([Hashtable])]
