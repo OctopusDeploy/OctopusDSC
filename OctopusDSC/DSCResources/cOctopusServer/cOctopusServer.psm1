@@ -32,7 +32,8 @@ function Get-TargetResource {
         [bool]$AutoLoginEnabled = $false,
         [PSCredential]$OctopusServiceCredential,
         [string]$HomeDirectory,
-        [string]$LicenseKey = $null
+        [string]$LicenseKey = $null,
+        [bool]$GrantDatabasePermissions = $true
     )
 
     Write-Verbose "Checking if Octopus Server is installed"
@@ -123,6 +124,7 @@ function Get-TargetResource {
         OctopusServiceCredential                  = $existingOctopusServiceCredential;
         HomeDirectory                             = $existingHomeDirectory;
         LicenseKey                                = $existingLicenseKey;
+        GrantDatabasePermissions                  = $GrantDatabasePermissions;
     }
 
     return $currentResource
@@ -264,7 +266,8 @@ function Set-TargetResource {
         [bool]$AutoLoginEnabled = $false,
         [PSCredential]$OctopusServiceCredential,
         [string]$HomeDirectory,
-        [string]$LicenseKey = $null
+        [string]$LicenseKey = $null,
+        [bool]$GrantDatabasePermissions = $true
     )
 
     $currentResource = (Get-TargetResource -Ensure $Ensure `
@@ -282,7 +285,8 @@ function Set-TargetResource {
             -AutoLoginEnabled $AutoLoginEnabled `
             -OctopusServiceCredential $OctopusServiceCredential `
             -HomeDirectory $HomeDirectory `
-            -LicenseKey $LicenseKey)
+            -LicenseKey $LicenseKey `
+            -GrantDatabasePermissions $GrantDatabasePermissions)
 
     $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
     Test-RequestedConfiguration $currentResource $params
@@ -308,7 +312,8 @@ function Set-TargetResource {
             -autoLoginEnabled $AutoLoginEnabled `
             -homeDirectory $HomeDirectory `
             -octopusServiceCredential $OctopusServiceCredential `
-            -licenseKey $LicenseKey
+            -licenseKey $LicenseKey `
+            -grantDatabasePermissions $GrantDatabasePermissions
     }
     else {
         if ($Ensure -eq "Present" -and $currentResource["DownloadUrl"] -ne $DownloadUrl) {
@@ -726,7 +731,8 @@ function Install-OctopusDeploy {
         [bool]$autoLoginEnabled = $false,
         [string]$homeDirectory = $null,
         [PSCredential]$octopusServiceCredential,
-        [string]$licenseKey = $null
+        [string]$licenseKey = $null,
+        [bool]$grantDatabasePermissions = $true
     )
 
     Write-Verbose "Installing Octopus Deploy..."
@@ -765,12 +771,6 @@ function Install-OctopusDeploy {
 
     Write-Log "Configuring Octopus Deploy instance ..."
 
-    if ($OctopusServiceCredential) {
-        $databaseusername = $OctopusServiceCredential.UserName 
-    }
-    else {
-        $databaseusername = "NT AUTHORITY\SYSTEM"
-    }
 
     $args = @(
         'configure',
@@ -797,9 +797,19 @@ function Install-OctopusDeploy {
             'database',
             '--instance', $name,
             '--connectionstring', $sqlDbConnectionString,
-            $action,
-            '--grant', $databaseusername
+            $action
         )
+
+        if ($GrantDatabasePermissions) {
+            if (($null -ne $OctopusServiceCredential) -and ($OctopusServiceCredential -ne [PSCredential]::Empty)) {
+                $databaseusername = $OctopusServiceCredential.UserName
+            }
+            else {
+                $databaseusername = "NT AUTHORITY\SYSTEM"
+            }
+            Write-Log "Granting database permissions to account $databaseusername"
+            $dbargs += @('--grant', $databaseusername)
+        }
 
         Invoke-OctopusServerCommand $dbargs
     }
@@ -847,6 +857,18 @@ function Install-OctopusDeploy {
             '--instance', $name,
             '--create'
         )
+
+        if ($GrantDatabasePermissions) {
+            if (($null -ne $OctopusServiceCredential) -and ($OctopusServiceCredential -ne [PSCredential]::Empty)) {
+                $databaseusername = $OctopusServiceCredential.UserName
+            }
+            else {
+                $databaseusername = "NT AUTHORITY\SYSTEM"
+            }
+            Write-Log "Granting database permissions to account $databaseusername"
+            $args += @('--grant', $databaseusername)
+        }
+
         Invoke-OctopusServerCommand $args
     }
 
@@ -971,7 +993,8 @@ function Test-TargetResource {
         [bool]$AutoLoginEnabled = $false,
         [PSCredential]$OctopusServiceCredential,
         [string]$HomeDirectory,
-        [string]$LicenseKey = $null
+        [string]$LicenseKey = $null,
+        [bool]$GrantDatabasePermissions = $true
     )
 
     $currentResource = (Get-TargetResource -Ensure $Ensure `
@@ -989,7 +1012,8 @@ function Test-TargetResource {
             -AutoLoginEnabled $AutoLoginEnabled `
             -OctopusServiceCredential $OctopusServiceCredential `
             -HomeDirectory $HomeDirectory `
-            -LicenseKey $LicenseKey)
+            -LicenseKey $LicenseKey `
+            -GrantDatabasePermissions $GrantDatabasePermissions)
 
     $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
 
