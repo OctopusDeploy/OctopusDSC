@@ -1,3 +1,5 @@
+# Configures the Server watchdog to watch all instances
+
 Configuration SampleConfig
 {
     Import-DscResource -Module OctopusDSC

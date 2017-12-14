@@ -35,7 +35,9 @@ function Get-TargetResource {
         [bool]$AutoLoginEnabled = $false,
         [PSCredential]$OctopusServiceCredential,
         [string]$HomeDirectory,
-        [PSCredential]$OctopusMasterKey = [PSCredential]::Empty
+        [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
+        [string]$LicenseKey = $null,
+        [bool]$GrantDatabasePermissions = $true
     )
 
     $script:instancecontext = $Name
@@ -132,13 +134,15 @@ function Get-TargetResource {
         SqlDbConnectionString                     = $existingSqlDbConnectionString;
         ForceSSL                                  = $existingForceSSL;
         AllowUpgradeCheck                         = $existingOctopusUpgradesAllowChecking;
-        AllowCollectionOfAnonymousUsageStatistics = $AllowCollectionOfAnonymousUsageStatistics;
+        AllowCollectionOfAnonymousUsageStatistics = $existingOctopusUpgradesIncludeStatistics;
         ListenPort                                = $existingListenPort;
         OctopusAdminCredential                    = $existingOctopusAdminCredential;
         LegacyWebAuthenticationMode               = $existingLegacyWebAuthenticationMode;
         AutoLoginEnabled                          = $existingAutoLoginEnabled;
         OctopusServiceCredential                  = $existingOctopusServiceCredential;
         HomeDirectory                             = $existingHomeDirectory;
+        LicenseKey                                = $existingLicenseKey;
+        GrantDatabasePermissions                  = $GrantDatabasePermissions;
     }
 
     return $currentResource
@@ -168,6 +172,14 @@ function Import-ServerConfig {
         $rawConfig = & $octopusServerExePath show-configuration --format=json-hierarchical --noconsolelogging --console --instance $InstanceName
         $config = $rawConfig | ConvertFrom-Json
 
+        # show-configuration only added support for the license from 4.1.3
+        # unfortunately, $null implies that its the free license, so it would trigger a change every time DSC runs
+        if ([bool]($config.Octopus.Server.psobject.properties.name -match 'License')) {
+            $license = $config.Octopus.Server.License
+        } else {
+            $license = '<unknown>'
+        }
+
         $result = [pscustomobject] @{
             OctopusStorageExternalDatabaseConnectionString = $config.Octopus.Storage.ExternalDatabaseConnectionString
             OctopusWebPortalListenPrefixes                 = $config.Octopus.WebPortal.ListenPrefixes
@@ -178,6 +190,7 @@ function Import-ServerConfig {
             OctopusWebPortalAuthenticationMode             = "Ignore"
             OctopusWebPortalAutoLoginEnabled               = [System.Convert]::ToBoolean($config.Octopus.WebPortal.AutoLoginEnabled)
             OctopusHomeDirectory                           = $config.Octopus.Home
+            OctopusLicenseKey                              = $license
         }
     }
     else {
@@ -199,6 +212,7 @@ function Import-ServerConfig {
             OctopusWebPortalAuthenticationMode             = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.WebPortal.AuthenticationMode"]/text()').Value
             OctopusWebPortalAutoLoginEnabled               = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.WebPortal.AutoLoginEnabled"]/text()').Value
             OctopusHomeDirectory                           = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Home"]/text()').Value
+            OctopusLicenseKey                              = '<unknown>' # we have no easy way to get this
         }
 
         if ($result.OctopusWebPortalAuthenticationMode -eq '0') { $result.OctopusWebPortalAuthenticationMode = 'UsernamePassword' }
@@ -270,7 +284,9 @@ function Set-TargetResource {
         [bool]$AutoLoginEnabled = $false,
         [PSCredential]$OctopusServiceCredential,
         [string]$HomeDirectory,
-        [PSCredential]$OctopusMasterKey = [PSCredential]::Empty
+        [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
+        [string]$LicenseKey = $null,
+        [bool]$GrantDatabasePermissions = $true
     )
 
     # update the global
@@ -291,7 +307,9 @@ function Set-TargetResource {
             -AutoLoginEnabled $AutoLoginEnabled `
             -OctopusServiceCredential $OctopusServiceCredential `
             -HomeDirectory $HomeDirectory `
-            -OctopusMasterKey $OctopusMasterKey)
+            -OctopusMasterKey $OctopusMasterKey `
+            -LicenseKey $LicenseKey `
+            -GrantDatabasePermissions $GrantDatabasePermissions)
 
     $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
     Test-RequestedConfiguration $currentResource $params
@@ -317,7 +335,9 @@ function Set-TargetResource {
             -autoLoginEnabled $AutoLoginEnabled `
             -homeDirectory $HomeDirectory `
             -octopusServiceCredential $OctopusServiceCredential `
-            -OctopusMasterKey $OctopusMasterKey
+            -OctopusMasterKey $OctopusMasterKey `
+            -licenseKey $LicenseKey `
+            -grantDatabasePermissions $GrantDatabasePermissions
     }
     else {
         if ($Ensure -eq "Present" -and $currentResource["DownloadUrl"] -ne $DownloadUrl) {
@@ -327,7 +347,9 @@ function Set-TargetResource {
                 -webListenPrefix $webListenPrefix
         }
         if (Test-ReconfigurationRequired $currentResource $params) {
-            Set-OctopusDeployConfiguration -name $Name `
+            Set-OctopusDeployConfiguration `
+                -currentState $currentResource `
+                -name $Name `
                 -webListenPrefix $WebListenPrefix `
                 -allowUpgradeCheck $AllowUpgradeCheck `
                 -allowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
@@ -337,7 +359,8 @@ function Set-TargetResource {
                 -autoLoginEnabled $AutoLoginEnabled `
                 -homeDirectory $HomeDirectory `
                 -octopusServiceCredential $OctopusServiceCredential `
-                -OctopusMasterKey $OctopusMasterKey
+                -OctopusMasterKey $OctopusMasterKey `
+                -licenseKey $LicenseKey
         }
     }
 
@@ -371,6 +394,8 @@ function Test-RequestedConfiguration($currentState, $desiredState) {
 function Set-OctopusDeployConfiguration {
     param (
         [Parameter(Mandatory = $True)]
+        [Hashtable]$currentState,
+        [Parameter(Mandatory = $True)]
         [string]$name,
         [Parameter(Mandatory = $True)]
         [string]$webListenPrefix,
@@ -384,7 +409,8 @@ function Set-OctopusDeployConfiguration {
         [bool]$autoLoginEnabled = $false,
         [string]$homeDirectory = $null,
         [PSCredential]$OctopusServiceCredential,
-        [PSCredential]$OctopusMasterKey
+        [PSCredential]$OctopusMasterKey,
+        [string]$licenseKey = $null
     )
 
     Write-Log "Configuring Octopus Deploy instance ..."
@@ -425,25 +451,60 @@ function Set-OctopusDeployConfiguration {
 
     Invoke-OctopusServerCommand $args
 
-    if ($octopusServiceCredential) {
-        $args += @("--username", $octopusServiceCredential.UserName
-            "--password", $octopusServiceCredential.Password | ConvertFrom-SecureString)
+    if (-not (Test-PSCredential $currentState['OctopusServiceCredential'] $OctopusServiceCredential)) {
+        $args = @(
+            'service',
+            '--console'
+            '--uninstall',
+            '--install',
+            '--reconfigure'
+        )
 
-        Update-InstallState "OctopusServiceUsername" $octopusServiceCredential.UserName
-        Update-InstallState "OctopusServicePassword" ($octopusServiceCredential.Password | ConvertFrom-SecureString)
-        Invoke-OctopusServerCommand $args 
-    }
-    else {
-        Update-InstallState "OctopusServiceUsername" $null
-        Update-InstallState "OctopusServicePassword" $null
+        if (($null -ne $octopusServiceCredential) -and ($octopusServiceCredential -ne [PSCredential]::Empty)) {
+            Write-Log "Reconfiguring Octopus Deploy service to use run as $($octopusServiceCredential.UserName) ..."
+            $args += @(
+                '--username', $octopusServiceCredential.UserName,
+                '--password', $octopusServiceCredential.GetNetworkCredential().Password
+            )
+
+            Update-InstallState "OctopusServiceUsername" $octopusServiceCredential.UserName
+            Update-InstallState "OctopusServicePassword" $octopusServiceCredential.GetNetworkCredential().Password
+        }
+        else {
+            Write-Log "Reconfiguring Octopus Deploy service to run as Local System ..."
+            Update-InstallState "OctopusServiceUsername" $null
+            Update-InstallState "OctopusServicePassword" $null
+        }
+        Invoke-OctopusServerCommand $args
     }
 
+    if ($currentState['LicenseKey'] -ne $licenseKey) {
+        $args = @(
+            'license',
+            '--console',
+            '--instance', $name
+        )
+        if (($null -eq $licenseKey) -or ($licenseKey -eq "")) {
+            Write-Log "Configuring Octopus Deploy instance to use free license ..."
+            $args += @('--free')
+        } else {
+            Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
+            $args += @('--licenseBase64', $licenseKey)
+        }
+        Invoke-OctopusServerCommand $args
+    }
 }
 
 function Test-ReconfigurationRequired($currentState, $desiredState) {
-    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'AllowCollectionOfAnonymousUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'Home')
+    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'AllowCollectionOfAnonymousUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'LicenseKey', 'OctopusServiceCredential', 'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled')
     foreach ($property in $reconfigurableProperties) {
-        if ($currentState.Item($property) -ne ($desiredState.Item($property))) {
+        write-verbose "Checking property '$property'"
+        if ($currentState.Item($property) -is [PSCredential]) {
+            if (-not (Test-PSCredential $currentState.Item($property) $desiredState.Item($property))) {
+                return $true
+            }
+        }
+        elseif ($currentState.Item($property) -ne ($desiredState.Item($property))) {
             return $true
         }
     }
@@ -655,10 +716,6 @@ Function Get-InstallStateValue
         }
     }
 }
-
-
-
-
 function Get-RegistryValue {
     param (
         [parameter(Mandatory = $true)]
@@ -696,7 +753,9 @@ function Install-OctopusDeploy {
         [bool]$autoLoginEnabled = $false,
         [string]$homeDirectory = $null,
         [PSCredential]$octopusServiceCredential,
-        [PSCredential]$OctopusMasterKey
+        [PSCredential]$OctopusMasterKey,
+        [string]$licenseKey = $null,
+        [bool]$grantDatabasePermissions = $true
     )
 
     Write-Verbose "Installing Octopus Deploy..."
@@ -738,12 +797,6 @@ function Install-OctopusDeploy {
 
     Write-Log "Configuring Octopus Deploy instance ..."
 
-    if ($OctopusServiceCredential) {
-        $databaseusername = $OctopusServiceCredential.UserName 
-    }
-    else {
-        $databaseusername = "NT AUTHORITY\SYSTEM"
-    }
 
     $args = @(
         'configure',
@@ -781,13 +834,22 @@ function Install-OctopusDeploy {
                 'database',
                 '--instance', $name,
                 '--connectionstring', $sqlDbConnectionString,
-                $action,
-                '--grant', $databaseusername
+                $action
             )
         }
 
-        Invoke-OctopusServerCommand $dbargs
+        if ($GrantDatabasePermissions) {
+            if (($null -ne $OctopusServiceCredential) -and ($OctopusServiceCredential -ne [PSCredential]::Empty)) {
+                $databaseusername = $OctopusServiceCredential.UserName
+            }
+            else {
+                $databaseusername = "NT AUTHORITY\SYSTEM"
+            }
+            Write-Log "Granting database permissions to account $databaseusername"
+            $dbargs += @('--grant', $databaseusername)
+        }
 
+        Invoke-OctopusServerCommand $dbargs
     }
     else {
         $args += @("--StorageConnectionString", $sqlDbConnectionString)
@@ -842,6 +904,17 @@ function Install-OctopusDeploy {
         if ($isClusterJoin) {
             $args += @("--masterKey", $OctopusMasterKey.GetNetworkCredential().Password)
         }
+        
+        if ($GrantDatabasePermissions) {
+            if (($null -ne $OctopusServiceCredential) -and ($OctopusServiceCredential -ne [PSCredential]::Empty)) {
+                $databaseusername = $OctopusServiceCredential.UserName
+            }
+            else {
+                $databaseusername = "NT AUTHORITY\SYSTEM"
+            }
+            Write-Log "Granting database permissions to account $databaseusername"
+            $args += @('--grant', $databaseusername)
+        }
 
         Invoke-OctopusServerCommand $args
     }
@@ -870,15 +943,19 @@ function Install-OctopusDeploy {
         Invoke-OctopusServerCommand $args
         Update-InstallState "OctopusAdminUsername" $extractedUsername
         Update-InstallState "OctopusAdminPassword" ($OctopusAdminCredential.Password | ConvertFrom-SecureString)
-  
-
-        Write-Log "Configuring Octopus Deploy instance to use free license ..."
+    
         $args = @(
             'license',
             '--console',
-            '--instance', $name,
-            '--free'
+            '--instance', $name
         )
+        if (($null -eq $licenseKey) -or ($licenseKey -eq "")) {
+            Write-Log "Configuring Octopus Deploy instance to use free license ..."
+            $args += @('--free')
+        } else {
+            Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
+            $args += @('--licenseBase64', $licenseKey)
+        }
         Invoke-OctopusServerCommand $args
 
     }
@@ -894,27 +971,25 @@ function Install-OctopusDeploy {
     )
 
     if ($octopusServiceCredential) {
-        Write-Log "Adding Service identity to installation command"
-
-        $args += @("--username", $octopusServiceCredential.UserName
-            "--password", $octopusServiceCredential.GetNetworkCredential().Password )
-
-        Write-Log "Adding Service identity to installation command"
-
+        Write-Log "Configuring service to run as $($octopusServiceCredential.UserName)"
+        $args += @(
+            "--username", $octopusServiceCredential.UserName
+            "--password", $octopusServiceCredential.GetNetworkCredential().Password
+        )
         Update-InstallState "OctopusServiceUsername" $octopusServiceCredential.UserName
         Update-InstallState "OctopusServicePassword" ($octopusServiceCredential.Password | ConvertFrom-SecureString)
     }
     else {
+        Write-Log "Configuring service to run as Local System"
         Update-InstallState "OctopusServiceUsername" $null
         Update-InstallState "OctopusServicePassword" $null
     }
-
     Invoke-OctopusServerCommand $args
 
     Write-Verbose "Octopus Deploy installed!"
 }
 
-Function Invoke-OctopusServerCommand ($arguments) {
+function Invoke-OctopusServerCommand ($arguments) {
     $exe = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
     Write-Log "Executing command '$exe $($arguments -join ' ')'"
     $output = .$exe $arguments
@@ -971,7 +1046,9 @@ function Test-TargetResource {
         [bool]$AutoLoginEnabled = $false,
         [PSCredential]$OctopusServiceCredential,
         [string]$HomeDirectory,
-        [PSCredential]$OctopusMasterKey = [PSCredential]::Empty
+        [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
+        [string]$LicenseKey = $null,
+        [bool]$GrantDatabasePermissions = $true
     )
 
     # make sure the global is up to date
@@ -991,36 +1068,24 @@ function Test-TargetResource {
             -ListenPort $ListenPort `
             -AutoLoginEnabled $AutoLoginEnabled `
             -OctopusServiceCredential $OctopusServiceCredential `
-            -HomeDirectory $HomeDirectory)
+            -HomeDirectory $HomeDirectory `
+            -LicenseKey $LicenseKey `
+            -GrantDatabasePermissions $GrantDatabasePermissions)
 
     $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
 
     $currentConfigurationMatchesRequestedConfiguration = $true
     foreach ($key in $currentResource.Keys) {
         $currentValue = $currentResource.Item($key)
-        $requestedValue = $params.Item($key)
-        if ($key -eq "OctopusAdminCredential") {
-            if ($null -ne $currentValue -and $currentValue -ne [PSCredential]::Empty) {
-                $currentUsername = $currentValue.GetNetworkCredential().UserName
-                $currentPassword = $currentValue.GetNetworkCredential().Password
-            }
-            else {
-                $currentUserName = ""
-                $currentPassword = ""
-            }
+        $requestedValue = $params.Item($key) 
 
-            $requestedUsername = $requestedValue.GetNetworkCredential().UserName
-            $requestedPassword = $requestedValue.GetNetworkCredential().Password      
-
-            if ($currentPassword -ne $requestedPassword -or $currentUsername -ne $requestedUserName) {
+        if ($currentValue -is [PSCredential]) {
+            if (-not (Test-PSCredential $currentValue $requestedValue)) {
                 Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '********' mismatched the specified value '********'"
                 $currentConfigurationMatchesRequestedConfiguration = $false
-            }
-            else {
+            } else {
                 Write-Verbose "Configuration parameter '$key' matches the requested value '********'"
             }
-
-
         }
         elseif ($currentValue -ne $requestedValue) {
             Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '$currentValue' mismatched the specified value '$requestedValue'"
@@ -1047,4 +1112,29 @@ function Get-ODSCParameter($parameters) {
         }
     }
     return $params
+}
+
+function Test-PSCredential($currentValue, $requestedValue) {
+    if (($null -ne $currentValue) -and ($currentValue -ne [PSCredential]::Empty)) {
+        $currentUsername = $currentValue.GetNetworkCredential().UserName
+        $currentPassword = $currentValue.GetNetworkCredential().Password
+    }
+    else {
+        $currentUsername = ""
+        $currentPassword = ""
+    }
+
+    if (($null -ne $requestedValue) -and ($requestedValue -ne [PSCredential]::Empty)) {
+        $requestedUsername = $requestedValue.GetNetworkCredential().UserName
+        $requestedPassword = $requestedValue.GetNetworkCredential().Password
+    }
+    else {
+        $requestedUsername = ""
+        $requestedPassword = ""
+    }
+
+    if ($currentPassword -ne $requestedPassword -or $currentUsername -ne $requestedUsername) {
+        return $false
+    }
+    return $true
 }

@@ -1,3 +1,6 @@
+# Configures a polling tentacle and automatically registers it with the specified server
+# please see https://github.com/OctopusDeploy/OctopusDSC/blob/master/README-cTentacleAgent.md for all available options
+
 Configuration SampleConfig
 {
     param ($ApiKey, $OctopusServerUrl, $Environments, $Roles, $ServerPort)
@@ -15,7 +18,7 @@ Configuration SampleConfig
             # than one instance
             Name = "Tentacle"
 
-            # Registration - all parameters required
+            # Registration
             ApiKey = $ApiKey
             OctopusServerUrl = $OctopusServerUrl
             Environments = $Environments

@@ -1,6 +1,9 @@
-# deserialize a password from disk.
+# Configures a listening tentacle and automatically registers it with the specified server
+# please see https://github.com/OctopusDeploy/OctopusDSC/blob/master/README-cTentacleAgent.md for all available options
+
+# use password from disk
 $password = Get-Content .\ExamplePassword.txt | ConvertTo-SecureString
-$ServiceCred = New-Object PSCredential "ServiceUser", $password 
+$ServiceCred = New-Object PSCredential "ServiceUser", $password
 
 Configuration SampleConfig
 {
@@ -19,9 +22,8 @@ Configuration SampleConfig
             # than one instance
             Name = "Tentacle"
 
-            # Registration - all parameters required
-            ApiKey = $ApiKey
             OctopusServerUrl = $OctopusServerUrl
+            ApiKey = $ApiKey
             Environments = $Environments
             Roles = $Roles
 
