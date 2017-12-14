@@ -94,16 +94,15 @@ function Get-TargetResource {
             $installState = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json)
             $existingDownloadUrl = $installState.DownloadUrl
             $pass = $installState.OctopusAdminPassword | ConvertTo-SecureString
-      
+            $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($installState.OctopusAdminUsername, $pass)
+
             if ($installState.OctopusServicePassword -ne "") {
-                $svcpass = $installState.OctopusServicePassword | ConvertTo-SecureString 
+                $svcpass = $installState.OctopusServicePassword | ConvertTo-SecureString
                 $existingOctopusServiceCredential = New-Object System.Management.Automation.PSCredential ($installState.OctopusServiceUsername, $svcpass)
             }
             else {
-                $svcpass = ""
                 $existingOctopusServiceCredential = [PSCredential]::Empty
             }
-            $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($installState.OctopusAdminUsername, $pass)
         }
     }
 
@@ -793,7 +792,7 @@ function Install-OctopusDeploy {
             Write-Log "Creating Octopus Deploy database for v4"
             $action = '--create'
         }
-    
+
         $dbargs = @(
             'database',
             '--instance', $name,
@@ -803,7 +802,6 @@ function Install-OctopusDeploy {
         )
 
         Invoke-OctopusServerCommand $dbargs
-
     }
     else {
         $args += @("--StorageConnectionString", $sqlDbConnectionString)
@@ -873,22 +871,17 @@ function Install-OctopusDeploy {
     Update-InstallState "OctopusAdminUsername" $extractedUsername
     Update-InstallState "OctopusAdminPassword" ($OctopusAdminCredential.Password | ConvertFrom-SecureString)
 
+    $args = @(
+        'license',
+        '--console',
+        '--instance', $name
+    )
     if (($null -eq $licenseKey) -or ($licenseKey -eq "")) {
         Write-Log "Configuring Octopus Deploy instance to use free license ..."
-        $args = @(
-            'license',
-            '--console',
-            '--instance', $name,
-            '--free'
-        )
+        $args += @('--free')
     } else {
         Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
-        $args = @(
-            'license',
-            '--console',
-            '--instance', $name,
-            '--licenseBase64', $licenseKey
-        )
+        $args += @('--licenseBase64', $licenseKey)
     }
     Invoke-OctopusServerCommand $args
 
@@ -916,13 +909,12 @@ function Install-OctopusDeploy {
         Update-InstallState "OctopusServiceUsername" $null
         Update-InstallState "OctopusServicePassword" $null
     }
-
     Invoke-OctopusServerCommand $args
 
     Write-Verbose "Octopus Deploy installed!"
 }
 
-Function Invoke-OctopusServerCommand ($arguments) {
+function Invoke-OctopusServerCommand ($arguments) {
     $exe = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
     Write-Log "Executing command '$exe $($arguments -join ' ')'"
     $output = .$exe $arguments
@@ -1009,12 +1001,9 @@ function Test-TargetResource {
             if (-not (Test-PSCredential $currentValue $requestedValue)) {
                 Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '********' mismatched the specified value '********'"
                 $currentConfigurationMatchesRequestedConfiguration = $false
-            }
-            else {
+            } else {
                 Write-Verbose "Configuration parameter '$key' matches the requested value '********'"
             }
-
-
         }
         elseif ($currentValue -ne $requestedValue) {
             Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '$currentValue' mismatched the specified value '$requestedValue'"
