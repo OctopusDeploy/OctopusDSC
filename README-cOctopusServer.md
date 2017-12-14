@@ -91,12 +91,8 @@ When `State` is `Started`, the resource will ensure that the Octopus Servr windo
 | `AutoLoginEnabled`                           | `boolean`                                           | `$false`                                                        | If an authentication provider is enabled that supports pass through authentcation (eg Active Directory), allow the user to automatically sign in. Only supported from Octopus 3.5. |
 | `OctopusServiceCredential`                   | `PSCredential`                                      |                                                                 | Credentials of the account used to run the Octopus Service |
 | `HomeDirectory`                              | `string`                                            | `C:\Octopus`                                                    | Home directory for Octopus logs and config (where supported) |
-| `LicenseKey`                                 | `string`                                            |                                                                 | The Base64 (UTF8) encoded license key. If not supplied, uses a free license |
+| `LicenseKey`                                 | `string`                                            |                                                                 | The Base64 (UTF8) encoded license key. If not supplied, uses a free license. Drift detection is only supported from Octopus 4.1.3. |
 
 ## Drift
 
-This means that the server will be automatically reconfigured if you change any properties except the ones listed above.
-
-If the DownloadUrl property changes, it will detect the configuration drift and upgrade the Server as appropriate. However, if you leave it as default (ie 'install latest'), it will not upgrade when a new version is released - it only actions on change of the property.
-
-However if you need to change any of the `SqlDbConnectionString`, `OctopusAdminCredential` properties, you will need to uninstall then reinstall the server (by changing `Ensure` to `Absent` and then back to `Present`).
+The server will be automatically reconfigured if you change any properties above. If the DownloadUrl property changes, it will detect the configuration drift and upgrade the Server as appropriate. However, if you leave it as default (ie 'install latest'), it will not upgrade when a new version is released - it only actions on change of the property.
