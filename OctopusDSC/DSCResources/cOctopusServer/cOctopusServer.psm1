@@ -116,7 +116,7 @@ function Get-TargetResource {
         SqlDbConnectionString                     = $existingSqlDbConnectionString;
         ForceSSL                                  = $existingForceSSL;
         AllowUpgradeCheck                         = $existingOctopusUpgradesAllowChecking;
-        AllowCollectionOfAnonymousUsageStatistics = $AllowCollectionOfAnonymousUsageStatistics;
+        AllowCollectionOfAnonymousUsageStatistics = $existingOctopusUpgradesIncludeStatistics;
         ListenPort                                = $existingListenPort;
         OctopusAdminCredential                    = $existingOctopusAdminCredential;
         LegacyWebAuthenticationMode               = $existingLegacyWebAuthenticationMode;
