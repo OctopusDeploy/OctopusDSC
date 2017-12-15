@@ -50,7 +50,7 @@ Configuration Server_Scenario_02_Remove
             # The url that Octopus will listen on
             WebListenPrefix = "http://localhost:82"
 
-            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=Octopus;Trusted_Connection=True;"
+            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario1;Trusted_Connection=True;"
 
             # The admin user to create
             OctopusAdminCredential = $cred
@@ -62,3 +62,6 @@ Configuration Server_Scenario_02_Remove
         }
     }
 }
+
+# I think we need to drop our database
+

@@ -29,7 +29,7 @@ Configuration Server_Scenario_01_InstallSecondNode
             # The url that Octopus will listen on
             WebListenPrefix = "http://localhost:82"
 
-            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=Octopus;Trusted_Connection=True;"
+            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario1;Trusted_Connection=True;"
 
             OctopusMasterKey = $MasterKeyCred
 
