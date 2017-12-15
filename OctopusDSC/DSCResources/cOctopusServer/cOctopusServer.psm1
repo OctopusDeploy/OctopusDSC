@@ -638,9 +638,7 @@ function Install-MSI {
     mkdir "$($env:SystemDrive)\Octopus" -ErrorAction SilentlyContinue
 
     $msiPath = "$($env:SystemDrive)\Octopus\Octopus-x64.msi"
-    if ((Test-Path $msiPath) -eq $true) {
-        Remove-Item $msiPath -force
-    }
+
     Request-File $downloadUrl $msiPath
 
     Write-Verbose "Installing MSI..."

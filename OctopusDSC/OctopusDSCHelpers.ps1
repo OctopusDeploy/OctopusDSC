@@ -37,7 +37,7 @@ function Request-File {
         Write-Verbose "Local file exists"
         $localHash = Get-FileHash $saveAs -Algorithm SHA256 | Select -Expand hash
         Write-Verbose "Local SHA256 hash: $localHash"
-        $remoteHash = (Invoke-WebRequest $url -Method Head -UseBasicParsing | select -expand headers).GetEnumerator()  | ? { $_.Key -eq "x-amz-meta-sha256" } | select -expand value
+        $remoteHash = (Invoke-WebRequest -uri $url -Method Head -UseBasicParsing | select -expand headers).GetEnumerator()  | ? { $_.Key -eq "x-amz-meta-sha256" } | select -expand value
         Write-Verbose "Remote SHA256 hash: $remoteHash"
         $downloadFile = ($localHash -ne $remoteHash)
     }
