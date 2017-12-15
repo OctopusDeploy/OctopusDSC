@@ -26,7 +26,7 @@ function Get-TargetResource
     throw "This resource only supports Tentacle 3.15.8+."
   }
 
-  $config = Get-Configuration $InstanceName
+  $config = Get-TentacleConfiguration $InstanceName
 
   $result = @{
     InstanceName = $InstanceName
@@ -105,13 +105,6 @@ function Test-TargetResource
   return $currentConfigurationMatchesRequestedConfiguration
 }
 
-function Get-Configuration($instanceName)
-{
-  $rawConfig = & $tentacleExePath show-configuration --instance $instanceName
-  $config = $rawConfig | ConvertFrom-Json
-  return $config
-}
-
 function Invoke-TentacleCommand ($arguments)
 {
   Write-Verbose "Executing command '$tentacleExePath $($arguments -join ' ')'"
@@ -124,24 +117,6 @@ function Invoke-TentacleCommand ($arguments)
   }
   Write-Verbose "done."
 }
-
-function Write-CommandOutput
-{
-  param (
-    [string] $output
-  )
-
-  if ($output -eq "") { return }
-
-  Write-Verbose ""
-  #this isn't quite working
-  foreach($line in $output.Trim().Split("`n"))
-  {
-    Write-Verbose $line
-  }
-  Write-Verbose ""
-}
-
 function Test-TentacleSupportsShowConfiguration
 {
   if (-not (Test-Path -LiteralPath $tentacleExePath))
@@ -160,21 +135,4 @@ function Test-TentacleSupportsShowConfiguration
   $versionWhereShowConfigurationWasIntroduced = New-Object System.Version 3, 15, 8
 
   return ($tentacleVersion -ge $versionWhereShowConfigurationWasIntroduced)
-}
-
-function Get-ODSCParameter($parameters)
-{
-  # unfortunately $PSBoundParameters doesn't contain parameters that weren't supplied (because the default value was okay)
-  # credit to https://www.briantist.com/how-to/splatting-psboundparameters-default-values-optional-parameters/
-  $params = @{}
-  foreach($h in $parameters.GetEnumerator()) {
-    $key = $h.Key
-    $var = Get-Variable -Name $key -ErrorAction SilentlyContinue
-    if ($null -ne $var)
-    {
-      $val = Get-Variable -Name $key -ErrorAction Stop | Select-Object -ExpandProperty Value -ErrorAction Stop
-      $params[$key] = $val
-    }
-  }
-  return $params
 }

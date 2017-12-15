@@ -26,7 +26,7 @@ function Get-TargetResource {
         throw "This resource only supports Octopus Deploy 3.5.0+."
     }
 
-    $config = Get-Configuration $InstanceName
+    $config = Get-ServerConfiguration $InstanceName
 
     $result = @{
         InstanceName = $InstanceName
@@ -97,28 +97,6 @@ function Test-TargetResource {
 
     return $currentConfigurationMatchesRequestedConfiguration
 }
-
-function Get-Configuration($instanceName) {
-    $rawConfig = & $octopusServerExePath show-configuration --format=json-hierarchical --noconsolelogging --console --instance $instanceName
-    $config = $rawConfig | ConvertFrom-Json
-    return $config
-}
-
-function Write-CommandOutput {
-    param (
-        [string] $output
-    )
-
-    if ($output -eq "") { return }
-
-    Write-Verbose ""
-    #this isn't quite working
-    foreach ($line in $output.Trim().Split("`n")) {
-        Write-Verbose $line
-    }
-    Write-Verbose ""
-}
-
 function Test-OctopusVersionSupportsAuthenticationProvider {
     if (-not (Test-Path -LiteralPath $octopusServerExePath)) {
         throw "Octopus.Server.exe path '$octopusServerExePath' does not exist."

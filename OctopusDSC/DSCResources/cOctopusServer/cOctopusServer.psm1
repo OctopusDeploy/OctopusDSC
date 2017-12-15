@@ -989,19 +989,6 @@ function Install-OctopusDeploy {
     Write-Verbose "Octopus Deploy installed!"
 }
 
-function Invoke-OctopusServerCommand ($arguments) {
-    $exe = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
-    Write-Log "Executing command '$exe $($arguments -join ' ')'"
-    $output = .$exe $arguments
-
-    Write-CommandOutput $output
-    if (($null -ne $LASTEXITCODE) -and ($LASTEXITCODE -ne 0)) {
-        Write-Error "Command returned exit code $LASTEXITCODE. Aborting."
-        exit 1
-    }
-    Write-Log "done."
-}
-
 function Write-CommandOutput {
     param (
         [string] $output

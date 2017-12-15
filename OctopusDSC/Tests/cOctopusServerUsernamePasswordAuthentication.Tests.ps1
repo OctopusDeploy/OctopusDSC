@@ -24,7 +24,7 @@ try
                 It 'Returns the proper data' {
                     Mock Test-Path { return $true } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-OctopusVersionSupportsAuthenticationProvider { return $true }
-                    Mock Get-Configuration { return  @{Octopus = @{ UsernamePassword = @{ IsEnabled = $true }}} }
+                    Mock Get-ServerConfiguration { return  @{Octopus = @{ UsernamePassword = @{ IsEnabled = $true }}} }
 
                     $config = Get-TargetResource @desiredConfiguration
                     $config.InstanceName            | Should Be 'OctopusServer'

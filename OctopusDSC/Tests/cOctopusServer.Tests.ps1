@@ -90,6 +90,47 @@ try
                     { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.5.1. Please install it before attempting to install Octopus Server."
                 }
             }
+
+            Context "Running HA" {
+                $executedcommands = @()
+                $invocation = 0
+                Mock Invoke-OctopusServerCommand {
+                    param($parameters)
+                    $executedCommands += [pscustomobject]@{ invocation = ++$invocation; params = $parameters } 
+                }
+                $response = @{ Ensure="Absent"; State="Stopped" }
+                Mock Get-TargetResource { return $response }
+                Mock Get-RegistryValue { return "478389" }
+                Mock Install-MSI {}
+                Mock Update-InstallState {}
+                Mock Test-OctopusDeployServerResponding { return $true }
+
+                $pass = ConvertTo-SecureString -string (Get-Content .\OctopusDSC\Tests\Password.txt) -key (Get-Content .\OctopusDSC\Tests\AESKey.key)
+                $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
+
+                $MasterKey = "Nc91+1kfZszMpe7DMne8wg=="
+                $SecureMasterKey = ConvertTo-SecureString $MasterKey -AsPlainText -Force
+                $MasterKeyCred = New-Object System.Management.Automation.PSCredential  ("notused", $SecureMasterKey)
+
+                $haparams = @{
+                    Ensure = "Present";
+                    State = "Started";        
+                    Name = "HANode";
+                    WebListenPrefix = "http://localhost:82";
+                    SqlDbConnectionString = "Server=(local);Database=Octopus;Trusted_Connection=True;";
+                    OctopusMasterKey = $MasterKeyCred;
+                    OctopusAdminCredential = $cred;
+                    ListenPort = 10935;
+                    AllowCollectionOfAnonymousUsageStatistics = $false;
+                    HomeDirectory = "C:\ChezOctopusSecondNode";
+                }
+
+                Set-TargetResource @haparams 
+
+                Write-Host $executedcommands
+
+
+            }
         }
     }
 }

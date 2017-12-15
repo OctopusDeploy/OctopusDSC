@@ -17,6 +17,7 @@ function Get-ODSCParameter($parameters) {
 }
 
 function Request-File {
+    [CmdletBinding()]
     param (
         [string]$url,
         [string]$saveAs
@@ -30,15 +31,19 @@ function Request-File {
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12, [System.Net.SecurityProtocolType]::Tls11, [System.Net.SecurityProtocolType]::Tls
     
     Write-Verbose "Checking to see if we have an installer at $saveas"
-    if(Test-Path $saveas)
+    if(Test-Path $saveAs)
     {
         # check if we already have a matching file on disk
         Write-Verbose "Local file exists"
         $localHash = Get-FileHash $saveAs -Algorithm SHA256 | Select -Expand hash
         Write-Verbose "Local SHA256 hash: $localHash"
-        $remoteHash = (iwr $url -Method Head -UseBasicParsing | select -expand headers).GetEnumerator()  | ? { $_.Key -eq "x-amz-meta-sha256" } | select -expand value
+        $remoteHash = (Invoke-WebRequest $url -Method Head -UseBasicParsing | select -expand headers).GetEnumerator()  | ? { $_.Key -eq "x-amz-meta-sha256" } | select -expand value
         Write-Verbose "Remote SHA256 hash: $remoteHash"
         $downloadFile = ($localHash -ne $remoteHash)
+    }
+    else
+    {
+        Write-Verbose "No local installer found"
     }
 
     if($downloadFile)
@@ -46,9 +51,10 @@ function Request-File {
         while ($retry) {
             Write-Verbose "Downloading $url to $saveAs"
         
-            $downloader = new-object System.Net.WebClient
+            #$downloader = new-object System.Net.WebClient
             try {
-                $downloader.DownloadFile($url, $saveAs)
+                #$downloader.DownloadFile($url, $saveAs)
+                Invoke-WebRequest -Uri $url -OutFile $saveAs -UseBasicParsing
                 $retry = $false
             }
             catch {
@@ -96,4 +102,32 @@ function Invoke-OctopusServerCommand ($arguments) {
         exit 1
     }
     Write-Verbose "done."
+}
+
+function Write-CommandOutput {
+    param (
+        [string] $output
+    )
+
+    if ($output -eq "") { return }
+
+    Write-Verbose ""
+    #this isn't quite working
+    foreach ($line in $output.Trim().Split("`n")) {
+        Write-Verbose $line
+    }
+    Write-Verbose ""
+}
+
+function Get-ServerConfiguration($instanceName) {
+    $rawConfig = & $octopusServerExePath show-configuration --format=json-hierarchical --noconsolelogging --console --instance $instanceName
+    $config = $rawConfig | ConvertFrom-Json
+    return $config
+}
+
+function Get-TentacleConfiguration($instanceName)
+{
+  $rawConfig = & $tentacleExePath show-configuration --instance $instanceName
+  $config = $rawConfig | ConvertFrom-Json
+  return $config
 }

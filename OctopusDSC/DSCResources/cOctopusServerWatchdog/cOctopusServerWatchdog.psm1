@@ -25,7 +25,7 @@ function Get-TargetResource {
         throw "This resource only supports Octopus Deploy 3.17.0+."
     }
 
-    $config = Get-Configuration $InstanceName
+    $config = Get-ServerConfiguration $InstanceName
 
     $result = @{
         InstanceName = $InstanceName
@@ -99,27 +99,6 @@ function Test-TargetResource {
     return $currentConfigurationMatchesRequestedConfiguration
 }
 
-function Get-Configuration($instanceName) {
-    $rawConfig = & $octopusServerExePath show-configuration --format=json-hierarchical --instance $instanceName
-    $config = $rawConfig | ConvertFrom-Json
-    return $config
-}
-
-function Write-CommandOutput {
-    param (
-        [string] $output
-    )
-
-    if ($output -eq "") { return }
-
-    Write-Verbose ""
-    #this isn't quite working
-    foreach ($line in $output.Trim().Split("`n")) {
-        Write-Verbose $line
-    }
-    Write-Verbose ""
-}
-
 function Test-OctopusVersionSupportsWatchdogInShowConfiguration {
     if (-not (Test-Path -LiteralPath $octopusServerExePath)) {
         throw "Octopus.Server.exe path '$octopusServerExePath' does not exist."
@@ -135,19 +114,4 @@ function Test-OctopusVersionSupportsWatchdogInShowConfiguration {
     $versionWhereWatchdogWasIncludedWithShowConfiguration = New-Object System.Version 3, 17, 0
 
     return ($octopusServerVersion -ge $versionWhereWatchdogWasIncludedWithShowConfiguration)
-}
-
-function Get-ODSCParameter($parameters) {
-    # unfortunately $PSBoundParameters doesn't contain parameters that weren't supplied (because the default value was okay)
-    # credit to https://www.briantist.com/how-to/splatting-psboundparameters-default-values-optional-parameters/
-    $params = @{}
-    foreach ($h in $parameters.GetEnumerator()) {
-        $key = $h.Key
-        $var = Get-Variable -Name $key -ErrorAction SilentlyContinue
-        if ($null -ne $var) {
-            $val = Get-Variable -Name $key -ErrorAction Stop | Select-Object -ExpandProperty Value -ErrorAction Stop
-            $params[$key] = $val
-        }
-    }
-    return $params
 }
