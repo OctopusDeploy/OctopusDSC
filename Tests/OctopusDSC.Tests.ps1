@@ -26,13 +26,13 @@ Describe "PSScriptAnalyzer" {
             $targetPath = ($env:PSModulePath -split ':')[0]
         }
 
-        Write-Host "Copying DSC module from '$modulePath' to '$targetPath'"
+        Write-Host "Copying DSC module from '$modulePath' to '$targetPath/OctopusDSC'"
         Copy-Item -Path $modulePath -destination $targetPath -Recurse
 
         Write-Host "Running PsScriptAnalyzer against ./OctopusDSC/Examples"
         $results += Invoke-ScriptAnalyzer ./OctopusDSC/Examples -recurse -exclude $excludedRules
         $results | Out-File PsScriptAnalyzer.log -Append
-        Remove-Item -Force -Recurse "$targetPath\OctopusDSC"
+        Remove-Item -Force -Recurse "$targetPath/OctopusDSC"
 
     } else {
         Write-Output "Skipping running PsScriptAnalyzer on `./OctopusDSC/Examples` as it doesn't run well on macOS."
