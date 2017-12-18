@@ -27,7 +27,7 @@ try
                 }
             }
 
-            Context 'Get-TargetResource' {
+            Context 'Get-TargetResource - error scenarios' {
                 It 'Throws when both OctopusCredentials and OctopusApiKey are provided' {
                     {Get-TargetResource -Url 'https://octopus.example.com' `
                                                  -Ensure 'Present' `
@@ -41,18 +41,22 @@ try
                                                  -Ensure 'Present' `
                                                  -EnvironmentName 'Production'} | should throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey'."
                 }
+            }
 
+            Context 'Get-TargetResource - when present' {
                 It 'Returns present when environment exists' {
-                    Mock Get-Environment { return [PSCustomObject]@{ Name = 'Production' } } -Scope It
+                    Mock Get-Environment { return [PSCustomObject]@{ Name = 'Production' } }
                     $result = Get-TargetResource -Url 'https://octopus.example.com' `
                                                  -Ensure 'Present' `
                                                  -EnvironmentName 'Production' `
                                                  -OctopusCredentials $creds
                     $result.Ensure | should be 'Present'
                 }
+            }
 
+            Context 'Get-TargetResource - when absent' {
                 It 'Returns absent when environment does not exist' {
-                    Mock Get-Environment { return $null } -Scope It
+                    Mock Get-Environment { return $null }
                     $result = Get-TargetResource -Url 'https://octopus.example.com' `
                                                  -Ensure 'Present' `
                                                  -EnvironmentName 'Production' `
@@ -63,7 +67,7 @@ try
 
             Context 'Test-TargetResource' {
                 $response = @{  }
-                Mock Get-TargetResource { return $response } -Scope It
+                Mock Get-TargetResource { return $response }
 
                 It 'Returns false if environment does not exist' {
                     $desiredPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
@@ -105,27 +109,31 @@ try
                 }
             }
 
-            Context 'Set-TargetResource' {
-                It 'Calls New-Environment if not present and ensure set to present' {
-                    Mock Get-Environment { return $null } -Scope It
-                    Mock New-Environment -Scope It
-                    Mock Remove-Environment -Scope It
-                    Set-TargetResource @desiredConfiguration
-                    Assert-MockCalled New-Environment  -Exactly 1
-                }
-
+            Context 'Set-TargetResource - when present' {
                 It 'Calls Remove-Environment if present and ensure set to absent' {
-                    Mock Get-Environment { return [PSCustomObject]@{ Name = 'Production' } } -Scope It
-                    Mock New-Environment -Scope It
-                    Mock Remove-Environment -Scope It
+                    Mock Get-Environment { return [PSCustomObject]@{ Name = 'Production' } }
+                    Mock New-Environment
+                    Mock Remove-Environment
                     $desiredConfiguration['Ensure'] = 'Absent'
                     Set-TargetResource @desiredConfiguration
                     Assert-MockCalled Remove-Environment -Exactly 1
                 }
+            }
 
+            Context 'Set-TargetResource - when absent' {
+                It 'Calls New-Environment if not present and ensure set to present' {
+                    Mock Get-Environment { return $null }
+                    Mock New-Environment
+                    Mock Remove-Environment
+                    Set-TargetResource @desiredConfiguration
+                    Assert-MockCalled New-Environment  -Exactly 1
+                }
+            }
+
+            Context 'Set-TargetResource - general' {
                 It 'Calls Get-TargetResource (and therefore inherits its checks)' {
                     $response = @{ Url = 'https://octopus.example.com'; Ensure='Present'; EnvironmentName = 'Production'; OctopusCredentials = $creds }
-                    Mock Get-TargetResource { return $response } -Scope It
+                    Mock Get-TargetResource { return $response }
                     Set-TargetResource @desiredConfiguration
                     Assert-MockCalled Get-TargetResource -Exactly 1
                 }
