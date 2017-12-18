@@ -56,7 +56,10 @@ Test-PluginInstalled "vagrant-winrm"
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
 echo "Running Pester Tests"
-Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -EnableExit
+$result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
+if ($result.FailedCount -gt 0) {
+  exit 1
+}
 
 echo "Running 'vagrant up --provider hyperv'"
 vagrant up --provider hyperv | Tee-Object -FilePath vagrant.log  #  --no-destroy-on-error --debug

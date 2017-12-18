@@ -26,7 +26,10 @@ Test-PluginInstalled "vagrant-winrm"
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
 echo "Running Pester Tests"
-Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -EnableExit
+$result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
+if ($result.FailedCount -gt 0) {
+  exit 1
+}
 
 $randomGuid=[guid]::NewGuid()
 $keyName = "vagrant_$randomGuid"
