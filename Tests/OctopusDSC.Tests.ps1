@@ -20,13 +20,13 @@ Describe "PSScriptAnalyzer" {
 
         $modulePath = Split-Path $PSCommandPath -Parent
 
-        Write-Output "Copying DSC module from '$modulePath' to '$($env:psmodulepath)'"
-        Copy-Item -Path $modulePath -destination $env:psmodulepath -Recurse
+        Write-Output "Copying DSC module from '$modulePath' to '$($env:PSModulePath)'"
+        Copy-Item -Path $modulePath -destination $env:PSModulePath -Recurse
 
         Write-Output "Running PsScriptAnalyzer against ./OctopusDSC/Examples"
         $results += Invoke-ScriptAnalyzer ./OctopusDSC/Examples -recurse -exclude $excludedRules
         $results | Out-File PsScriptAnalyzer.log -Append
-        Remove-Item -Force -Recurse "$(env:psmodulepath)\OctopusDSC"
+        Remove-Item -Force -Recurse "$(env:PSModulePath)\OctopusDSC"
 
     } else {
         Write-Output "Skipping running PsScriptAnalyzer on `./OctopusDSC/Examples` as it doesn't run well on macOS."
