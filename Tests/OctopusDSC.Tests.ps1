@@ -15,28 +15,8 @@ Describe "PSScriptAnalyzer" {
     $results += Invoke-ScriptAnalyzer ./OctopusDSC/Tests -recurse -exclude $excludedRules
     $results | Out-File PsScriptAnalyzer.log -Append
 
-    # PsScriptAnalyzer tests dont seem to work so well on mac - https://github.com/PowerShell/PowerShell/issues/5707
-    if (($null -eq $IsMacOS) -or ($IsMacOS -eq $false)) {
+    # it'd be nice to run the PsScriptAnalyzer on `./OctopusDSC/Examples`, but I couldn't get it to detect the DSCModule on mac nor on linux
 
-        $modulePath = Split-Path $PSCommandPath -Parent
-        $modulePath = Split-Path $modulePath -Parent
-        if ($isWindows) {
-            $targetPath = ($env:PSModulePath -split ';')[0]
-        } else {
-            $targetPath = ($env:PSModulePath -split ':')[0]
-        }
-
-        Write-Host "Copying DSC module from '$modulePath' to '$targetPath/OctopusDSC'"
-        Copy-Item -Path $modulePath -destination $targetPath -Recurse
-
-        Write-Host "Running PsScriptAnalyzer against ./OctopusDSC/Examples"
-        $results += Invoke-ScriptAnalyzer ./OctopusDSC/Examples -recurse -exclude $excludedRules
-        $results | Out-File PsScriptAnalyzer.log -Append
-        Remove-Item -Force -Recurse "$targetPath/OctopusDSC"
-
-    } else {
-        Write-Output "Skipping running PsScriptAnalyzer on `./OctopusDSC/Examples` as it doesn't run well on macOS."
-    }
     Write-Output ($results | ConvertTo-Json)
     It "Should have zero PSScriptAnalyzer issues" {
         $results.length | Should Be 0
