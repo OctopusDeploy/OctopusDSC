@@ -1,4 +1,4 @@
-#!/usr/local/bin/powershell
+#!/usr/local/bin/pwsh
 
 . Tests/powershell-helpers.ps1
 
