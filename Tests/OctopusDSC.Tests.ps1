@@ -19,14 +19,16 @@ Describe "PSScriptAnalyzer" {
     if (($null -eq $IsMacOS) -or ($IsMacOS -eq $false)) {
 
         $modulePath = Split-Path $PSCommandPath -Parent
+        $modulePath = Split-Path $modulePath -Parent
+        $targetPath = ($env:PSModulePath -split ';')[0]
 
-        Write-Output "Copying DSC module from '$modulePath' to '$($env:PSModulePath)'"
-        Copy-Item -Path $modulePath -destination $env:PSModulePath -Recurse
+        Write-Host "Copying DSC module from '$modulePath' to '$targetPath'"
+        Copy-Item -Path $modulePath -destination $targetPath -Recurse
 
-        Write-Output "Running PsScriptAnalyzer against ./OctopusDSC/Examples"
+        Write-Host "Running PsScriptAnalyzer against ./OctopusDSC/Examples"
         $results += Invoke-ScriptAnalyzer ./OctopusDSC/Examples -recurse -exclude $excludedRules
         $results | Out-File PsScriptAnalyzer.log -Append
-        Remove-Item -Force -Recurse "$(env:PSModulePath)\OctopusDSC"
+        Remove-Item -Force -Recurse "$targetPath\OctopusDSC"
 
     } else {
         Write-Output "Skipping running PsScriptAnalyzer on `./OctopusDSC/Examples` as it doesn't run well on macOS."
