@@ -1,17 +1,17 @@
 
 if (-not (Test-Path "c:\ProgramData\Chocolatey")) {
-  echo "##teamcity[blockOpened name='Installing Chocolatey']"
+  write-output "##teamcity[blockOpened name='Installing Chocolatey']"
 
   write-output "Installing Chocolatey"
   iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
   if ($LASTEXITCODE -ne 0) { exit 1 }
 
-  echo "##teamcity[blockClosed name='Installing Chocolatey']"
+  write-output "##teamcity[blockClosed name='Installing Chocolatey']"
 }
 
 if (-not (Test-Path "C:\tools\ruby23")) {
 
-  echo "##teamcity[blockOpened name='Install Ruby']"
+  write-output "##teamcity[blockOpened name='Install Ruby']"
 
   choco install ruby --allow-empty-checksums --yes --version 2.3.3
   if ($LASTEXITCODE -ne 0) { exit 1 }
@@ -29,27 +29,27 @@ if (-not (Test-Path "C:\tools\ruby23")) {
   & C:\tools\ruby23\bin\update_rubygems.bat --no-ri --no-rdoc
   if ($LASTEXITCODE -ne 0) { exit 1 }
 
-  echo "##teamcity[blockClosed name='Install Ruby']"
+  write-output "##teamcity[blockClosed name='Install Ruby']"
 
-  echo "##teamcity[blockOpened name='Install ServerSpec']"
+  write-output "##teamcity[blockOpened name='Install ServerSpec']"
 
-  echo "running 'C:\tools\ruby23\bin\gem.cmd install bundler --version 1.14.4 --no-ri --no-rdoc'"
+  write-output "running 'C:\tools\ruby23\bin\gem.cmd install bundler --version 1.14.4 --no-ri --no-rdoc'"
   & C:\tools\ruby23\bin\gem.cmd install bundler --version 1.14.4 --no-ri --no-rdoc
   if ($LASTEXITCODE -ne 0) { exit 1 }
 
-  echo "##teamcity[blockClosed name='Install ServerSpec']"
+  write-output "##teamcity[blockClosed name='Install ServerSpec']"
 }
 
-echo "##teamcity[blockOpened name='Configuring SQL Server']"
+write-output "##teamcity[blockOpened name='Configuring SQL Server']"
 
-Write-host "Determining SQL Server service name"
+Write-Output "Determining SQL Server service name"
 
 $serviceName = 'MSSQL$SQLEXPRESS'
 $service = Get-Service $serviceName -ErrorAction SilentlyContinue
 if ($null -eq $service) {
   $serviceName = "MSSQLSERVER"
 }
-write-host "Service name is '$serviceName'"
+Write-Output "Service name is '$serviceName'"
 
 write-output "Configuring SQL Server to allow TCP/IP connections"
 
@@ -65,7 +65,7 @@ $tcp = ($smoObject.ServerInstances[0].ServerProtocols | Where-Object {$_.Name -e
 $tcp.IsEnabled = $true
 $tcp.Alter()
 
-Write-Host "Restarting service"
+Write-Output "Restarting service"
 Restart-Service $serviceName -Force
 
 if ($instanceName -ne "SQLEXPRESS") {
@@ -93,7 +93,7 @@ if ($instanceName -ne "SQLEXPRESS") {
     New-ItemProperty -Path $x64 -Name $KeyName -PropertyType String -Value $TCPAlias | out-null
   }
 
-  Write-Host "Restarting service"
+  Write-Output "Restarting service"
   Restart-Service $serviceName -Force
 }
 else {
@@ -110,7 +110,7 @@ foreach($version in $versions) {
   }
 }
 if (-not (Test-Path $oSqlPath)) {
-  Write-Host "Unable to find osql.exe!"
+  Write-Output "Unable to find osql.exe!"
   exit 1
 }
 write-output " - found it at $oSqlPath"
@@ -136,12 +136,12 @@ $s.Alter()
 
 Restart-Service $serviceName -Force
 
-echo "##teamcity[blockClosed name='Configuring SQL Server']"
+write-output "##teamcity[blockClosed name='Configuring SQL Server']"
 
-echo "##teamcity[blockOpened name='Installing gem bundle']"
+write-output "##teamcity[blockOpened name='Installing gem bundle']"
 
 # temporary until the base image has the correct version
-echo "running 'C:\tools\ruby23\bin\gem.cmd install bundler --version 1.14.4 --no-ri --no-rdoc'"
+write-output "running 'C:\tools\ruby23\bin\gem.cmd install bundler --version 1.14.4 --no-ri --no-rdoc'"
 & C:\tools\ruby23\bin\gem.cmd install bundler --version 1.14.4 --no-ri --no-rdoc
 if ($LASTEXITCODE -ne 0) { exit 1 }
 
@@ -149,5 +149,5 @@ Set-Location c:\temp\tests
 & C:\tools\ruby23\bin\bundle.bat _1.14.4_ install --path=vendor
 if ($LASTEXITCODE -ne 0) { exit 1 }
 
-echo "##teamcity[blockClosed name='Install gem bundle']"
+write-output "##teamcity[blockClosed name='Install gem bundle']"
 

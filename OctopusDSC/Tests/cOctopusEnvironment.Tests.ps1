@@ -16,9 +16,12 @@ try
 
         Describe 'cOctopusEnvironment' {
             BeforeEach {
-                $password = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
+                $password = ConvertTo-SecureString -string (Get-Content .\OctopusDSC\Tests\Password.txt) -key (Get-Content .\OctopusDSC\Tests\AESKey.key)
+                [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
                 $creds = New-Object System.Management.Automation.PSCredential ("username", $password)
 
+                [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
                 $desiredConfiguration = @{
                      Url                = 'https://octopus.example.com'
                      Ensure             = 'Present'
@@ -70,8 +73,8 @@ try
                 Mock Get-TargetResource { return $response }
 
                 It 'Returns false if environment does not exist' {
-                    $desiredPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
-                    $creds = New-Object System.Management.Automation.PSCredential ("username", $desiredPassword)
+                    $password = ConvertTo-SecureString -string (Get-Content .\OctopusDSC\Tests\Password.txt) -key (Get-Content .\OctopusDSC\Tests\AESKey.key)
+                    $creds = New-Object System.Management.Automation.PSCredential ("username", $password)
 
                     $desiredConfiguration['Url'] = 'https://octopus.example.com'
                     $desiredConfiguration['Ensure'] = 'Present'
@@ -87,8 +90,8 @@ try
                 }
 
                 It 'Returns true if environment does exist' {
-                    $desiredPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
-                    $creds = New-Object System.Management.Automation.PSCredential ("username", $desiredPassword)
+                    $password = ConvertTo-SecureString -string (Get-Content .\OctopusDSC\Tests\Password.txt) -key (Get-Content .\OctopusDSC\Tests\AESKey.key)
+                    $creds = New-Object System.Management.Automation.PSCredential ("username", $password)
 
                     $desiredConfiguration['Url'] = 'https://octopus.example.com'
                     $desiredConfiguration['Ensure'] = 'Present'
