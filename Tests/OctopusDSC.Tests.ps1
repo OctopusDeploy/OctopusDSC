@@ -20,7 +20,11 @@ Describe "PSScriptAnalyzer" {
 
         $modulePath = Split-Path $PSCommandPath -Parent
         $modulePath = Split-Path $modulePath -Parent
-        $targetPath = ($env:PSModulePath -split ';')[0]
+        if ($isWindows) {
+            $targetPath = ($env:PSModulePath -split ';')[0]
+        } else {
+            $targetPath = ($env:PSModulePath -split ':')[0]
+        }
 
         Write-Host "Copying DSC module from '$modulePath' to '$targetPath'"
         Copy-Item -Path $modulePath -destination $targetPath -Recurse
