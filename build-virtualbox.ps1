@@ -9,21 +9,21 @@ if($offline)   # if you want to use offline, then you need a v3 and a v4 install
 {
   Write-Warning "Offline run requested, writing an offline.config file"
 
-  if(-not (gci .\Tests | ? {$_.Name -like "Octopus.4.*.msi"}))
+  if(-not (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.4.*.msi"}))
   {
     Write-Warning "To run tests offline, you will need a v4 installer in the .\Tests folder"
     throw
   }
 
-  if(-not (gci .\Tests | ? {$_.Name -like "Octopus.3.*.msi"}))
+  if(-not (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.3.*.msi"}))
   {
     Write-Warning "To run tests offline, you will need a v3 installer in the .\Tests folder"
     throw 
   }
 
   [pscustomobject]@{
-      v4file = (gci .\Tests | ? {$_.Name -like "Octopus.3.*.msi"} | select -first 1 | select -expand Name);
-      v3file = (gci .\Tests | ? {$_.Name -like "Octopus.4.*.msi"} | select -first 1 | select -expand Name);
+      v4file = (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.3.*.msi"} | Select-Object -first 1 | Select-Object -expand Name);
+      v3file = (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.4.*.msi"} | Select-Object -first 1 | Select-Object -expand Name);
   } | ConvertTo-Json | Out-File ".\Tests\offline.config"
 }
 else {
@@ -34,31 +34,31 @@ else {
 . Tests/powershell-helpers.ps1
 
 if (-not (Test-AppExists "vagrant")) {
-  write-host "Please install vagrant from vagrantup.com."
+  Write-Output "Please install vagrant from vagrantup.com."
   exit 1
 }
-write-host "Vagrant installed - good."
+Write-Output "Vagrant installed - good."
 
 if (-not (Test-AppExists "VBoxManage")) {
-  write-host "Please install VirtualBox from virtualbox.org."
+  Write-Output "Please install VirtualBox from virtualbox.org."
   exit 1
 }
-write-host "VirtualBox installed - good."
+Write-Output "VirtualBox installed - good."
 
 Test-PluginInstalled "vagrant-dsc"
 Test-PluginInstalled "vagrant-winrm"
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
 
-echo "Running Pester Tests"
+Write-Output "Running Pester Tests"
 $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
 if ($result.FailedCount -gt 0) {
   exit 1
 }
 
-echo "Running 'vagrant up --provider virtualbox'"
+Write-Output "Running 'vagrant up --provider virtualbox'"
 vagrant up --provider virtualbox | Tee-Object -FilePath vagrant.log  #  --no-destroy-on-error --debug
 
-echo "Dont forget to run 'vagrant destroy -f' when you have finished"
+Write-Output "Dont forget to run 'vagrant destroy -f' when you have finished"
 
 stop-transcript 

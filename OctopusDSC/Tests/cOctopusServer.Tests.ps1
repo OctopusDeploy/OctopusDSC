@@ -25,6 +25,7 @@ try
                 $pass = ConvertTo-SecureString -string (Get-Content .\OctopusDSC\Tests\Password.txt) -key (Get-Content .\OctopusDSC\Tests\AESKey.key)
                 $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
 
+                [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
                 $desiredConfiguration = @{
                      Name                   = 'Stub'
                      Ensure                 = 'Present'
@@ -33,6 +34,7 @@ try
                      SqlDbConnectionString  = "conn-string"
                      OctopusAdminCredential = $cred 
                 }
+                [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
                 $mockConfig = [pscustomobject] @{
                     OctopusStorageExternalDatabaseConnectionString         = 'StubConnectionString'
                     OctopusWebPortalListenPrefixes                         = "https://octopus.example.com,http://localhost"

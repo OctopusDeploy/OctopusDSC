@@ -6,7 +6,7 @@ Describe "PSScriptAnalyzer" {
         'PSUseShouldProcessForStateChangingFunctions'
     )
     $excludedRules | % { Write-Warning "Excluding Rule $_" }
-    $results = Invoke-ScriptAnalyzer ./OctopusDSC/DSCResources -recurse -exclude $excludedRules
+    $results = Invoke-ScriptAnalyzer ./OctopusDSC -recurse -exclude $excludedRules
     $results | Out-File PsScriptAnalyzer.log
     Write-Host ($results | ConvertTo-Json)
     It "Should have zero PSScriptAnalyzer issues" {

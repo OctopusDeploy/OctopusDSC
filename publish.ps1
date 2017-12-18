@@ -59,7 +59,7 @@ try
         Invoke-WebRequest -Uri "http://go.microsoft.com/fwlink/?LinkID=690216&clcid=0x409" -OutFile "C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet\NuGet.exe"
     }
 
-    write-host "### Install-PackageProvider nuget -force"
+    Write-Output "### Install-PackageProvider nuget -force"
     Install-PackageProvider nuget -force
 
     Write-output "### Publish-Module -Path 'OctopusDSC'"
@@ -78,6 +78,6 @@ try
 }
 catch
 {
-    write-host $_
+    Write-Output $_
     exit 1
 }
