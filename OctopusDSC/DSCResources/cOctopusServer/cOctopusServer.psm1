@@ -85,7 +85,7 @@ function Get-TargetResource {
         $existingListenPort = $existingConfig.OctopusCommunicationsServicesPort
         $existingAutoLoginEnabled = $existingConfig.OctopusWebPortalAutoLoginEnabled
         $existingLegacyWebAuthenticationMode = $existingConfig.OctopusWebPortalAuthenticationMode
-        $existingHomeDirectory = $existingConfig.OctopusHome
+        $existingHomeDirectory = $existingConfig.OctopusHomeDirectory
         if ($existingConfig.OctopusLicenseKey -eq "<unknown>") {
             $existingLicenseKey = $LicenseKey #if we weren't able to determine the existing key, assume its correct
         } else {
