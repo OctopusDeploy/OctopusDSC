@@ -99,30 +99,26 @@ function Get-TargetResource {
         $existingListenPort = $existingConfig.OctopusCommunicationsServicesPort
         $existingAutoLoginEnabled = $existingConfig.OctopusWebPortalAutoLoginEnabled
         $existingLegacyWebAuthenticationMode = $existingConfig.OctopusWebPortalAuthenticationMode
-        $existingHomeDirectory = $existingConfig.OctopusHome
+        $existingHomeDirectory = $existingConfig.OctopusHomeDirectory
+        if ($existingConfig.OctopusLicenseKey -eq "<unknown>") {
+            $existingLicenseKey = $LicenseKey #if we weren't able to determine the existing key, assume its correct
+        } else {
+            $existingLicenseKey = $existingConfig.OctopusLicenseKey
+        }
+        if (Test-Path $installStateFile) {
+            $installState = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json)
+            $existingDownloadUrl = $installState.DownloadUrl
+            $pass = $installState.OctopusAdminPassword | ConvertTo-SecureString
+            $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($installState.OctopusAdminUsername, $pass)
 
-        $existingDownloadUrl = Get-InstallStateValue "DownloadUrl"
-
-        $existingAdminPassword = Get-InstallStateValue "OctopusAdminPassword" 
-        $existingAdminUser = (Get-InstallStateValue "OctopusAdminUsername")
-        if($null -ne $existingAdminPassword) {
-            
-            $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($existingAdminUser, ($existingAdminPassword | ConvertTo-SecureString))
-        } 
-        else
-        {
-            $existingOctopusAdminCredential = [PSCredential]::Empty
-        }
-    
-        $existingServicePassword = Get-InstallStateValue "OctopusServicePassword"
-        $existingServiceUser = Get-InstallStateValue "OctopusServiceUser"
-        if ($null -ne $existingServiceUser) {
-            $existingOctopusServiceCredential = New-Object System.Management.Automation.PSCredential ($existingServiceUser, ($existingServicePassword | ConvertTo-SecureString))
-        }
-        else {
-            $existingOctopusServiceCredential = [PSCredential]::Empty
-        }
-        
+            if ($installState.OctopusServicePassword -ne "") {
+                $svcpass = $installState.OctopusServicePassword | ConvertTo-SecureString
+                $existingOctopusServiceCredential = New-Object System.Management.Automation.PSCredential ($installState.OctopusServiceUsername, $svcpass)
+            }
+            else {
+                $existingOctopusServiceCredential = [PSCredential]::Empty
+            }
+        }        
     }
 
     $currentResource = @{
@@ -638,7 +634,6 @@ function Install-MSI {
     mkdir "$($env:SystemDrive)\Octopus" -ErrorAction SilentlyContinue
 
     $msiPath = "$($env:SystemDrive)\Octopus\Octopus-x64.msi"
-
     Request-File $downloadUrl $msiPath
 
     Write-Verbose "Installing MSI..."
@@ -657,7 +652,7 @@ function Update-InstallState {
     param (
         [string]$key,
         [string]$value
-    )    
+    )
 
     if(Test-Path "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate") # do we already have a legacy installstate file?
     {    
@@ -1062,7 +1057,7 @@ function Test-TargetResource {
     $currentConfigurationMatchesRequestedConfiguration = $true
     foreach ($key in $currentResource.Keys) {
         $currentValue = $currentResource.Item($key)
-        $requestedValue = $params.Item($key) 
+        $requestedValue = $params.Item($key)
 
         if ($currentValue -is [PSCredential]) {
             if (-not (Test-PSCredential $currentValue $requestedValue)) {

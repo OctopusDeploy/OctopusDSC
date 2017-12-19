@@ -14,6 +14,7 @@ try
 
         Describe 'cOctopusServerAzureADAuthentication' {
             BeforeEach {
+                [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
                 $desiredConfiguration = @{
                      InstanceName            = 'OctopusServer'
                      Enabled                 = $true

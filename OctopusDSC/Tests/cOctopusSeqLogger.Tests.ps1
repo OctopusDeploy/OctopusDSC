@@ -17,8 +17,11 @@ try
         Describe 'cOctopusSeqLogger' {
             BeforeEach {
                 # password is "S3cur3P4ssphraseHere!", loaded from an AES encrypted file
+                [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
                 $password = ConvertTo-SecureString -string (Get-Content .\OctopusDSC\Tests\Password.txt) -key (Get-Content .\OctopusDSC\Tests\AESKey.key)
+                [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
                 $apiKey = New-Object System.Management.Automation.PSCredential ("ignored", $password)
+                [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
                 $desiredConfiguration = @{
                      InstanceType           = 'OctopusServer'
                      Ensure                 = 'Present'

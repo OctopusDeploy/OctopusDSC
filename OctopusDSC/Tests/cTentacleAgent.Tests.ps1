@@ -20,6 +20,7 @@ try
 
         Describe 'cTentacleAgent' {
             BeforeEach {
+                [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
                 $desiredConfiguration = @{
                      Name                   = 'Stub'
                      Ensure                 = 'Present'

@@ -14,6 +14,7 @@ try
 
         Describe 'cTentacleWatchdog' {
             BeforeEach {
+                [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
                 $desiredConfiguration = @{
                      InstanceName            = 'Tentacle'
                      Enabled                 = $true
