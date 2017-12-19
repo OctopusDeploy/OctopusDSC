@@ -7,7 +7,7 @@ function Get-ODSCParameter($parameters) {
     $params = @{}
     foreach ($h in $parameters.GetEnumerator()) {
         $key = $h.Key
-        $var = Get-Variable -Name $key -ErrorAction SilentlyContinue 
+        $var = Get-Variable -Name $key -ErrorAction SilentlyContinue
         if ($null -ne $var) {
             $val = Get-Variable -Name $key -ErrorAction Stop  | Select-Object -ExpandProperty Value -ErrorAction Stop
             $params[$key] = $val
@@ -29,7 +29,7 @@ function Request-File {
     $downloadFile = $true
 
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12, [System.Net.SecurityProtocolType]::Tls11, [System.Net.SecurityProtocolType]::Tls
-    
+
     Write-Verbose "Checking to see if we have an installer at $saveas"
     if(Test-Path $saveAs)
     {
@@ -50,7 +50,7 @@ function Request-File {
     {
         while ($retry) {
             Write-Verbose "Downloading $url to $saveAs"
-        
+
             #$downloader = new-object System.Net.WebClient
             try {
                 #$downloader.DownloadFile($url, $saveAs)

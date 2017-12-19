@@ -790,7 +790,6 @@ function Install-OctopusDeploy {
 
     Write-Log "Configuring Octopus Deploy instance ..."
 
-
     $args = @(
         'configure',
         '--console',
@@ -850,9 +849,7 @@ function Install-OctopusDeploy {
         if ($isClusterJoin) {
             $args += @("--masterKey", $OctopusMasterKey.GetNetworkCredential().Password)
         }
-
     }
-
 
     if (-not (Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance)) {
         if (($homeDirectory -ne "") -and ($null -ne $homeDirectory)) {
