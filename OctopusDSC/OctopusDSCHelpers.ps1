@@ -16,6 +16,11 @@ function Get-ODSCParameter($parameters) {
     return $params
 }
 
+function Invoke-WebClient($url, $OutFile) {
+    $downloader = new-object System.Net.WebClient
+    $downloader.DownloadFile($url, $OutFile)
+}
+
 function Request-File {
     [CmdletBinding()]
     param (
@@ -51,10 +56,8 @@ function Request-File {
         while ($retry) {
             Write-Verbose "Downloading $url to $saveAs"
 
-            #$downloader = new-object System.Net.WebClient
             try {
-                #$downloader.DownloadFile($url, $saveAs)
-                Invoke-WebRequest -Uri $url -OutFile $saveAs -UseBasicParsing
+                Invoke-WebClient -Url $url -OutFile $saveAs
                 $retry = $false
             }
             catch {

@@ -34,13 +34,15 @@ Describe "Request-File" {
                 Headers = @{'x-amz-meta-sha256' = "abcdef1234567890"};
             }
         } -Verifiable
+        Mock Invoke-WebClient -Verifiable
 
         Mock Get-FileHash { return [pscustomobject]@{Hash =  "abcdef1234567890"} }
         Mock Test-Path { return $true }
 
-        It "Should only call Invoke-WebRequest once" {
+        It "Should only request the file hash and not download the file" {
             Request-File 'https://octopus.com/downloads/latest/WindowsX64/OctopusServer' $env:tmp\OctopusServer.msi # -verbose
             Assert-MockCalled "Invoke-WebRequest" -ParameterFilter {$Method -eq "HEAD" } -Times 1
+            Assert-MockCalled "Invoke-WebClient" -Times 0
         }
     }
 
@@ -52,14 +54,15 @@ Describe "Request-File" {
                 Headers = @{'x-amz-meta-sha256' = "abcdef1234567891"};
             }
         } -Verifiable
+        Mock Invoke-WebClient -Verifiable
 
         Mock Get-FileHash { return [pscustomobject]@{Hash =  "abcdef1234567890"} }
         Mock Test-Path { return $true }
 
-        It "Should call Invoke-WebRequest at least twice" {
+        It "Should request the file has and also download the file" {
             Request-File 'https://octopus.com/downloads/latest/WindowsX64/OctopusServer' $env:tmp\OctopusServer.msi # -verbose
-            Assert-MockCalled "Invoke-WebRequest"  -Times 2
+            Assert-MockCalled "Invoke-WebRequest"  -Times 1
+            Assert-MockCalled "Invoke-WebClient" -Times 1
         }
     }
 }
-
