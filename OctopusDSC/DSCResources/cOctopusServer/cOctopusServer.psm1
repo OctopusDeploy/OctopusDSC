@@ -917,37 +917,32 @@ function Install-OctopusDeploy {
     )
     Invoke-OctopusServerCommand $args
 
-    if (-not $isClusterJoin) {
-      # we do not need licence or admin user for Cluster Join operations
-        Write-Log "Creating Admin User for Octopus Deploy instance ..."
-        $args = @(
-            'admin',
-            '--console',
-            '--instance', $name,
-            '--username', $extractedUsername,
-            '--password', $extractedPassword
-        )
+    Write-Log "Creating Admin User for Octopus Deploy instance ..."
+    $args = @(
+        'admin',
+        '--console',
+        '--instance', $name,
+        '--username', $extractedUsername,
+        '--password', $extractedPassword
+    )
 
+    Invoke-OctopusServerCommand $args
+    Update-InstallState "OctopusAdminUsername" $extractedUsername
+    Update-InstallState "OctopusAdminPassword" ($OctopusAdminCredential.Password | ConvertFrom-SecureString)
 
-        Invoke-OctopusServerCommand $args
-        Update-InstallState "OctopusAdminUsername" $extractedUsername
-        Update-InstallState "OctopusAdminPassword" ($OctopusAdminCredential.Password | ConvertFrom-SecureString)
-
-        $args = @(
-            'license',
-            '--console',
-            '--instance', $name
-        )
-        if (($null -eq $licenseKey) -or ($licenseKey -eq "")) {
-            Write-Log "Configuring Octopus Deploy instance to use free license ..."
-            $args += @('--free')
-        } else {
-            Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
-            $args += @('--licenseBase64', $licenseKey)
-        }
-        Invoke-OctopusServerCommand $args
-
+    $args = @(
+        'license',
+        '--console',
+        '--instance', $name
+    )
+    if (($null -eq $licenseKey) -or ($licenseKey -eq "")) {
+        Write-Log "Configuring Octopus Deploy instance to use free license ..."
+        $args += @('--free')
+    } else {
+        Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
+        $args += @('--licenseBase64', $licenseKey)
     }
+    Invoke-OctopusServerCommand $args
 
     Write-Log "Install Octopus Deploy service ..."
     $args = @(
