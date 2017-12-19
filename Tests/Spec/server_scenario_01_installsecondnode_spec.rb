@@ -16,10 +16,6 @@ describe file('c:/ChezOctopusSecondNode/Logs') do # node logs go in the local in
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopus/OctopusServer') do # should use the same folders as the first node. They're defined in the DB
-  it { should be_directory }
-end
-
 describe file('c:/ChezOctopus/TaskLogs') do # should use the same folders as the first node. They're defined in the DB
   it { should be_directory }
 end
