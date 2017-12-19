@@ -3,7 +3,7 @@ $octopusServerExePath = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Ser
 $script:instancecontext = ''  # a global to hold the name of the current instance's context
 
 # dot-source the helper file (cannot load as a module due to scope considerations)
-. (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1') 
+. (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1')
 
 function Get-TargetResource {
     [OutputType([Hashtable])]
@@ -88,7 +88,7 @@ function Get-TargetResource {
         }
         else
         {
-            $configPath = "$($env:SystemDrive)\Octopus\OctopusServer.config" 
+            $configPath = "$($env:SystemDrive)\Octopus\OctopusServer.config"
         }
         $existingConfig = Import-ServerConfig $configPath $Name
         $existingSqlDbConnectionString = $existingConfig.OctopusStorageExternalDatabaseConnectionString
@@ -118,7 +118,7 @@ function Get-TargetResource {
             else {
                 $existingOctopusServiceCredential = [PSCredential]::Empty
             }
-        }        
+        }
     }
 
     $currentResource = @{
@@ -655,11 +655,11 @@ function Update-InstallState {
     )
 
     if(Test-Path "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate") # do we already have a legacy installstate file?
-    {    
+    {
         $installStateFile = "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate"
     }
     else
-    {    
+    {
         $installStateFile = "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.$script:instancecontext.installstate"
     }
 
@@ -680,22 +680,22 @@ Function Get-InstallStateValue
     param($key)
 
     if(Test-Path "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate") # do we already have a legacy installstate file?
-    {    
+    {
         $installStateFile = "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate"
         Write-Verbose "Legacy installstate found"
     }
     else
-    {    
+    {
         $installStateFile = "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.$script:instancecontext.installstate"
         Write-Verbose "New style installstate found"
     }
-    
+
     if(-not (Test-Path $installStateFile))
     {
         return $null
     }
     else
-    {        
+    {
         $installState = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json)
 
         $returnValue = $installstate | Select-Object -expand $Key -ErrorAction Ignore
@@ -740,7 +740,7 @@ function Install-OctopusDeploy {
         [bool]$allowUpgradeCheck = $true,
         [bool]$allowCollectionOfAnonymousUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
-        [string]$legacyWebAuthenticationMode = 'Ignore', 
+        [string]$legacyWebAuthenticationMode = 'Ignore',
         [bool]$forceSSL = $false,
         [int]$listenPort = 10943,
         [bool]$autoLoginEnabled = $false,
@@ -802,9 +802,9 @@ function Install-OctopusDeploy {
         '--commsListenPort', $listenPort
     )
 
-    if (Test-OctopusVersionRequiresDatabaseBeforeConfigure) { 
+    if (Test-OctopusVersionRequiresDatabaseBeforeConfigure) {
 
-        if ($isClusterJoin) {            
+        if ($isClusterJoin) {
             Write-Log "Running Octopus Deploy database command for Cluster Join"
             $dbargs = @(
                 'database',
@@ -822,7 +822,7 @@ function Install-OctopusDeploy {
                 Write-Log "Creating Octopus Deploy database for v4"
                 $action = '--create'
             }
-    
+
             $dbargs = @(
                 'database',
                 '--instance', $name,
@@ -897,7 +897,7 @@ function Install-OctopusDeploy {
         if ($isClusterJoin) {
             $args += @("--masterKey", $OctopusMasterKey.GetNetworkCredential().Password)
         }
-        
+
         if ($GrantDatabasePermissions) {
             if (($null -ne $OctopusServiceCredential) -and ($OctopusServiceCredential -ne [PSCredential]::Empty)) {
                 $databaseusername = $OctopusServiceCredential.UserName
@@ -932,11 +932,11 @@ function Install-OctopusDeploy {
             '--password', $extractedPassword
         )
 
-  
+
         Invoke-OctopusServerCommand $args
         Update-InstallState "OctopusAdminUsername" $extractedUsername
         Update-InstallState "OctopusAdminPassword" ($OctopusAdminCredential.Password | ConvertFrom-SecureString)
-    
+
         $args = @(
             'license',
             '--console',
@@ -952,7 +952,7 @@ function Install-OctopusDeploy {
         Invoke-OctopusServerCommand $args
 
     }
-  
+
     Write-Log "Install Octopus Deploy service ..."
     $args = @(
         'service',
