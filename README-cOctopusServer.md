@@ -93,6 +93,7 @@ When `State` is `Started`, the resource will ensure that the Octopus Servr windo
 | `HomeDirectory`                              | `string`                                            | `C:\Octopus`                                                    | Home directory for Octopus logs and config (where supported) |
 | `LicenseKey`                                 | `string`                                            |                                                                 | The Base64 (UTF8) encoded license key. If not supplied, uses a free license. Drift detection is only supported from Octopus 4.1.3. |
 | `GrantDatabasePermissions`                   | `boolean`                                           | `$true`                                                         | Whether to grant `db_owner` permissions to the service account user (`$OctopusServiceCredential` user if supplied, or `NT AUTHORITY\System`)  |
+| `OctopusMasterKey`                           | `PSCredential`                                      | `[PSCredential]::Empty`                                         | The master key for the existing database. |
 
 ## Drift
 
