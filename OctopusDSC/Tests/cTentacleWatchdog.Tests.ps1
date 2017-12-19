@@ -27,7 +27,7 @@ try
                 It 'Returns the proper data' {
                     Mock Test-Path { return $true } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe" }
                     Mock Test-TentacleSupportsShowConfiguration { return $true }
-                    Mock Get-Configuration {
+                    Mock Get-TentacleConfiguration {
                         return  @{
                             Octopus = @{
                                 Watchdog = @{

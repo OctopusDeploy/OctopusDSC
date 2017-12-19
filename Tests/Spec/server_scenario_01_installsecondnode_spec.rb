@@ -4,19 +4,19 @@ describe file('c:/Octopus') do
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopus') do
+describe file('c:/ChezOctopusSecondNode') do
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopus/Artifacts') do
+describe file('c:/ChezOctopus/Artifacts') do # should use the same folders as the first node. They're defined in the DB
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopus/Logs') do
+describe file('c:/ChezOctopusSecondNode/Logs') do # node logs go in the local instance folder
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopus/TaskLogs') do
+describe file('c:/ChezOctopus/TaskLogs') do # should use the same folders as the first node. They're defined in the DB
   it { should be_directory }
 end
 
@@ -29,12 +29,12 @@ describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer
   it { should have_property_value('InstallLocation', :type_string, "C:\\Program Files\\Octopus Deploy\\Octopus\\") }
 end
 
-describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer\OctopusServer') do
+describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer\HANode') do
   it { should exist }
-  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\OctopusServer-OctopusServer.config') }
+  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\OctopusServer-HANode.config') }
 end
 
-describe service('OctopusDeploy') do
+describe service('OctopusDeploy: HANode') do
   it { should be_installed }
   it { should be_running }
   it { should have_start_mode('Automatic') }

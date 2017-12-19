@@ -1,4 +1,6 @@
 #requires -Version 4.0
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '')] # these are tests, not anything that needs to be secure
+param()
 
 $moduleName = Split-Path ($PSCommandPath -replace '\.Tests\.ps1$', '') -Leaf
 $modulePath = Split-Path $PSCommandPath -Parent
@@ -21,8 +23,7 @@ try
 
         Describe 'cOctopusServer' {
             BeforeEach {
-                # password is "S3cur3P4ssphraseHere!", loaded from an AES encrypted file
-                $pass = ConvertTo-SecureString -string (Get-Content .\OctopusDSC\Tests\Password.txt) -key (Get-Content .\OctopusDSC\Tests\AESKey.key)
+                $pass = ConvertTo-SecureString "S3cur3P4ssphraseHere!" -AsPlainText -Force
                 $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
 
                 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
@@ -32,7 +33,7 @@ try
                      State                  = 'Started'
                      WebListenPrefix        = "http://localhost:80"
                      SqlDbConnectionString  = "conn-string"
-                     OctopusAdminCredential = $cred 
+                     OctopusAdminCredential = $cred
                 }
                 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
                 $mockConfig = [pscustomobject] @{
@@ -90,6 +91,56 @@ try
                 It 'Throws an exception if .net 4.5.1 or above is not installed (only .net 4.5.0 installed)' {
                     Mock Get-RegistryValue { return "378389" }
                     { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.5.1. Please install it before attempting to install Octopus Server."
+                }
+            }
+
+            Context "Running HA" {
+
+                It 'Should call expected commands on octopus.server.exe' {
+                    Mock Invoke-OctopusServerCommand
+                    Mock Get-TargetResource { return @{ Ensure="Absent"; State="Stopped" } }
+                    Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                    Mock Install-MSI {}
+                    Mock Update-InstallState {}
+                    Mock Test-OctopusDeployServerResponding { return $true }
+                    Mock Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance { return $true }
+                    Mock Test-OctopusVersionRequiresDatabaseBeforeConfigure { return $true }
+                    Mock Test-OctopusVersionSupportsAutoLoginEnabled { return $true }
+                    Mock Test-OctopusVersionSupportsShowConfiguration { return $true }
+                    Mock Test-OctopusVersionNewerThan { return $true }
+                    Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+
+                    $pass = ConvertTo-SecureString "S3cur3P4ssphraseHere!" -AsPlainText -Force
+                    $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
+
+                    $MasterKey = "Nc91+1kfZszMpe7DMne8wg=="
+                    $SecureMasterKey = ConvertTo-SecureString $MasterKey -AsPlainText -Force
+                    $MasterKeyCred = New-Object System.Management.Automation.PSCredential  ("notused", $SecureMasterKey)
+
+                    $haparams = @{
+                        Ensure = "Present";
+                        State = "Started";
+                        Name = "HANode";
+                        WebListenPrefix = "http://localhost:82";
+                        SqlDbConnectionString = "Server=(local);Database=Octopus;Trusted_Connection=True;";
+                        OctopusMasterKey = $MasterKeyCred;
+                        OctopusAdminCredential = $cred;
+                        ListenPort = 10935;
+                        AllowCollectionOfAnonymousUsageStatistics = $false;
+                        HomeDirectory = "C:\ChezOctopusSecondNode";
+                    }
+
+                    Set-TargetResource @haparams
+
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 8 -Exactly
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'create-instance --console --instance HANode --config \Octopus\OctopusServer-HANode.config --home C:\ChezOctopusSecondNode' }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "database --instance HANode --connectionstring $($haparams['SqlDbConnectionString']) --masterKey $MasterKey --grant NT AUTHORITY\SYSTEM" }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "configure --console --instance HANode --upgradeCheck True --upgradeCheckWithStatistics False --webForceSSL False --webListenPrefixes $($haparams['WebListenPrefix']) --commsListenPort 10935 --autoLoginEnabled False" }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'service --console --instance HANode --stop' }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'admin --console --instance HANode --username Admin --password S3cur3P4ssphraseHere!' }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'license --console --instance HANode --free' }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'service --console --instance HANode --install --reconfigure --stop' }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'service --start --console --instance HANode' }
                 }
             }
         }

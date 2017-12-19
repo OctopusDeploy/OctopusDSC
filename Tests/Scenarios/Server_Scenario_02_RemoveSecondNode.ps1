@@ -1,4 +1,4 @@
-Configuration Server_Scenario_09_Remove
+Configuration Server_Scenario_02_RemoveSecondNode
 {
     Import-DscResource -ModuleName OctopusDSC
 
@@ -13,19 +13,17 @@ Configuration Server_Scenario_09_Remove
             ConfigurationMode = 'ApplyOnly'
         }
 
-        cOctopusServer OctopusServer
+        cOctopusServer OctopusServerSecondNode
         {
             Ensure = "Absent"
             State = "Stopped"
 
-            # Server instance name. Leave it as 'OctopusServer' unless you have more
-            # than one instance
-            Name = "OctopusServer"
+            Name = "HANode"
 
             # The url that Octopus will listen on
-            WebListenPrefix = "http://localhost:81"
+            WebListenPrefix = "http://localhost:82"
 
-            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario5;Trusted_Connection=True;"
+            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario1;Trusted_Connection=True;"
 
             # The admin user to create
             OctopusAdminCredential = $cred
@@ -33,6 +31,7 @@ Configuration Server_Scenario_09_Remove
             # dont mess with stats
             AllowCollectionOfAnonymousUsageStatistics = $false
 
+            HomeDirectory = "C:\ChezOctopusSecondNode"
         }
     }
 }

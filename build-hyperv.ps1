@@ -62,7 +62,7 @@ if ($result.FailedCount -gt 0) {
 }
 
 Write-Output "Running 'vagrant up --provider hyperv'"
-vagrant up --provider hyperv | Tee-Object -FilePath vagrant.log  #  --no-destroy-on-error --debug
+vagrant up --provider hyperv --no-destroy-on-error | Tee-Object -FilePath vagrant.log  #   --debug
 
 Write-Output "Dont forget to run 'vagrant destroy -f' when you have finished"
 

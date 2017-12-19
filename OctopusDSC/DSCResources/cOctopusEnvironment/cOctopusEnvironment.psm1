@@ -1,3 +1,5 @@
+# dot-source the helper file (cannot load as a module due to scope considerations)
+. (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1') 
 
 function Get-TargetResource {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSDSCUseVerboseMessageInDSCResource", "")]
@@ -97,7 +99,7 @@ function Test-TargetResource {
             -OctopusCredentials $OctopusCredentials `
             -OctopusApiKey $OctopusApiKey)
 
-    $params = Get-OctopusDSCParameter $MyInvocation.MyCommand.Parameters
+    $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
 
     $currentConfigurationMatchesRequestedConfiguration = $true
     foreach ($key in $currentResource.Keys) {
@@ -225,19 +227,4 @@ function Get-OctopusClientRepository
   }
 
   return $repository
-}
-
-function Get-OctopusDSCParameter($parameters) {
-    # unfortunately $PSBoundParameters doesn't contain parameters that weren't supplied (because the default value was okay)
-    # credit to https://www.briantist.com/how-to/splatting-psboundparameters-default-values-optional-parameters/
-    $params = @{}
-    foreach ($h in $parameters.GetEnumerator()) {
-        $key = $h.Key
-        $var = Get-Variable -Name $key -ErrorAction SilentlyContinue
-        if ($null -ne $var) {
-            $val = Get-Variable -Name $key -ErrorAction Stop | Select-Object -ExpandProperty Value -ErrorAction Stop
-            $params[$key] = $val
-        }
-    }
-    return $params
 }

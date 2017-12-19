@@ -53,7 +53,7 @@ Configuration Server_Scenario_10_Install4
             # The url that Octopus will listen on
             WebListenPrefix = "http://localhost:81"
 
-            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=Octopus;Trusted_Connection=True;"
+            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario10;Trusted_Connection=True;"
 
             # The admin user to create
             OctopusAdminCredential = $cred

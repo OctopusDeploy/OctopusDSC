@@ -31,7 +31,7 @@ Configuration Server_Scenario_06_Upgrade
             WebListenPrefix = "http://localhost:81"
 
             # use a new database, as old one is not removed
-            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusDeploy;Trusted_Connection=True;"
+            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario5;Trusted_Connection=True;"
 
             # The admin user to create
             OctopusAdminCredential = $cred

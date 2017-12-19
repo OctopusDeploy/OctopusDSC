@@ -1,5 +1,8 @@
 $octopusServerExePath = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
 
+# dot-source the helper file (cannot load as a module due to scope considerations)
+. (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1') 
+
 function Get-TargetResource {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSDSCUseVerboseMessageInDSCResource", "")]
     [OutputType([Hashtable])]
@@ -22,7 +25,7 @@ function Get-TargetResource {
         throw "This resource only supports Octopus Deploy 3.17.0+."
     }
 
-    $config = Get-Configuration $InstanceName
+    $config = Get-ServerConfiguration $InstanceName
 
     $result = @{
         InstanceName = $InstanceName
@@ -96,39 +99,6 @@ function Test-TargetResource {
     return $currentConfigurationMatchesRequestedConfiguration
 }
 
-function Get-Configuration($instanceName) {
-    $rawConfig = & $octopusServerExePath show-configuration --format=json-hierarchical --instance $instanceName
-    $config = $rawConfig | ConvertFrom-Json
-    return $config
-}
-
-function Invoke-OctopusServerCommand ($arguments) {
-    Write-Verbose "Executing command '$octopusServerExePath $($arguments -join ' ')'"
-    $output = .$octopusServerExePath $arguments
-
-    Write-CommandOutput $output
-    if (($null -ne $LASTEXITCODE) -and ($LASTEXITCODE -ne 0)) {
-        Write-Error "Command returned exit code $LASTEXITCODE. Aborting."
-        exit 1
-    }
-    Write-Verbose "done."
-}
-
-function Write-CommandOutput {
-    param (
-        [string] $output
-    )
-
-    if ($output -eq "") { return }
-
-    Write-Verbose ""
-    #this isn't quite working
-    foreach ($line in $output.Trim().Split("`n")) {
-        Write-Verbose $line
-    }
-    Write-Verbose ""
-}
-
 function Test-OctopusVersionSupportsWatchdogInShowConfiguration {
     if (-not (Test-Path -LiteralPath $octopusServerExePath)) {
         throw "Octopus.Server.exe path '$octopusServerExePath' does not exist."
@@ -144,19 +114,4 @@ function Test-OctopusVersionSupportsWatchdogInShowConfiguration {
     $versionWhereWatchdogWasIncludedWithShowConfiguration = New-Object System.Version 3, 17, 0
 
     return ($octopusServerVersion -ge $versionWhereWatchdogWasIncludedWithShowConfiguration)
-}
-
-function Get-ODSCParameter($parameters) {
-    # unfortunately $PSBoundParameters doesn't contain parameters that weren't supplied (because the default value was okay)
-    # credit to https://www.briantist.com/how-to/splatting-psboundparameters-default-values-optional-parameters/
-    $params = @{}
-    foreach ($h in $parameters.GetEnumerator()) {
-        $key = $h.Key
-        $var = Get-Variable -Name $key -ErrorAction SilentlyContinue
-        if ($null -ne $var) {
-            $val = Get-Variable -Name $key -ErrorAction Stop | Select-Object -ExpandProperty Value -ErrorAction Stop
-            $params[$key] = $val
-        }
-    }
-    return $params
 }
