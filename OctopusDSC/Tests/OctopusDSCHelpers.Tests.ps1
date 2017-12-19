@@ -1,7 +1,6 @@
 $moduleName = Split-Path ($PSCommandPath -replace '\.Tests\.ps1$', '') -Leaf
 $modulePath = Split-Path $PSCommandPath -Parent
 $modulePath = Resolve-Path "$PSCommandPath/../../$moduleName.ps1"
-$module = $null
 
 . $modulePath
 

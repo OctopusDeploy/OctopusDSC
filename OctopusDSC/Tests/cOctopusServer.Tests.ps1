@@ -1,4 +1,6 @@
 #requires -Version 4.0
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '')] # these are tests, not anything that needs to be secure
+param()
 
 $moduleName = Split-Path ($PSCommandPath -replace '\.Tests\.ps1$', '') -Leaf
 $modulePath = Split-Path $PSCommandPath -Parent
@@ -99,6 +101,7 @@ try
                 Mock Invoke-OctopusServerCommand {
                     param($parameters)
                     $executedCommands += [pscustomobject]@{ invocation = ++$invocation; params = $parameters } 
+                    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
                 }
                 $response = @{ Ensure="Absent"; State="Stopped" }
                 Mock Get-TargetResource { return $response }
