@@ -169,7 +169,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   run_octopus_scenario(config, 'Server_Scenario_09_Remove')
 
   # install v4
-  run_octopus_scenario(config, 'Server_Scenario_10_Install4')
+  run_octopus_scenario(config, 'Server_Scenario_10_RunAs')
 
   config.vm.provision "shell", path: "Tests/configure-octopus-for-tentacle-tests.ps1"
 
