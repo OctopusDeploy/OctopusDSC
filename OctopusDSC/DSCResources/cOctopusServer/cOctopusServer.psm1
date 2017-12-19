@@ -765,7 +765,7 @@ function Install-OctopusDeploy {
     $isUpgrade = (Test-Path -LiteralPath $OctopusServerExePath)
 
     # check if we're joining a cluster, or joining to an existing Database
-    $isClusterJoin = ($OctopusMasterKey -ne [pscredential]::Empty)
+    $isMasterKeyProvided = ($OctopusMasterKey -ne [pscredential]::Empty)
 
     Write-Log "Setting up new instance of Octopus Deploy with name '$name'"
     Install-MSI $downloadUrl
@@ -801,9 +801,8 @@ function Install-OctopusDeploy {
     )
 
     if (Test-OctopusVersionRequiresDatabaseBeforeConfigure) {
-
-        if ($isClusterJoin) {
-            Write-Log "Running Octopus Deploy database command for Cluster Join"
+        if ($isMasterKeyProvided) {
+            Write-Log "Running Octopus Deploy database command for existing database with provided masterkey"
             $dbargs = @(
                 'database',
                 '--instance', $name,
@@ -845,7 +844,7 @@ function Install-OctopusDeploy {
     else {
         $args += @("--StorageConnectionString", $sqlDbConnectionString)
 
-        if ($isClusterJoin) {
+        if ($isMasterKeyProvided) {
             $args += @("--masterKey", $OctopusMasterKey.GetNetworkCredential().Password)
         }
     }
@@ -890,7 +889,7 @@ function Install-OctopusDeploy {
             '--create'
         )
 
-        if ($isClusterJoin) {
+        if ($isMasterKeyProvided) {
             $args += @("--masterKey", $OctopusMasterKey.GetNetworkCredential().Password)
         }
 
