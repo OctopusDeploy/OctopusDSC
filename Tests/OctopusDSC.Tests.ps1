@@ -1,5 +1,3 @@
-
-
 Describe "PSScriptAnalyzer" {
     Import-Module PSScriptAnalyzer
     $excludedRules = @(

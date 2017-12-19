@@ -34,7 +34,7 @@ try
                      State                  = 'Started'
                      WebListenPrefix        = "http://localhost:80"
                      SqlDbConnectionString  = "conn-string"
-                     OctopusAdminCredential = $cred 
+                     OctopusAdminCredential = $cred
                 }
                 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
                 $mockConfig = [pscustomobject] @{
@@ -100,8 +100,8 @@ try
                 $invocation = 0
                 Mock Invoke-OctopusServerCommand {
                     param($parameters)
-                    $executedCommands += [pscustomobject]@{ invocation = ++$invocation; params = $parameters } 
                     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
+                    $executedCommands += [pscustomobject]@{ invocation = ++$invocation; params = $parameters }
                 }
                 $response = @{ Ensure="Absent"; State="Stopped" }
                 Mock Get-TargetResource { return $response }
@@ -119,7 +119,7 @@ try
 
                 $haparams = @{
                     Ensure = "Present";
-                    State = "Started";        
+                    State = "Started";
                     Name = "HANode";
                     WebListenPrefix = "http://localhost:82";
                     SqlDbConnectionString = "Server=(local);Database=Octopus;Trusted_Connection=True;";
@@ -130,11 +130,9 @@ try
                     HomeDirectory = "C:\ChezOctopusSecondNode";
                 }
 
-                Set-TargetResource @haparams 
+                Set-TargetResource @haparams
 
-                Write-Host $executedcommands
-
-
+                Write-Output $executedcommands
             }
         }
     }

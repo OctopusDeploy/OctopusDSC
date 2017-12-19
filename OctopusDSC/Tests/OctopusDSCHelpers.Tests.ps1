@@ -5,14 +5,12 @@ $modulePath = Resolve-Path "$PSCommandPath/../../$moduleName.ps1"
 . $modulePath
 
 Describe "Get-ODSCParameter" {
-            
     $desiredConfiguration = @{
         Name                   = 'Stub'
         Ensure                 = 'Present'
     }
 
-
-    Function Test-GetODSCParameter 
+    Function Test-GetODSCParameter
     {
         param(
             $Name,
@@ -23,9 +21,8 @@ Describe "Get-ODSCParameter" {
     }
 
     It "Should be able to return our known default values" {
-        (Test-GetODSCParameter @desiredConfiguration).DefaultValue | Should be 'default'        
+        (Test-GetODSCParameter @desiredConfiguration).DefaultValue | Should be 'default'
     }
-
 }
 
 Describe "Request-File" {
@@ -36,7 +33,7 @@ Describe "Request-File" {
             return [pscustomobject]@{
                 Headers = @{'x-amz-meta-sha256' = "abcdef1234567890"};
             }
-        } -Verifiable 
+        } -Verifiable
 
         Mock Get-FileHash { return [pscustomobject]@{Hash =  "abcdef1234567890"} }
         Mock Test-Path { return $true }
@@ -45,7 +42,6 @@ Describe "Request-File" {
             Request-File 'https://octopus.com/downloads/latest/WindowsX64/OctopusServer' $env:tmp\OctopusServer.msi # -verbose
             Assert-MockCalled "Invoke-WebRequest" -ParameterFilter {$Method -eq "HEAD" } -Times 1
         }
-
     }
 
     Context "It should download when hashes mismatch" {
@@ -55,7 +51,7 @@ Describe "Request-File" {
             return [pscustomobject]@{
                 Headers = @{'x-amz-meta-sha256' = "abcdef1234567891"};
             }
-        } -Verifiable 
+        } -Verifiable
 
         Mock Get-FileHash { return [pscustomobject]@{Hash =  "abcdef1234567890"} }
         Mock Test-Path { return $true }
@@ -66,4 +62,4 @@ Describe "Request-File" {
         }
     }
 }
-    
+
