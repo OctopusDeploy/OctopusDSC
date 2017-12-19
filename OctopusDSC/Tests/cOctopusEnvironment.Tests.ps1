@@ -1,4 +1,6 @@
 #requires -Version 4.0
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '')] # these are tests, not anything that needs to be secure
+param()
 
 $moduleName = Split-Path ($PSCommandPath -replace '\.Tests\.ps1$', '') -Leaf
 $modulePath = Split-Path $PSCommandPath -Parent
@@ -17,7 +19,7 @@ try
         Describe 'cOctopusEnvironment' {
             BeforeEach {
                 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
-                $password = ConvertTo-SecureString -string (Get-Content .\OctopusDSC\Tests\Password.txt) -key (Get-Content .\OctopusDSC\Tests\AESKey.key)
+                $password = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
                 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
                 $creds = New-Object System.Management.Automation.PSCredential ("username", $password)
 
@@ -73,7 +75,7 @@ try
                 Mock Get-TargetResource { return $response }
 
                 It 'Returns false if environment does not exist' {
-                    $password = ConvertTo-SecureString -string (Get-Content .\OctopusDSC\Tests\Password.txt) -key (Get-Content .\OctopusDSC\Tests\AESKey.key)
+                    $password = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
                     $creds = New-Object System.Management.Automation.PSCredential ("username", $password)
 
                     $desiredConfiguration['Url'] = 'https://octopus.example.com'
@@ -90,7 +92,7 @@ try
                 }
 
                 It 'Returns true if environment does exist' {
-                    $password = ConvertTo-SecureString -string (Get-Content .\OctopusDSC\Tests\Password.txt) -key (Get-Content .\OctopusDSC\Tests\AESKey.key)
+                    $password = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
                     $creds = New-Object System.Management.Automation.PSCredential ("username", $password)
 
                     $desiredConfiguration['Url'] = 'https://octopus.example.com'

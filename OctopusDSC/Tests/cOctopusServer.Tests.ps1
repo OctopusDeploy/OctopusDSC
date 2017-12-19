@@ -23,8 +23,7 @@ try
 
         Describe 'cOctopusServer' {
             BeforeEach {
-                # password is "S3cur3P4ssphraseHere!", loaded from an AES encrypted file
-                $pass = ConvertTo-SecureString -string (Get-Content .\OctopusDSC\Tests\Password.txt) -key (Get-Content .\OctopusDSC\Tests\AESKey.key)
+                $pass = ConvertTo-SecureString "S3cur3P4ssphraseHere!" -AsPlainText -Force
                 $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
 
                 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
@@ -110,7 +109,7 @@ try
                 Mock Update-InstallState {}
                 Mock Test-OctopusDeployServerResponding { return $true }
 
-                $pass = ConvertTo-SecureString -string (Get-Content .\OctopusDSC\Tests\Password.txt) -key (Get-Content .\OctopusDSC\Tests\AESKey.key)
+                $pass = ConvertTo-SecureString "S3cur3P4ssphraseHere!" -AsPlainText -Force
                 $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
 
                 $MasterKey = "Nc91+1kfZszMpe7DMne8wg=="
