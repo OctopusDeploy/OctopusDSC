@@ -132,6 +132,8 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   # in theory, we shouldn't have to do this - the vagrant-dsc should upload it automatically, but cant get it to work
   config.vm.provision "file", source: "OctopusDSC", destination: 'C:\Windows\System32\WindowsPowerShell\v1.0\modules\OctopusDSC'
 
+  config.vm.provision "shell", path: "Tests/configure-dsc-local-configuration-manager.ps1"
+
   # Run DSC to install server
   run_octopus_scenario(config, 'Server_Scenario_01_Install')
 
