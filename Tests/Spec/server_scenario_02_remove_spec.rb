@@ -6,7 +6,7 @@ describe file('c:/Octopus') do
 end
 
 describe file('C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe') do
-  it { should exist }
+  it { should exist } # as there is another instance still on the box - we shouldn't have removed the binaries
 end
 
 describe service('OctopusDeploy') do
