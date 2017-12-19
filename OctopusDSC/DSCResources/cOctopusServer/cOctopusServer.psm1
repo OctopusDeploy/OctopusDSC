@@ -508,8 +508,6 @@ function Test-ReconfigurationRequired($currentState, $desiredState) {
 }
 
 function Uninstall-OctopusDeploy($name) {
-    $services = @(Get-CimInstance win32_service | Where-Object {$_.PathName -like "`"$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe*"})
-    Write-Verbose "Found $($services.length) instance(s)"
     Write-Log "Uninstalling Octopus Deploy service ..."
     $args = @(
         'service',
@@ -528,7 +526,8 @@ function Uninstall-OctopusDeploy($name) {
     )
     Invoke-OctopusServerCommand $args
 
-    if ($services.length -eq 1) {
+    $otherServices = @(Get-CimInstance win32_service | Where-Object {$_.PathName -like "`"$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe*"})
+    if ($otherServices.length -eq 0) {
         # Uninstall msi
         Write-Verbose "Uninstalling Octopus..."
         if (-not (Test-Path "$($env:SystemDrive)\Octopus\logs")) { New-Item -type Directory "$($env:SystemDrive)\Octopus\logs" | out-null }
