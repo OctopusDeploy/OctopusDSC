@@ -76,9 +76,9 @@ function Get-TargetResource {
     $existingOctopusUpgradesAllowChecking = $null
     $existingOctopusUpgradesIncludeStatistics = $null
     $existingListenPort = $null
-    $existingOctopusAdminCredential = $null
+    $existingOctopusAdminCredential = [PSCredential]::Empty
     $existingAutoLoginEnabled = $null
-    $existingOctopusServiceCredential = $null
+    $existingOctopusServiceCredential = [PSCredential]::Empty
     $existingHomeDirectory = $null
 
     if ($existingEnsure -eq "Present") {
@@ -105,19 +105,18 @@ function Get-TargetResource {
         } else {
             $existingLicenseKey = $existingConfig.OctopusLicenseKey
         }
-        if (Test-Path $installStateFile) {
-            $installState = (Get-Content -Raw -Path $installStateFile | ConvertFrom-Json)
-            $existingDownloadUrl = $installState.DownloadUrl
-            $pass = $installState.OctopusAdminPassword | ConvertTo-SecureString
-            $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($installState.OctopusAdminUsername, $pass)
 
-            if ($installState.OctopusServicePassword -ne "") {
-                $svcpass = $installState.OctopusServicePassword | ConvertTo-SecureString
-                $existingOctopusServiceCredential = New-Object System.Management.Automation.PSCredential ($installState.OctopusServiceUsername, $svcpass)
-            }
-            else {
-                $existingOctopusServiceCredential = [PSCredential]::Empty
-            }
+        $existingDownloadUrl = Get-InstallStateValue 'DownloadUrl'
+
+        $user = Get-InstallStateValue 'OctopusAdminUsername'
+        $pass = Get-InstallStateValue 'OctopusAdminPassword'
+        if (($null -ne $user) -and ($null -ne $pass)) {
+            $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
+        }
+        $user = Get-InstallStateValue 'OctopusServiceUsername'
+        $pass = Get-InstallStateValue 'OctopusServicePassword'
+        if (($null -ne $user) -and ($null -ne $pass)) {
+            $existingOctopusServiceCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
         }
     }
 
@@ -673,7 +672,7 @@ function Update-InstallState {
     $currentInstallState | ConvertTo-Json | set-content $installStateFile
 }
 
-Function Get-InstallStateValue
+function Get-InstallStateValue
 {
     [CmdletBinding()]
     param($key)

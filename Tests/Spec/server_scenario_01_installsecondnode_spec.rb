@@ -33,12 +33,12 @@ describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer
   it { should have_property_value('InstallLocation', :type_string, "C:\\Program Files\\Octopus Deploy\\Octopus\\") }
 end
 
-describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer\OctopusServer') do
+describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer\HANode') do
   it { should exist }
-  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\OctopusServer.config') }
+  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\OctopusServer-HANode.config') }
 end
 
-describe service('OctopusDeploy') do
+describe service('OctopusDeploy: HANode') do
   it { should be_installed }
   it { should be_running }
   it { should have_start_mode('Automatic') }
@@ -73,12 +73,7 @@ describe file('C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe.nlog')
 end
 
 #dsc overall status
-describe command('$ProgressPreference = "SilentlyContinue"; try { Get-DSCConfiguration -ErrorAction Stop; write-output "Get-DSCConfiguration succeeded"; $true } catch { write-output "Get-DSCConfiguration failed"; write-output $_; $false }') do
-  its(:exit_status) { should eq 0 }
-  its(:stdout) { should match /Get-DSCConfiguration succeeded/ }
-end
-
-describe command('$ProgressPreference = "SilentlyContinue"; try { if (-not (Test-DSCConfiguration -ErrorAction Stop)) { write-output "Test-DSCConfiguration returned false"; exit 1 } write-output "Test-DSCConfiguration succeeded"; exit 0 } catch { write-output "Test-DSCConfiguration failed"; write-output $_; exit 2 }') do
-  its(:exit_status) { should eq 0 }
-  its(:stdout) { should match /Test-DSCConfiguration succeeded/ }
+describe windows_dsc do
+  it { should be_able_to_get_dsc_configuration }
+  it { should have_applied_dsc_configuration_successfully }
 end

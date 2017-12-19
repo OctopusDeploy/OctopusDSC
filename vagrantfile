@@ -141,8 +141,11 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   # Run DSC to install second HA node
   run_octopus_scenario(config, 'Server_Scenario_01_InstallSecondNode')
 
-  # remove the server(s)
+  # remove the first node
   run_octopus_scenario(config, 'Server_Scenario_02_Remove')
+
+  # remove the second ode
+  run_octopus_scenario(config, 'Server_Scenario_02_RemoveSecondNode')
 
   # Run DSC to install server with a custom instance name
   run_octopus_scenario(config, 'Server_Scenario_03_Install_Custom_Instance')

@@ -95,43 +95,53 @@ try
             }
 
             Context "Running HA" {
-                $executedcommands = @()
-                $invocation = 0
-                Mock Invoke-OctopusServerCommand {
-                    param($parameters)
-                    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
-                    $executedCommands += [pscustomobject]@{ invocation = ++$invocation; params = $parameters }
+
+                It 'Should call expected commands on octopus.server.exe' {
+                    Mock Invoke-OctopusServerCommand
+                    Mock Get-TargetResource { return @{ Ensure="Absent"; State="Stopped" } }
+                    Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                    Mock Install-MSI {}
+                    Mock Update-InstallState {}
+                    Mock Test-OctopusDeployServerResponding { return $true }
+                    Mock Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance { return $true }
+                    Mock Test-OctopusVersionRequiresDatabaseBeforeConfigure { return $true }
+                    Mock Test-OctopusVersionSupportsAutoLoginEnabled { return $true }
+                    Mock Test-OctopusVersionSupportsShowConfiguration { return $true }
+                    Mock Test-OctopusVersionNewerThan { return $true }
+                    Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+
+                    $pass = ConvertTo-SecureString "S3cur3P4ssphraseHere!" -AsPlainText -Force
+                    $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
+
+                    $MasterKey = "Nc91+1kfZszMpe7DMne8wg=="
+                    $SecureMasterKey = ConvertTo-SecureString $MasterKey -AsPlainText -Force
+                    $MasterKeyCred = New-Object System.Management.Automation.PSCredential  ("notused", $SecureMasterKey)
+
+                    $haparams = @{
+                        Ensure = "Present";
+                        State = "Started";
+                        Name = "HANode";
+                        WebListenPrefix = "http://localhost:82";
+                        SqlDbConnectionString = "Server=(local);Database=Octopus;Trusted_Connection=True;";
+                        OctopusMasterKey = $MasterKeyCred;
+                        OctopusAdminCredential = $cred;
+                        ListenPort = 10935;
+                        AllowCollectionOfAnonymousUsageStatistics = $false;
+                        HomeDirectory = "C:\ChezOctopusSecondNode";
+                    }
+
+                    Set-TargetResource @haparams
+
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 8 -Exactly
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'create-instance --console --instance HANode --config \Octopus\OctopusServer-HANode.config --home C:\ChezOctopusSecondNode' }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "database --instance HANode --connectionstring $($haparams['SqlDbConnectionString']) --masterKey $MasterKey --grant NT AUTHORITY\SYSTEM" }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "configure --console --instance HANode --upgradeCheck True --upgradeCheckWithStatistics False --webForceSSL False --webListenPrefixes $($haparams['WebListenPrefix']) --commsListenPort 10935 --autoLoginEnabled False" }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'service --console --instance HANode --stop' }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'admin --console --instance HANode --username Admin --password S3cur3P4ssphraseHere!' }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'license --console --instance HANode --free' }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'service --console --instance HANode --install --reconfigure --stop' }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'service --start --console --instance HANode' }
                 }
-                $response = @{ Ensure="Absent"; State="Stopped" }
-                Mock Get-TargetResource { return $response }
-                Mock Get-RegistryValue { return "478389" }
-                Mock Install-MSI {}
-                Mock Update-InstallState {}
-                Mock Test-OctopusDeployServerResponding { return $true }
-
-                $pass = ConvertTo-SecureString "S3cur3P4ssphraseHere!" -AsPlainText -Force
-                $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
-
-                $MasterKey = "Nc91+1kfZszMpe7DMne8wg=="
-                $SecureMasterKey = ConvertTo-SecureString $MasterKey -AsPlainText -Force
-                $MasterKeyCred = New-Object System.Management.Automation.PSCredential  ("notused", $SecureMasterKey)
-
-                $haparams = @{
-                    Ensure = "Present";
-                    State = "Started";
-                    Name = "HANode";
-                    WebListenPrefix = "http://localhost:82";
-                    SqlDbConnectionString = "Server=(local);Database=Octopus;Trusted_Connection=True;";
-                    OctopusMasterKey = $MasterKeyCred;
-                    OctopusAdminCredential = $cred;
-                    ListenPort = 10935;
-                    AllowCollectionOfAnonymousUsageStatistics = $false;
-                    HomeDirectory = "C:\ChezOctopusSecondNode";
-                }
-
-                Set-TargetResource @haparams
-
-                Write-Output $executedcommands
             }
         }
     }

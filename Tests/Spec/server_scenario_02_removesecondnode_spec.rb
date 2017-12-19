@@ -6,10 +6,10 @@ describe file('c:/Octopus') do
 end
 
 describe file('C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe') do
-  it { should exist }
+  it { should_not exist }
 end
 
-describe service('OctopusDeploy') do
+describe service('OctopusDeploy: HANode') do
   it { should_not be_installed }
 end
 
