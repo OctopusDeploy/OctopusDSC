@@ -18,7 +18,7 @@ end
 
 describe file('C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe') do
   it { should be_file }
-  it { should be_version('4.0.3') }
+  it { should be_version('4.1.3') }
 end
 
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer') do
@@ -48,7 +48,7 @@ describe service('OctopusDeploy') do
   it { should run_under_account('.\OctoSquid') }
 end
 
-describe command('C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe show-configuration --instance OctopusServer --format xml') do
+describe command('& "C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe" show-configuration --instance OctopusServer --format xml') do
   its(:exit_status) { should eq 0 }
   its(:stdout) { should match /<set key="Octopus.RunOnServer.CustomAccountUserName">OctoMollusc<\/set>/ }
 end
