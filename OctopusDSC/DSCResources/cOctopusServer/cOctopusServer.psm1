@@ -486,7 +486,7 @@ function Set-OctopusDeployConfiguration {
             )
 
             Update-InstallState "OctopusServiceUsername" $octopusServiceCredential.UserName
-            Update-InstallState "OctopusServicePassword" $octopusServiceCredential.GetNetworkCredential().Password
+            Update-InstallState "OctopusServicePassword" ($octopusServiceCredential.Password | ConvertFrom-SecureString)
         }
         else {
             Write-Log "Reconfiguring Octopus Deploy service to run as Local System ..."
@@ -508,7 +508,7 @@ function Set-OctopusDeployConfiguration {
             )
 
             Update-InstallState "OctopusAdminUsername" $octopusAdminCredential.UserName
-            Update-InstallState "OctopusAdminPassword" $octopusAdminCredential.GetNetworkCredential().Password
+            Update-InstallState "OctopusAdminPassword" ($octopusAdminCredential.Password | ConvertFrom-SecureString)
         }
         else {
             throw "'OctopusRunOnServerCredential' must be supplied"
@@ -543,7 +543,7 @@ function Set-OctopusDeployConfiguration {
                     '--password', $octopusRunOnServerCredential.GetNetworkCredential().Password
                 )
                 Update-InstallState "OctopusRunAsUsername" $octopusRunOnServerCredential.UserName
-                Update-InstallState "OctopusRunAsPassword" $octopusRunOnServerCredential.GetNetworkCredential().Password
+                Update-InstallState "OctopusRunAsPassword" ($octopusRunOnServerCredential.Password | ConvertFrom-SecureString)
             } else {
                 Write-Log "Configuring Octopus Deploy to execute run-on-server scripts under the same account as the octopus.server.exe process..."
                 $args = @(
