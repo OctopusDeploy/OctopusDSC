@@ -50,7 +50,7 @@ end
 
 describe command('& "C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe" show-configuration --instance OctopusServer --format xml') do
   its(:exit_status) { should eq 0 }
-  its(:stdout) { should match /<set key="Octopus.RunOnServer.CustomAccountUserName">OctoMollusc<\/set>/ }
+  its(:stdout) { should match /<set key="Octopus.RunOnServer.CustomAccountUserName">.*\\OctoMollusc<\/set>/ }
 end
 
 describe port(10943) do
