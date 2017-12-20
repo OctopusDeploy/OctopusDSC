@@ -5,6 +5,9 @@
 $password = Get-Content .\ExamplePassword.txt | ConvertTo-SecureString
 $AdminCred = New-Object PSCredential "Admin", $password
 
+$password = Get-Content .\ExamplePassword.txt | ConvertTo-SecureString
+$runOnServerCred = New-Object PSCredential "RunAsUserAccount", $password
+
 Configuration SampleConfig
 {
     Import-DscResource -Module OctopusDSC
@@ -42,6 +45,9 @@ Configuration SampleConfig
             HomeDirectory = "C:\Octopus"
 
             LicenseKey = "Base64 encoded xml license key"
+
+            # the user account to use for run-on-server tasks (optional)
+            OctopusRunOnServerCredential = $runOnServerCred
         }
     }
 }

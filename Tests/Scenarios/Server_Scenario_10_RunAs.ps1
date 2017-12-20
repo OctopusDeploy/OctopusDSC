@@ -1,12 +1,5 @@
-<#
-    Install Octopus Server v4 pre-release
 
-    When v4 is released and becomes "latest", Server_Scenario_01_Install.ps1 will start installing v4 by default
-    At that point, this test becomes redundant.
-    Server_Scenario_05_Reinstall.ps1 will install v3
-#>
-
-Configuration Server_Scenario_10_Install4
+Configuration Server_Scenario_10_RunAs
 {
     Import-DscResource -ModuleName OctopusDSC
     Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
@@ -17,6 +10,8 @@ Configuration Server_Scenario_10_Install4
     $svcpass = ConvertTo-SecureString "HyperS3cretPassw0rd!" -AsPlainText -Force
     $svccred = New-Object System.Management.Automation.PSCredential (($env:computername + "\OctoSquid"), $svcpass)
 
+    $runAsPass = ConvertTo-SecureString "ModeratelyS3cretPassw0rd!" -AsPlainText -Force
+    $runAsCred = New-Object System.Management.Automation.PSCredential (($env:computername + "\OctoMollusc"), $runAsPass)
 
     Node "localhost"
     {
@@ -41,6 +36,14 @@ Configuration Server_Scenario_10_Install4
             MembersToInclude= ".\OctoSquid"
         }
 
+        User OctoMollusc
+        {
+            Ensure = "Present"
+            UserName = "OctoMollusc"
+            Password = $svccred
+            PasswordChangeRequired = $false
+        }
+
         cOctopusServer OctopusServer
         {
             Ensure = "Present"
@@ -61,9 +64,12 @@ Configuration Server_Scenario_10_Install4
             # dont mess with stats
             AllowCollectionOfAnonymousUsageStatistics = $false
 
-            DownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.4.0.3-x64.msi"
+            DownloadUrl = "https://s3-ap-southeast-1.amazonaws.com/octopus-testing/server/Octopus.4.1.3-enh-runas0022-x64.msi"
 
             OctopusServiceCredential = $svccred
+
+            OctopusRunOnServerCredential = $runAsCred
+
             DependsOn = "[user]OctoSquid"
         }
 

@@ -19,4 +19,5 @@ class cOctopusServer : OMI_BaseResource
   [Write, EmbeddedInstance ("MSFT_Credential")] string OctopusMasterKey;
   [Write] string LicenseKey;
   [Write] boolean GrantDatabasePermissions;
+  [Write, EmbeddedInstance ("MSFT_Credential")] string OctopusRunOnServerCredential;
 };
