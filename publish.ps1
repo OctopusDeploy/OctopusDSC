@@ -3,6 +3,7 @@ param(
     [string]$psGalleryApiKey,
     [string]$gitHubApiKey
 )
+$ErrorActionPreference = 'Stop'
 
 function Publish-ToGitHub($versionNumber, $commitId, $preRelease, $artifact, $gitHubApiKey)
 {
