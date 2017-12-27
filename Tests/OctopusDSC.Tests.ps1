@@ -31,3 +31,48 @@ Describe "OctopusDSC.psd1" {
         $actual | should be $expected
     }
 }
+
+Describe "Mandatory Parameters" {
+    It "All required or key properties in the mof file should be marked with [Parameter(Mandatory)} in the psm1 file" {
+        $schemaMofFiles = Get-ChildItem ./OctopusDSC/DSCResources -Recurse -Filter *.mof
+        foreach ($schemaMofFile in $schemaMofFiles) {
+            $schemaMofFileContent = Get-Content $schemaMofFile.FullName
+            $moduleFile = Get-Item ($schemaMofFile.FullName -replace ".schema.mof", ".psm1")
+
+            $tokens = $null;
+            $parseErrors = $null;
+            $ast = [System.Management.Automation.Language.Parser]::ParseFile($moduleFile.FullName, [ref] $tokens, [ref] $parseErrors);
+
+            $parseErrors | should be $null
+
+            foreach($line in $schemaMofFileContent) {
+                if ($line -match "\s*(\[.*?(Required|Key).*\])\s*(.*) (.*);") {
+                    $propertyName = $matches[4];
+
+                    $filter = {
+                        ($args[0] -is [System.Management.Automation.Language.ParameterAst]) -and
+                        ($args[0].Name -eq $propertyName)
+                    }
+                    $result = $ast.FindAll($filter, $true);
+
+                    foreach($param in $result) {
+                        $function = $param.Parent.Parent.Parent
+                        if ($function -is [System.Management.Automation.Language.FunctionDefinitionAst]) {
+                            $functionName = ([System.Management.Automation.Language.FunctionDefinitionAst]$function).Name
+                            if (($functionName -like "Get-TargetResource") -or
+                                ($functionName -like "Set-TargetResource") -or
+                                ($functionName -like "Test-TargetResource")) {
+
+                                $parameterAttributes = $param.Attributes.Extent.Text
+                                if ($parameterAttributes -notcontains "[Parameter(Mandatory)]") {
+                                    $filename = $moduleFile.Name -replace $moduleFile.Extension, ''
+                                    throw "$filename.$functionName.$($param.Name) should be marked as mandatory, as they are marked as required/key in the mof file"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
