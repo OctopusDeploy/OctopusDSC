@@ -172,7 +172,6 @@ function Get-OctopusClientRepository
 {
   param (
     [string]$Url,
-    [string]$EnvironmentName,
     [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
     [PSCredential]$OctopusApiKey = [PSCredential]::Empty
   )
