@@ -110,16 +110,27 @@ function Get-TargetResource {
 
         $existingDownloadUrl = Get-InstallStateValue 'DownloadUrl'
 
+        #note: this can get out of sync with reality. Ideally we'd read from `show-configuration`,
+        #      but the catch is there can be multple admins. We'd probably need to add support for
+        #      an `--assert` or `--validate` parameter to the `admin` command and check its valid
         $user = Get-InstallStateValue 'OctopusAdminUsername'
         $pass = Get-InstallStateValue 'OctopusAdminPassword'
         if (($null -ne $user) -and ($null -ne $pass)) {
             $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
         }
+
+        #note: this should read from the service. How do we validate the password though? We moght
+        #      need to add support for an `--assert` or `--validate` parameter to the `service`
+        #      command and check its valid
         $user = Get-InstallStateValue 'OctopusServiceUsername'
         $pass = Get-InstallStateValue 'OctopusServicePassword'
         if (($null -ne $user) -and ($null -ne $pass)) {
             $existingOctopusServiceCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
         }
+
+        #note: this should read from `show-configuration`. That wont validate the password is set
+        #      correctly though. We'd probably need to add support for an `--assert` or
+        #      `--validate` parameter to the `runonserver` command and check its valid
         $user = Get-InstallStateValue 'OctopusRunAsUsername'
         $pass = Get-InstallStateValue 'OctopusRunAsPassword'
         if (($null -ne $user) -and ($null -ne $pass)) {
