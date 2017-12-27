@@ -156,7 +156,7 @@ function Get-TargetResource {
         HomeDirectory                             = $existingHomeDirectory;
         LicenseKey                                = $existingLicenseKey;
         GrantDatabasePermissions                  = $GrantDatabasePermissions;
-        OctopusRunOnServerCredential                    = $existingOctopusRunOnServerCredential;
+        OctopusRunOnServerCredential              = $existingOctopusRunOnServerCredential;
     }
 
     return $currentResource
