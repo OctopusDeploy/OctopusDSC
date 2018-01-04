@@ -484,6 +484,7 @@ function Set-OctopusDeployConfiguration {
         $args = @(
             'service',
             '--console'
+            '--instance', $name,
             '--uninstall',
             '--install',
             '--reconfigure'
