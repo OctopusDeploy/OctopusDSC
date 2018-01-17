@@ -33,6 +33,12 @@ function Request-File {
     $maxRetries = 5
     $downloadFile = $true
 
+    switch -regex ($url)
+    {
+        '^\\\\' { $downloadMethod = 'SMB'  }
+        default { $downloadMethod = 'HTTP' }
+    }
+
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12, [System.Net.SecurityProtocolType]::Tls11, [System.Net.SecurityProtocolType]::Tls
 
     Write-Verbose "Checking to see if we have an installer at $saveas"
@@ -42,7 +48,11 @@ function Request-File {
         Write-Verbose "Local file exists"
         $localHash = Get-FileHash $saveAs -Algorithm SHA256 | Select -Expand hash
         Write-Verbose "Local SHA256 hash: $localHash"
-        $remoteHash = (Invoke-WebRequest -uri $url -Method Head -UseBasicParsing | select -expand headers).GetEnumerator()  | ? { $_.Key -eq "x-amz-meta-sha256" } | select -expand value
+        switch ($downloadMethod)
+        {
+            'SMB'  { $remoteHash = Get-FileHash $url -Algorithm SHA256 | Select -Expand hash }
+            'HTTP' { $remoteHash = (Invoke-WebRequest -uri $url -Method Head -UseBasicParsing | select -expand headers).GetEnumerator()  | ? { $_.Key -eq "x-amz-meta-sha256" } | select -expand value }
+        }
         Write-Verbose "Remote SHA256 hash: $remoteHash"
         $downloadFile = ($localHash -ne $remoteHash)
     }
@@ -57,7 +67,11 @@ function Request-File {
             Write-Verbose "Downloading $url to $saveAs"
 
             try {
-                Invoke-WebClient -Url $url -OutFile $saveAs
+                switch ($downloadMethod)
+                {
+                    'SMB'  { Copy-Item -Path $url -Destination $saveAs -Force }
+                    'HTTP' { Invoke-WebClient -Url $url -OutFile $saveAs }
+                }
                 $retry = $false
             }
             catch {
