@@ -176,6 +176,7 @@ try
                         AllowCollectionOfAnonymousUsageStatistics = $false;
                         HomeDirectory = "C:\Octopus";
                         OctopusRunOnServerCredential = $runAsCred
+                        DownloadUrl = "https://octopus-testing.s3.amazonaws.com/server/Octopus.2018.1.0-beta0106-x64.msi"
                     }
 
                     Set-TargetResource @haparams
@@ -225,6 +226,7 @@ try
                         AllowCollectionOfAnonymousUsageStatistics = $false;
                         HomeDirectory = "C:\Octopus";
                         OctopusRunOnServerCredential = $runAsCred
+                        DownloadUrl = "https://octopus-testing.s3.amazonaws.com/server/Octopus.2018.1.0-beta0106-x64.msi"
                     }
 
                     Set-TargetResource @haparams
