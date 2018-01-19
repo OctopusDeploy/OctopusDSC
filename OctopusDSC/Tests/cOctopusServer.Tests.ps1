@@ -233,7 +233,7 @@ try
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "configure --console --instance OctopusServer --upgradeCheck True --upgradeCheckWithStatistics False --webForceSSL False --webListenPrefixes $($haparams['WebListenPrefix']) --commsListenPort 10935 --home C:\Octopus --autoLoginEnabled False" }
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'admin --console --instance OctopusServer --username Admin --password S3cur3P4ssphraseHere!' }
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'license --console --instance OctopusServer --free' }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'runonserver --instance OctopusServer --username runasuser --password S4cretPassword!' }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'builtin-worker --instance OctopusServer --username runasuser --password S4cretPassword!' }
                 }
             }
         }
