@@ -549,7 +549,7 @@ function Set-OctopusDeployConfiguration {
             if (($null -ne $octopusRunOnServerCredential) -and ($octopusRunOnServerCredential -ne [PSCredential]::Empty)) {
                 Write-Log "Configuring Octopus Deploy to execute run-on-server scripts as $($octopusRunOnServerCredential.UserName) ..."
                 # runonserver changed in v2018 to builtin-worker
-                if(Test-OctopusVersionNewerThan (New-Object System.Version 2018, 1, 0))
+                if(Test-OctopusVersionNewerThan (New-Object System.Version 2018, 0, 0))
                 {
                     $runonservercommand = 'builtin-worker'
                 }
