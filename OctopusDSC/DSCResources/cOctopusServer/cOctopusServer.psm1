@@ -548,8 +548,19 @@ function Set-OctopusDeployConfiguration {
         if (Test-OctopusVersionSupportsRunAsCredential) {
             if (($null -ne $octopusRunOnServerCredential) -and ($octopusRunOnServerCredential -ne [PSCredential]::Empty)) {
                 Write-Log "Configuring Octopus Deploy to execute run-on-server scripts as $($octopusRunOnServerCredential.UserName) ..."
+                # runonserver changed in v2018 to builtin-worker
+                if(Test-OctopusVersionNewerThan (New-Object System.Version 2018, 1, 0))
+                {
+                    $runonservercommand = 'builtin-worker'
+                }
+                else # hack to cover branch builds pre-4.2
+                {
+                    $runonservercommand = 'runonserver'
+                }
+
+
                 $args = @(
-                    'runonserver',
+                    $runonservercommand,
                     '--instance', $name,
                     '--username', $octopusRunOnServerCredential.UserName
                     '--password', $octopusRunOnServerCredential.GetNetworkCredential().Password
@@ -559,7 +570,7 @@ function Set-OctopusDeployConfiguration {
             } else {
                 Write-Log "Configuring Octopus Deploy to execute run-on-server scripts under the same account as the octopus.server.exe process..."
                 $args = @(
-                    'runonserver',
+                    $runonservercommand,
                     '--instance', $name,
                     '--reset'
                 )
