@@ -548,19 +548,9 @@ function Set-OctopusDeployConfiguration {
         if (Test-OctopusVersionSupportsRunAsCredential) {
             if (($null -ne $octopusRunOnServerCredential) -and ($octopusRunOnServerCredential -ne [PSCredential]::Empty)) {
                 Write-Log "Configuring Octopus Deploy to execute run-on-server scripts as $($octopusRunOnServerCredential.UserName) ..."
-                # runonserver changed in v2018 to builtin-worker
-                if(Test-OctopusVersionNewerThan (New-Object System.Version 2018, 0, 0))
-                {
-                    $runonservercommand = 'builtin-worker'
-                }
-                else # hack to cover branch builds pre-4.2
-                {
-                    $runonservercommand = 'runonserver'
-                }
-
-
+                
                 $args = @(
-                    $runonservercommand,
+                    'builtin-worker',
                     '--instance', $name,
                     '--username', $octopusRunOnServerCredential.UserName
                     '--password', $octopusRunOnServerCredential.GetNetworkCredential().Password
@@ -570,7 +560,7 @@ function Set-OctopusDeployConfiguration {
             } else {
                 Write-Log "Configuring Octopus Deploy to execute run-on-server scripts under the same account as the octopus.server.exe process..."
                 $args = @(
-                    $runonservercommand,
+                    'builtin-worker',
                     '--instance', $name,
                     '--reset'
                 )
@@ -816,6 +806,12 @@ function Get-RegistryValue {
     }
 }
 
+Function Test-IsOctopusUpgrade
+{
+    # if the binary exists before installing the MSI, we're considering this an upgrade
+    return (Test-Path -LiteralPath $OctopusServerExePath)
+}
+
 function Install-OctopusDeploy {
     param (
         [Parameter(Mandatory = $True)]
@@ -856,10 +852,10 @@ function Install-OctopusDeploy {
     $extractedPassword = $octopusAdminCredential.GetNetworkCredential().Password
 
     # check if we're upgrading an existing instance
-    $isUpgrade = (Test-Path -LiteralPath $OctopusServerExePath)
+    $isUpgrade = Test-IsOctopusUpgrade
 
     # check if we're joining a cluster, or joining to an existing Database
-    $isMasterKeyProvided = ($OctopusMasterKey -ne [pscredential]::Empty)
+    $isMasterKeyProvided = ($OctopusMasterKey -ne [PSCredential]::Empty)
 
     Write-Log "Setting up new instance of Octopus Deploy with name '$name'"
     Install-MSI $downloadUrl
@@ -1067,7 +1063,7 @@ function Install-OctopusDeploy {
         if (Test-OctopusVersionSupportsRunAsCredential) {
             Write-Log "Configuring Octopus Deploy to execute run-on-server scripts as $($octopusRunOnServerCredential.UserName) ..."
             $args = @(
-                'runonserver',
+                'builtin-worker',
                 '--instance', $name,
                 '--username', $octopusRunOnServerCredential.UserName,
                 '--password', $octopusRunOnServerCredential.GetNetworkCredential().Password
@@ -1168,6 +1164,7 @@ function Test-TargetResource {
 }
 
 function Test-PSCredential($currentValue, $requestedValue) {
+
     if (($null -ne $currentValue) -and ($currentValue -ne [PSCredential]::Empty)) {
         $currentUsername = $currentValue.GetNetworkCredential().UserName
         $currentPassword = $currentValue.GetNetworkCredential().Password
@@ -1190,4 +1187,5 @@ function Test-PSCredential($currentValue, $requestedValue) {
         return $false
     }
     return $true
+
 }

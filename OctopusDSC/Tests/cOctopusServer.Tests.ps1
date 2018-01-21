@@ -132,7 +132,7 @@ try
                     Set-TargetResource @haparams
 
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 8 -Exactly
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'create-instance --console --instance HANode --config \Octopus\OctopusServer-HANode.config --home C:\ChezOctopusSecondNode' }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'create-instance --console --instance HANode --config C:\Octopus\OctopusServer-HANode.config --home C:\ChezOctopusSecondNode' }
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "database --instance HANode --connectionstring $($haparams['SqlDbConnectionString']) --masterKey $MasterKey --grant NT AUTHORITY\SYSTEM" }
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "configure --console --instance HANode --upgradeCheck True --upgradeCheckWithStatistics False --webForceSSL False --webListenPrefixes $($haparams['WebListenPrefix']) --commsListenPort 10935 --autoLoginEnabled False" }
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'service --console --instance HANode --stop' }
@@ -158,6 +158,7 @@ try
                     Mock Test-OctopusVersionNewerThan { return $true }
                     Mock Test-OctopusVersionSupportsRunAsCredential { return $true }
                     Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+                    Mock Test-IsOctopusUpgrade { return $false } # we're installing new
 
                     $pass = ConvertTo-SecureString "S3cur3P4ssphraseHere!" -AsPlainText -Force
                     $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
@@ -176,13 +177,12 @@ try
                         AllowCollectionOfAnonymousUsageStatistics = $false;
                         HomeDirectory = "C:\Octopus";
                         OctopusRunOnServerCredential = $runAsCred
-                        DownloadUrl = "https://octopus-testing.s3.amazonaws.com/server/Octopus.2018.1.0-beta0106-x64.msi"
                     }
 
-                    Set-TargetResource @haparams
+                    Set-TargetResource @haparams 
 
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 9 -Exactly
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'create-instance --console --instance OctopusServer --config \Octopus\OctopusServer-OctopusServer.config --home C:\Octopus' }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'create-instance --console --instance OctopusServer --config C:\Octopus\OctopusServer-OctopusServer.config --home C:\Octopus' }
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "database --instance OctopusServer --connectionstring $($haparams['SqlDbConnectionString']) --create --grant NT AUTHORITY\SYSTEM" }
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "configure --console --instance OctopusServer --upgradeCheck True --upgradeCheckWithStatistics False --webForceSSL False --webListenPrefixes $($haparams['WebListenPrefix']) --commsListenPort 10935 --autoLoginEnabled False" }
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'service --console --instance OctopusServer --stop' }
@@ -226,10 +226,9 @@ try
                         AllowCollectionOfAnonymousUsageStatistics = $false;
                         HomeDirectory = "C:\Octopus";
                         OctopusRunOnServerCredential = $runAsCred
-                        DownloadUrl = "https://octopus-testing.s3.amazonaws.com/server/Octopus.2018.1.0-beta0106-x64.msi"
                     }
 
-                    Set-TargetResource @haparams
+                    Set-TargetResource @haparams 
 
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 4 -Exactly
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "configure --console --instance OctopusServer --upgradeCheck True --upgradeCheckWithStatistics False --webForceSSL False --webListenPrefixes $($haparams['WebListenPrefix']) --commsListenPort 10935 --home C:\Octopus --autoLoginEnabled False" }
