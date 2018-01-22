@@ -132,7 +132,7 @@ try
                     Set-TargetResource @haparams
 
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 8 -Exactly
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'create-instance --console --instance HANode --config C:\Octopus\OctopusServer-HANode.config --home C:\ChezOctopusSecondNode' }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "create-instance --console --instance HANode --config $($env:SystemDrive)\Octopus\OctopusServer-HANode.config --home C:\ChezOctopusSecondNode" }
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "database --instance HANode --connectionstring $($haparams['SqlDbConnectionString']) --masterKey $MasterKey --grant NT AUTHORITY\SYSTEM" }
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "configure --console --instance HANode --upgradeCheck True --upgradeCheckWithStatistics False --webForceSSL False --webListenPrefixes $($haparams['WebListenPrefix']) --commsListenPort 10935 --autoLoginEnabled False" }
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'service --console --instance HANode --stop' }
@@ -182,7 +182,7 @@ try
                     Set-TargetResource @haparams 
 
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 9 -Exactly
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'create-instance --console --instance OctopusServer --config C:\Octopus\OctopusServer-OctopusServer.config --home C:\Octopus' }
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "create-instance --console --instance OctopusServer --config $($env:SystemDrive)\Octopus\OctopusServer-OctopusServer.config --home C:\Octopus" }
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "database --instance OctopusServer --connectionstring $($haparams['SqlDbConnectionString']) --create --grant NT AUTHORITY\SYSTEM" }
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "configure --console --instance OctopusServer --upgradeCheck True --upgradeCheckWithStatistics False --webForceSSL False --webListenPrefixes $($haparams['WebListenPrefix']) --commsListenPort 10935 --autoLoginEnabled False" }
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'service --console --instance OctopusServer --stop' }
