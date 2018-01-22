@@ -243,7 +243,7 @@ function Test-OctopusVersionSupportsRunAsCredential {
     #temporary hack until runas is released
     $fileVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($octopusServerExePath)
 
-    if ($fileVersion.ProductVersion -like "*4.1.3-enh-runas.*+Branch.enh-runas*") {
+    if ($fileVersion.ProductVersion -like "*4.1.*-enh-runas*") {
         return $true;
     }
     return Test-OctopusVersionNewerThan (New-Object System.Version 4, 2, 0)
