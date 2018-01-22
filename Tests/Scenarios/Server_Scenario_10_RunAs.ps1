@@ -68,7 +68,7 @@ Configuration Server_Scenario_10_RunAs
 
             OctopusServiceCredential = $svccred
 
-            OctopusRunOnServerCredential = $runAsCred
+            OctopusBuiltInWorkerCredential = $runAsCred
 
             DependsOn = "[user]OctoSquid"
         }

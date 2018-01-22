@@ -38,7 +38,7 @@ function Get-TargetResource {
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
         [string]$LicenseKey = $null,
         [bool]$GrantDatabasePermissions = $true,
-        [PSCredential]$OctopusRunOnServerCredential = [PSCredential]::Empty
+        [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty
     )
 
     $script:instancecontext = $Name
@@ -80,7 +80,7 @@ function Get-TargetResource {
     $existingOctopusAdminCredential = [PSCredential]::Empty
     $existingAutoLoginEnabled = $null
     $existingOctopusServiceCredential = [PSCredential]::Empty
-    $existingOctopusRunOnServerCredential = [PSCredential]::Empty
+    $existingOctopusBuiltInWorkerCredential = [PSCredential]::Empty
     $existingHomeDirectory = $null
 
     if ($existingEnsure -eq "Present") {
@@ -134,7 +134,7 @@ function Get-TargetResource {
         $user = Get-InstallStateValue 'OctopusRunAsUsername'
         $pass = Get-InstallStateValue 'OctopusRunAsPassword'
         if (($null -ne $user) -and ($null -ne $pass)) {
-            $existingOctopusRunOnServerCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
+            $existingOctopusBuiltInWorkerCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
         }
     }
 
@@ -156,7 +156,7 @@ function Get-TargetResource {
         HomeDirectory                             = $existingHomeDirectory;
         LicenseKey                                = $existingLicenseKey;
         GrantDatabasePermissions                  = $GrantDatabasePermissions;
-        OctopusRunOnServerCredential              = $existingOctopusRunOnServerCredential;
+        OctopusBuiltInWorkerCredential              = $existingOctopusBuiltInWorkerCredential;
     }
 
     return $currentResource
@@ -311,7 +311,7 @@ function Set-TargetResource {
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
         [string]$LicenseKey = $null,
         [bool]$GrantDatabasePermissions = $true,
-        [PSCredential]$OctopusRunOnServerCredential = [PSCredential]::Empty
+        [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty
     )
 
     # update the global
@@ -335,7 +335,7 @@ function Set-TargetResource {
             -OctopusMasterKey $OctopusMasterKey `
             -LicenseKey $LicenseKey `
             -GrantDatabasePermissions $GrantDatabasePermissions `
-            -OctopusRunOnServerCredential $OctopusRunOnServerCredential)
+            -OctopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential)
 
     $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
     Test-RequestedConfiguration $currentResource $params
@@ -364,7 +364,7 @@ function Set-TargetResource {
             -OctopusMasterKey $OctopusMasterKey `
             -licenseKey $LicenseKey `
             -grantDatabasePermissions $GrantDatabasePermissions `
-            -octopusRunOnServerCredential $OctopusRunOnServerCredential
+            -octopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential
     }
     else {
         if ($Ensure -eq "Present" -and $currentResource["DownloadUrl"] -ne $DownloadUrl) {
@@ -388,7 +388,7 @@ function Set-TargetResource {
                 -octopusServiceCredential $OctopusServiceCredential `
                 -OctopusMasterKey $OctopusMasterKey `
                 -licenseKey $LicenseKey `
-                -octopusRunOnServerCredential $OctopusRunOnServerCredential
+                -octopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential
         }
     }
 
@@ -439,7 +439,7 @@ function Set-OctopusDeployConfiguration {
         [PSCredential]$OctopusServiceCredential,
         [PSCredential]$OctopusMasterKey,
         [string]$licenseKey = $null,
-        [PSCredential]$OctopusRunOnServerCredential = [PSCredential]::Empty
+        [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty
     )
 
     Write-Log "Configuring Octopus Deploy instance ..."
@@ -523,7 +523,7 @@ function Set-OctopusDeployConfiguration {
             Update-InstallState "OctopusAdminPassword" ($octopusAdminCredential.Password | ConvertFrom-SecureString)
         }
         else {
-            throw "'OctopusRunOnServerCredential' must be supplied"
+            throw "'OctopusBuiltInWorkerCredential' must be supplied"
         }
         Invoke-OctopusServerCommand $args
     }
@@ -544,19 +544,19 @@ function Set-OctopusDeployConfiguration {
         Invoke-OctopusServerCommand $args
     }
 
-    if (-not (Test-PSCredential $currentState['OctopusRunOnServerCredential'] $octopusRunOnServerCredential)) {
+    if (-not (Test-PSCredential $currentState['OctopusBuiltInWorkerCredential'] $octopusBuiltInWorkerCredential)) {
         if (Test-OctopusVersionSupportsRunAsCredential) {
-            if (($null -ne $octopusRunOnServerCredential) -and ($octopusRunOnServerCredential -ne [PSCredential]::Empty)) {
-                Write-Log "Configuring Octopus Deploy to execute run-on-server scripts as $($octopusRunOnServerCredential.UserName) ..."
+            if (($null -ne $octopusBuiltInWorkerCredential) -and ($octopusBuiltInWorkerCredential -ne [PSCredential]::Empty)) {
+                Write-Log "Configuring Octopus Deploy to execute run-on-server scripts as $($octopusBuiltInWorkerCredential.UserName) ..."
                 
                 $args = @(
                     'builtin-worker',
                     '--instance', $name,
-                    '--username', $octopusRunOnServerCredential.UserName
-                    '--password', $octopusRunOnServerCredential.GetNetworkCredential().Password
+                    '--username', $octopusBuiltInWorkerCredential.UserName
+                    '--password', $octopusBuiltInWorkerCredential.GetNetworkCredential().Password
                 )
-                Update-InstallState "OctopusRunAsUsername" $octopusRunOnServerCredential.UserName
-                Update-InstallState "OctopusRunAsPassword" ($octopusRunOnServerCredential.Password | ConvertFrom-SecureString)
+                Update-InstallState "OctopusRunAsUsername" $octopusBuiltInWorkerCredential.UserName
+                Update-InstallState "OctopusRunAsPassword" ($octopusBuiltInWorkerCredential.Password | ConvertFrom-SecureString)
             } else {
                 Write-Log "Configuring Octopus Deploy to execute run-on-server scripts under the same account as the octopus.server.exe process..."
                 $args = @(
@@ -569,13 +569,13 @@ function Set-OctopusDeployConfiguration {
             }
             Invoke-OctopusServerCommand $args
         } else {
-            throw "'OctopusRunOnServerCredential' is only supported from Octopus 4.2 and newer."
+            throw "'OctopusBuiltInWorkerCredential' is only supported from Octopus 4.2 and newer."
         }
     }
 }
 
 function Test-ReconfigurationRequired($currentState, $desiredState) {
-    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'AllowCollectionOfAnonymousUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'LicenseKey', 'OctopusServiceCredential', 'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled', 'OctopusRunOnServerCredential')
+    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'AllowCollectionOfAnonymousUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'LicenseKey', 'OctopusServiceCredential', 'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled', 'OctopusBuiltInWorkerCredential')
     foreach ($property in $reconfigurableProperties) {
         write-verbose "Checking property '$property'"
         if ($currentState.Item($property) -is [PSCredential]) {
@@ -837,7 +837,7 @@ function Install-OctopusDeploy {
         [PSCredential]$OctopusMasterKey,
         [string]$licenseKey = $null,
         [bool]$grantDatabasePermissions = $true,
-        [PSCredential]$OctopusRunOnServerCredential
+        [PSCredential]$OctopusBuiltInWorkerCredential
     )
 
     Write-Verbose "Installing Octopus Deploy..."
@@ -1059,20 +1059,20 @@ function Install-OctopusDeploy {
     }
     Invoke-OctopusServerCommand $args
 
-    if (($null -ne $octopusRunOnServerCredential) -and ($octopusRunOnServerCredential -ne [PSCredential]::Empty)) {
+    if (($null -ne $octopusBuiltInWorkerCredential) -and ($octopusBuiltInWorkerCredential -ne [PSCredential]::Empty)) {
         if (Test-OctopusVersionSupportsRunAsCredential) {
-            Write-Log "Configuring Octopus Deploy to execute run-on-server scripts as $($octopusRunOnServerCredential.UserName) ..."
+            Write-Log "Configuring Octopus Deploy to execute run-on-server scripts as $($octopusBuiltInWorkerCredential.UserName) ..."
             $args = @(
                 'builtin-worker',
                 '--instance', $name,
-                '--username', $octopusRunOnServerCredential.UserName,
-                '--password', $octopusRunOnServerCredential.GetNetworkCredential().Password
+                '--username', $octopusBuiltInWorkerCredential.UserName,
+                '--password', $octopusBuiltInWorkerCredential.GetNetworkCredential().Password
             )
-            Update-InstallState "OctopusRunAsUsername" $octopusRunOnServerCredential.UserName
-            Update-InstallState "OctopusRunAsPassword" ($octopusRunOnServerCredential.Password | ConvertFrom-SecureString)
+            Update-InstallState "OctopusRunAsUsername" $octopusBuiltInWorkerCredential.UserName
+            Update-InstallState "OctopusRunAsPassword" ($octopusBuiltInWorkerCredential.Password | ConvertFrom-SecureString)
             Invoke-OctopusServerCommand $args
         } else {
-            throw "'OctopusRunOnServerCredential' is only supported from Octopus 4.2 and newer."
+            throw "'OctopusBuiltInWorkerCredential' is only supported from Octopus 4.2 and newer."
         }
     }
 
@@ -1111,7 +1111,7 @@ function Test-TargetResource {
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
         [string]$LicenseKey = $null,
         [bool]$GrantDatabasePermissions = $true,
-        [PSCredential]$OctopusRunOnServerCredential = [PSCredential]::Empty
+        [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty
     )
 
     # make sure the global is up to date
@@ -1134,7 +1134,7 @@ function Test-TargetResource {
             -HomeDirectory $HomeDirectory `
             -LicenseKey $LicenseKey `
             -GrantDatabasePermissions $GrantDatabasePermissions `
-            -OctopusRunOnServerCredential $OctopusRunOnServerCredential)
+            -OctopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential)
 
     $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
 

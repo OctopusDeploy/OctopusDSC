@@ -47,7 +47,7 @@ Configuration SampleConfig
             LicenseKey = "Base64 encoded xml license key"
 
             # the user account to use for run-on-server tasks (optional)
-            OctopusRunOnServerCredential = $runOnServerCred
+            OctopusBuiltInWorkerCredential = $runOnServerCred
         }
     }
 }

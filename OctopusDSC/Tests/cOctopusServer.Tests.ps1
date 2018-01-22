@@ -176,7 +176,7 @@ try
                         ListenPort = 10935;
                         AllowCollectionOfAnonymousUsageStatistics = $false;
                         HomeDirectory = "C:\Octopus";
-                        OctopusRunOnServerCredential = $runAsCred
+                        OctopusBuiltInWorkerCredential = $runAsCred
                     }
 
                     Set-TargetResource @haparams 
@@ -225,7 +225,7 @@ try
                         ListenPort = 10935;
                         AllowCollectionOfAnonymousUsageStatistics = $false;
                         HomeDirectory = "C:\Octopus";
-                        OctopusRunOnServerCredential = $runAsCred
+                        OctopusBuiltInWorkerCredential = $runAsCred
                     }
 
                     Set-TargetResource @haparams 
