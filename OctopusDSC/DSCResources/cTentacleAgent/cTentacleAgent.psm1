@@ -523,7 +523,7 @@ function New-Tentacle {
         )
 
         if (($null -ne $policy) -and ($policy -ne "")) {
-            $registerArguments += @("--policy", $policy)
+            $registerArguments += @("--policy","`"$policy`"")
         }
 
         if (($null -ne $octopusServerThumbprint) -and ($octopusServerThumbprint -ne "")) {
