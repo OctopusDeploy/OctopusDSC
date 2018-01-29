@@ -12,7 +12,7 @@ class cOctopusServer : OMI_BaseResource
   [Write] string DownloadUrl;
   [Write] uint16 ListenPort;
   [Write] boolean ForceSSL;
-  [Write] boolean EnableHSTS;
+  [Write] boolean HSTSEnabled;
   [Write] uint16 HSTSMaxAge;
   [Write, ValueMap{"UsernamePassword", "Domain", "Ignore"}, Values{"UsernamePassword", "Domain", "Ignore"}] string LegacyWebAuthenticationMode;
   [Write] boolean AutoLoginEnabled;
