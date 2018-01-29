@@ -31,6 +31,8 @@ function Get-TargetResource {
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$LegacyWebAuthenticationMode = 'Ignore',
         [bool]$ForceSSL = $false,
+        [bool]$HSTSEnabled = $false,
+        [int]$HSTSMaxAge = 3600, # 1 hour
         [int]$ListenPort = 10943,
         [bool]$AutoLoginEnabled = $false,
         [PSCredential]$OctopusServiceCredential,
@@ -74,6 +76,8 @@ function Get-TargetResource {
     $existingWebListenPrefix = $null
     $existingSqlDbConnectionString = $null
     $existingForceSSL = $null
+    $existingHSTSEnabled = $null
+    $existingHSTSMaxAge = $null
     $existingOctopusUpgradesAllowChecking = $null
     $existingOctopusUpgradesIncludeStatistics = $null
     $existingListenPort = $null
@@ -96,6 +100,8 @@ function Get-TargetResource {
         $existingSqlDbConnectionString = $existingConfig.OctopusStorageExternalDatabaseConnectionString
         $existingWebListenPrefix = $existingConfig.OctopusWebPortalListenPrefixes
         $existingForceSSL = $existingConfig.OctopusWebPortalForceSsl
+        $existingHSTSEnabled = $existingConfig.OctopusWebPortalHstsEnabled
+        $existingHSTSMaxAge = $existingConfig.OctopusWebPortalHstsMaxAge
         $existingOctopusUpgradesAllowChecking = $existingConfig.OctopusUpgradesAllowChecking
         $existingOctopusUpgradesIncludeStatistics = $existingConfig.OctopusUpgradesIncludeStatistics
         $existingListenPort = $existingConfig.OctopusCommunicationsServicesPort
@@ -146,6 +152,8 @@ function Get-TargetResource {
         WebListenPrefix                           = $existingWebListenPrefix;
         SqlDbConnectionString                     = $existingSqlDbConnectionString;
         ForceSSL                                  = $existingForceSSL;
+        HSTSEnabled                               = $existingHSTSEnabled;
+        HSTSMaxAge                                = $existingHSTSMaxAge;
         AllowUpgradeCheck                         = $existingOctopusUpgradesAllowChecking;
         AllowCollectionOfAnonymousUsageStatistics = $existingOctopusUpgradesIncludeStatistics;
         ListenPort                                = $existingListenPort;
@@ -198,6 +206,8 @@ function Import-ServerConfig {
             OctopusStorageExternalDatabaseConnectionString = $config.Octopus.Storage.ExternalDatabaseConnectionString
             OctopusWebPortalListenPrefixes                 = $config.Octopus.WebPortal.ListenPrefixes
             OctopusWebPortalForceSsl                       = [System.Convert]::ToBoolean($config.Octopus.WebPortal.ForceSSL)
+            OctopusWebPortalHstsEnabled                    = [System.Convert]::ToBoolean($config.Octopus.WebPortal.HSTSEnabled)
+            OctopusWebPortalHstsMaxAge                     = [System.Convert]::ToBoolean($config.Octopus.WebPortal.HSTSMaxAge)
             OctopusUpgradesAllowChecking                   = [System.Convert]::ToBoolean($config.Octopus.Upgrades.AllowChecking)
             OctopusUpgradesIncludeStatistics               = [System.Convert]::ToBoolean($config.Octopus.Upgrades.IncludeStatistics)
             OctopusCommunicationsServicesPort              = $config.Octopus.Communications.ServicesPort
@@ -220,6 +230,8 @@ function Import-ServerConfig {
             OctopusStorageExternalDatabaseConnectionString = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Storage.ExternalDatabaseConnectionString"]/text()').Value
             OctopusWebPortalListenPrefixes                 = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.WebPortal.ListenPrefixes"]/text()').Value
             OctopusWebPortalForceSsl                       = [System.Convert]::ToBoolean($xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.WebPortal.ForceSsl"]/text()').Value)
+            OctopusWebPortalHstsEnabled                    = [System.Convert]::ToBoolean($xml.SelectSingleNode('/octopus-settings.set[@key="Octopus.WebPortal.HstsEnabled"]/text()').Value)
+            OctopusWebPortalHstsMaxAge                     = [System.Convert]::ToBoolean($xml.SelectSingleNode('/octopus-settings.set[@key="Octopus.WebPortal.HstsMaxAge"]/text()').Value)
             OctopusUpgradesAllowChecking                   = [System.Convert]::ToBoolean($xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Upgrades.AllowChecking"]/text()').Value)
             OctopusUpgradesIncludeStatistics               = [System.Convert]::ToBoolean($xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Upgrades.IncludeStatistics"]/text()').Value)
             OctopusCommunicationsServicesport              = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Communications.ServicesPort"]/text()').Value
@@ -304,6 +316,8 @@ function Set-TargetResource {
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$LegacyWebAuthenticationMode = 'Ignore',
         [bool]$ForceSSL = $false,
+        [bool]$HSTSEnabled = $false,
+        [int]$HSTSMaxAge = 3600, # 1 hour
         [int]$ListenPort = 10943,
         [bool]$AutoLoginEnabled = $false,
         [PSCredential]$OctopusServiceCredential,
@@ -328,6 +342,8 @@ function Set-TargetResource {
             -AllowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
             -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
             -ForceSSL $ForceSSL `
+            -HSTSEnabled $HSTSEnabled `
+            -HSTSMaxAge $HSTSMaxAge `
             -ListenPort $ListenPort `
             -AutoLoginEnabled $AutoLoginEnabled `
             -OctopusServiceCredential $OctopusServiceCredential `
@@ -357,6 +373,8 @@ function Set-TargetResource {
             -allowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
             -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
             -forceSSL $ForceSSL `
+            -hstsEnabled $HSTSEnabled `
+            -hstsMaxAge $HSTSMaxAge `
             -listenPort $ListenPort `
             -autoLoginEnabled $AutoLoginEnabled `
             -homeDirectory $HomeDirectory `
@@ -382,6 +400,8 @@ function Set-TargetResource {
                 -allowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
                 -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
                 -forceSSL $ForceSSL `
+                -hstsEnabled $HSTSEnabled `
+                -hstsMaxAge $HSTSMaxAge `
                 -listenPort $ListenPort `
                 -autoLoginEnabled $AutoLoginEnabled `
                 -homeDirectory $HomeDirectory `
@@ -433,6 +453,8 @@ function Set-OctopusDeployConfiguration {
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$legacyWebAuthenticationMode = 'Ignore',
         [bool]$forceSSL = $false,
+        [bool]$HSTSEnabled = $false,
+        [int]$hstsMaxAge = 3600, # 1 hour
         [int]$listenPort = 10943,
         [bool]$autoLoginEnabled = $false,
         [string]$homeDirectory = $null,
@@ -450,6 +472,8 @@ function Set-OctopusDeployConfiguration {
         '--upgradeCheck', $allowUpgradeCheck,
         '--upgradeCheckWithStatistics', $allowCollectionOfAnonymousUsageStatistics,
         '--webForceSSL', $forceSSL,
+        '--hstsEnabled', $HSTSEnabled,
+        '--hstsMaxAge', $HSTSMaxAge,
         '--webListenPrefixes', $webListenPrefix,
         '--commsListenPort', $listenPort
     )
@@ -575,7 +599,7 @@ function Set-OctopusDeployConfiguration {
 }
 
 function Test-ReconfigurationRequired($currentState, $desiredState) {
-    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'AllowCollectionOfAnonymousUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'LicenseKey', 'OctopusServiceCredential', 'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled', 'OctopusBuiltInWorkerCredential')
+    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'HSTSEnabled', 'HSTSMaxAge', 'AllowCollectionOfAnonymousUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'LicenseKey', 'OctopusServiceCredential', 'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled', 'OctopusBuiltInWorkerCredential')
     foreach ($property in $reconfigurableProperties) {
         write-verbose "Checking property '$property'"
         if ($currentState.Item($property) -is [PSCredential]) {
@@ -830,6 +854,8 @@ function Install-OctopusDeploy {
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$legacyWebAuthenticationMode = 'Ignore',
         [bool]$forceSSL = $false,
+        [bool]$hstsEnabled = $false,
+        [int]$hstsMaxAge = 3600, # 1 hour
         [int]$listenPort = 10943,
         [bool]$autoLoginEnabled = $false,
         [string]$homeDirectory = $null,
@@ -886,6 +912,8 @@ function Install-OctopusDeploy {
         '--upgradeCheck', $allowUpgradeCheck,
         '--upgradeCheckWithStatistics', $allowCollectionOfAnonymousUsageStatistics,
         '--webForceSSL', $forceSSL,
+        '--hstsEnabled', $hstsEnabled,
+        '--hstsMaxAge', $hstsMaxAge,
         '--webListenPrefixes', $webListenPrefix,
         '--commsListenPort', $listenPort
     )
@@ -1104,6 +1132,8 @@ function Test-TargetResource {
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$LegacyWebAuthenticationMode = 'Ignore',
         [bool]$ForceSSL = $false,
+        [bool]$HSTSEnabled = $false,
+        [int]$HSTSMaxAge = 3600, # 1 hour
         [int]$ListenPort = 10943,
         [bool]$AutoLoginEnabled = $false,
         [PSCredential]$OctopusServiceCredential,
@@ -1128,6 +1158,8 @@ function Test-TargetResource {
             -AllowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
             -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
             -ForceSSL $ForceSSL `
+            -HSTSEnabled $HSTSEnabled `
+            -HSTSMaxAge $HSTSMaxAge `
             -ListenPort $ListenPort `
             -AutoLoginEnabled $AutoLoginEnabled `
             -OctopusServiceCredential $OctopusServiceCredential `
