@@ -251,6 +251,10 @@ function Test-OctopusVersionSupportsAutoLoginEnabled {
     return Test-OctopusVersionNewerThan (New-Object System.Version 3, 5, 0)
 }
 
+function Test-OctopusVersionSupportsHsts {
+    return Test-OctopusVersionNewerThan (New-Object System.Version 3, 13, 0)
+}
+
 function Test-OctopusVersionSupportsRunAsCredential {
     #temporary hack until runas is released
     $fileVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($octopusServerExePath)
@@ -269,7 +273,7 @@ function Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance {
     return Test-OctopusVersionNewerThan (New-Object System.Version 3, 16, 4)
 }
 
-Function Test-OctopusVersionRequiresDatabaseBeforeConfigure {
+function Test-OctopusVersionRequiresDatabaseBeforeConfigure {
     return Test-OctopusVersionNewerThan (New-Object System.Version 4, 0, 0)
 }
 
@@ -472,8 +476,6 @@ function Set-OctopusDeployConfiguration {
         '--upgradeCheck', $allowUpgradeCheck,
         '--upgradeCheckWithStatistics', $allowCollectionOfAnonymousUsageStatistics,
         '--webForceSSL', $forceSSL,
-        '--hstsEnabled', $HSTSEnabled,
-        '--hstsMaxAge', $HSTSMaxAge,
         '--webListenPrefixes', $webListenPrefix,
         '--commsListenPort', $listenPort
     )
@@ -487,6 +489,16 @@ function Set-OctopusDeployConfiguration {
         if (-not ($autoLoginEnabled)) {
             throw "AutoLoginEnabled is only supported from Octopus 3.5.0."
         }
+    }
+
+    if (Test-OctopusVersionSupportsHsts) {
+        $args += @(
+            '--hstsEnabled', $HSTSEnabled,
+            '--hstsMaxAge', $HSTSMaxAge
+        )
+    }
+    else {
+        throw "HSTS is only supported for Octopus versions newer than 3.13.0"
     }
 
     if (Test-OctopusVersionSupportsShowConfiguration) {
@@ -912,8 +924,6 @@ function Install-OctopusDeploy {
         '--upgradeCheck', $allowUpgradeCheck,
         '--upgradeCheckWithStatistics', $allowCollectionOfAnonymousUsageStatistics,
         '--webForceSSL', $forceSSL,
-        '--hstsEnabled', $hstsEnabled,
-        '--hstsMaxAge', $hstsMaxAge,
         '--webListenPrefixes', $webListenPrefix,
         '--commsListenPort', $listenPort
     )
@@ -981,6 +991,16 @@ function Install-OctopusDeploy {
     }
     elseif ($autoLoginEnabled) {
         throw "AutoLoginEnabled is only supported from Octopus 3.5.0."
+    }
+
+    if (Test-OctopusVersionSupportsHsts) {
+        $args += @(
+            '--hstsEnabled', $HSTSEnabled,
+            '--hstsMaxAge', $HSTSMaxAge
+        )
+    }
+    else {
+        throw "HSTS is only supported for Octopus versions newer than 3.13.0"
     }
 
     if (Test-OctopusVersionSupportsShowConfiguration) {
