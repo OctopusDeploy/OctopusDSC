@@ -34,6 +34,8 @@ Configuration SampleConfig
             ForceSSL = $false
             ListenPort = 10943
             DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer"
+            HSTSEnabled = $false
+            HSTSMaxAge = 3600 # 1hour
 
             # for pre 3.5, valid values are "UsernamePassword"
             # for 3.5 and above, only "Ignore" is valid (this is the default value)
@@ -88,13 +90,15 @@ When `State` is `Started`, the resource will ensure that the Octopus Servr windo
 | `LegacyWebAuthenticationMode`                | `string` - `UsernamePassword`, `Domain` or `Ignore` | `Ignore`                                                        | For Octopus version older than 3.5, allows you to configure how users login. For 3.5 and above, this must be set to `ignore`.  |
 | `ForceSSL`                                   | `boolean`                                           | `$false`                                                        | Whether SSL should be required (HTTP requests get redirected to HTTPS) |
 | `ListenPort`                                 | `int`                                               | `10943`                                                         | The port on which the Server should listen for communication from `Polling` Tentacles. |
+| `HSTSEnabled`                                | `boolean`                                           | `$false`                                                        | Whether Octopus should send the HSTS header |
+| `HSTSMaxAge`                                 | `int`                                               | `3600`                                                          | The max age of the HSTS header |
 | `AutoLoginEnabled`                           | `boolean`                                           | `$false`                                                        | If an authentication provider is enabled that supports pass through authentcation (eg Active Directory), allow the user to automatically sign in. Only supported from Octopus 3.5. |
 | `OctopusServiceCredential`                   | `PSCredential`                                      | `[PSCredential]::Empty`                                         | Credentials of the account used to run the Octopus Service |
 | `HomeDirectory`                              | `string`                                            | `C:\Octopus`                                                    | Home directory for Octopus logs and config (where supported) |
 | `LicenseKey`                                 | `string`                                            |                                                                 | The Base64 (UTF8) encoded license key. If not supplied, uses a free license. Drift detection is only supported from Octopus 4.1.3. |
 | `GrantDatabasePermissions`                   | `boolean`                                           | `$true`                                                         | Whether to grant `db_owner` permissions to the service account user (`$OctopusServiceCredential` user if supplied, or `NT AUTHORITY\System`)  |
 | `OctopusMasterKey`                           | `PSCredential`                                      | `[PSCredential]::Empty`                                         | The master key for the existing database. |
-| `OctopusBuiltInWorkerCredential`               | `PSCredential`                                      | `[PSCredential]::Empty`                                         | The user account to use to execute run-on-server scripts. If not supplied, executes scripts under the service account used for `Octopus.Server.exe` |
+| `OctopusBuiltInWorkerCredential`             | `PSCredential`                                      | `[PSCredential]::Empty`                                         | The user account to use to execute run-on-server scripts. If not supplied, executes scripts under the service account used for `Octopus.Server.exe` |
 
 ## Drift
 
