@@ -73,3 +73,9 @@ describe windows_dsc do
   it { should be_able_to_get_dsc_configuration }
   it { should have_applied_dsc_configuration_successfully }
 end
+
+#hsts
+describe command("$ProgressPreference = 'SilentlyContinue'; $headers = (Invoke-WebRequest -Uri #{ENV['OctopusServerUrl']} -UseBasicParsing).Headers; $headers['Strict-Transport-Security']") do
+  its(:exit_status) { should eq 0 }
+  its(:stdout) { should match /max-age=1800/ }
+end
