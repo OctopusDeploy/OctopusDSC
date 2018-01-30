@@ -13,7 +13,7 @@ class cOctopusServer : OMI_BaseResource
   [Write] uint16 ListenPort;
   [Write] boolean ForceSSL;
   [Write] boolean HSTSEnabled;
-  [Write] uint16 HSTSMaxAge;
+  [Write] uint64 HSTSMaxAge;
   [Write, ValueMap{"UsernamePassword", "Domain", "Ignore"}, Values{"UsernamePassword", "Domain", "Ignore"}] string LegacyWebAuthenticationMode;
   [Write] boolean AutoLoginEnabled;
   [Write, EmbeddedInstance ("MSFT_Credential")] string OctopusServiceCredential;

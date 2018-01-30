@@ -32,7 +32,7 @@ function Get-TargetResource {
         [string]$LegacyWebAuthenticationMode = 'Ignore',
         [bool]$ForceSSL = $false,
         [bool]$HSTSEnabled = $false,
-        [int]$HSTSMaxAge = 3600, # 1 hour
+        [Int64]$HSTSMaxAge = 3600, # 1 hour
         [int]$ListenPort = 10943,
         [bool]$AutoLoginEnabled = $false,
         [PSCredential]$OctopusServiceCredential,
@@ -319,7 +319,7 @@ function Set-TargetResource {
         [string]$LegacyWebAuthenticationMode = 'Ignore',
         [bool]$ForceSSL = $false,
         [bool]$HSTSEnabled = $false,
-        [int]$HSTSMaxAge = 3600, # 1 hour
+        [Int64]$HSTSMaxAge = 3600, # 1 hour
         [int]$ListenPort = 10943,
         [bool]$AutoLoginEnabled = $false,
         [PSCredential]$OctopusServiceCredential,
@@ -456,7 +456,7 @@ function Set-OctopusDeployConfiguration {
         [string]$legacyWebAuthenticationMode = 'Ignore',
         [bool]$forceSSL = $false,
         [bool]$hstsEnabled = $false,
-        [int]$hstsMaxAge = 3600, # 1 hour
+        [Int64]$hstsMaxAge = 3600, # 1 hour
         [int]$listenPort = 10943,
         [bool]$autoLoginEnabled = $false,
         [string]$homeDirectory = $null,
@@ -865,7 +865,7 @@ function Install-OctopusDeploy {
         [string]$legacyWebAuthenticationMode = 'Ignore',
         [bool]$forceSSL = $false,
         [bool]$hstsEnabled = $false,
-        [int]$hstsMaxAge = 3600, # 1 hour
+        [Int64]$hstsMaxAge = 3600, # 1 hour
         [int]$listenPort = 10943,
         [bool]$autoLoginEnabled = $false,
         [string]$homeDirectory = $null,
@@ -1151,7 +1151,7 @@ function Test-TargetResource {
         [string]$LegacyWebAuthenticationMode = 'Ignore',
         [bool]$ForceSSL = $false,
         [bool]$HSTSEnabled = $false,
-        [int]$HSTSMaxAge = 3600, # 1 hour
+        [Int64]$HSTSMaxAge = 3600, # 1 hour
         [int]$ListenPort = 10943,
         [bool]$AutoLoginEnabled = $false,
         [PSCredential]$OctopusServiceCredential,
