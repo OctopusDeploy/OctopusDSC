@@ -29,10 +29,6 @@ Configuration Server_Scenario_01_Install
             # The url that Octopus will listen on
             WebListenPrefix = "http://localhost:81"
 
-            # Enable HSTS
-            HSTSEnabled = $true
-            HSTSMaxAge = 1800 # 30 minutes
-
             SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario1;Trusted_Connection=True;"
 
             # The admin user to create
