@@ -230,8 +230,6 @@ function Import-ServerConfig {
             OctopusStorageExternalDatabaseConnectionString = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Storage.ExternalDatabaseConnectionString"]/text()').Value
             OctopusWebPortalListenPrefixes                 = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.WebPortal.ListenPrefixes"]/text()').Value
             OctopusWebPortalForceSsl                       = [System.Convert]::ToBoolean($xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.WebPortal.ForceSsl"]/text()').Value)
-            OctopusWebPortalHstsEnabled                    = [System.Convert]::ToBoolean($xml.SelectSingleNode('/octopus-settings.set[@key="Octopus.WebPortal.HstsEnabled"]/text()').Value)
-            OctopusWebPortalHstsMaxAge                     = [System.Convert]::ToBoolean($xml.SelectSingleNode('/octopus-settings.set[@key="Octopus.WebPortal.HstsMaxAge"]/text()').Value)
             OctopusUpgradesAllowChecking                   = [System.Convert]::ToBoolean($xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Upgrades.AllowChecking"]/text()').Value)
             OctopusUpgradesIncludeStatistics               = [System.Convert]::ToBoolean($xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Upgrades.IncludeStatistics"]/text()').Value)
             OctopusCommunicationsServicesport              = $xml.SelectSingleNode('/octopus-settings/set[@key="Octopus.Communications.ServicesPort"]/text()').Value
@@ -457,7 +455,7 @@ function Set-OctopusDeployConfiguration {
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$legacyWebAuthenticationMode = 'Ignore',
         [bool]$forceSSL = $false,
-        [bool]$HSTSEnabled = $false,
+        [bool]$hstsEnabled = $false,
         [int]$hstsMaxAge = 3600, # 1 hour
         [int]$listenPort = 10943,
         [bool]$autoLoginEnabled = $false,
@@ -493,11 +491,11 @@ function Set-OctopusDeployConfiguration {
 
     if (Test-OctopusVersionSupportsHsts) {
         $args += @(
-            '--hstsEnabled', $HSTSEnabled,
-            '--hstsMaxAge', $HSTSMaxAge
+            '--hstsEnabled', $hstsEnabled,
+            '--hstsMaxAge', $hstsMaxAge
         )
     }
-    elseif ($HSTSEnabled) {
+    elseif ($hstsEnabled) {
         throw "HSTS is only supported for Octopus versions newer than 3.13.0"
     }
 
@@ -995,11 +993,11 @@ function Install-OctopusDeploy {
 
     if (Test-OctopusVersionSupportsHsts) {
         $args += @(
-            '--hstsEnabled', $HSTSEnabled,
-            '--hstsMaxAge', $HSTSMaxAge
+            '--hstsEnabled', $hstsEnabled,
+            '--hstsMaxAge', $hstsMaxAge
         )
     }
-    elseif ($HSTSEnabled) {
+    elseif ($hstsEnabled) {
         throw "HSTS is only supported for Octopus versions newer than 3.13.0"
     }
 
