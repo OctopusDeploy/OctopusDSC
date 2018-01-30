@@ -497,7 +497,7 @@ function Set-OctopusDeployConfiguration {
             '--hstsMaxAge', $HSTSMaxAge
         )
     }
-    else {
+    elseif ($HSTSEnabled) {
         throw "HSTS is only supported for Octopus versions newer than 3.13.0"
     }
 
@@ -999,7 +999,7 @@ function Install-OctopusDeploy {
             '--hstsMaxAge', $HSTSMaxAge
         )
     }
-    else {
+    elseif ($HSTSEnabled) {
         throw "HSTS is only supported for Octopus versions newer than 3.13.0"
     }
 
