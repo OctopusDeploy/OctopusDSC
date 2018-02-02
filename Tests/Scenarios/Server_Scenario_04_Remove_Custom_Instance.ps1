@@ -31,7 +31,7 @@ Configuration Server_Scenario_04_Remove_Custom_Instance
             OctopusAdminCredential = $cred
 
             # dont mess with stats
-            AllowCollectionOfAnonymousUsageStatistics = $false
+            AllowCollectionOfUsageStatistics = $false
         }
     }
 }

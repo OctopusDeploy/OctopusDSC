@@ -40,7 +40,7 @@ Configuration Server_Scenario_01_InstallSecondNode
             ListenPort = 10935
 
             # dont mess with stats
-            AllowCollectionOfAnonymousUsageStatistics = $false
+            AllowCollectionOfUsageStatistics = $false
 
             HomeDirectory = "C:\ChezOctopusSecondNode"
         }

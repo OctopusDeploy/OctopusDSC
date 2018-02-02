@@ -37,7 +37,7 @@ Configuration Server_Scenario_02_Remove
             OctopusAdminCredential = $cred
 
             # dont mess with stats
-            AllowCollectionOfAnonymousUsageStatistics = $false
+            AllowCollectionOfUsageStatistics = $false
         }
     }
 }

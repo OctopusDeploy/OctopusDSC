@@ -35,7 +35,7 @@ Configuration Server_Scenario_01_Install
             OctopusAdminCredential = $cred
 
             # dont mess with stats
-            AllowCollectionOfAnonymousUsageStatistics = $false
+            AllowCollectionOfUsageStatistics = $false
 
             HomeDirectory = "C:\ChezOctopus"
 

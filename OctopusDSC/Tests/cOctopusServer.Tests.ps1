@@ -126,7 +126,7 @@ try
                         OctopusMasterKey = $MasterKeyCred;
                         OctopusAdminCredential = $cred;
                         ListenPort = 10935;
-                        AllowCollectionOfAnonymousUsageStatistics = $false;
+                        AllowCollectionOfUsageStatistics = $false;
                         HomeDirectory = "C:\ChezOctopusSecondNode";
                     }
 
@@ -176,7 +176,7 @@ try
                         SqlDbConnectionString = "Server=(local);Database=Octopus;Trusted_Connection=True;";
                         OctopusAdminCredential = $cred;
                         ListenPort = 10935;
-                        AllowCollectionOfAnonymousUsageStatistics = $false;
+                        AllowCollectionOfUsageStatistics = $false;
                         HomeDirectory = "C:\Octopus";
                         OctopusBuiltInWorkerCredential = $runAsCred
                     }
@@ -226,7 +226,7 @@ try
                         SqlDbConnectionString = "Server=(local);Database=Octopus;Trusted_Connection=True;";
                         OctopusAdminCredential = $cred;
                         ListenPort = 10935;
-                        AllowCollectionOfAnonymousUsageStatistics = $false;
+                        AllowCollectionOfUsageStatistics = $false;
                         HomeDirectory = "C:\Octopus";
                         OctopusBuiltInWorkerCredential = $runAsCred
                     }
