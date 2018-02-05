@@ -31,7 +31,7 @@ Configuration Server_Scenario_03_Install_Custom_Instance
             OctopusAdminCredential = $cred
 
             # dont mess with stats
-            AllowCollectionOfAnonymousUsageStatistics = $false
+            AllowCollectionOfUsageStatistics = $false
         }
 
         cOctopusServerUsernamePasswordAuthentication "Enable Username/Password Auth"

@@ -37,7 +37,7 @@ Configuration Server_Scenario_05_Reinstall
             DownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.3.3.24-x64.msi"
 
             # dont mess with stats
-            AllowCollectionOfAnonymousUsageStatistics = $false
+            AllowCollectionOfUsageStatistics = $false
         }
 
         cOctopusEnvironment "Create 'UAT 1' Environment"

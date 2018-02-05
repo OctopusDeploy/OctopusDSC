@@ -8,7 +8,7 @@ class cOctopusServer : OMI_BaseResource
   [Write] string SqlDbConnectionString;
   [Write, EmbeddedInstance ("MSFT_Credential")] string OctopusAdminCredential;
   [Write] boolean AllowUpgradeCheck;
-  [Write] boolean AllowCollectionOfAnonymousUsageStatistics;
+  [Write] boolean AllowCollectionOfUsageStatistics;
   [Write] string DownloadUrl;
   [Write] uint16 ListenPort;
   [Write] boolean ForceSSL;

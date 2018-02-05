@@ -33,7 +33,7 @@ Configuration SampleConfig
 
             # optional parameters
             AllowUpgradeCheck = $true
-            AllowCollectionOfAnonymousUsageStatistics = $true
+            AllowCollectionOfUsageStatistics = $true
             ForceSSL = $false
             ListenPort = 10943
             DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer"

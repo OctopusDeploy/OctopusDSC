@@ -62,7 +62,7 @@ Configuration Server_Scenario_10_RunAs
             OctopusAdminCredential = $cred
 
             # dont mess with stats
-            AllowCollectionOfAnonymousUsageStatistics = $false
+            AllowCollectionOfUsageStatistics = $false
 
             DownloadUrl = "https://octopus-testing.s3.amazonaws.com/server/Octopus.2018.1.0-beta0106-x64.msi"
 

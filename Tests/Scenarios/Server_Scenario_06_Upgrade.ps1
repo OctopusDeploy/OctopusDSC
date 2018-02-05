@@ -37,7 +37,7 @@ Configuration Server_Scenario_06_Upgrade
             OctopusAdminCredential = $cred
 
             # dont mess with stats
-            AllowCollectionOfAnonymousUsageStatistics = $false
+            AllowCollectionOfUsageStatistics = $false
         }
 
         cOctopusEnvironment "Delete 'UAT 1' Environment"

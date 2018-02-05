@@ -1,5 +1,17 @@
 # cOctopusServer
 
+## Important note about usage statistics
+
+We had previously made an inadvertent representation with regard to the collection of usage statistics. We had called the parameter `AllowCollectionOfAnonymousUsageStatistics`, when in fact it is possible for us to link this usage to your license key.
+
+If this is enabled, we only collect aggregated feature usage statistics, such as number of projects, number of environments, number of machines etc. We never collect detailed information - things like names, descriptions, urls, variables etc are never collected. Please see [our docs](https://octopus.com/docs/administration/security/outbound-requests#Outboundrequests-WhatinformationisincludedwhenOctopuschecksforupdates) for full details on whats included.
+
+As this was a change we wanted to bring to your attention, we have bumped the major version number (to represent a breaking change) and renamed the parameter to allow you the chance to change the setting.
+
+If you wish to have your usage data deleted, please send us an email to <support@octopus.com> with the serial number from your license key and we will delete it from our database.
+
+We sincerely apologise for the mistake.
+
 ## Sample
 
 First, ensure the OctopusDSC module is on your `$env:PSModulePath`. Then you can create and apply configuration like this.
@@ -30,7 +42,7 @@ Configuration SampleConfig
 
             # optional parameters
             AllowUpgradeCheck = $true
-            AllowCollectionOfAnonymousUsageStatistics = $true
+            AllowCollectionOfUsageStatistics = $true
             ForceSSL = $false
             ListenPort = 10943
             DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer"
@@ -76,29 +88,29 @@ When `State` is `Started`, the resource will ensure that the Octopus Servr windo
 
 ## Properties
 
-| Property                                     | Type                                                | Default Value                                                   | Description |
-| -------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------| ------------|
-| `Ensure`                                     | `string` - `Present` or `Absent`                    | `Present`                                                       | The desired state of the Octopus Server - effectively whether to install or uninstall. |
-| `Name`                                       | `string`                                            |                                                                 | The name of the Octopus Server instance. Use `OctopusServer` by convention unless you have more than one instance. |
-| `State`                                      | `string` - `Started` or `Stopped`                   | `Started`                                                       | The desired state of the Octopus Server service. |
-| `DownloadUrl`                                | `string`                                            | `https://octopus.com/downloads/latest/WindowsX64/OctopusServer` | The url to use to download the msi. |
-| `SqlDbConnectionString`                      | `string`                                            |                                                                 | The connection string to use to connect to the SQL Server database. |
-| `WebListenPrefix`                            | `string`                                            |                                                                 | A semi-colon (`;`) delimited list of urls on which the server should listen. eg `https://octopus.example.com:81`. |
-| `OctopusAdminCredential`                     | `PSCredential`                                      | `[PSCredential]::Empty`                                         | The name/password of the administrative user to create on first install. |
-| `AllowUpgradeCheck`                          | `boolean`                                           | `$true`                                                         | Whether the server should check for updates periodically. |
-| `AllowCollectionOfAnonymousUsageStatistics`  | `boolean`                                           | `$true`                                                         | Allow anonymous reporting of usage statistics. |
-| `LegacyWebAuthenticationMode`                | `string` - `UsernamePassword`, `Domain` or `Ignore` | `Ignore`                                                        | For Octopus version older than 3.5, allows you to configure how users login. For 3.5 and above, this must be set to `ignore`.  |
-| `ForceSSL`                                   | `boolean`                                           | `$false`                                                        | Whether SSL should be required (HTTP requests get redirected to HTTPS) |
-| `ListenPort`                                 | `int`                                               | `10943`                                                         | The port on which the Server should listen for communication from `Polling` Tentacles. |
-| `HSTSEnabled`                                | `boolean`                                           | `$false`                                                        | Whether Octopus should send the HSTS header |
-| `HSTSMaxAge`                                 | `int`                                               | `3600`                                                          | The max age of the HSTS header |
-| `AutoLoginEnabled`                           | `boolean`                                           | `$false`                                                        | If an authentication provider is enabled that supports pass through authentcation (eg Active Directory), allow the user to automatically sign in. Only supported from Octopus 3.5. |
-| `OctopusServiceCredential`                   | `PSCredential`                                      | `[PSCredential]::Empty`                                         | Credentials of the account used to run the Octopus Service |
-| `HomeDirectory`                              | `string`                                            | `C:\Octopus`                                                    | Home directory for Octopus logs and config (where supported) |
-| `LicenseKey`                                 | `string`                                            |                                                                 | The Base64 (UTF8) encoded license key. If not supplied, uses a free license. Drift detection is only supported from Octopus 4.1.3. |
-| `GrantDatabasePermissions`                   | `boolean`                                           | `$true`                                                         | Whether to grant `db_owner` permissions to the service account user (`$OctopusServiceCredential` user if supplied, or `NT AUTHORITY\System`)  |
-| `OctopusMasterKey`                           | `PSCredential`                                      | `[PSCredential]::Empty`                                         | The master key for the existing database. |
-| `OctopusBuiltInWorkerCredential`             | `PSCredential`                                      | `[PSCredential]::Empty`                                         | The user account to use to execute run-on-server scripts. If not supplied, executes scripts under the service account used for `Octopus.Server.exe` |
+| Property                              | Type                                                | Default Value                                                   | Description |
+| ------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------| ------------|
+| `Ensure`                              | `string` - `Present` or `Absent`                    | `Present`                                                       | The desired state of the Octopus Server - effectively whether to install or uninstall. |
+| `Name`                                | `string`                                            |                                                                 | The name of the Octopus Server instance. Use `OctopusServer` by convention unless you have more than one instance. |
+| `State`                               | `string` - `Started` or `Stopped`                   | `Started`                                                       | The desired state of the Octopus Server service. |
+| `DownloadUrl`                         | `string`                                            | `https://octopus.com/downloads/latest/WindowsX64/OctopusServer` | The url to use to download the msi. |
+| `SqlDbConnectionString`               | `string`                                            |                                                                 | The connection string to use to connect to the SQL Server database. |
+| `WebListenPrefix`                     | `string`                                            |                                                                 | A semi-colon (`;`) delimited list of urls on which the server should listen. eg `https://octopus.example.com:81`. |
+| `OctopusAdminCredential`              | `PSCredential`                                      | `[PSCredential]::Empty`                                         | The name/password of the administrative user to create on first install. |
+| `AllowUpgradeCheck`                   | `boolean`                                           | `$true`                                                         | Whether the server should check for updates periodically. |
+| `AllowCollectionOfUsageStatistics`    | `boolean`                                           | `$true`                                                         | Allow reporting of aggregated feature usage statistics during upgrade check, such as number of Tentacles/projects/environments etc. |
+| `LegacyWebAuthenticationMode`         | `string` - `UsernamePassword`, `Domain` or `Ignore` | `Ignore`                                                        | For Octopus version older than 3.5, allows you to configure how users login. For 3.5 and above, this must be set to `ignore`.  |
+| `ForceSSL`                            | `boolean`                                           | `$false`                                                        | Whether SSL should be required (HTTP requests get redirected to HTTPS) |
+| `ListenPort`                          | `int`                                               | `10943`                                                         | The port on which the Server should listen for communication from `Polling` Tentacles. |
+| `HSTSEnabled`                         | `boolean`                                           | `$false`                                                        | Whether Octopus should send the HSTS header |
+| `HSTSMaxAge`                          | `int`                                               | `3600`                                                          | The max age of the HSTS header |
+| `AutoLoginEnabled`                    | `boolean`                                           | `$false`                                                        | If an authentication provider is enabled that supports pass through authentcation (eg Active Directory), allow the user to automatically sign in. Only supported from Octopus 3.5. |
+| `OctopusServiceCredential`            | `PSCredential`                                      | `[PSCredential]::Empty`                                         | Credentials of the account used to run the Octopus Service |
+| `HomeDirectory`                       | `string`                                            | `C:\Octopus`                                                    | Home directory for Octopus logs and config (where supported) |
+| `LicenseKey`                          | `string`                                            |                                                                 | The Base64 (UTF8) encoded license key. If not supplied, uses a free license. Drift detection is only supported from Octopus 4.1.3. |
+| `GrantDatabasePermissions`            | `boolean`                                           | `$true`                                                         | Whether to grant `db_owner` permissions to the service account user (`$OctopusServiceCredential` user if supplied, or `NT AUTHORITY\System`)  |
+| `OctopusMasterKey`                    | `PSCredential`                                      | `[PSCredential]::Empty`                                         | The master key for the existing database. |
+| `OctopusBuiltInWorkerCredential`      | `PSCredential`                                      | `[PSCredential]::Empty`                                         | The user account to use to execute run-on-server scripts. If not supplied, executes scripts under the service account used for `Octopus.Server.exe` |
 
 ## Drift
 
