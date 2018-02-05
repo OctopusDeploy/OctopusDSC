@@ -29,6 +29,6 @@ function Test-EnvVar($variableName) {
 }
 
 function Test-AppExists($appName) {
-  & which $appName | Out-Null
-  return $LASTEXITCODE -eq 0
+  $command = Get-Command $appName -ErrorAction SilentlyContinue
+  return $null -ne $command
 }
