@@ -3,7 +3,7 @@ param(
   [switch]$offline
 )
 
-Start-Transcript .\vagrant-hyperv.log
+Start-Transcript .\vagrant-hyperv.log -Append
 
 # remove psreadline as it interferes with the SMB password prompt
 if(Get-Module PSReadLine)
@@ -45,11 +45,27 @@ if (-not (Test-AppExists "vagrant")) {
 }
 Write-Output "Vagrant installed - good."
 
-if (-not (Test-AppExists "VBoxManage")) {
-  Write-Output "Please install VirtualBox from virtualbox.org."
-  exit 1
+if ((Get-CimInstance Win32_OperatingSystem).PRODUCTTYPE -eq 1) {
+    # client OS detected
+    if ((Get-WindowsOptionalFeature -Online -FeatureName 'Microsoft-Hyper-V').State -eq 'Disabled') {
+        Write-Output 'Please install Hyper-V.'
+        exit 1
+    }
 }
-Write-Output "VirtualBox installed - good."
+else {
+    # server OS detected
+    if ((Get-WindowsFeature 'Hyper-V').State -eq 'Disabled') {
+        Write-Output 'Please install Hyper-V.'
+        exit 1
+    }
+}
+Write-Output "Hyper-V installed - good."
+
+if (-not (Get-VMSwitch -SwitchType External -Name 'External Connection' -ErrorAction SilentlyContinue)) {
+    Write-Output "Please create an external virtual switch named 'External Connection'."
+        exit 1
+}
+Write-Output "External virtual switch detected - good."
 
 Test-PluginInstalled "vagrant-dsc"
 Test-PluginInstalled "vagrant-winrm"
