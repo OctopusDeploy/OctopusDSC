@@ -63,7 +63,7 @@ Write-Output "Hyper-V installed - good."
 
 if (-not (Get-VMSwitch -SwitchType External -Name 'External Connection' -ErrorAction SilentlyContinue)) {
     Write-Output "Please create an external virtual switch named 'External Connection'."
-        exit 1
+    exit 1
 }
 Write-Output "External virtual switch detected - good."
 

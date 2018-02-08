@@ -249,7 +249,9 @@ function Test-OctopusVersionSupportsAutoLoginEnabled {
     return Test-OctopusVersionNewerThan (New-Object System.Version 3, 5, 0)
 }
 
-function Test-OctopusVersionSupportsHst {
+function Test-OctopusVersionSupportsHsts {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseSingularNouns", "")]
+    param()
     return Test-OctopusVersionNewerThan (New-Object System.Version 3, 13, 0)
 }
 
@@ -489,7 +491,7 @@ function Set-OctopusDeployConfiguration {
         }
     }
 
-    if (Test-OctopusVersionSupportsHst) {
+    if (Test-OctopusVersionSupportsHsts) {
         $args += @(
             '--hstsEnabled', $hstsEnabled,
             '--hstsMaxAge', $hstsMaxAge
@@ -991,7 +993,7 @@ function Install-OctopusDeploy {
         throw "AutoLoginEnabled is only supported from Octopus 3.5.0."
     }
 
-    if (Test-OctopusVersionSupportsHst) {
+    if (Test-OctopusVersionSupportsHsts) {
         $args += @(
             '--hstsEnabled', $hstsEnabled,
             '--hstsMaxAge', $hstsMaxAge

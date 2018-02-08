@@ -105,7 +105,7 @@ try
                     Mock Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance { return $true }
                     Mock Test-OctopusVersionRequiresDatabaseBeforeConfigure { return $true }
                     Mock Test-OctopusVersionSupportsAutoLoginEnabled { return $true }
-                    Mock Test-OctopusVersionSupportsHst { return $true }
+                    Mock Test-OctopusVersionSupportsHsts { return $true }
                     Mock Test-OctopusVersionSupportsShowConfiguration { return $true }
                     Mock Test-OctopusVersionNewerThan { return $true }
                     Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
@@ -155,7 +155,7 @@ try
                     Mock Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance { return $true }
                     Mock Test-OctopusVersionRequiresDatabaseBeforeConfigure { return $true }
                     Mock Test-OctopusVersionSupportsAutoLoginEnabled { return $true }
-                    Mock Test-OctopusVersionSupportsHst { return $true }
+                    Mock Test-OctopusVersionSupportsHsts { return $true }
                     Mock Test-OctopusVersionSupportsShowConfiguration { return $true }
                     Mock Test-OctopusVersionNewerThan { return $true }
                     Mock Test-OctopusVersionSupportsRunAsCredential { return $true }
@@ -206,7 +206,7 @@ try
                     Mock Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance { return $true }
                     Mock Test-OctopusVersionRequiresDatabaseBeforeConfigure { return $true }
                     Mock Test-OctopusVersionSupportsAutoLoginEnabled { return $true }
-                    Mock Test-OctopusVersionSupportsHst { return $true }
+                    Mock Test-OctopusVersionSupportsHsts { return $true }
                     Mock Test-OctopusVersionSupportsShowConfiguration { return $true }
                     Mock Test-OctopusVersionNewerThan { return $true }
                     Mock Test-OctopusVersionSupportsRunAsCredential { return $true }
