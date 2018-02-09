@@ -250,6 +250,9 @@ function Test-OctopusVersionSupportsAutoLoginEnabled {
 }
 
 function Test-OctopusVersionSupportsHsts {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseSingularNouns", "")]
+    param()
+    
     return Test-OctopusVersionNewerThan (New-Object System.Version 3, 13, 0)
 }
 
