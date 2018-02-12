@@ -27,7 +27,7 @@ function Get-TargetResource {
         [ValidateNotNullOrEmpty()]
         [PSCredential]$OctopusAdminCredential,
         [bool]$AllowUpgradeCheck = $true,
-        [bool]$AllowCollectionOfAnonymousUsageStatistics = $true,
+        [bool]$AllowCollectionOfUsageStatistics          = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$LegacyWebAuthenticationMode = 'Ignore',
         [bool]$ForceSSL = $false,
@@ -155,7 +155,7 @@ function Get-TargetResource {
         HSTSEnabled                               = $existingHSTSEnabled;
         HSTSMaxAge                                = $existingHSTSMaxAge;
         AllowUpgradeCheck                         = $existingOctopusUpgradesAllowChecking;
-        AllowCollectionOfAnonymousUsageStatistics = $existingOctopusUpgradesIncludeStatistics;
+        AllowCollectionOfUsageStatistics          = $existingOctopusUpgradesIncludeStatistics;
         ListenPort                                = $existingListenPort;
         OctopusAdminCredential                    = $existingOctopusAdminCredential;
         LegacyWebAuthenticationMode               = $existingLegacyWebAuthenticationMode;
@@ -164,7 +164,7 @@ function Get-TargetResource {
         HomeDirectory                             = $existingHomeDirectory;
         LicenseKey                                = $existingLicenseKey;
         GrantDatabasePermissions                  = $GrantDatabasePermissions;
-        OctopusBuiltInWorkerCredential              = $existingOctopusBuiltInWorkerCredential;
+        OctopusBuiltInWorkerCredential            = $existingOctopusBuiltInWorkerCredential;
     }
 
     return $currentResource
@@ -317,7 +317,7 @@ function Set-TargetResource {
         [ValidateNotNullOrEmpty()]
         [PSCredential]$OctopusAdminCredential,
         [bool]$AllowUpgradeCheck = $true,
-        [bool]$AllowCollectionOfAnonymousUsageStatistics = $true,
+        [bool]$AllowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$LegacyWebAuthenticationMode = 'Ignore',
         [bool]$ForceSSL = $false,
@@ -344,7 +344,7 @@ function Set-TargetResource {
             -SqlDbConnectionString $SqlDbConnectionString `
             -OctopusAdminCredential $OctopusAdminCredential `
             -AllowUpgradeCheck $AllowUpgradeCheck `
-            -AllowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
+            -AllowCollectionOfUsageStatistics $AllowCollectionOfUsageStatistics `
             -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
             -ForceSSL $ForceSSL `
             -HSTSEnabled $HSTSEnabled `
@@ -375,7 +375,7 @@ function Set-TargetResource {
             -sqlDbConnectionString $SqlDbConnectionString `
             -OctopusAdminCredential $OctopusAdminCredential `
             -allowUpgradeCheck $AllowUpgradeCheck `
-            -allowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
+            -allowCollectionOfUsageStatistics $AllowCollectionOfUsageStatistics `
             -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
             -forceSSL $ForceSSL `
             -hstsEnabled $HSTSEnabled `
@@ -402,7 +402,7 @@ function Set-TargetResource {
                 -name $Name `
                 -webListenPrefix $WebListenPrefix `
                 -allowUpgradeCheck $AllowUpgradeCheck `
-                -allowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
+                -allowCollectionOfUsageStatistics $AllowCollectionOfUsageStatistics `
                 -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
                 -forceSSL $ForceSSL `
                 -hstsEnabled $HSTSEnabled `
@@ -454,7 +454,7 @@ function Set-OctopusDeployConfiguration {
         [string]$webListenPrefix,
         [Parameter(Mandatory)]
         [bool]$allowUpgradeCheck = $true,
-        [bool]$allowCollectionOfAnonymousUsageStatistics = $true,
+        [bool]$allowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$legacyWebAuthenticationMode = 'Ignore',
         [bool]$forceSSL = $false,
@@ -475,7 +475,7 @@ function Set-OctopusDeployConfiguration {
         '--console',
         '--instance', $name,
         '--upgradeCheck', $allowUpgradeCheck,
-        '--upgradeCheckWithStatistics', $allowCollectionOfAnonymousUsageStatistics,
+        '--upgradeCheckWithStatistics', $allowCollectionOfUsageStatistics,
         '--webForceSSL', $forceSSL,
         '--webListenPrefixes', $webListenPrefix,
         '--commsListenPort', $listenPort
@@ -612,7 +612,7 @@ function Set-OctopusDeployConfiguration {
 }
 
 function Test-ReconfigurationRequired($currentState, $desiredState) {
-    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'HSTSEnabled', 'HSTSMaxAge', 'AllowCollectionOfAnonymousUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'LicenseKey', 'OctopusServiceCredential', 'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled', 'OctopusBuiltInWorkerCredential')
+    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'HSTSEnabled', 'HSTSMaxAge', 'AllowCollectionOfUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'LicenseKey', 'OctopusServiceCredential', 'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled', 'OctopusBuiltInWorkerCredential')
     foreach ($property in $reconfigurableProperties) {
         write-verbose "Checking property '$property'"
         if ($currentState.Item($property) -is [PSCredential]) {
@@ -863,7 +863,7 @@ function Install-OctopusDeploy {
         [ValidateNotNullOrEmpty()]
         [PSCredential]$octopusAdminCredential,
         [bool]$allowUpgradeCheck = $true,
-        [bool]$allowCollectionOfAnonymousUsageStatistics = $true,
+        [bool]$allowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$legacyWebAuthenticationMode = 'Ignore',
         [bool]$forceSSL = $false,
@@ -923,7 +923,7 @@ function Install-OctopusDeploy {
         '--console',
         '--instance', $name,
         '--upgradeCheck', $allowUpgradeCheck,
-        '--upgradeCheckWithStatistics', $allowCollectionOfAnonymousUsageStatistics,
+        '--upgradeCheckWithStatistics', $allowCollectionOfUsageStatistics,
         '--webForceSSL', $forceSSL,
         '--webListenPrefixes', $webListenPrefix,
         '--commsListenPort', $listenPort
@@ -1149,7 +1149,7 @@ function Test-TargetResource {
         [ValidateNotNullOrEmpty()]
         [PSCredential]$OctopusAdminCredential,
         [bool]$AllowUpgradeCheck = $true,
-        [bool]$AllowCollectionOfAnonymousUsageStatistics = $true,
+        [bool]$AllowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$LegacyWebAuthenticationMode = 'Ignore',
         [bool]$ForceSSL = $false,
@@ -1176,7 +1176,7 @@ function Test-TargetResource {
             -SqlDbConnectionString $SqlDbConnectionString `
             -OctopusAdminCredential $OctopusAdminCredential `
             -AllowUpgradeCheck $AllowUpgradeCheck `
-            -AllowCollectionOfAnonymousUsageStatistics $AllowCollectionOfAnonymousUsageStatistics `
+            -AllowCollectionOfUsageStatistics $AllowCollectionOfUsageStatistics `
             -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
             -ForceSSL $ForceSSL `
             -HSTSEnabled $HSTSEnabled `
