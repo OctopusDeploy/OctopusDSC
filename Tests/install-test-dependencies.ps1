@@ -9,11 +9,11 @@ if (-not (Test-Path "c:\ProgramData\Chocolatey")) {
   write-output "##teamcity[blockClosed name='Installing Chocolatey']"
 }
 
-if (-not (Test-Path "C:\tools\ruby23")) {
+if (-not (Test-Path "C:\tools\ruby25")) {
 
   write-output "##teamcity[blockOpened name='Install Ruby']"
 
-  choco install ruby --allow-empty-checksums --yes --version 2.3.3
+  choco install ruby --allow-empty-checksums --yes --version 2.5.0.1 --no-progress
   if ($LASTEXITCODE -ne 0) { exit 1 }
 
   refreshenv
@@ -23,18 +23,18 @@ if (-not (Test-Path "C:\tools\ruby23")) {
     New-Item "C:\temp" -Type Directory | out-null
   }
 
-  Invoke-WebRequest "https://rubygems.org/downloads/rubygems-update-2.6.7.gem" -outFile "C:\temp\rubygems-update-2.6.7.gem"
-  & C:\tools\ruby23\bin\gem.cmd install --local C:\temp\rubygems-update-2.6.7.gem
+  Invoke-WebRequest "https://rubygems.org/downloads/rubygems-update-2.7.4.gem" -outFile "C:\temp\rubygems-update-2.7.4.gem"
+  & C:\tools\ruby25\bin\gem.cmd install --local C:\temp\rubygems-update-2.7.4.gem
   if ($LASTEXITCODE -ne 0) { exit 1 }
-  & C:\tools\ruby23\bin\update_rubygems.bat --no-ri --no-rdoc
+  & C:\tools\ruby25\bin\update_rubygems.bat --no-ri --no-rdoc
   if ($LASTEXITCODE -ne 0) { exit 1 }
 
   write-output "##teamcity[blockClosed name='Install Ruby']"
 
   write-output "##teamcity[blockOpened name='Install ServerSpec']"
 
-  write-output "running 'C:\tools\ruby23\bin\gem.cmd install bundler --version 1.14.4 --no-ri --no-rdoc'"
-  & C:\tools\ruby23\bin\gem.cmd install bundler --version 1.14.4 --no-ri --no-rdoc
+  write-output "running 'C:\tools\ruby25\bin\gem.cmd install bundler --version 1.16.1 --no-ri --no-rdoc'"
+  & C:\tools\ruby25\bin\gem.cmd install bundler --version 1.16.1 --no-ri --no-rdoc --force
   if ($LASTEXITCODE -ne 0) { exit 1 }
 
   write-output "##teamcity[blockClosed name='Install ServerSpec']"
@@ -140,13 +140,18 @@ write-output "##teamcity[blockClosed name='Configuring SQL Server']"
 
 write-output "##teamcity[blockOpened name='Installing gem bundle']"
 
+write-output "Installing msys2"
+& choco install msys2 --yes --no-progress
+
+write-output "bundler"
 # temporary until the base image has the correct version
-write-output "running 'C:\tools\ruby23\bin\gem.cmd install bundler --version 1.14.4 --no-ri --no-rdoc'"
-& C:\tools\ruby23\bin\gem.cmd install bundler --version 1.14.4 --no-ri --no-rdoc
+write-output "running 'C:\tools\ruby25\bin\gem.cmd install bundler --version 1.16.1 --no-ri --no-rdoc'"
+& C:\tools\ruby25\bin\gem.cmd install bundler --version 1.16.1 --no-ri --no-rdoc
 if ($LASTEXITCODE -ne 0) { exit 1 }
 
 Set-Location c:\temp\tests
-& C:\tools\ruby23\bin\bundle.bat _1.14.4_ install --path=vendor
+write-output "installing gem bundle"
+& C:\tools\ruby25\bin\bundle.bat _1.16.1_ install --path=vendor
 if ($LASTEXITCODE -ne 0) { exit 1 }
 
 write-output "##teamcity[blockClosed name='Install gem bundle']"
