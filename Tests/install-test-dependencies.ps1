@@ -143,12 +143,6 @@ write-output "##teamcity[blockOpened name='Installing gem bundle']"
 write-output "Installing msys2"
 & choco install msys2 --yes --no-progress
 
-write-output "bundler"
-# temporary until the base image has the correct version
-write-output "running 'C:\tools\ruby25\bin\gem.cmd install bundler --version 1.16.1 --no-ri --no-rdoc'"
-& C:\tools\ruby25\bin\gem.cmd install bundler --version 1.16.1 --no-ri --no-rdoc
-if ($LASTEXITCODE -ne 0) { exit 1 }
-
 Set-Location c:\temp\tests
 write-output "installing gem bundle"
 & C:\tools\ruby25\bin\bundle.bat _1.16.1_ install --path=vendor
