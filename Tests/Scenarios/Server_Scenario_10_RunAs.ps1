@@ -11,7 +11,8 @@ Configuration Server_Scenario_10_RunAs
     $svccred = New-Object System.Management.Automation.PSCredential (($env:computername + "\OctoSquid"), $svcpass)
 
     $runAsPass = ConvertTo-SecureString "ModeratelyS3cretPassw0rd!" -AsPlainText -Force
-    $runAsCred = New-Object System.Management.Automation.PSCredential (($env:computername + "\OctoMollusc"), $runAsPass)
+    $runAsCredWithMachineName = New-Object System.Management.Automation.PSCredential (($env:computername + "\OctoMollusc"), $runAsPass)
+    $runAsCred = New-Object System.Management.Automation.PSCredential ("OctoMollusc", $runAsPass)
 
     Node "localhost"
     {
@@ -40,7 +41,7 @@ Configuration Server_Scenario_10_RunAs
         {
             Ensure = "Present"
             UserName = "OctoMollusc"
-            Password = $runAsCred
+            Password = $runAsCredWithMachineName
             PasswordChangeRequired = $false
         }
 
