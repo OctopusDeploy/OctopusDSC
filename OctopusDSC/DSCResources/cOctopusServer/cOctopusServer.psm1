@@ -34,7 +34,7 @@ function Get-TargetResource {
         [bool]$HSTSEnabled = $false,
         [Int64]$HSTSMaxAge = 3600, # 1 hour
         [int]$ListenPort = 10943,
-        [bool]$AutoLoginEnabled = $false,
+        [Nullable[bool]]$AutoLoginEnabled = $null,
         [PSCredential]$OctopusServiceCredential,
         [string]$HomeDirectory,
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
@@ -324,7 +324,7 @@ function Set-TargetResource {
         [bool]$HSTSEnabled = $false,
         [Int64]$HSTSMaxAge = 3600, # 1 hour
         [int]$ListenPort = 10943,
-        [bool]$AutoLoginEnabled = $false,
+        [Nullable[bool]]$AutoLoginEnabled = $null,
         [PSCredential]$OctopusServiceCredential,
         [string]$HomeDirectory,
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
@@ -461,7 +461,7 @@ function Set-OctopusDeployConfiguration {
         [bool]$hstsEnabled = $false,
         [Int64]$hstsMaxAge = 3600, # 1 hour
         [int]$listenPort = 10943,
-        [bool]$autoLoginEnabled = $false,
+        [Nullable[bool]]$autoLoginEnabled = $null,
         [string]$homeDirectory = $null,
         [PSCredential]$OctopusServiceCredential,
         [PSCredential]$OctopusMasterKey,
@@ -483,12 +483,13 @@ function Set-OctopusDeployConfiguration {
     if (($homeDirectory -ne "") -and ($null -ne $homeDirectory)) {
         $args += @('--home', $homeDirectory)
     }
-    if (Test-OctopusVersionSupportsAutoLoginEnabled) {
-        $args += @('--autoLoginEnabled', $autoLoginEnabled)
-    }
-    else {
-        if (-not ($autoLoginEnabled)) {
-            throw "AutoLoginEnabled is only supported from Octopus 3.5.0."
+
+    if ($null -ne $autoLoginEnabled) {
+        if (Test-OctopusVersionSupportsAutoLoginEnabled) {
+            $args += @('--autoLoginEnabled', $autoLoginEnabled)
+        }
+        else {
+            throw "AutoLoginEnabled is only supported from Octopus 3.5.0. Please pass `$null for versions older than this."
         }
     }
 
@@ -870,7 +871,7 @@ function Install-OctopusDeploy {
         [bool]$hstsEnabled = $false,
         [Int64]$hstsMaxAge = 3600, # 1 hour
         [int]$listenPort = 10943,
-        [bool]$autoLoginEnabled = $false,
+        [Nullable[bool]]$autoLoginEnabled = $null,
         [string]$homeDirectory = $null,
         [PSCredential]$octopusServiceCredential,
         [PSCredential]$OctopusMasterKey,
@@ -987,11 +988,13 @@ function Install-OctopusDeploy {
         }
     }
 
-    if (Test-OctopusVersionSupportsAutoLoginEnabled) {
-        $args += @('--autoLoginEnabled', $autoLoginEnabled)
-    }
-    elseif ($autoLoginEnabled) {
-        throw "AutoLoginEnabled is only supported from Octopus 3.5.0."
+    if ($null -ne $autoLoginEnabled) {
+        if (Test-OctopusVersionSupportsAutoLoginEnabled) {
+            $args += @('--autoLoginEnabled', $autoLoginEnabled)
+        }
+        else {
+            throw "AutoLoginEnabled is only supported from Octopus 3.5.0. Please pass `$null for versions older than this."
+        }
     }
 
     if (Test-OctopusVersionSupportsHsts) {
@@ -1156,7 +1159,7 @@ function Test-TargetResource {
         [bool]$HSTSEnabled = $false,
         [Int64]$HSTSMaxAge = 3600, # 1 hour
         [int]$ListenPort = 10943,
-        [bool]$AutoLoginEnabled = $false,
+        [Nullable[bool]]$AutoLoginEnabled = $null,
         [PSCredential]$OctopusServiceCredential,
         [string]$HomeDirectory,
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
@@ -1189,6 +1192,8 @@ function Test-TargetResource {
             -GrantDatabasePermissions $GrantDatabasePermissions `
             -OctopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential)
 
+    $paramsWhereNullMeansIgnore = @('AutoLoginEnabled')
+
     $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
 
     $currentConfigurationMatchesRequestedConfiguration = $true
@@ -1203,6 +1208,9 @@ function Test-TargetResource {
             } else {
                 Write-Verbose "Configuration parameter '$key' matches the requested value '********'"
             }
+        }
+        elseif (($null -eq $requestedValue) -and $paramsWhereNullMeansIgnore.contains($key)) {
+            Write-Verbose "Configuration parameter '$key' has value '$currentValue' - requested value not set"
         }
         elseif ($currentValue -ne $requestedValue) {
             Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '$currentValue' mismatched the specified value '$requestedValue'"
