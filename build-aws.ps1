@@ -25,11 +25,13 @@ Test-PluginInstalled "vagrant-dsc"
 Test-PluginInstalled "vagrant-winrm"
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
+Write-Output "##teamcity[blockOpened name='Pester tests']"
 Write-Output "Running Pester Tests"
 $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
 if ($result.FailedCount -gt 0) {
   exit 1
 }
+Write-Output "##teamcity[blockClosed name='Pester tests']"
 
 $randomGuid=[guid]::NewGuid()
 $keyName = "vagrant_$randomGuid"

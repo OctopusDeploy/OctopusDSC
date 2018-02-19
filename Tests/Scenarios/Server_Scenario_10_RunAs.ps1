@@ -11,7 +11,8 @@ Configuration Server_Scenario_10_RunAs
     $svccred = New-Object System.Management.Automation.PSCredential (($env:computername + "\OctoSquid"), $svcpass)
 
     $runAsPass = ConvertTo-SecureString "ModeratelyS3cretPassw0rd!" -AsPlainText -Force
-    $runAsCred = New-Object System.Management.Automation.PSCredential (($env:computername + "\OctoMollusc"), $runAsPass)
+    $runAsCredWithMachineName = New-Object System.Management.Automation.PSCredential (($env:computername + "\OctoMollusc"), $runAsPass)
+    $runAsCred = New-Object System.Management.Automation.PSCredential ("OctoMollusc", $runAsPass)
 
     Node "localhost"
     {
@@ -40,7 +41,7 @@ Configuration Server_Scenario_10_RunAs
         {
             Ensure = "Present"
             UserName = "OctoMollusc"
-            Password = $svccred
+            Password = $runAsCredWithMachineName
             PasswordChangeRequired = $false
         }
 
@@ -64,7 +65,7 @@ Configuration Server_Scenario_10_RunAs
             # dont mess with stats
             AllowCollectionOfUsageStatistics = $false
 
-            DownloadUrl = "https://octopus-testing.s3.amazonaws.com/server/Octopus.2018.1.0-beta0106-x64.msi"
+            DownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.2018.1.0-x64.msi"
 
             OctopusServiceCredential = $svccred
 
