@@ -40,7 +40,7 @@ Configuration Server_Scenario_10_RunAs
         {
             Ensure = "Present"
             UserName = "OctoMollusc"
-            Password = $svccred
+            Password = $runAsCred
             PasswordChangeRequired = $false
         }
 
