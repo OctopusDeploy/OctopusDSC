@@ -42,6 +42,9 @@ function Publish-ToGitHub($versionNumber, $commitId, $preRelease, $artifact, $gi
 
 try
 {
+    Write-output "### Enabling TLS 1.2 support"
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12, [System.Net.SecurityProtocolType]::Tls11, [System.Net.SecurityProtocolType]::Tls
+
     Write-output "### Updating version number to $buildVersion"
     $content = (Get-Content OctopusDSC/OctopusDSC.psd1)
     $content = $content -replace "ModuleVersion = '[0-9\.]+'", "ModuleVersion = '$buildVersion'"
