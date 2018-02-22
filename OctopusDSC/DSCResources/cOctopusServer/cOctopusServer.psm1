@@ -206,8 +206,8 @@ function Import-ServerConfig {
             OctopusStorageExternalDatabaseConnectionString = $config.Octopus.Storage.ExternalDatabaseConnectionString
             OctopusWebPortalListenPrefixes                 = $config.Octopus.WebPortal.ListenPrefixes
             OctopusWebPortalForceSsl                       = [System.Convert]::ToBoolean($config.Octopus.WebPortal.ForceSSL)
-            OctopusWebPortalHstsEnabled                    = [System.Convert]::ToBoolean($config.Octopus.WebPortal.HSTSEnabled)
-            OctopusWebPortalHstsMaxAge                     = [System.Convert]::ToBoolean($config.Octopus.WebPortal.HSTSMaxAge)
+            OctopusWebPortalHstsEnabled                    = [System.Convert]::ToBoolean($config.Octopus.WebPortal.HttpStrictTransportSecurityEnabled)
+            OctopusWebPortalHstsMaxAge                     = $config.Octopus.WebPortal.HttpStrictTransportSecurityMaxAge
             OctopusUpgradesAllowChecking                   = [System.Convert]::ToBoolean($config.Octopus.Upgrades.AllowChecking)
             OctopusUpgradesIncludeStatistics               = [System.Convert]::ToBoolean($config.Octopus.Upgrades.IncludeStatistics)
             OctopusCommunicationsServicesPort              = $config.Octopus.Communications.ServicesPort
