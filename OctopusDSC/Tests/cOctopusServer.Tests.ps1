@@ -3,7 +3,6 @@
 param()
 
 $moduleName = Split-Path ($PSCommandPath -replace '\.Tests\.ps1$', '') -Leaf
-$modulePath = Split-Path $PSCommandPath -Parent
 $modulePath = Resolve-Path "$PSCommandPath/../../DSCResources/$moduleName/$moduleName.psm1"
 $module = $null
 
@@ -95,15 +94,15 @@ try
             }
 
             function Get-CurrentConfiguration ([string] $testName) {
-                & "./OctopusServerExeInvocationFiles/$testName.CurrentState.ps1"
+                & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName.CurrentState.ps1")
             }
 
             function Get-RequestedConfiguration ([string] $testName) {
-                & "./OctopusServerExeInvocationFiles/$testName.RequestedState.ps1"
+                & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName.RequestedState.ps1")
             }
 
             function Assert-ExpectedResult ([string] $testName) {
-                $invocations = Get-Content "./OctopusServerExeInvocationFiles/$testName.ExpectedResult.txt"
+                $invocations = Get-Content "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName.ExpectedResult.txt"
                 foreach($line in $invocations | where-object { -not [string]::IsNullOrEmpty($_) }) {
                     $line = $line.Replace("`$(`$env:SystemDrive)", $env:SystemDrive)
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq $line }

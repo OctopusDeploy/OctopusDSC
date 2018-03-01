@@ -1,3 +1,6 @@
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '')] # these are tests, not anything that needs to be secure
+param()
+
 $MasterKey = "Nc91+1kfZszMpe7DMne8wg=="
 $SecureMasterKey = ConvertTo-SecureString $MasterKey -AsPlainText -Force
 $MasterKeyCred = New-Object System.Management.Automation.PSCredential  ("notused", $SecureMasterKey)
