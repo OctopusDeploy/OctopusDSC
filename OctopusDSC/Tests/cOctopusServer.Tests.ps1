@@ -94,10 +94,26 @@ try
                 }
             }
 
+            function Get-CurrentConfiguration ([string] $testName) {
+                & "./OctopusServerExeInvocationFiles/$testName.CurrentState.ps1"
+            }
+
+            function Get-RequestedConfiguration ([string] $testName) {
+                & "./OctopusServerExeInvocationFiles/$testName.RequestedState.ps1"
+            }
+
+            function Assert-ExpectedResult ([string] $testName) {
+                $invocations = Get-Content "./OctopusServerExeInvocationFiles/$testName.ExpectedResult.txt"
+                foreach($line in $invocations | where-object { -not [string]::IsNullOrEmpty($_) }) {
+                    $line = $line.Replace("`$(`$env:SystemDrive)", $env:SystemDrive)
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq $line }
+                }
+            }
+
             Context "Running HA" {
                 It 'Should call expected commands on octopus.server.exe' {
                     Mock Invoke-OctopusServerCommand
-                    Mock Get-TargetResource { return @{ Ensure="Absent"; State="Stopped" } }
+                    Mock Get-TargetResource { return Get-CurrentConfiguration "MasterKeySupplied" }
                     Mock Get-RegistryValue { return "478389" } # checking .net 4.5
                     Mock Install-MSI {}
                     Mock Update-InstallState {}
@@ -110,37 +126,11 @@ try
                     Mock Test-OctopusVersionNewerThan { return $true }
                     Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
 
-                    $pass = ConvertTo-SecureString "S3cur3P4ssphraseHere!" -AsPlainText -Force
-                    $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
+                    $params = Get-RequestedConfiguration "MasterKeySupplied"
 
-                    $MasterKey = "Nc91+1kfZszMpe7DMne8wg=="
-                    $SecureMasterKey = ConvertTo-SecureString $MasterKey -AsPlainText -Force
-                    $MasterKeyCred = New-Object System.Management.Automation.PSCredential  ("notused", $SecureMasterKey)
+                    Set-TargetResource @params
 
-                    $haparams = @{
-                        Ensure = "Present";
-                        State = "Started";
-                        Name = "HANode";
-                        WebListenPrefix = "http://localhost:82";
-                        SqlDbConnectionString = "Server=(local);Database=Octopus;Trusted_Connection=True;";
-                        OctopusMasterKey = $MasterKeyCred;
-                        OctopusAdminCredential = $cred;
-                        ListenPort = 10935;
-                        AllowCollectionOfUsageStatistics = $false;
-                        HomeDirectory = "C:\ChezOctopusSecondNode";
-                    }
-
-                    Set-TargetResource @haparams
-
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 8 -Exactly
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "create-instance --console --instance HANode --config $($env:SystemDrive)\Octopus\OctopusServer-HANode.config --home C:\ChezOctopusSecondNode" }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "database --instance HANode --connectionstring $($haparams['SqlDbConnectionString']) --masterKey $MasterKey --grant NT AUTHORITY\SYSTEM" }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "configure --console --instance HANode --upgradeCheck True --upgradeCheckWithStatistics False --webForceSSL False --webListenPrefixes $($haparams['WebListenPrefix']) --commsListenPort 10935 --hstsEnabled False --hstsMaxAge 3600" }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'service --console --instance HANode --stop' }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'admin --console --instance HANode --username Admin --password S3cur3P4ssphraseHere!' }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'license --console --instance HANode --free' }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'service --console --instance HANode --install --reconfigure --stop' }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'service --start --console --instance HANode' }
+                    Assert-ExpectedResult "MasterKeySupplied"
                 }
             }
 
