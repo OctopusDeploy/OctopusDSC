@@ -94,22 +94,21 @@ try
             }
 
             function Get-CurrentConfiguration ([string] $testName) {
-                & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName.CurrentState.ps1")
+                & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName/CurrentState.ps1")
             }
 
             function Get-RequestedConfiguration ([string] $testName) {
-                & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName.RequestedState.ps1")
+                & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName/RequestedState.ps1")
             }
 
             function Assert-ExpectedResult ([string] $testName) {
-                $invocations = Get-Content "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName.ExpectedResult.txt"
-                foreach($line in $invocations | where-object { -not [string]::IsNullOrEmpty($_) }) {
-                    $line = $line.Replace("`$(`$env:SystemDrive)", $env:SystemDrive)
+                $invocations = & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName/ExpectedResult.ps1")
+                foreach($line in $invocations) {
                     Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq $line }
                 }
             }
 
-            Context "Running HA" {
+            Context "When MasterKey is supplied" {
                 It 'Should call expected commands on octopus.server.exe' {
                     Mock Invoke-OctopusServerCommand
                     Mock Get-TargetResource { return Get-CurrentConfiguration "MasterKeySupplied" }
