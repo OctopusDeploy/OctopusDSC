@@ -117,12 +117,7 @@ try
                     Mock Install-MSI {}
                     Mock Update-InstallState {}
                     Mock Test-OctopusDeployServerResponding { return $true }
-                    Mock Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance { return $true }
-                    Mock Test-OctopusVersionRequiresDatabaseBeforeConfigure { return $true }
-                    Mock Test-OctopusVersionSupportsAutoLoginEnabled { return $true }
-                    Mock Test-OctopusVersionSupportsHsts { return $true }
-                    Mock Test-OctopusVersionSupportsShowConfiguration { return $true }
-                    Mock Test-OctopusVersionNewerThan { return $true }
+                    Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
                     Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
 
                     $params = Get-RequestedConfiguration "MasterKeySupplied"
