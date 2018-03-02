@@ -641,13 +641,13 @@ function Uninstall-OctopusDeploy($name) {
     )
     Invoke-OctopusServerCommand $args
 
-    $otherServices = @(Get-CimInstance win32_service | Where-Object {$_.PathName -like "`"$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe*"})
+    $otherServices = Get-ExistingOctopusServices
     if ($otherServices.length -eq 0) {
         # Uninstall msi
         Write-Verbose "Uninstalling Octopus..."
-        if (-not (Test-Path "$($env:SystemDrive)\Octopus\logs")) { New-Item -type Directory "$($env:SystemDrive)\Octopus\logs" | out-null }
+        $logDirectory = Get-LogDirectory
         $msiPath = "$($env:SystemDrive)\Octopus\Octopus-x64.msi"
-        $msiLog = "$($env:SystemDrive)\Octopus\logs\Octopus-x64.msi.uninstall.log"
+        $msiLog = "$logDirectory\Octopus-x64.msi.uninstall.log"
         if (Test-Path $msiPath) {
             $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/x $msiPath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
             Write-Verbose "MSI uninstaller returned exit code $msiExitCode"
@@ -665,6 +665,16 @@ function Uninstall-OctopusDeploy($name) {
             Write-Verbose " - $($otherService.Name)"
         }
     }
+}
+
+function Get-LogDirectory {
+    $logDirectory = "$($env:SystemDrive)\Octopus\logs"
+    if (-not (Test-Path $logDirectory)) { New-Item -type Directory $logDirectory | out-null }
+    return $logDirectory
+}
+
+function Get-ExistingOctopusServices {
+    return @(Get-CimInstance win32_service | Where-Object {$_.PathName -like "`"$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe*"})
 }
 
 function Update-OctopusDeploy($name, $downloadUrl, $state, $webListenPrefix) {
