@@ -13,7 +13,7 @@ function Get-TargetResource {
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Name,
-        [ValidateSet("Started", "Stopped")]
+        [ValidateSet("Started", "Stopped", "Installed")]
         [string]$State = "Started",
         [ValidateNotNullOrEmpty()]
         [string]$DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer",
@@ -69,7 +69,9 @@ function Get-TargetResource {
     }
     else {
         Write-Verbose "Windows service: Not installed"
-        $existingEnsure = "Absent"
+        if ($existingEnsure -eq 'Present') {
+            $existingEnsure = 'Installed'
+        }
     }
 
     $existingDownloadUrl = $null
@@ -252,7 +254,7 @@ function Test-OctopusVersionSupportsAutoLoginEnabled {
 function Test-OctopusVersionSupportsHsts {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseSingularNouns", "")]
     param()
-    
+
     return Test-OctopusVersionNewerThan (New-Object System.Version 3, 13, 0)
 }
 
@@ -297,7 +299,7 @@ function Set-TargetResource {
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Name,
-        [ValidateSet("Started", "Stopped")]
+        [ValidateSet("Started", "Stopped", "Installed")]
         [string]$State = "Started",
         [ValidateNotNullOrEmpty()]
         [string]$DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer",
@@ -359,12 +361,17 @@ function Set-TargetResource {
         Stop-OctopusDeployService $Name
     }
 
-    if ($Ensure -eq "Absent" -and $currentResource["Ensure"] -eq "Present") {
-        Uninstall-OctopusDeploy $Name
+    if ($Ensure -eq "Absent" -and (($currentResource["Ensure"] -eq "Present") -or ($currentResource["State"] -eq "Installed"))) {
+        Uninstall-OctopusDeploy -name $Name -currentState $currentResource["State"]
     }
-    elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Absent") {
+    elseif ($Ensure -eq "Installed" -and $currentResource["Ensure"] -eq "Absent") {
+        Install-MSI $DownloadUrl
+    }
+    elseif ($Ensure -eq "Present" -and (($currentResource["Ensure"] -eq "Absent") -or ($currentResource["State"] -eq "Installed"))) {
+        if (($currentResource["State"] -ne "Installed") -or ($currentResource["DownloadUrl"] -ne $DownloadUrl)) {
+            Install-MSI $DownloadUrl
+        }
         Install-OctopusDeploy -name $Name `
-            -downloadUrl $DownloadUrl `
             -webListenPrefix $WebListenPrefix `
             -sqlDbConnectionString $SqlDbConnectionString `
             -OctopusAdminCredential $OctopusAdminCredential `
@@ -382,8 +389,7 @@ function Set-TargetResource {
             -licenseKey $LicenseKey `
             -grantDatabasePermissions $GrantDatabasePermissions `
             -octopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential
-    }
-    else {
+    } else {
         if ($Ensure -eq "Present" -and $currentResource["DownloadUrl"] -ne $DownloadUrl) {
             Update-OctopusDeploy -name $Name `
                 -downloadUrl $DownloadUrl `
@@ -411,7 +417,7 @@ function Set-TargetResource {
         }
     }
 
-    if ($State -eq "Started" -and $currentResource["State"] -eq "Stopped") {
+    if ($State -eq "Started" -and (($currentResource["State"] -eq "Stopped") -or ($currentResource["State"] -eq "Installed"))) {
         Start-OctopusDeployService -name $Name -webListenPrefix $webListenPrefix
     }
 }
@@ -580,7 +586,7 @@ function Set-OctopusDeployConfiguration {
         if (Test-OctopusVersionSupportsRunAsCredential) {
             if (($null -ne $octopusBuiltInWorkerCredential) -and ($octopusBuiltInWorkerCredential -ne [PSCredential]::Empty)) {
                 Write-Log "Configuring Octopus Deploy to execute run-on-server scripts as $($octopusBuiltInWorkerCredential.UserName) ..."
-                
+
                 $args = @(
                     'builtin-worker',
                     '--instance', $name,
@@ -622,24 +628,26 @@ function Test-ReconfigurationRequired($currentState, $desiredState) {
     return $false
 }
 
-function Uninstall-OctopusDeploy($name) {
-    Write-Log "Uninstalling Octopus Deploy service ..."
-    $args = @(
-        'service',
-        '--stop',
-        '--uninstall',
-        '--console',
-        '--instance', $name
-    )
-    Invoke-OctopusServerCommand $args
+function Uninstall-OctopusDeploy($name, $currentState) {
+    if ($currentState -eq "Started" -or $currentState -eq "Stopped") {
+        Write-Log "Uninstalling Octopus Deploy service ..."
+        $args = @(
+            'service',
+            '--stop',
+            '--uninstall',
+            '--console',
+            '--instance', $name
+        )
+        Invoke-OctopusServerCommand $args
 
-    Write-Log "Deleting Octopus Deploy instance ..."
-    $args = @(
-        'delete-instance',
-        '--console',
-        '--instance', $name
-    )
-    Invoke-OctopusServerCommand $args
+        Write-Log "Deleting Octopus Deploy instance ..."
+        $args = @(
+            'delete-instance',
+            '--console',
+            '--instance', $name
+        )
+        Invoke-OctopusServerCommand $args
+    }
 
     $otherServices = Get-ExistingOctopusServices
     if ($otherServices.length -eq 0) {
@@ -798,8 +806,7 @@ function Update-InstallState {
     $currentInstallState | ConvertTo-Json | set-content $installStateFile
 }
 
-function Get-InstallStateValue
-{
+function Get-InstallStateValue {
     [CmdletBinding()]
     param($key)
 
@@ -833,6 +840,7 @@ function Get-InstallStateValue
         }
     }
 }
+
 function Get-RegistryValue {
     param (
         [parameter(Mandatory = $true)]
@@ -848,8 +856,7 @@ function Get-RegistryValue {
     }
 }
 
-Function Test-IsOctopusUpgrade
-{
+Function Test-IsOctopusUpgrade {
     # if the binary exists before installing the MSI, we're considering this an upgrade
     return (Test-Path -LiteralPath $OctopusServerExePath)
 }
@@ -858,8 +865,6 @@ function Install-OctopusDeploy {
     param (
         [Parameter(Mandatory = $True)]
         [string]$name,
-        [Parameter(Mandatory = $True)]
-        [string]$downloadUrl,
         [Parameter(Mandatory = $True)]
         [string]$webListenPrefix,
         [Parameter(Mandatory = $True)]
@@ -895,14 +900,8 @@ function Install-OctopusDeploy {
     $extractedUserName = $octopusAdminCredential.GetNetworkCredential().UserName
     $extractedPassword = $octopusAdminCredential.GetNetworkCredential().Password
 
-    # check if we're upgrading an existing instance
-    $isUpgrade = Test-IsOctopusUpgrade
-
     # check if we're joining a cluster, or joining to an existing Database
     $isMasterKeyProvided = ($OctopusMasterKey -ne [PSCredential]::Empty)
-
-    Write-Log "Setting up new instance of Octopus Deploy with name '$name'"
-    Install-MSI $downloadUrl
 
     Write-Log "Creating Octopus Deploy instance ..."
     $args = @(
@@ -945,14 +944,8 @@ function Install-OctopusDeploy {
             )
         }
         else {
-            if ($isUpgrade -eq $true) {
-                Write-Log "Upgrading Octopus Deploy database for v4"
-                $action = '--upgrade'
-            }
-            else {
-                Write-Log "Creating Octopus Deploy database for v4"
-                $action = '--create'
-            }
+            Write-Log "Creating Octopus Deploy database for v4"
+            $action = '--create'
 
             $dbargs = @(
                 'database',
@@ -1142,7 +1135,7 @@ function Test-TargetResource {
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Name,
-        [ValidateSet("Started", "Stopped")]
+        [ValidateSet("Started", "Stopped", "Installed")]
         [string]$State = "Started",
         [ValidateNotNullOrEmpty()]
         [string]$DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer",
