@@ -1,6 +1,3 @@
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '')] # these are tests, not anything that needs to be secure
-param()
-
 Describe "PSScriptAnalyzer" {
     Import-Module PSScriptAnalyzer
     $excludedRules = @(
@@ -8,21 +5,19 @@ Describe "PSScriptAnalyzer" {
     )
     $excludedRules | % { Write-Warning "Excluding Rule $_" }
 
-    Write-Host "Running PsScriptAnalyzer against ./OctopusDSC/DSCResources"
+    Write-Output "Running PsScriptAnalyzer against ./OctopusDSC/DSCResources"
     $results = @(Invoke-ScriptAnalyzer ./OctopusDSC/DSCResources -recurse -exclude $excludedRules)
     $results | ConvertTo-Json | Out-File PsScriptAnalyzer-DSCResources.log
 
-    $results | ConvertTo-Json | Write-Host
     It "Should have zero PSScriptAnalyzer issues in OctopusDSC/DSCResources" {
         $results.length | Should Be 0
     }
 
-    Write-Host "Running PsScriptAnalyzer against ./OctopusDSC/Tests"
+    Write-Output "Running PsScriptAnalyzer against ./OctopusDSC/Tests"
     $results = @(Invoke-ScriptAnalyzer ./OctopusDSC/Tests -recurse -exclude $excludedRules)
     $results | ConvertTo-Json | Out-File PsScriptAnalyzer-Tests.log
 
     # it'd be nice to run the PsScriptAnalyzer on `./OctopusDSC/Examples`, but I couldn't get it to detect the DSCModule on mac nor on linux
-    $results | ConvertTo-Json | Write-Host
     It "Should have zero PSScriptAnalyzer issues in OctopusDSC/Tests" {
         $results.length | Should Be 0
     }
