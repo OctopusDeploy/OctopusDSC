@@ -102,128 +102,142 @@ try
             }
 
             function Assert-ExpectedResult ([string] $testName) {
+                # todo: test order of execution here
                 $invocations = & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName/ExpectedResult.ps1")
+                it "Should call octopus.server.exe $($invocations.count) times" {
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times $invocations.Count -Exactly
+                }
                 foreach($line in $invocations) {
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq $line }
+                    It "Should call octopus.server.exe with args '$line'" {
+                        Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq $line }
+                    }
                 }
             }
 
-            Context "When MasterKey is supplied" {
-                It 'Should call expected commands on octopus.server.exe' {
-                    Mock Invoke-OctopusServerCommand
-                    Mock Get-TargetResource { return Get-CurrentConfiguration "MasterKeySupplied" }
-                    Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-                    Mock Install-MSI {}
-                    Mock Update-InstallState {}
-                    Mock Test-OctopusDeployServerResponding { return $true }
-                    Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
-                    Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
-
-                    $params = Get-RequestedConfiguration "MasterKeySupplied"
-
-                    Set-TargetResource @params
-
-                    Assert-ExpectedResult "MasterKeySupplied"
+            function Get-TempFolder {
+                if ("$($env:TmpDir)" -ne "") {
+                    return $env:TmpDir
+                } else {
+                    return $env:Temp
                 }
+            }
+
+            Context "New instance" {
+                Mock Invoke-OctopusServerCommand #{write-host $args}
+                Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstance" }
+                Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                Mock Install-MSI {}
+                Mock Update-InstallState {}
+                Mock Test-OctopusDeployServerResponding { return $true }
+                Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
+                Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+
+                $params = Get-RequestedConfiguration "NewInstance"
+                Set-TargetResource @params
+
+                Assert-ExpectedResult "NewInstance"
+                it "Should download the MSI" {
+                    Assert-MockCalled Install-MSI
+                }
+            }
+
+            Context "When MasterKey is supplied on new instance" {
+                Mock Invoke-OctopusServerCommand #{write-host $args}
+                Mock Get-TargetResource { return Get-CurrentConfiguration "MasterKeySupplied" }
+                Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                Mock Install-MSI {}
+                Mock Update-InstallState {}
+                Mock Test-OctopusDeployServerResponding { return $true }
+                Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
+                Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+
+                $params = Get-RequestedConfiguration "MasterKeySupplied"
+
+                Set-TargetResource @params
+
+                it "Should download the MSI" {
+                    Assert-MockCalled Install-MSI
+                }
+                Assert-ExpectedResult "MasterKeySupplied"
+            }
+
+            Context "When uninstalling running instance" {
+                Mock Invoke-OctopusServerCommand { param ($arguments) write-host $arguments}
+                Mock Get-TargetResource { return Get-CurrentConfiguration "UninstallingRunningInstance" }
+                Mock Install-MSI {}
+                Mock Get-ExistingOctopusServices { return @() }
+                Mock Get-LogDirectory { return Get-TempFolder }
+                Mock Test-Path -ParameterFilter { $path -eq "$($env:SystemDrive)\Octopus\Octopus-x64.msi" } { return $true }
+                Mock Start-Process { return @{ ExitCode = 0} }
+
+                $params = Get-RequestedConfiguration "UninstallingRunningInstance"
+                Set-TargetResource @params
+
+                it "Should not download the MSI" {
+                    Assert-MockCalled Install-MSI -Times 0 -Exactly
+                }
+                it "Should uninstall the MSI" {
+                    Assert-MockCalled Start-Process -Times 1 -Exactly -ParameterFilter { $FilePath -eq "msiexec.exe" -and $ArgumentList -eq "/x $($env:SystemDrive)\Octopus\Octopus-x64.msi /quiet /l*v $(Get-TempFolder)\Octopus-x64.msi.uninstall.log"}
+                }
+                Assert-ExpectedResult "UninstallingRunningInstance"
             }
 
             Context "Run-on-server user - new install" {
-                It 'Should call expected commands on octopus.server.exe' {
-                    Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
-                    Mock Get-TargetResource { return @{ Ensure="Absent"; State="Stopped" } }
-                    Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-                    Mock Install-MSI {}
-                    Mock Update-InstallState {}
-                    Mock Test-OctopusDeployServerResponding { return $true }
-                    Mock Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance { return $true }
-                    Mock Test-OctopusVersionRequiresDatabaseBeforeConfigure { return $true }
-                    Mock Test-OctopusVersionSupportsAutoLoginEnabled { return $true }
-                    Mock Test-OctopusVersionSupportsHsts { return $true }
-                    Mock Test-OctopusVersionSupportsShowConfiguration { return $true }
-                    Mock Test-OctopusVersionNewerThan { return $true }
-                    Mock Test-OctopusVersionSupportsRunAsCredential { return $true }
-                    Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
-                    Mock Test-IsOctopusUpgrade { return $false } # we're installing new
+                Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
+                Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstallWithBuiltInWorker" }
+                Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                Mock Install-MSI {}
+                Mock Update-InstallState {}
+                Mock Test-OctopusDeployServerResponding { return $true }
+                Mock Test-OctopusVersionNewerThan { return $true }
+                Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+                Mock Test-IsOctopusUpgrade { return $false } # we're installing new
 
-                    $pass = ConvertTo-SecureString "S3cur3P4ssphraseHere!" -AsPlainText -Force
-                    $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
+                $params = Get-RequestedConfiguration "NewInstallWithBuiltInWorker"
+                Set-TargetResource @params
 
-                    $pass = ConvertTo-SecureString "S4cretPassword!" -AsPlainText -Force
-                    $runAsCred = New-Object System.Management.Automation.PSCredential ("runasuser", $pass)
-
-                    $haparams = @{
-                        Ensure = "Present";
-                        State = "Started";
-                        Name = "OctopusServer";
-                        WebListenPrefix = "http://localhost:82";
-                        SqlDbConnectionString = "Server=(local);Database=Octopus;Trusted_Connection=True;";
-                        OctopusAdminCredential = $cred;
-                        ListenPort = 10935;
-                        AllowCollectionOfUsageStatistics = $false;
-                        HomeDirectory = "C:\Octopus";
-                        OctopusBuiltInWorkerCredential = $runAsCred
-                        AutoLoginEnabled = $false
-                    }
-
-                    Set-TargetResource @haparams 
-
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 9 -Exactly
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "create-instance --console --instance OctopusServer --config $($env:SystemDrive)\Octopus\OctopusServer-OctopusServer.config --home C:\Octopus" }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "database --instance OctopusServer --connectionstring $($haparams['SqlDbConnectionString']) --create --grant NT AUTHORITY\SYSTEM" }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "configure --console --instance OctopusServer --upgradeCheck True --upgradeCheckWithStatistics False --webForceSSL False --webListenPrefixes $($haparams['WebListenPrefix']) --commsListenPort 10935 --autoLoginEnabled False --hstsEnabled False --hstsMaxAge 3600" }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'service --console --instance OctopusServer --stop' }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'admin --console --instance OctopusServer --username Admin --password S3cur3P4ssphraseHere!' }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'license --console --instance OctopusServer --free' }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'service --console --instance OctopusServer --install --reconfigure --stop' }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'builtin-worker --instance OctopusServer --username runasuser --password S4cretPassword!' }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'service --start --console --instance OctopusServer' }
+                it "Should download the MSI" {
+                    Assert-MockCalled Install-MSI
                 }
+                Assert-ExpectedResult "NewInstallWithBuiltInWorker"
             }
 
             Context "Run-on-server user - existing install" {
-                It 'Should call expected commands on octopus.server.exe' {
-                    Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
-                    Mock Get-TargetResource { return @{ Ensure="Present"; State="Started"; DownloadUrl="https://octopus.com/downloads/latest/WindowsX64/OctopusServer" } }
-                    Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-                    Mock Update-InstallState {}
-                    Mock Test-OctopusDeployServerResponding { return $true }
-                    Mock Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance { return $true }
-                    Mock Test-OctopusVersionRequiresDatabaseBeforeConfigure { return $true }
-                    Mock Test-OctopusVersionSupportsAutoLoginEnabled { return $true }
-                    Mock Test-OctopusVersionSupportsHsts { return $true }
-                    Mock Test-OctopusVersionSupportsShowConfiguration { return $true }
-                    Mock Test-OctopusVersionNewerThan { return $true }
-                    Mock Test-OctopusVersionSupportsRunAsCredential { return $true }
-                    Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+                Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
+                Mock Get-TargetResource { return Get-CurrentConfiguration "EnableBuiltInWorkerOnExistingInstance" }
+                Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                Mock Install-MSI {}
+                Mock Update-InstallState {}
+                Mock Test-OctopusDeployServerResponding { return $true }
+                Mock Test-OctopusVersionNewerThan { return $true }
+                Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
 
-                    $pass = ConvertTo-SecureString "S3cur3P4ssphraseHere!" -AsPlainText -Force
-                    $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
+                $params = Get-RequestedConfiguration "EnableBuiltInWorkerOnExistingInstance"
+                Set-TargetResource @params
 
-                    $pass = ConvertTo-SecureString "S4cretPassword!" -AsPlainText -Force
-                    $runAsCred = New-Object System.Management.Automation.PSCredential ("runasuser", $pass)
-
-                    $haparams = @{
-                        Ensure = "Present";
-                        State = "Started";
-                        Name = "OctopusServer";
-                        WebListenPrefix = "http://localhost:82";
-                        SqlDbConnectionString = "Server=(local);Database=Octopus;Trusted_Connection=True;";
-                        OctopusAdminCredential = $cred;
-                        ListenPort = 10935;
-                        AllowCollectionOfUsageStatistics = $false;
-                        HomeDirectory = "C:\Octopus";
-                        OctopusBuiltInWorkerCredential = $runAsCred
-                        AutoLoginEnabled = $true
-                    }
-
-                    Set-TargetResource @haparams 
-
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 4 -Exactly
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq "configure --console --instance OctopusServer --upgradeCheck True --upgradeCheckWithStatistics False --webForceSSL False --webListenPrefixes $($haparams['WebListenPrefix']) --commsListenPort 10935 --home C:\Octopus --autoLoginEnabled True --hstsEnabled False --hstsMaxAge 3600" }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'admin --console --instance OctopusServer --username Admin --password S3cur3P4ssphraseHere!' }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'license --console --instance OctopusServer --free' }
-                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq 'builtin-worker --instance OctopusServer --username runasuser --password S4cretPassword!' }
+                it "Should not download the MSI" {
+                    Assert-MockCalled Install-MSI -Times 0 -Exactly
                 }
+                Assert-ExpectedResult "EnableBuiltInWorkerOnExistingInstance"
+            }
+
+            Context "Upgrade" {
+                Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
+                Mock Get-TargetResource { return Get-CurrentConfiguration "UpgradeExistingInstance" }
+                Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                Mock Install-MSI {}
+                Mock Update-InstallState {}
+                Mock Test-OctopusDeployServerResponding { return $true }
+                Mock Test-OctopusVersionNewerThan { return $true }
+                Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+
+                $params = Get-RequestedConfiguration "UpgradeExistingInstance"
+                Set-TargetResource @params
+
+                it "Should download the MSI" {
+                    Assert-MockCalled Install-MSI
+                }
+                Assert-ExpectedResult "UpgradeExistingInstance"
             }
         }
     }
