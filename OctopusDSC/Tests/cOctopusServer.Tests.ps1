@@ -83,11 +83,13 @@ try
             Context 'Set-TargetResource' {
                 #todo: more tests
                 It 'Throws an exception if .net 4.5.1 or above is not installed (no .net reg key found)' {
+                    Mock Install-Msi {}
                     Mock Get-RegistryValue { return "" }
                     { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.5.1. Please install it before attempting to install Octopus Server."
                 }
 
                 It 'Throws an exception if .net 4.5.1 or above is not installed (only .net 4.5.0 installed)' {
+                    Mock Install-Msi {}
                     Mock Get-RegistryValue { return "378389" }
                     { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.5.1. Please install it before attempting to install Octopus Server."
                 }
