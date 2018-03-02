@@ -5,27 +5,21 @@ Describe "PSScriptAnalyzer" {
     )
     $excludedRules | % { Write-Warning "Excluding Rule $_" }
 
-    Write-Output "Running PsScriptAnalyzer against ./OctopusDSC/DSCResources"
+    Write-Host "Running PsScriptAnalyzer against ./OctopusDSC/DSCResources"
     $results = @(Invoke-ScriptAnalyzer ./OctopusDSC/DSCResources -recurse -exclude $excludedRules)
-    $results | Out-File PsScriptAnalyzer.log
+    $results | Out-File PsScriptAnalyzer-DSCResources.log
 
-    Write-Output ($results | ConvertTo-Json)
+    $results | ConvertTo-Json | Write-Host
     It "Should have zero PSScriptAnalyzer issues in OctopusDSC/DSCResources" {
         $results.length | Should Be 0
     }
 
-    $excludedRules = @(
-        'PSUseShouldProcessForStateChangingFunctions'
-    )
-    $excludedRules | % { Write-Warning "Excluding Rule $_" }
-
-
-    Write-Output "Running PsScriptAnalyzer against ./OctopusDSC/Tests"
+    Write-Host "Running PsScriptAnalyzer against ./OctopusDSC/Tests"
     $results = @(Invoke-ScriptAnalyzer ./OctopusDSC/Tests -recurse -exclude $excludedRules)
-    $results | Out-File PsScriptAnalyzer.log -Append
+    $results | Out-File PsScriptAnalyzer-Tests.log
 
     # it'd be nice to run the PsScriptAnalyzer on `./OctopusDSC/Examples`, but I couldn't get it to detect the DSCModule on mac nor on linux
-    Write-Output ($results | ConvertTo-Json)
+    $results | ConvertTo-Json | Write-Host
     It "Should have zero PSScriptAnalyzer issues in OctopusDSC/Tests" {
         $results.length | Should Be 0
     }
