@@ -164,7 +164,7 @@ try
             }
 
             Context "When uninstalling running instance" {
-                Mock Invoke-OctopusServerCommand { param ($arguments) write-host $arguments}
+                Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
                 Mock Get-TargetResource { return Get-CurrentConfiguration "UninstallingRunningInstance" }
                 Mock Install-MSI {}
                 Mock Get-ExistingOctopusServices { return @() }
