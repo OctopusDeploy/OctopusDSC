@@ -601,7 +601,7 @@ function Set-OctopusDeployConfiguration {
             }
             Invoke-OctopusServerCommand $args
         } else {
-            throw "'OctopusBuiltInWorkerCredential' is only supported from Octopus 4.2 and newer."
+            throw "'OctopusBuiltInWorkerCredential' is only supported from Octopus 2018.1.0 and newer."
         }
     }
 }
