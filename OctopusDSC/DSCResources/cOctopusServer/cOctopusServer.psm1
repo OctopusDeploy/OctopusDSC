@@ -45,32 +45,29 @@ function Get-TargetResource {
 
     $script:instancecontext = $Name
 
-    Write-Verbose "Checking if Octopus Server is installed"
-    $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\OctopusServer" -ErrorAction SilentlyContinue).InstallLocation
-    $present = ($null -ne $installLocation)
-    Write-Verbose "Octopus Server present: $present"
-
-    $existingEnsure = if ($present) { "Present" } else { "Absent" }
-
     $serviceName = (Get-ServiceName $Name)
     Write-Verbose "Checking for Windows Service: $serviceName"
     $serviceInstance = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
     $existingState = "Stopped"
     if ($null -ne $serviceInstance) {
         Write-Verbose "Windows service: $($serviceInstance.Status)"
+        $existingEnsure = "Present"
         if ($serviceInstance.Status -eq "Running") {
             $existingState = "Started"
-        }
-
-        if ($existingEnsure -eq "Absent") {
-            Write-Verbose "Since the Windows Service is still installed, the service is present"
-            $existingEnsure = "Present"
         }
     }
     else {
         Write-Verbose "Windows service: Not installed"
-        if ($existingEnsure -eq 'Present') {
+
+        Write-Verbose "Checking for Octopus Server registry key"
+        $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\OctopusServer" -ErrorAction SilentlyContinue).InstallLocation
+        $regKeyPresent = ($null -ne $installLocation)
+        if ($regKeyPresent) {
+            Write-Verbose "Octopus Server registry key: Found"
             $existingEnsure = 'Installed'
+        } else {
+            Write-Verbose "Octopus Server registry key: Not found"
+            $existingEnsure = "Absent"
         }
     }
 
