@@ -157,8 +157,7 @@ Configuration Tentacle_Scenario_01_Install
             TentacleHomeDirectory = "C:\Octopus\ListeningTentacleWithCustomAccountHome"
 
             TentacleServiceCredential = $svccred
-            DependsOn = "[User]ServiceUser"
-            DependsOn = "[Group]AddUserToLocalAdminGroup"
+            DependsOn = @("[User]ServiceUser", "[Group]AddUserToLocalAdminGroup")
         }
     }
 }
