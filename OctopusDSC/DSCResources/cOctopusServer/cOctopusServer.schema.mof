@@ -3,7 +3,7 @@ class cOctopusServer : OMI_BaseResource
 {
   [Key, Description("Name of the Octopus Server instance")] string Name;
   [Write, ValueMap{"Present", "Absent"}, Values{"Present", "Absent"}] string Ensure;
-  [Write, ValueMap{"Started", "Stopped"}, Values{"Started", "Stopped"}] string State;
+  [Write, ValueMap{"Started", "Stopped", "Installed"}, Values{"Started", "Stopped", "Installed"}] string State;
   [Write] string WebListenPrefix;
   [Write] string SqlDbConnectionString;
   [Write, EmbeddedInstance ("MSFT_Credential")] string OctopusAdminCredential;

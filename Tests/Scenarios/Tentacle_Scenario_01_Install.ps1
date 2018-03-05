@@ -51,6 +51,7 @@ Configuration Tentacle_Scenario_01_Install
             SeqServer = "http://localhost/seq"
             SeqApiKey = $seqApiKey
             Properties = @{ Application = "Octopus"; Server = "MyServer" }
+            DependsOn = "[cTentacleAgent]ListeningTentacle"
         }
 
         cTentacleAgent PollingTentacle
@@ -129,6 +130,7 @@ Configuration Tentacle_Scenario_01_Install
             GroupName='Administrators'
             Ensure= 'Present'
             MembersToInclude= ".\ServiceUser"
+            DependsOn = "[User]ServiceUser"
         }
 
         cTentacleAgent ListeningTentacleWithCustomAccount
@@ -155,7 +157,7 @@ Configuration Tentacle_Scenario_01_Install
             TentacleHomeDirectory = "C:\Octopus\ListeningTentacleWithCustomAccountHome"
 
             TentacleServiceCredential = $svccred
-            DependsOn = "[user]ServiceUser"
+            DependsOn = @("[User]ServiceUser", "[Group]AddUserToLocalAdminGroup")
         }
     }
 }

@@ -46,6 +46,7 @@ Configuration Server_Scenario_05_Reinstall
             Ensure = "Present"
             OctopusCredentials = $cred
             EnvironmentName = "UAT 1"
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
 
         Script "Create Api Key and set environment variables for tests"
@@ -100,6 +101,7 @@ Configuration Server_Scenario_05_Reinstall
                     Result = "" #probably bad
                 }
             }
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
     }
 }

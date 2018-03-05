@@ -46,6 +46,7 @@ Configuration Server_Scenario_06_Upgrade
             Ensure = "Absent"
             OctopusApiKey = $apiCred
             EnvironmentName = "UAT 1"
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
     }
 }

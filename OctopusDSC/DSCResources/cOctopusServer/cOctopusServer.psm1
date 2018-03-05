@@ -13,7 +13,7 @@ function Get-TargetResource {
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Name,
-        [ValidateSet("Started", "Stopped")]
+        [ValidateSet("Started", "Stopped", "Installed")]
         [string]$State = "Started",
         [ValidateNotNullOrEmpty()]
         [string]$DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer",
@@ -45,31 +45,31 @@ function Get-TargetResource {
 
     $script:instancecontext = $Name
 
-    Write-Verbose "Checking if Octopus Server is installed"
-    $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\OctopusServer" -ErrorAction SilentlyContinue).InstallLocation
-    $present = ($null -ne $installLocation)
-    Write-Verbose "Octopus Server present: $present"
-
-    $existingEnsure = if ($present) { "Present" } else { "Absent" }
-
     $serviceName = (Get-ServiceName $Name)
     Write-Verbose "Checking for Windows Service: $serviceName"
     $serviceInstance = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
     $existingState = "Stopped"
     if ($null -ne $serviceInstance) {
         Write-Verbose "Windows service: $($serviceInstance.Status)"
+        $existingEnsure = "Present"
         if ($serviceInstance.Status -eq "Running") {
             $existingState = "Started"
-        }
-
-        if ($existingEnsure -eq "Absent") {
-            Write-Verbose "Since the Windows Service is still installed, the service is present"
-            $existingEnsure = "Present"
         }
     }
     else {
         Write-Verbose "Windows service: Not installed"
-        $existingEnsure = "Absent"
+
+        Write-Verbose "Checking for Octopus Server registry key"
+        $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\OctopusServer" -ErrorAction SilentlyContinue).InstallLocation
+        $regKeyPresent = ($null -ne $installLocation)
+        if ($regKeyPresent) {
+            Write-Verbose "Octopus Server registry key: Found"
+            $existingState = 'Installed'
+            $existingEnsure = "Present"
+        } else {
+            Write-Verbose "Octopus Server registry key: Not found"
+            $existingEnsure = "Absent"
+        }
     }
 
     $existingDownloadUrl = $null
@@ -88,59 +88,62 @@ function Get-TargetResource {
     $existingHomeDirectory = $null
 
     if ($existingEnsure -eq "Present") {
-        if(Test-Path "$($env:SystemDrive)\Octopus\OctopusServer-$Name.config")
-        {
-            $configPath = "$($env:SystemDrive)\Octopus\OctopusServer-$Name.config"
-        }
-        else
-        {
-            $configPath = "$($env:SystemDrive)\Octopus\OctopusServer.config"
-        }
-        $existingConfig = Import-ServerConfig $configPath $Name
-        $existingSqlDbConnectionString = $existingConfig.OctopusStorageExternalDatabaseConnectionString
-        $existingWebListenPrefix = $existingConfig.OctopusWebPortalListenPrefixes
-        $existingForceSSL = $existingConfig.OctopusWebPortalForceSsl
-        $existingHSTSEnabled = $existingConfig.OctopusWebPortalHstsEnabled
-        $existingHSTSMaxAge = $existingConfig.OctopusWebPortalHstsMaxAge
-        $existingOctopusUpgradesAllowChecking = $existingConfig.OctopusUpgradesAllowChecking
-        $existingOctopusUpgradesIncludeStatistics = $existingConfig.OctopusUpgradesIncludeStatistics
-        $existingListenPort = $existingConfig.OctopusCommunicationsServicesPort
-        $existingAutoLoginEnabled = $existingConfig.OctopusWebPortalAutoLoginEnabled
-        $existingLegacyWebAuthenticationMode = $existingConfig.OctopusWebPortalAuthenticationMode
-        $existingHomeDirectory = $existingConfig.OctopusHomeDirectory
-        if ($existingConfig.OctopusLicenseKey -eq "<unknown>") {
-            $existingLicenseKey = $LicenseKey #if we weren't able to determine the existing key, assume its correct
-        } else {
-            $existingLicenseKey = $existingConfig.OctopusLicenseKey
-        }
 
-        $existingDownloadUrl = Get-InstallStateValue 'DownloadUrl'
+        $existingDownloadUrl = Get-InstallStateValue 'DownloadUrl' -global
 
-        #note: this can get out of sync with reality. Ideally we'd read from `show-configuration`,
-        #      but the catch is there can be multple admins. We'd probably need to add support for
-        #      an `--assert` or `--validate` parameter to the `admin` command and check its valid
-        $user = Get-InstallStateValue 'OctopusAdminUsername'
-        $pass = Get-InstallStateValue 'OctopusAdminPassword'
-        if (($null -ne $user) -and ($null -ne $pass)) {
-            $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
-        }
+        if ($existingState -ne "Installed") {
+            if(Test-Path "$($env:SystemDrive)\Octopus\OctopusServer-$Name.config")
+            {
+                $configPath = "$($env:SystemDrive)\Octopus\OctopusServer-$Name.config"
+            }
+            else
+            {
+                $configPath = "$($env:SystemDrive)\Octopus\OctopusServer.config"
+            }
+            $existingConfig = Import-ServerConfig $configPath $Name
+            $existingSqlDbConnectionString = $existingConfig.OctopusStorageExternalDatabaseConnectionString
+            $existingWebListenPrefix = $existingConfig.OctopusWebPortalListenPrefixes
+            $existingForceSSL = $existingConfig.OctopusWebPortalForceSsl
+            $existingHSTSEnabled = $existingConfig.OctopusWebPortalHstsEnabled
+            $existingHSTSMaxAge = $existingConfig.OctopusWebPortalHstsMaxAge
+            $existingOctopusUpgradesAllowChecking = $existingConfig.OctopusUpgradesAllowChecking
+            $existingOctopusUpgradesIncludeStatistics = $existingConfig.OctopusUpgradesIncludeStatistics
+            $existingListenPort = $existingConfig.OctopusCommunicationsServicesPort
+            $existingAutoLoginEnabled = $existingConfig.OctopusWebPortalAutoLoginEnabled
+            $existingLegacyWebAuthenticationMode = $existingConfig.OctopusWebPortalAuthenticationMode
+            $existingHomeDirectory = $existingConfig.OctopusHomeDirectory
+            if ($existingConfig.OctopusLicenseKey -eq "<unknown>") {
+                $existingLicenseKey = $LicenseKey #if we weren't able to determine the existing key, assume its correct
+            } else {
+                $existingLicenseKey = $existingConfig.OctopusLicenseKey
+            }
 
-        #note: this should read from the service. How do we validate the password though? We moght
-        #      need to add support for an `--assert` or `--validate` parameter to the `service`
-        #      command and check its valid
-        $user = Get-InstallStateValue 'OctopusServiceUsername'
-        $pass = Get-InstallStateValue 'OctopusServicePassword'
-        if (($null -ne $user) -and ($null -ne $pass)) {
-            $existingOctopusServiceCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
-        }
+            #note: this can get out of sync with reality. Ideally we'd read from `show-configuration`,
+            #      but the catch is there can be multple admins. We'd probably need to add support for
+            #      an `--assert` or `--validate` parameter to the `admin` command and check its valid
+            $user = Get-InstallStateValue 'OctopusAdminUsername'
+            $pass = Get-InstallStateValue 'OctopusAdminPassword'
+            if (($null -ne $user) -and ($null -ne $pass)) {
+                $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
+            }
 
-        #note: this should read from `show-configuration`. That wont validate the password is set
-        #      correctly though. We'd probably need to add support for an `--assert` or
-        #      `--validate` parameter to the `runonserver` command and check its valid
-        $user = Get-InstallStateValue 'OctopusRunAsUsername'
-        $pass = Get-InstallStateValue 'OctopusRunAsPassword'
-        if (($null -ne $user) -and ($null -ne $pass)) {
-            $existingOctopusBuiltInWorkerCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
+            #note: this should read from the service. How do we validate the password though? We moght
+            #      need to add support for an `--assert` or `--validate` parameter to the `service`
+            #      command and check its valid
+            $user = Get-InstallStateValue 'OctopusServiceUsername'
+            $pass = Get-InstallStateValue 'OctopusServicePassword'
+            if (($null -ne $user) -and ($null -ne $pass)) {
+                $existingOctopusServiceCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
+            }
+
+            #note: this should read from `show-configuration`. That wont validate the password is set
+            #      correctly though. We'd probably need to add support for an `--assert` or
+            #      `--validate` parameter to the `runonserver` command and check its valid
+            $user = Get-InstallStateValue 'OctopusRunAsUsername'
+            $pass = Get-InstallStateValue 'OctopusRunAsPassword'
+            if (($null -ne $user) -and ($null -ne $pass)) {
+                $existingOctopusBuiltInWorkerCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
+            }
         }
     }
 
@@ -252,7 +255,7 @@ function Test-OctopusVersionSupportsAutoLoginEnabled {
 function Test-OctopusVersionSupportsHsts {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseSingularNouns", "")]
     param()
-    
+
     return Test-OctopusVersionNewerThan (New-Object System.Version 3, 13, 0)
 }
 
@@ -297,7 +300,7 @@ function Set-TargetResource {
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Name,
-        [ValidateSet("Started", "Stopped")]
+        [ValidateSet("Started", "Stopped", "Installed")]
         [string]$State = "Started",
         [ValidateNotNullOrEmpty()]
         [string]$DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer",
@@ -355,16 +358,34 @@ function Set-TargetResource {
     $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
     Test-RequestedConfiguration $currentResource $params
 
-    if ($State -eq "Stopped" -and $currentResource["State"] -eq "Started") {
+    $isCurrentlyNotInstalled = $currentResource["Ensure"] -eq "Absent"
+    $isCurrentlyInstalledAndServiceExists = $currentResource["Ensure"] -eq "Present"
+
+    $isCurrentlyInstalledButServiceDoesntExist = $currentResource["State"] -eq "Installed"
+    $isCurrentlyStarted = $currentResource["State"] -eq "Started"
+    $isCurrentlyStopped = $currentResource["State"] -eq "Stopped"
+
+    $stopRequested = $State -eq "Stopped"
+    $startRequested = $State -eq "Started"
+    $removeRequested = $Ensure -eq "Absent"
+    $installRequested = $Ensure -eq "Install"
+    $installAndConfigureRequested = $Ensure -eq "Present"
+
+    if ($stopRequested -and $isCurrentlyStarted) {
         Stop-OctopusDeployService $Name
     }
 
-    if ($Ensure -eq "Absent" -and $currentResource["Ensure"] -eq "Present") {
-        Uninstall-OctopusDeploy $Name
+    if ($removeRequested -and ($isCurrentlyInstalledAndServiceExists -or $isCurrentlyInstalledButServiceDoesntExist)) {
+        Uninstall-OctopusDeploy -name $Name -currentState $currentResource["State"]
     }
-    elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Absent") {
+    elseif ($installRequested -and $isCurrentlyNotInstalled) {
+        Install-MSI $DownloadUrl
+    }
+    elseif ($installAndConfigureRequested -and ($isCurrentlyNotInstalled -or $isCurrentlyInstalledButServiceDoesntExist)) {
+        if ($isCurrentlyNotInstalled -or ($currentResource["DownloadUrl"] -ne $DownloadUrl)) {
+            Install-MSI $DownloadUrl
+        }
         Install-OctopusDeploy -name $Name `
-            -downloadUrl $DownloadUrl `
             -webListenPrefix $WebListenPrefix `
             -sqlDbConnectionString $SqlDbConnectionString `
             -OctopusAdminCredential $OctopusAdminCredential `
@@ -382,13 +403,13 @@ function Set-TargetResource {
             -licenseKey $LicenseKey `
             -grantDatabasePermissions $GrantDatabasePermissions `
             -octopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential
-    }
-    else {
-        if ($Ensure -eq "Present" -and $currentResource["DownloadUrl"] -ne $DownloadUrl) {
+    } else {
+        if ($installAndConfigureRequested -and $currentResource["DownloadUrl"] -ne $DownloadUrl) {
             Update-OctopusDeploy -name $Name `
                 -downloadUrl $DownloadUrl `
                 -state $State `
-                -webListenPrefix $webListenPrefix
+                -webListenPrefix $webListenPrefix `
+                -currentState $currentResource["State"]
         }
         if (Test-ReconfigurationRequired $currentResource $params) {
             Set-OctopusDeployConfiguration `
@@ -411,7 +432,7 @@ function Set-TargetResource {
         }
     }
 
-    if ($State -eq "Started" -and $currentResource["State"] -eq "Stopped") {
+    if ($startRequested -and ($isCurrentlyStopped -or $isCurrentlyInstalledButServiceDoesntExist)) {
         Start-OctopusDeployService -name $Name -webListenPrefix $webListenPrefix
     }
 }
@@ -580,7 +601,7 @@ function Set-OctopusDeployConfiguration {
         if (Test-OctopusVersionSupportsRunAsCredential) {
             if (($null -ne $octopusBuiltInWorkerCredential) -and ($octopusBuiltInWorkerCredential -ne [PSCredential]::Empty)) {
                 Write-Log "Configuring Octopus Deploy to execute run-on-server scripts as $($octopusBuiltInWorkerCredential.UserName) ..."
-                
+
                 $args = @(
                     'builtin-worker',
                     '--instance', $name,
@@ -622,24 +643,26 @@ function Test-ReconfigurationRequired($currentState, $desiredState) {
     return $false
 }
 
-function Uninstall-OctopusDeploy($name) {
-    Write-Log "Uninstalling Octopus Deploy service ..."
-    $args = @(
-        'service',
-        '--stop',
-        '--uninstall',
-        '--console',
-        '--instance', $name
-    )
-    Invoke-OctopusServerCommand $args
+function Uninstall-OctopusDeploy($name, $currentState) {
+    if ($currentState -eq "Started" -or $currentState -eq "Stopped") {
+        Write-Log "Uninstalling Octopus Deploy service ..."
+        $args = @(
+            'service',
+            '--stop',
+            '--uninstall',
+            '--console',
+            '--instance', $name
+        )
+        Invoke-OctopusServerCommand $args
 
-    Write-Log "Deleting Octopus Deploy instance ..."
-    $args = @(
-        'delete-instance',
-        '--console',
-        '--instance', $name
-    )
-    Invoke-OctopusServerCommand $args
+        Write-Log "Deleting Octopus Deploy instance ..."
+        $args = @(
+            'delete-instance',
+            '--console',
+            '--instance', $name
+        )
+        Invoke-OctopusServerCommand $args
+    }
 
     $otherServices = Get-ExistingOctopusServices
     if ($otherServices.length -eq 0) {
@@ -677,9 +700,11 @@ function Get-ExistingOctopusServices {
     return @(Get-CimInstance win32_service | Where-Object {$_.PathName -like "`"$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe*"})
 }
 
-function Update-OctopusDeploy($name, $downloadUrl, $state, $webListenPrefix) {
+function Update-OctopusDeploy($name, $downloadUrl, $state, $webListenPrefix, $currentState) {
     Write-Verbose "Upgrading Octopus Deploy..."
-    Stop-OctopusDeployService -name $name
+    if ($currentState -eq "Started") {
+        Stop-OctopusDeployService -name $name
+    }
     Install-MSI $downloadUrl
     if ($state -eq "Started") {
         Start-OctopusDeployService -name $name -webListenPrefix $webListenPrefix
@@ -769,16 +794,17 @@ function Install-MSI {
         throw "Installation of the MSI failed; MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
     }
 
-    Update-InstallState "DownloadUrl" $downloadUrl
+    Update-InstallState "DownloadUrl" $downloadUrl -global
 }
 
 function Update-InstallState {
     param (
         [string]$key,
-        [string]$value
+        [string]$value,
+        [switch]$global = $false
     )
 
-    if(Test-Path "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate") # do we already have a legacy installstate file?
+    if ((Test-Path "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate") -or $global) # do we already have a legacy installstate file, or are we writing global settings?
     {
         $installStateFile = "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate"
     }
@@ -798,20 +824,20 @@ function Update-InstallState {
     $currentInstallState | ConvertTo-Json | set-content $installStateFile
 }
 
-function Get-InstallStateValue
-{
+function Get-InstallStateValue {
     [CmdletBinding()]
-    param($key)
+        param (
+        [string]$key,
+        [switch]$global = $false
+    )
 
-    if(Test-Path "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate") # do we already have a legacy installstate file?
+    if ((Test-Path "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate") -or $global) # do we already have a legacy installstate file, or are we writing global settings?
     {
         $installStateFile = "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.installstate"
-        Write-Verbose "Legacy installstate found"
     }
     else
     {
         $installStateFile = "$($env:SystemDrive)\Octopus\Octopus.Server.DSC.$script:instancecontext.installstate"
-        Write-Verbose "New style installstate found"
     }
 
     if(-not (Test-Path $installStateFile))
@@ -833,6 +859,7 @@ function Get-InstallStateValue
         }
     }
 }
+
 function Get-RegistryValue {
     param (
         [parameter(Mandatory = $true)]
@@ -848,8 +875,7 @@ function Get-RegistryValue {
     }
 }
 
-Function Test-IsOctopusUpgrade
-{
+Function Test-IsOctopusUpgrade {
     # if the binary exists before installing the MSI, we're considering this an upgrade
     return (Test-Path -LiteralPath $OctopusServerExePath)
 }
@@ -858,8 +884,6 @@ function Install-OctopusDeploy {
     param (
         [Parameter(Mandatory = $True)]
         [string]$name,
-        [Parameter(Mandatory = $True)]
-        [string]$downloadUrl,
         [Parameter(Mandatory = $True)]
         [string]$webListenPrefix,
         [Parameter(Mandatory = $True)]
@@ -895,14 +919,8 @@ function Install-OctopusDeploy {
     $extractedUserName = $octopusAdminCredential.GetNetworkCredential().UserName
     $extractedPassword = $octopusAdminCredential.GetNetworkCredential().Password
 
-    # check if we're upgrading an existing instance
-    $isUpgrade = Test-IsOctopusUpgrade
-
     # check if we're joining a cluster, or joining to an existing Database
     $isMasterKeyProvided = ($OctopusMasterKey -ne [PSCredential]::Empty)
-
-    Write-Log "Setting up new instance of Octopus Deploy with name '$name'"
-    Install-MSI $downloadUrl
 
     Write-Log "Creating Octopus Deploy instance ..."
     $args = @(
@@ -945,14 +963,8 @@ function Install-OctopusDeploy {
             )
         }
         else {
-            if ($isUpgrade -eq $true) {
-                Write-Log "Upgrading Octopus Deploy database for v4"
-                $action = '--upgrade'
-            }
-            else {
-                Write-Log "Creating Octopus Deploy database for v4"
-                $action = '--create'
-            }
+            Write-Log "Creating Octopus Deploy database for v4"
+            $action = '--create'
 
             $dbargs = @(
                 'database',
@@ -1142,7 +1154,7 @@ function Test-TargetResource {
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Name,
-        [ValidateSet("Started", "Stopped")]
+        [ValidateSet("Started", "Stopped", "Installed")]
         [string]$State = "Started",
         [ValidateNotNullOrEmpty()]
         [string]$DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer",

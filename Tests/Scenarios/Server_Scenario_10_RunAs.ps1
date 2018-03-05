@@ -35,6 +35,7 @@ Configuration Server_Scenario_10_RunAs
             GroupName='Administrators'
             Ensure= 'Present'
             MembersToInclude= ".\OctoSquid"
+            DependsOn = "[User]OctoSquid"
         }
 
         User OctoMollusc
@@ -71,19 +72,21 @@ Configuration Server_Scenario_10_RunAs
 
             OctopusBuiltInWorkerCredential = $runAsCred
 
-            DependsOn = "[user]OctoSquid"
+            DependsOn = @("[user]OctoSquid", "[user]OctoMollusc", "[Group]AddUserToLocalAdminGroup")
         }
 
         cOctopusServerUsernamePasswordAuthentication "Enable Username/Password Auth"
         {
             InstanceName = "OctopusServer"
             Enabled = $true
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
 
         cOctopusServerGuestAuthentication "Enable Guest Login"
         {
             InstanceName = "OctopusServer"
             Enabled = $true
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
 
         cOctopusServerActiveDirectoryAuthentication "Enable Active Directory Auth"
@@ -92,6 +95,7 @@ Configuration Server_Scenario_10_RunAs
             Enabled = $true
             AllowFormsAuthenticationForDomainUsers = $true
             ActiveDirectoryContainer = "CN=Users,DC=GPN,DC=COM"
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
 
         cOctopusServerAzureADAuthentication "Enable Azure AD Auth"
@@ -100,6 +104,7 @@ Configuration Server_Scenario_10_RunAs
             Enabled = $true
             Issuer = "https://login.microsoftonline.com/b91ebf6a-84be-4c6f-97f3-32a1d0a11c8a"
             ClientID = "0272262a-b31d-4acf-8891-56e96d302018"
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
 
         cOctopusServerOktaAuthentication "Enable Okta Auth"
@@ -108,6 +113,7 @@ Configuration Server_Scenario_10_RunAs
             Enabled = $true
             Issuer = "https://dev-258251.oktapreview.com"
             ClientID = "752nx5basdskrsbqansE"
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
 
         cOctopusServerGoogleAppsAuthentication "Enable GoogleApps Auth"
@@ -116,6 +122,7 @@ Configuration Server_Scenario_10_RunAs
             Enabled = $true
             ClientID = "5743519123-1232358520259-3634528"
             HostedDomain = "https://octopus.example.com"
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
     }
 }

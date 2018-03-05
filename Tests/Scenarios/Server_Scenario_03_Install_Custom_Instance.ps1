@@ -38,6 +38,7 @@ Configuration Server_Scenario_03_Install_Custom_Instance
         {
             InstanceName = "MyOctopusServer"
             Enabled = $true
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
 
         cOctopusServerActiveDirectoryAuthentication "Enable Active Directory Auth"
@@ -46,6 +47,7 @@ Configuration Server_Scenario_03_Install_Custom_Instance
             Enabled = $true
             AllowFormsAuthenticationForDomainUsers = $true
             ActiveDirectoryContainer = "CN=Users,DC=GPN,DC=COM"
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
 
         cOctopusServerAzureADAuthentication "Enable Azure AD Auth"
@@ -54,6 +56,7 @@ Configuration Server_Scenario_03_Install_Custom_Instance
             Enabled = $true
             Issuer = "https://login.microsoftonline.com/b91ebf6a-84be-4c6f-97f3-32a1d0a11c8a"
             ClientID = "0272262a-b31d-4acf-8891-56e96d302018"
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
 
         cOctopusServerGoogleAppsAuthentication "Enable GoogleApps Auth"
@@ -62,6 +65,7 @@ Configuration Server_Scenario_03_Install_Custom_Instance
             Enabled = $true
             ClientID = "5743519123-1232358520259-3634528"
             HostedDomain = "https://octopus.example.com"
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
     }
 }
