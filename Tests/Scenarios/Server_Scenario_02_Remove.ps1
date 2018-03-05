@@ -38,6 +38,7 @@ Configuration Server_Scenario_02_Remove
 
             # dont mess with stats
             AllowCollectionOfUsageStatistics = $false
+            DependsOn = "[cOctopusSeqLogger]Disable logging to seq"
         }
     }
 }

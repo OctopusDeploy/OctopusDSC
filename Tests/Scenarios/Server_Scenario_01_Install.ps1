@@ -49,12 +49,14 @@ Configuration Server_Scenario_01_Install
             SeqServer = "http://localhost/seq"
             SeqApiKey = $seqApiKey
             Properties = @{ Application = "Octopus"; Server = "MyServer" }
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
 
         cOctopusServerUsernamePasswordAuthentication "Enable Username/Password Auth"
         {
             InstanceName = "OctopusServer"
             Enabled = $true
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
 
         cOctopusEnvironment "Create 'Production' Environment"
@@ -63,12 +65,12 @@ Configuration Server_Scenario_01_Install
             Ensure = "Present"
             OctopusCredentials = $cred
             EnvironmentName = "Production"
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
 
         Script "Create Api Key and set environment variables for tests"
         {
-            SetScript =
-            {
+            SetScript = {
                 Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Newtonsoft.Json.dll"
                 Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Octopus.Client.dll"
 
@@ -118,12 +120,14 @@ Configuration Server_Scenario_01_Install
                     Result = "" #probably bad
                 }
             }
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
 
         cOctopusServerGuestAuthentication "Enable Guest Login"
         {
             InstanceName = "OctopusServer"
             Enabled = $true
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
 
         cOctopusServerActiveDirectoryAuthentication "Enable Active Directory Auth"
@@ -132,6 +136,7 @@ Configuration Server_Scenario_01_Install
             Enabled = $true
             AllowFormsAuthenticationForDomainUsers = $true
             ActiveDirectoryContainer = "CN=Users,DC=GPN,DC=COM"
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
 
         cOctopusServerAzureADAuthentication "Enable Azure AD Auth"
@@ -140,6 +145,7 @@ Configuration Server_Scenario_01_Install
             Enabled = $true
             Issuer = "https://login.microsoftonline.com/b91ebf6a-84be-4c6f-97f3-32a1d0a11c8a"
             ClientID = "0272262a-b31d-4acf-8891-56e96d302018"
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
 
         cOctopusServerOktaAuthentication "Enable Okta Auth"
@@ -148,6 +154,7 @@ Configuration Server_Scenario_01_Install
             Enabled = $true
             Issuer = "https://dev-258251.oktapreview.com"
             ClientID = "752nx5basdskrsbqansE"
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
 
         cOctopusServerGoogleAppsAuthentication "Enable GoogleApps Auth"
@@ -156,6 +163,7 @@ Configuration Server_Scenario_01_Install
             Enabled = $true
             ClientID = "5743519123-1232358520259-3634528"
             HostedDomain = "https://octopus.example.com"
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
     }
 }
