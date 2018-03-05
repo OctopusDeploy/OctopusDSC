@@ -354,7 +354,10 @@ function Set-TargetResource {
     $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
     Test-RequestedConfiguration $currentResource $params
 
-    if ($State -eq "Stopped" -and $currentResource["State"] -eq "Started") {
+    $isCurrentlyNotInstalled = $currentResource["Ensure"] -eq "Absent"
+    $isCurrentlyInstalledAndServiceExists = $currentResource["Ensure"] -eq "Present"
+
+    $isCurrentlyInstalledButServiceDoesntExist = $currentResource["State"] -eq "Installed"
         Stop-OctopusDeployService $Name
     }
 
