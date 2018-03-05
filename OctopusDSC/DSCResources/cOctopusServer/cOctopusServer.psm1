@@ -358,17 +358,27 @@ function Set-TargetResource {
     $isCurrentlyInstalledAndServiceExists = $currentResource["Ensure"] -eq "Present"
 
     $isCurrentlyInstalledButServiceDoesntExist = $currentResource["State"] -eq "Installed"
+    $isCurrentlyStarted = $currentResource["State"] -eq "Started"
+    $isCurrentlyStopped = $currentResource["State"] -eq "Stopped"
+
+    $stopRequested = $State -eq "Stopped"
+    $startRequested = $State -eq "Started"
+    $removeRequested = $Ensure -eq "Absent"
+    $installRequested = $Ensure -eq "Install"
+    $installAndConfigureRequested = $Ensure -eq "Present"
+
+    if ($stopRequested -and $isCurrentlyStarted) {
         Stop-OctopusDeployService $Name
     }
 
-    if ($Ensure -eq "Absent" -and (($currentResource["Ensure"] -eq "Present") -or ($currentResource["State"] -eq "Installed"))) {
+    if ($removeRequested -and ($isCurrentlyInstalledAndServiceExists -or $isCurrentlyInstalledButServiceDoesntExist)) {
         Uninstall-OctopusDeploy -name $Name -currentState $currentResource["State"]
     }
-    elseif ($Ensure -eq "Installed" -and $currentResource["Ensure"] -eq "Absent") {
+    elseif ($installRequested -and $isCurrentlyNotInstalled) {
         Install-MSI $DownloadUrl
     }
-    elseif ($Ensure -eq "Present" -and (($currentResource["Ensure"] -eq "Absent") -or ($currentResource["State"] -eq "Installed"))) {
-        if (($currentResource["State"] -ne "Installed") -or ($currentResource["DownloadUrl"] -ne $DownloadUrl)) {
+    elseif ($installAndConfigureRequested -and ($isCurrentlyNotInstalled -or $isCurrentlyInstalledButServiceDoesntExist)) {
+        if ($isCurrentlyNotInstalled -or ($currentResource["DownloadUrl"] -ne $DownloadUrl)) {
             Install-MSI $DownloadUrl
         }
         Install-OctopusDeploy -name $Name `
@@ -390,7 +400,7 @@ function Set-TargetResource {
             -grantDatabasePermissions $GrantDatabasePermissions `
             -octopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential
     } else {
-        if ($Ensure -eq "Present" -and $currentResource["DownloadUrl"] -ne $DownloadUrl) {
+        if ($installAndConfigureRequested -and $currentResource["DownloadUrl"] -ne $DownloadUrl) {
             Update-OctopusDeploy -name $Name `
                 -downloadUrl $DownloadUrl `
                 -state $State `
@@ -417,7 +427,7 @@ function Set-TargetResource {
         }
     }
 
-    if ($State -eq "Started" -and (($currentResource["State"] -eq "Stopped") -or ($currentResource["State"] -eq "Installed"))) {
+    if ($startRequested -and ($isCurrentlyStopped -or $isCurrentlyInstalledButServiceDoesntExist)) {
         Start-OctopusDeployService -name $Name -webListenPrefix $webListenPrefix
     }
 }
