@@ -1,4 +1,4 @@
-∏πConfiguration Server_Scenario_03_Remove
+Configuration Server_Scenario_03_Remove
 {
     Import-DscResource -ModuleName OctopusDSC
 
