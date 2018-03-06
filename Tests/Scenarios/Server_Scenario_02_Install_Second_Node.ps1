@@ -7,7 +7,7 @@ Pop-Location
 $SecureMasterKey = ConvertTo-SecureString $MasterKey -AsPlainText -Force
 $MasterKeyCred = New-Object System.Management.Automation.PSCredential  ("notused", $SecureMasterKey)
 
-Configuration Server_Scenario_01_InstallSecondNode
+Configuration Server_Scenario_02_Install_Second_Node
 {
     Import-DscResource -ModuleName OctopusDSC
 

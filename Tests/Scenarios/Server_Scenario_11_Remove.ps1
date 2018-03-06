@@ -1,14 +1,9 @@
-Configuration Server_Scenario_06_Upgrade
+Configuration Server_Scenario_11_Remove
 {
-    param ($ApiKey)
-
     Import-DscResource -ModuleName OctopusDSC
 
     $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
     $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
-
-    $pass = ConvertTo-SecureString $ApiKey -AsPlainText -Force
-    $apiCred = New-Object System.Management.Automation.PSCredential ("ignored", $pass)
 
     Node "localhost"
     {
@@ -20,8 +15,8 @@ Configuration Server_Scenario_06_Upgrade
 
         cOctopusServer OctopusServer
         {
-            Ensure = "Present"
-            State = "Started"
+            Ensure = "Absent"
+            State = "Stopped"
 
             # Server instance name. Leave it as 'OctopusServer' unless you have more
             # than one instance
@@ -30,7 +25,6 @@ Configuration Server_Scenario_06_Upgrade
             # The url that Octopus will listen on
             WebListenPrefix = "http://localhost:81"
 
-            # use a new database, as old one is not removed
             SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario5;Trusted_Connection=True;"
 
             # The admin user to create
@@ -38,15 +32,7 @@ Configuration Server_Scenario_06_Upgrade
 
             # dont mess with stats
             AllowCollectionOfUsageStatistics = $false
-        }
 
-        cOctopusEnvironment "Delete 'UAT 1' Environment"
-        {
-            Url = "http://localhost:81"
-            Ensure = "Absent"
-            OctopusApiKey = $apiCred
-            EnvironmentName = "UAT 1"
-            DependsOn = "[cOctopusServer]OctopusServer"
         }
     }
 }

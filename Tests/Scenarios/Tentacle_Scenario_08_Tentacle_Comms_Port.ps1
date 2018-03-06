@@ -1,4 +1,4 @@
-Configuration Tentacle_Scenario_08_TentacleCommsPort
+Configuration Tentacle_Scenario_08_Tentacle_Comms_Port
 {
     param ($OctopusServerUrl, $ApiKey, $Environments, $Roles)
 

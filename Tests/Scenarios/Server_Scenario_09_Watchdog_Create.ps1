@@ -1,4 +1,4 @@
-Configuration Server_Scenario_07_Watchdog_Create
+Configuration Server_Scenario_09_Watchdog_Create
 {
     Import-DscResource -ModuleName OctopusDSC
 

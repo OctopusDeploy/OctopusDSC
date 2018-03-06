@@ -1,4 +1,4 @@
-Configuration Server_Scenario_02_RemoveSecondNode
+∏πConfiguration Server_Scenario_03_Remove
 {
     Import-DscResource -ModuleName OctopusDSC
 
@@ -13,25 +13,32 @@ Configuration Server_Scenario_02_RemoveSecondNode
             ConfigurationMode = 'ApplyOnly'
         }
 
-        cOctopusServer OctopusServerSecondNode
+        cOctopusSeqLogger "Disable logging to seq"
+        {
+            InstanceType = 'OctopusServer'
+            Ensure = 'Absent'
+        }
+
+        cOctopusServer OctopusServer
         {
             Ensure = "Absent"
             State = "Stopped"
 
-            Name = "HANode"
+            # Server instance name. Leave it as 'OctopusServer' unless you have more
+            # than one instance
+            Name = "OctopusServer"
 
             # The url that Octopus will listen on
-            WebListenPrefix = "http://localhost:82"
+            WebListenPrefix = "http://localhost:81"
 
-            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario1;Trusted_Connection=True;"
+            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=Octopus;Trusted_Connection=True;"
 
             # The admin user to create
             OctopusAdminCredential = $cred
 
             # dont mess with stats
             AllowCollectionOfUsageStatistics = $false
-
-            HomeDirectory = "C:\ChezOctopusSecondNode"
+            DependsOn = "[cOctopusSeqLogger]Disable logging to seq"
         }
     }
 }

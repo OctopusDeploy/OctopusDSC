@@ -1,6 +1,6 @@
 # reinstall an older version
 
-Configuration Server_Scenario_05_Reinstall
+Configuration Server_Scenario_07_Reinstall
 {
     Import-DscResource -ModuleName OctopusDSC
 

@@ -1,5 +1,5 @@
 
-Configuration Server_Scenario_10_RunAs
+Configuration Server_Scenario_12_Built_In_Worker
 {
     Import-DscResource -ModuleName OctopusDSC
     Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
@@ -11,6 +11,7 @@ Configuration Server_Scenario_10_RunAs
     $svccred = New-Object System.Management.Automation.PSCredential (($env:computername + "\OctoSquid"), $svcpass)
 
     $runAsPass = ConvertTo-SecureString "ModeratelyS3cretPassw0rd!" -AsPlainText -Force
+    # 2 different creds are required until https://github.com/OctopusDeploy/Issues/issues/4302 is fixed
     $runAsCredWithMachineName = New-Object System.Management.Automation.PSCredential (($env:computername + "\OctoMollusc"), $runAsPass)
     $runAsCred = New-Object System.Management.Automation.PSCredential ("OctoMollusc", $runAsPass)
 

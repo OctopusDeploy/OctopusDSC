@@ -1,4 +1,4 @@
-Configuration Server_Scenario_03_Install_Custom_Instance
+Configuration Server_Scenario_05_Install_Custom_Instance
 {
     Import-DscResource -ModuleName OctopusDSC
 

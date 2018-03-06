@@ -1,4 +1,4 @@
-Configuration Server_Scenario_04_Remove_Custom_Instance
+Configuration Server_Scenario_13_Remove
 {
     Import-DscResource -ModuleName OctopusDSC
 
@@ -20,18 +20,19 @@ Configuration Server_Scenario_04_Remove_Custom_Instance
 
             # Server instance name. Leave it as 'OctopusServer' unless you have more
             # than one instance
-            Name = "MyOctopusServer"
+            Name = "OctopusServer"
 
             # The url that Octopus will listen on
             WebListenPrefix = "http://localhost:81"
 
-            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario2;Trusted_Connection=True;"
+            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario5;Trusted_Connection=True;"
 
             # The admin user to create
             OctopusAdminCredential = $cred
 
             # dont mess with stats
             AllowCollectionOfUsageStatistics = $false
+
         }
     }
 }

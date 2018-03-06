@@ -1,9 +1,14 @@
-Configuration Server_Scenario_02_Remove
+Configuration Server_Scenario_08_Upgrade
 {
+    param ($ApiKey)
+
     Import-DscResource -ModuleName OctopusDSC
 
     $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
     $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
+
+    $pass = ConvertTo-SecureString $ApiKey -AsPlainText -Force
+    $apiCred = New-Object System.Management.Automation.PSCredential ("ignored", $pass)
 
     Node "localhost"
     {
@@ -13,16 +18,10 @@ Configuration Server_Scenario_02_Remove
             ConfigurationMode = 'ApplyOnly'
         }
 
-        cOctopusSeqLogger "Disable logging to seq"
-        {
-            InstanceType = 'OctopusServer'
-            Ensure = 'Absent'
-        }
-
         cOctopusServer OctopusServer
         {
-            Ensure = "Absent"
-            State = "Stopped"
+            Ensure = "Present"
+            State = "Started"
 
             # Server instance name. Leave it as 'OctopusServer' unless you have more
             # than one instance
@@ -31,14 +30,23 @@ Configuration Server_Scenario_02_Remove
             # The url that Octopus will listen on
             WebListenPrefix = "http://localhost:81"
 
-            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=Octopus;Trusted_Connection=True;"
+            # use a new database, as old one is not removed
+            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario5;Trusted_Connection=True;"
 
             # The admin user to create
             OctopusAdminCredential = $cred
 
             # dont mess with stats
             AllowCollectionOfUsageStatistics = $false
-            DependsOn = "[cOctopusSeqLogger]Disable logging to seq"
+        }
+
+        cOctopusEnvironment "Delete 'UAT 1' Environment"
+        {
+            Url = "http://localhost:81"
+            Ensure = "Absent"
+            OctopusApiKey = $apiCred
+            EnvironmentName = "UAT 1"
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
     }
 }

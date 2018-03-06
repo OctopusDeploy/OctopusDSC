@@ -78,3 +78,14 @@ Describe "Mandatory Parameters" {
         }
     }
 }
+
+Describe "Configuration Scenarios" {
+    $configurationFiles = Get-ChildItem ./Tests/Scenarios -Recurse -Filter *.ps1
+    foreach ($configurationFile in $configurationFiles) {
+        $confName = [System.Io.Path]::GetFileNameWithoutExtension($configurationFile.Name)
+
+        It "Configuration block in scenario $($configurationFile.Name) should have the same name as the file" {
+            $configurationFile.FullName | Should -FileContentMatch "Configuration $confName"
+        }
+    }
+}
