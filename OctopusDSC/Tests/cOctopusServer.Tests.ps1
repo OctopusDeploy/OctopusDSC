@@ -147,190 +147,190 @@ try
                 }
             }
 
-            # Context 'Test-TargetResource' {
-            #     $response = @{ Ensure="Absent"; State="Stopped" }
-            #     Mock Get-TargetResource { return $response }
+            Context 'Test-TargetResource' {
+                $response = @{ Ensure="Absent"; State="Stopped" }
+                Mock Get-TargetResource { return $response }
 
-            #     It 'Returns True when Ensure is set to Absent and Instance does not exist' {
-            #         $desiredConfiguration['Ensure'] = 'Absent'
-            #         $desiredConfiguration['State'] = 'Stopped'
-            #         $response['Ensure'] = 'Absent'
-            #         $response['State'] = 'Stopped'
+                It 'Returns True when Ensure is set to Absent and Instance does not exist' {
+                    $desiredConfiguration['Ensure'] = 'Absent'
+                    $desiredConfiguration['State'] = 'Stopped'
+                    $response['Ensure'] = 'Absent'
+                    $response['State'] = 'Stopped'
 
-            #         Test-TargetResource @desiredConfiguration | Should Be $true
-            #     }
+                    Test-TargetResource @desiredConfiguration | Should Be $true
+                }
 
-            #    It 'Returns True when Ensure is set to Present and Instance exists' {
-            #         $desiredConfiguration['Ensure'] = 'Present'
-            #         $desiredConfiguration['State'] = 'Started'
-            #         $response['Ensure'] = 'Present'
-            #         $response['State'] = 'Started'
+               It 'Returns True when Ensure is set to Present and Instance exists' {
+                    $desiredConfiguration['Ensure'] = 'Present'
+                    $desiredConfiguration['State'] = 'Started'
+                    $response['Ensure'] = 'Present'
+                    $response['State'] = 'Started'
 
-            #         Test-TargetResource @desiredConfiguration | Should Be $true
-            #     }
-            # }
+                    Test-TargetResource @desiredConfiguration | Should Be $true
+                }
+            }
 
-            # Context 'Set-TargetResource' {
-            #     #todo: more tests
-            #     It 'Throws an exception if .net 4.5.1 or above is not installed (no .net reg key found)' {
-            #         Mock Install-Msi {}
-            #         Mock Get-RegistryValue { return "" }
-            #         { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.5.1. Please install it before attempting to install Octopus Server."
-            #     }
+            Context 'Set-TargetResource' {
+                #todo: more tests
+                It 'Throws an exception if .net 4.5.1 or above is not installed (no .net reg key found)' {
+                    Mock Install-Msi {}
+                    Mock Get-RegistryValue { return "" }
+                    { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.5.1. Please install it before attempting to install Octopus Server."
+                }
 
-            #     It 'Throws an exception if .net 4.5.1 or above is not installed (only .net 4.5.0 installed)' {
-            #         Mock Install-Msi {}
-            #         Mock Get-RegistryValue { return "378389" }
-            #         { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.5.1. Please install it before attempting to install Octopus Server."
-            #     }
-            # }
+                It 'Throws an exception if .net 4.5.1 or above is not installed (only .net 4.5.0 installed)' {
+                    Mock Install-Msi {}
+                    Mock Get-RegistryValue { return "378389" }
+                    { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.5.1. Please install it before attempting to install Octopus Server."
+                }
+            }
 
-            # function Get-CurrentConfiguration ([string] $testName) {
-            #     & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName/CurrentState.ps1")
-            # }
+            function Get-CurrentConfiguration ([string] $testName) {
+                & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName/CurrentState.ps1")
+            }
 
-            # function Get-RequestedConfiguration ([string] $testName) {
-            #     & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName/RequestedState.ps1")
-            # }
+            function Get-RequestedConfiguration ([string] $testName) {
+                & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName/RequestedState.ps1")
+            }
 
-            # function Assert-ExpectedResult ([string] $testName) {
-            #     # todo: test order of execution here
-            #     $invocations = & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName/ExpectedResult.ps1")
-            #     it "Should call octopus.server.exe $($invocations.count) times" {
-            #         Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times $invocations.Count -Exactly
-            #     }
-            #     foreach($line in $invocations) {
-            #         It "Should call octopus.server.exe with args '$line'" {
-            #             Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq $line }
-            #         }
-            #     }
-            # }
+            function Assert-ExpectedResult ([string] $testName) {
+                # todo: test order of execution here
+                $invocations = & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName/ExpectedResult.ps1")
+                it "Should call octopus.server.exe $($invocations.count) times" {
+                    Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times $invocations.Count -Exactly
+                }
+                foreach($line in $invocations) {
+                    It "Should call octopus.server.exe with args '$line'" {
+                        Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq $line }
+                    }
+                }
+            }
 
-            # function Get-TempFolder {
-            #     if ("$($env:TmpDir)" -ne "") {
-            #         return $env:TmpDir
-            #     } else {
-            #         return $env:Temp
-            #     }
-            # }
+            function Get-TempFolder {
+                if ("$($env:TmpDir)" -ne "") {
+                    return $env:TmpDir
+                } else {
+                    return $env:Temp
+                }
+            }
 
-            # Context "New instance" {
-            #     Mock Invoke-OctopusServerCommand #{write-host $args}
-            #     Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstance" }
-            #     Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-            #     Mock Install-MSI {}
-            #     Mock Update-InstallState {}
-            #     Mock Test-OctopusDeployServerResponding { return $true }
-            #     Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
-            #     Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+            Context "New instance" {
+                Mock Invoke-OctopusServerCommand #{write-host $args}
+                Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstance" }
+                Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                Mock Install-MSI {}
+                Mock Update-InstallState {}
+                Mock Test-OctopusDeployServerResponding { return $true }
+                Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
+                Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
 
-            #     $params = Get-RequestedConfiguration "NewInstance"
-            #     Set-TargetResource @params
+                $params = Get-RequestedConfiguration "NewInstance"
+                Set-TargetResource @params
 
-            #     Assert-ExpectedResult "NewInstance"
-            #     it "Should download the MSI" {
-            #         Assert-MockCalled Install-MSI
-            #     }
-            # }
+                Assert-ExpectedResult "NewInstance"
+                it "Should download the MSI" {
+                    Assert-MockCalled Install-MSI
+                }
+            }
 
-            # Context "When MasterKey is supplied on new instance" {
-            #     Mock Invoke-OctopusServerCommand #{write-host $args}
-            #     Mock Get-TargetResource { return Get-CurrentConfiguration "MasterKeySupplied" }
-            #     Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-            #     Mock Install-MSI {}
-            #     Mock Update-InstallState {}
-            #     Mock Test-OctopusDeployServerResponding { return $true }
-            #     Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
-            #     Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+            Context "When MasterKey is supplied on new instance" {
+                Mock Invoke-OctopusServerCommand #{write-host $args}
+                Mock Get-TargetResource { return Get-CurrentConfiguration "MasterKeySupplied" }
+                Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                Mock Install-MSI {}
+                Mock Update-InstallState {}
+                Mock Test-OctopusDeployServerResponding { return $true }
+                Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
+                Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
 
-            #     $params = Get-RequestedConfiguration "MasterKeySupplied"
+                $params = Get-RequestedConfiguration "MasterKeySupplied"
 
-            #     Set-TargetResource @params
+                Set-TargetResource @params
 
-            #     it "Should download the MSI" {
-            #         Assert-MockCalled Install-MSI
-            #     }
-            #     Assert-ExpectedResult "MasterKeySupplied"
-            # }
+                it "Should download the MSI" {
+                    Assert-MockCalled Install-MSI
+                }
+                Assert-ExpectedResult "MasterKeySupplied"
+            }
 
-            # Context "When uninstalling running instance" {
-            #     Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
-            #     Mock Get-TargetResource { return Get-CurrentConfiguration "UninstallingRunningInstance" }
-            #     Mock Install-MSI {}
-            #     Mock Get-ExistingOctopusServices { return @() }
-            #     Mock Get-LogDirectory { return Get-TempFolder }
-            #     Mock Test-Path -ParameterFilter { $path -eq "$($env:SystemDrive)\Octopus\Octopus-x64.msi" } { return $true }
-            #     Mock Start-Process { return @{ ExitCode = 0} }
+            Context "When uninstalling running instance" {
+                Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
+                Mock Get-TargetResource { return Get-CurrentConfiguration "UninstallingRunningInstance" }
+                Mock Install-MSI {}
+                Mock Get-ExistingOctopusServices { return @() }
+                Mock Get-LogDirectory { return Get-TempFolder }
+                Mock Test-Path -ParameterFilter { $path -eq "$($env:SystemDrive)\Octopus\Octopus-x64.msi" } { return $true }
+                Mock Start-Process { return @{ ExitCode = 0} }
 
-            #     $params = Get-RequestedConfiguration "UninstallingRunningInstance"
-            #     Set-TargetResource @params
+                $params = Get-RequestedConfiguration "UninstallingRunningInstance"
+                Set-TargetResource @params
 
-            #     it "Should not download the MSI" {
-            #         Assert-MockCalled Install-MSI -Times 0 -Exactly
-            #     }
-            #     it "Should uninstall the MSI" {
-            #         Assert-MockCalled Start-Process -Times 1 -Exactly -ParameterFilter { $FilePath -eq "msiexec.exe" -and $ArgumentList -eq "/x $($env:SystemDrive)\Octopus\Octopus-x64.msi /quiet /l*v $(Get-TempFolder)\Octopus-x64.msi.uninstall.log"}
-            #     }
-            #     Assert-ExpectedResult "UninstallingRunningInstance"
-            # }
+                it "Should not download the MSI" {
+                    Assert-MockCalled Install-MSI -Times 0 -Exactly
+                }
+                it "Should uninstall the MSI" {
+                    Assert-MockCalled Start-Process -Times 1 -Exactly -ParameterFilter { $FilePath -eq "msiexec.exe" -and $ArgumentList -eq "/x $($env:SystemDrive)\Octopus\Octopus-x64.msi /quiet /l*v $(Get-TempFolder)\Octopus-x64.msi.uninstall.log"}
+                }
+                Assert-ExpectedResult "UninstallingRunningInstance"
+            }
 
-            # Context "Run-on-server user - new install" {
-            #     Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
-            #     Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstallWithBuiltInWorker" }
-            #     Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-            #     Mock Install-MSI {}
-            #     Mock Update-InstallState {}
-            #     Mock Test-OctopusDeployServerResponding { return $true }
-            #     Mock Test-OctopusVersionNewerThan { return $true }
-            #     Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
-            #     Mock Test-IsOctopusUpgrade { return $false } # we're installing new
+            Context "Run-on-server user - new install" {
+                Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
+                Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstallWithBuiltInWorker" }
+                Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                Mock Install-MSI {}
+                Mock Update-InstallState {}
+                Mock Test-OctopusDeployServerResponding { return $true }
+                Mock Test-OctopusVersionNewerThan { return $true }
+                Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+                Mock Test-IsOctopusUpgrade { return $false } # we're installing new
 
-            #     $params = Get-RequestedConfiguration "NewInstallWithBuiltInWorker"
-            #     Set-TargetResource @params
+                $params = Get-RequestedConfiguration "NewInstallWithBuiltInWorker"
+                Set-TargetResource @params
 
-            #     it "Should download the MSI" {
-            #         Assert-MockCalled Install-MSI
-            #     }
-            #     Assert-ExpectedResult "NewInstallWithBuiltInWorker"
-            # }
+                it "Should download the MSI" {
+                    Assert-MockCalled Install-MSI
+                }
+                Assert-ExpectedResult "NewInstallWithBuiltInWorker"
+            }
 
-            # Context "Run-on-server user - existing install" {
-            #     Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
-            #     Mock Get-TargetResource { return Get-CurrentConfiguration "EnableBuiltInWorkerOnExistingInstance" }
-            #     Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-            #     Mock Install-MSI {}
-            #     Mock Update-InstallState {}
-            #     Mock Test-OctopusDeployServerResponding { return $true }
-            #     Mock Test-OctopusVersionNewerThan { return $true }
-            #     Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+            Context "Run-on-server user - existing install" {
+                Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
+                Mock Get-TargetResource { return Get-CurrentConfiguration "EnableBuiltInWorkerOnExistingInstance" }
+                Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                Mock Install-MSI {}
+                Mock Update-InstallState {}
+                Mock Test-OctopusDeployServerResponding { return $true }
+                Mock Test-OctopusVersionNewerThan { return $true }
+                Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
 
-            #     $params = Get-RequestedConfiguration "EnableBuiltInWorkerOnExistingInstance"
-            #     Set-TargetResource @params
+                $params = Get-RequestedConfiguration "EnableBuiltInWorkerOnExistingInstance"
+                Set-TargetResource @params
 
-            #     it "Should not download the MSI" {
-            #         Assert-MockCalled Install-MSI -Times 0 -Exactly
-            #     }
-            #     Assert-ExpectedResult "EnableBuiltInWorkerOnExistingInstance"
-            # }
+                it "Should not download the MSI" {
+                    Assert-MockCalled Install-MSI -Times 0 -Exactly
+                }
+                Assert-ExpectedResult "EnableBuiltInWorkerOnExistingInstance"
+            }
 
-            # Context "Upgrade" {
-            #     Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
-            #     Mock Get-TargetResource { return Get-CurrentConfiguration "UpgradeExistingInstance" }
-            #     Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-            #     Mock Install-MSI {}
-            #     Mock Update-InstallState {}
-            #     Mock Test-OctopusDeployServerResponding { return $true }
-            #     Mock Test-OctopusVersionNewerThan { return $true }
-            #     Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+            Context "Upgrade" {
+                Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
+                Mock Get-TargetResource { return Get-CurrentConfiguration "UpgradeExistingInstance" }
+                Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                Mock Install-MSI {}
+                Mock Update-InstallState {}
+                Mock Test-OctopusDeployServerResponding { return $true }
+                Mock Test-OctopusVersionNewerThan { return $true }
+                Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
 
-            #     $params = Get-RequestedConfiguration "UpgradeExistingInstance"
-            #     Set-TargetResource @params
+                $params = Get-RequestedConfiguration "UpgradeExistingInstance"
+                Set-TargetResource @params
 
-            #     it "Should download the MSI" {
-            #         Assert-MockCalled Install-MSI
-            #     }
-            #     Assert-ExpectedResult "UpgradeExistingInstance"
-            # }
+                it "Should download the MSI" {
+                    Assert-MockCalled Install-MSI
+                }
+                Assert-ExpectedResult "UpgradeExistingInstance"
+            }
         }
     }
 }
