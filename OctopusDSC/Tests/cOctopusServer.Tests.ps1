@@ -152,6 +152,7 @@ try
                 Mock Get-TargetResource { return $response }
 
                 It 'Returns True when Ensure is set to Absent and Instance does not exist' {
+                    $desiredConfiguration = Get-DesiredConfiguration
                     $desiredConfiguration['Ensure'] = 'Absent'
                     $desiredConfiguration['State'] = 'Stopped'
                     $response['Ensure'] = 'Absent'
@@ -161,6 +162,7 @@ try
                 }
 
                It 'Returns True when Ensure is set to Present and Instance exists' {
+                $desiredConfiguration = Get-DesiredConfiguration
                     $desiredConfiguration['Ensure'] = 'Present'
                     $desiredConfiguration['State'] = 'Started'
                     $response['Ensure'] = 'Present'
@@ -175,12 +177,14 @@ try
                 It 'Throws an exception if .net 4.5.1 or above is not installed (no .net reg key found)' {
                     Mock Install-Msi {}
                     Mock Get-RegistryValue { return "" }
+                    $desiredConfiguration = Get-DesiredConfiguration
                     { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.5.1. Please install it before attempting to install Octopus Server."
                 }
 
                 It 'Throws an exception if .net 4.5.1 or above is not installed (only .net 4.5.0 installed)' {
                     Mock Install-Msi {}
                     Mock Get-RegistryValue { return "378389" }
+                    $desiredConfiguration = Get-DesiredConfiguration
                     { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.5.1. Please install it before attempting to install Octopus Server."
                 }
             }
