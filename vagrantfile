@@ -171,6 +171,12 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   # install v4
   run_octopus_scenario(config, 'Server_Scenario_12_Built_In_Worker')
 
+  # remove again prior to testing "install only"
+  run_octopus_scenario(config, 'Server_Scenario_13_Remove')
+
+  # install onlt without configure
+  run_octopus_scenario(config, 'Server_Scenario_14_Install_Without_Configure')
+
   config.vm.provision "shell", path: "Tests/configure-octopus-for-tentacle-tests.ps1"
 
   # initial tentacle install
