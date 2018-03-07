@@ -18,16 +18,17 @@ Configuration Server_Scenario_15_Configure_Preinstalled_Instance
         {
             Ensure = "Present"
             State = "Started"
-            Name = "OctopusServer"
+            Name = "ConfigurePreInstalledInstance"
             WebListenPrefix = "http://localhost:81"
             SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario15;Trusted_Connection=True;"
             OctopusAdminCredential = $cred
+
             AllowCollectionOfUsageStatistics = $false
         }
 
         cOctopusServerUsernamePasswordAuthentication "Enable Username/Password Auth"
         {
-            InstanceName = "OctopusServer"
+            InstanceName = "ConfigurePreInstalledInstance"
             Enabled = $true
             DependsOn = "[cOctopusServer]OctopusServer"
         }
