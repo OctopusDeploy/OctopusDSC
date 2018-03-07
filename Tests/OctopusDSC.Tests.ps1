@@ -5,16 +5,18 @@ Describe "PSScriptAnalyzer" {
     )
     $excludedRules | % { Write-Warning "Excluding Rule $_" }
 
-    Write-Output "Running PsScriptAnalyzer against ./OctopusDSC/DSCResources"
-    $results = @(Invoke-ScriptAnalyzer ./OctopusDSC/DSCResources -recurse -exclude $excludedRules)
+    $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/DSCResources"
+    Write-Output "Running PsScriptAnalyzer against $path"
+    $results = @(Invoke-ScriptAnalyzer $path -recurse -exclude $excludedRules)
     $results | ConvertTo-Json | Out-File PsScriptAnalyzer-DSCResources.log
 
     It "Should have zero PSScriptAnalyzer issues in OctopusDSC/DSCResources" {
         $results.length | Should Be 0
     }
 
-    Write-Output "Running PsScriptAnalyzer against ./OctopusDSC/Tests"
-    $results = @(Invoke-ScriptAnalyzer ./OctopusDSC/Tests -recurse -exclude $excludedRules)
+    $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/Tests"
+    Write-Output "Running PsScriptAnalyzer against $path"
+    $results = @(Invoke-ScriptAnalyzer $path -recurse -exclude $excludedRules)
     $results | ConvertTo-Json | Out-File PsScriptAnalyzer-Tests.log
 
     # it'd be nice to run the PsScriptAnalyzer on `./OctopusDSC/Examples`, but I couldn't get it to detect the DSCModule on mac nor on linux
@@ -25,8 +27,10 @@ Describe "PSScriptAnalyzer" {
 
 Describe "OctopusDSC.psd1" {
     It "Should be valid" {
-        $modules = Get-ChildItem ./OctopusDSC/DSCResources -Directory
-        Import-LocalizedData -BaseDirectory ./OctopusDSC -FileName OctopusDSC.psd1 -BindingVariable Data
+        $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/DSCResources"
+        $modules = Get-ChildItem $path -Directory
+        $path = Resolve-Path "$PSCommandPath/../../OctopusDSC"
+        Import-LocalizedData -BaseDirectory $path -FileName OctopusDSC.psd1 -BindingVariable Data
 
         $expected = ($Data.DscResourcesToExport | Sort-Object) -join ","
         $actual = (($modules | Sort-Object) -join ",")
@@ -35,44 +39,59 @@ Describe "OctopusDSC.psd1" {
 }
 
 Describe "Mandatory Parameters" {
-    It "All required or key properties in the mof file should be marked with [Parameter(Mandatory)} in the psm1 file" {
-        $schemaMofFiles = Get-ChildItem ./OctopusDSC/DSCResources -Recurse -Filter *.mof
-        foreach ($schemaMofFile in $schemaMofFiles) {
-            $schemaMofFileContent = Get-Content $schemaMofFile.FullName
-            $moduleFile = Get-Item ($schemaMofFile.FullName -replace ".schema.mof", ".psm1")
+    $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/DSCResources"
+    $schemaMofFiles = Get-ChildItem $path -Recurse -Filter *.mof
+    foreach ($schemaMofFile in $schemaMofFiles) {
+        $schemaMofFileContent = Get-Content $schemaMofFile.FullName
+        $moduleFile = Get-Item ($schemaMofFile.FullName -replace ".schema.mof", ".psm1")
 
+        function Get-ParameterFromFunction($functionName, $ast, $propertyName) {
+            $filter = { $true }
+            $result = $ast.FindAll($filter, $true);
+
+            $foundMatchingParameter = $false
+            foreach($param in $result) {
+                if ($null -ne $param.name -and $param.Name.ToString() -eq "`$$propertyName") {
+                    $function = $param.Parent.Parent.Parent
+                    if ($function -is [System.Management.Automation.Language.FunctionDefinitionAst]) {
+                        $functionName = ([System.Management.Automation.Language.FunctionDefinitionAst]$function).Name
+                        if ($functionName -eq $functionName) {
+                            return $param.Attributes.Extent.Text
+                        }
+                    }
+                }
+            }
+        }
+
+        function Test-Parameter($functionName, $ast, $propertyName, $moduleFile, $propertyType) {
+            $param = Get-ParameterFromFunction -functionName $functionName -ast $ast -propertyName $propertyName
+            It "Parameter '$propertyName' in function '$functionName' should be marked with [Parameter(Mandatory)} in $($moduleFile.Name) as its a $propertyType property" {
+                $param -contains "[Parameter(Mandatory)]" | should be $true
+            }
+        }
+
+        Describe "Module $($moduleFile.Name)" {
             $tokens = $null;
             $parseErrors = $null;
             $ast = [System.Management.Automation.Language.Parser]::ParseFile($moduleFile.FullName, [ref] $tokens, [ref] $parseErrors);
 
-            $parseErrors | should be $null
+            It "The module $($moduleFile.Name) should have no parse errors" {
+                $parseErrors | should be $null
+            }
 
             foreach($line in $schemaMofFileContent) {
-                if ($line -match "\s*(\[.*?(Required|Key).*\])\s*(.*) (.*);") {
-                    $propertyName = $matches[4];
+                if ($line -match "\s*(\[\b(Required|Key)\b.*\])\s*(.*) (.*);") {
+                    $propertyType = $matches[2]
+                    $propertyName = $matches[4].Replace("[]", "");
 
-                    $filter = {
-                        ($args[0] -is [System.Management.Automation.Language.ParameterAst]) -and
-                        ($args[0].Name -eq $propertyName)
-                    }
+                    $filter = { $true }
                     $result = $ast.FindAll($filter, $true);
 
-                    foreach($param in $result) {
-                        $function = $param.Parent.Parent.Parent
-                        if ($function -is [System.Management.Automation.Language.FunctionDefinitionAst]) {
-                            $functionName = ([System.Management.Automation.Language.FunctionDefinitionAst]$function).Name
-                            if (($functionName -like "Get-TargetResource") -or
-                                ($functionName -like "Set-TargetResource") -or
-                                ($functionName -like "Test-TargetResource")) {
+                    $foundMatchingParameter = $false
 
-                                $parameterAttributes = $param.Attributes.Extent.Text
-                                if ($parameterAttributes -notcontains "[Parameter(Mandatory)]") {
-                                    $filename = $moduleFile.Name -replace $moduleFile.Extension, ''
-                                    throw "$filename.$functionName.$($param.Name) should be marked as mandatory, as they are marked as required/key in the mof file"
-                                }
-                            }
-                        }
-                    }
+                    Test-Parameter -functionName "Get-TargetResource" -ast $ast -propertyName $propertyName -moduleFile $moduleFile -propertyType $propertyType
+                    Test-Parameter -functionName "Set-TargetResource" -ast $ast -propertyName $propertyName -moduleFile $moduleFile -propertyType $propertyType
+                    Test-Parameter -functionName "Test-TargetResource" -ast $ast -propertyName $propertyName -moduleFile $moduleFile -propertyType $propertyType
                 }
             }
         }

@@ -11,23 +11,15 @@ function Get-TargetResource {
         [ValidateSet("Present", "Absent")]
         [string]$Ensure = "Present",
         [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
         [string]$Name,
         [ValidateSet("Started", "Stopped", "Installed")]
         [string]$State = "Started",
-        [ValidateNotNullOrEmpty()]
         [string]$DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer",
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
         [string]$WebListenPrefix,
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
         [string]$SqlDbConnectionString,
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
         [PSCredential]$OctopusAdminCredential,
         [bool]$AllowUpgradeCheck = $true,
-        [bool]$AllowCollectionOfUsageStatistics          = $true,
+        [bool]$AllowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$LegacyWebAuthenticationMode = 'Ignore',
         [bool]$ForceSSL = $false,
@@ -42,6 +34,14 @@ function Get-TargetResource {
         [bool]$GrantDatabasePermissions = $true,
         [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty
     )
+
+    Test-ParameterSet -Ensure $Ensure `
+                      -Name $Name `
+                      -State $State `
+                      -DownloadUrl $DownloadUrl `
+                      -WebListenPrefix $WebListenPrefix `
+                      -SqlDbConnectionString $SqlDbConnectionString `
+                      -OctopusAdminCredential $OctopusAdminCredential
 
     $script:instancecontext = $Name
 
@@ -298,20 +298,12 @@ function Set-TargetResource {
         [ValidateSet("Present", "Absent")]
         [string]$Ensure = "Present",
         [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
         [string]$Name,
         [ValidateSet("Started", "Stopped", "Installed")]
         [string]$State = "Started",
-        [ValidateNotNullOrEmpty()]
         [string]$DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer",
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
         [string]$WebListenPrefix,
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
         [string]$SqlDbConnectionString,
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
         [PSCredential]$OctopusAdminCredential,
         [bool]$AllowUpgradeCheck = $true,
         [bool]$AllowCollectionOfUsageStatistics = $true,
@@ -329,6 +321,14 @@ function Set-TargetResource {
         [bool]$GrantDatabasePermissions = $true,
         [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty
     )
+
+    Test-ParameterSet -Ensure $Ensure `
+                      -Name $Name `
+                      -State $State `
+                      -DownloadUrl $DownloadUrl `
+                      -WebListenPrefix $WebListenPrefix `
+                      -SqlDbConnectionString $SqlDbConnectionString `
+                      -OctopusAdminCredential $OctopusAdminCredential
 
     # update the global
     $script:instancecontext = $Name
@@ -368,8 +368,8 @@ function Set-TargetResource {
     $stopRequested = $State -eq "Stopped"
     $startRequested = $State -eq "Started"
     $removeRequested = $Ensure -eq "Absent"
-    $installRequested = $Ensure -eq "Install"
-    $installAndConfigureRequested = $Ensure -eq "Present"
+    $installRequested = $State -eq "Installed"
+    $installAndConfigureRequested = $Ensure -eq "Present" -and $State -ne "Installed"
 
     if ($stopRequested -and $isCurrentlyStarted) {
         Stop-OctopusDeployService $Name
@@ -875,7 +875,7 @@ function Get-RegistryValue {
     }
 }
 
-Function Test-IsOctopusUpgrade {
+function Test-IsOctopusUpgrade {
     # if the binary exists before installing the MSI, we're considering this an upgrade
     return (Test-Path -LiteralPath $OctopusServerExePath)
 }
@@ -1152,20 +1152,12 @@ function Test-TargetResource {
         [ValidateSet("Present", "Absent")]
         [string]$Ensure = "Present",
         [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
         [string]$Name,
         [ValidateSet("Started", "Stopped", "Installed")]
         [string]$State = "Started",
-        [ValidateNotNullOrEmpty()]
         [string]$DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer",
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
         [string]$WebListenPrefix,
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
         [string]$SqlDbConnectionString,
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
         [PSCredential]$OctopusAdminCredential,
         [bool]$AllowUpgradeCheck = $true,
         [bool]$AllowCollectionOfUsageStatistics = $true,
@@ -1183,6 +1175,14 @@ function Test-TargetResource {
         [bool]$GrantDatabasePermissions = $true,
         [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty
     )
+
+    Test-ParameterSet -Ensure $Ensure `
+                      -Name $Name `
+                      -State $State `
+                      -DownloadUrl $DownloadUrl `
+                      -WebListenPrefix $WebListenPrefix `
+                      -SqlDbConnectionString $SqlDbConnectionString `
+                      -OctopusAdminCredential $OctopusAdminCredential
 
     # make sure the global is up to date
     $script:instancecontext = $Name
@@ -1264,5 +1264,75 @@ function Test-PSCredential($currentValue, $requestedValue) {
         return $false
     }
     return $true
+}
 
+function Test-ParameterSet {
+    param (
+        [string]$Ensure,
+        [string]$Name,
+        [string]$State,
+        [string]$DownloadUrl,
+        [string]$WebListenPrefix,
+        [string]$SqlDbConnectionString,
+        [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty
+    )
+
+    if ([string]::IsNullOrEmpty($Ensure)) {
+        throw "Parameter 'Ensure' must be supplied."
+    }
+
+    $values = @("Present", "Absent")
+    if ($values -notcontains $Ensure) {
+        throw "Parameter 'Ensure' had unexpected value '$Ensure'. It should have been one of [$([string]::Join(", ", $values))]."
+    }
+
+    if ([string]::IsNullOrEmpty($State)) {
+        throw "Parameter 'State' must be supplied."
+    }
+
+    $values = @("Started", "Stopped", "Installed")
+    if ($values -notcontains $State) {
+        throw "Parameter 'State' had unexpected value '$State'. It should have been one of [$([string]::Join(", ", $values))]."
+    }
+
+    if ($Ensure -eq "Present") {
+        if ([string]::IsNullOrEmpty($DownloadUrl)) {
+            throw "Parameter 'DownloadUrl' must be supplied when 'Ensure' is 'Present'."
+        }
+
+        if ($State -ne "Installed") {
+            if ([string]::IsNullOrEmpty($Name)) {
+                throw "Parameter 'Name' must be supplied when 'Ensure' is 'Present'."
+            }
+
+            if ([string]::IsNullOrEmpty($WebListenPrefix)) {
+                throw "Parameter 'WebListenPrefix' must be supplied when 'Ensure' is 'Present'."
+            }
+
+            if ([string]::IsNullOrEmpty($SqlDbConnectionString)) {
+                throw "Parameter 'SqlDbConnectionString' must be supplied when 'Ensure' is 'Present'."
+            }
+
+            if (($null -eq $OctopusAdminCredential) -or ($OctopusAdminCredential -eq [PSCredential]::Empty)) {
+                throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present'."
+            }
+        }
+    } elseif ($Ensure -eq "Absent") {
+        if ($State -eq "Started") {
+            throw "Invalid configuration requested. " + `
+                "You have asked for the service to not exist, but also be running at the same time. " + `
+                "You probably want 'State = `"Stopped`"."
+        }
+
+        if ($State -eq "Installed") {
+            throw "Invalid configuration requested. " + `
+                "You have asked for the service to not exist, but also be installed at the same time. " + `
+                "You probably want 'State = `"Stopped`"."
+        }
+
+        if ([string]::IsNullOrEmpty($Name)) {
+            throw "Parameter 'Name' must be supplied when 'Ensure' is 'Absent'."
+        }
+
+    }
 }

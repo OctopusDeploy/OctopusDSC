@@ -179,11 +179,11 @@ function Set-TargetResourceInternal {
         throw "Property 'SeqServer' should be supplied if 'Ensure' is set to 'Present'"
     }
 
-    Get-TargetResource -InstanceType $InstanceType `
+    Get-TargetResourceInternal -InstanceType $InstanceType `
         -Ensure $Ensure `
         -SeqServer $SeqServer `
         -SeqApiKey $SeqApiKey `
-        -Properties $null
+        -Properties $Properties
 
     if ($InstanceType -eq "Tentacle") {
         $dllPath = "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Seq.Client.NLog.dll"
