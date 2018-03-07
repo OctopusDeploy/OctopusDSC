@@ -10,7 +10,8 @@ describe file('C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe') do
 end
 
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer') do
-  it { should_not exist }
+  it { should exist }
+  it { should have_property_value('InstallLocation', :type_string, "C:\\Program Files\\Octopus Deploy\\Octopus\\") }
 end
 
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer\OctopusServer') do
