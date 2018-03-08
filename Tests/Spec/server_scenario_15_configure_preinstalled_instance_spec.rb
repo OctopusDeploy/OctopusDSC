@@ -30,7 +30,7 @@ describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer
   it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\OctopusServer-ConfigurePreInstalledInstance.config') }
 end
 
-describe service('OctopusDeploy') do
+describe service('OctopusDeploy: ConfigurePreInstalledInstance') do
   it { should be_installed }
   it { should be_running }
   it { should have_start_mode('Automatic') }
