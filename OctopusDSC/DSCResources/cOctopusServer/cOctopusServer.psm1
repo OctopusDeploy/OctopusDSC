@@ -875,11 +875,6 @@ function Get-RegistryValue {
     }
 }
 
-function Test-IsOctopusUpgrade {
-    # if the binary exists before installing the MSI, we're considering this an upgrade
-    return (Test-Path -LiteralPath $OctopusServerExePath)
-}
-
 function Install-OctopusDeploy {
     param (
         [Parameter(Mandatory = $True)]
