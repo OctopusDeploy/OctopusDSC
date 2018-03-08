@@ -423,7 +423,6 @@ try
                     Mock Test-OctopusDeployServerResponding { return $true }
                     Mock Test-OctopusVersionNewerThan { return $true }
                     Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
-                    Mock Test-IsOctopusUpgrade { return $false } # we're installing new
 
                     $params = Get-RequestedConfiguration "NewInstallWithBuiltInWorker"
                     Set-TargetResource @params
