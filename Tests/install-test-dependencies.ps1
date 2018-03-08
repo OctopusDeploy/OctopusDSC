@@ -116,7 +116,7 @@ if (-not (Test-Path $oSqlPath)) {
 write-output " - found it at $oSqlPath"
 
 write-output " - creating login for 'NT AUTHORITY\SYSTEM'"
-& "$oSqlPath" "-E" "-S" "(local)\SQLEXPRESS" "-Q" "`"CREATE LOGIN [NT AUTHORITY\SYSTEM] FROM WINDOWS`""
+& "$oSqlPath" "-E" "-S" "(local)\SQLEXPRESS" "-Q" "`"IF NOT EXISTS(SELECT Name FROM sys.server_principals WITH (TABLOCK) WHERE Name = 'NT AUTHORITY\SYSTEM') BEGIN CREATE LOGIN [NT AUTHORITY\SYSTEM] FROM WINDOWS; END`""
 if ($LASTEXITCODE -ne 0) {
   write-output " - failed with exit code $LASTEXITCODE"
   exit 1

@@ -16,6 +16,7 @@ Configuration Server_Scenario_14_Install_Without_Configure
         {
             Ensure = "Present"
             State = "Installed"
+            Name = "OctopusServer"
         }
     }
 }

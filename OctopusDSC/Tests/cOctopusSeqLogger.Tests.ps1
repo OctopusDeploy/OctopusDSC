@@ -291,7 +291,7 @@ try
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
                     Mock Test-Path { return $false } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe.nlog" }
                     Mock Remove-Item
-                    Set-TargetResource -InstanceType 'OctopusServer' -Ensure 'Absent'
+                    Set-TargetResourceInternal -InstanceType 'OctopusServer' -Ensure 'Absent'
                     Assert-MockCalled Remove-Item -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
                 }
 
@@ -323,7 +323,7 @@ try
                     Mock Save-NlogConfig
                     $password = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
                     $apiKey = New-Object System.Management.Automation.PSCredential ("ignored", $password)
-                    Set-TargetResource -InstanceType 'OctopusServer' -Ensure 'Present' -SeqServer "https://seq.example.com" -SeqApiKey $apiKey
+                    Set-TargetResourceInternal -InstanceType 'OctopusServer' -Ensure 'Present' -SeqServer "https://seq.example.com" -SeqApiKey $apiKey
                     Assert-MockCalled Request-SeqClientNlogDll -ParameterFilter { $dllPath -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
                     Assert-MockCalled Save-NlogConfig
                 }
