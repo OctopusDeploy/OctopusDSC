@@ -382,6 +382,7 @@ function Set-TargetResource {
         Install-MSI $DownloadUrl
     }
     elseif ($installAndConfigureRequested -and ($isCurrentlyNotInstalled -or $isCurrentlyInstalledButServiceDoesntExist)) {
+        #they've asked for it to be installed + configured and its not there yet
         if ($isCurrentlyNotInstalled -or ($currentResource["DownloadUrl"] -ne $DownloadUrl)) {
             Install-MSI $DownloadUrl
         }
@@ -404,6 +405,7 @@ function Set-TargetResource {
             -grantDatabasePermissions $GrantDatabasePermissions `
             -octopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential
     } else {
+        #have they asked for a new msi?
         if ($installAndConfigureRequested -and $currentResource["DownloadUrl"] -ne $DownloadUrl) {
             Update-OctopusDeploy -name $Name `
                 -downloadUrl $DownloadUrl `
@@ -411,6 +413,8 @@ function Set-TargetResource {
                 -webListenPrefix $webListenPrefix `
                 -currentState $currentResource["State"]
         }
+
+        #are there any changes that need to be applied?
         if (Test-ReconfigurationRequired $currentResource $params) {
             Set-OctopusDeployConfiguration `
                 -currentState $currentResource `
@@ -536,10 +540,10 @@ function Set-OctopusDeployConfiguration {
     if (-not (Test-PSCredential $currentState['OctopusServiceCredential'] $OctopusServiceCredential)) {
         $args = @(
             'service',
-            '--console'
+            '--console',
             '--instance', $name,
-            '--uninstall',
-            '--install',
+            '--stop',
+            '--start',
             '--reconfigure'
         )
 
@@ -713,6 +717,9 @@ function Update-OctopusDeploy($name, $downloadUrl, $state, $webListenPrefix, $cu
 }
 
 function Start-OctopusDeployService($name, $webListenPrefix) {
+    Write-Log "Checking Octopus Deploy service state:"
+    get-service $name | write-verbose
+
     Write-Log "Starting Octopus Deploy instance ..."
     $args = @(
         'service',
@@ -753,6 +760,9 @@ function Test-OctopusDeployServerResponding($url) {
 }
 
 function Stop-OctopusDeployService($name) {
+    Write-Log "Checking Octopus Deploy service state:"
+    get-service $name | write-verbose
+
     Write-Log "Stopping Octopus Deploy instance ..."
     $args = @(
         'service',
@@ -1060,14 +1070,7 @@ function Install-OctopusDeploy {
         Invoke-OctopusServerCommand $args
     }
 
-    Write-Log "Stopping Octopus Deploy instance ..."
-    $args = @(
-        'service',
-        '--console',
-        '--instance', $name,
-        '--stop'
-    )
-    Invoke-OctopusServerCommand $args
+    Stop-OctopusDeployService -name $name
 
     Write-Log "Creating Admin User for Octopus Deploy instance ..."
     $args = @(
