@@ -718,7 +718,7 @@ function Update-OctopusDeploy($name, $downloadUrl, $state, $webListenPrefix, $cu
 
 function Start-OctopusDeployService($name, $webListenPrefix) {
     Write-Log "Checking Octopus Deploy service state:"
-    get-service $name | write-verbose
+    get-service $name  -ErrorAction SilentlyContinue | write-verbose
 
     Write-Log "Starting Octopus Deploy instance ..."
     $args = @(
@@ -761,7 +761,7 @@ function Test-OctopusDeployServerResponding($url) {
 
 function Stop-OctopusDeployService($name) {
     Write-Log "Checking Octopus Deploy service state:"
-    get-service $name | write-verbose
+    get-service $name  -ErrorAction SilentlyContinue | write-verbose
 
     Write-Log "Stopping Octopus Deploy instance ..."
     $args = @(
