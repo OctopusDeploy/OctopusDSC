@@ -379,11 +379,13 @@ function Set-TargetResource {
         Uninstall-OctopusDeploy -name $Name -currentState $currentResource["State"]
     }
     elseif ($installRequested -and $isCurrentlyNotInstalled) {
+        #no stop/start required
         Install-MSI $DownloadUrl
     }
     elseif ($installAndConfigureRequested -and ($isCurrentlyNotInstalled -or $isCurrentlyInstalledButServiceDoesntExist)) {
         #they've asked for it to be installed + configured and its not there yet
         if ($isCurrentlyNotInstalled -or ($currentResource["DownloadUrl"] -ne $DownloadUrl)) {
+            #no stop/start required
             Install-MSI $DownloadUrl
         }
         Install-OctopusDeploy -name $Name `
@@ -706,10 +708,7 @@ function Get-ExistingOctopusServices {
 
 function Update-OctopusDeploy($name, $downloadUrl, $state, $webListenPrefix, $currentState) {
     Write-Verbose "Upgrading Octopus Deploy..."
-    if ($currentState -eq "Started") {
-        Stop-OctopusDeployService -name $name
-    }
-    Install-MSI $downloadUrl
+    Install-MSI $downloadUrl -StopService:($currentState -eq "Started")
     if ($state -eq "Started") {
         Start-OctopusDeployService -name $name -webListenPrefix $webListenPrefix
     }
@@ -784,25 +783,32 @@ function Get-ServiceName {
     }
 }
 
-function Install-MSI {
-    param (
-        [string]$downloadUrl
-    )
-    Write-Verbose "Beginning installation"
-
-    mkdir "$($env:SystemDrive)\Octopus" -ErrorAction SilentlyContinue
-
-    $msiPath = "$($env:SystemDrive)\Octopus\Octopus-x64.msi"
-    Request-File $downloadUrl $msiPath
-
+function Invoke-MsiExec ($logDirectory) {
     Write-Verbose "Installing MSI..."
     if (-not (Test-Path "$($env:SystemDrive)\Octopus\logs")) { New-Item -type Directory "$($env:SystemDrive)\Octopus\logs" }
-    $msiLog = "$($env:SystemDrive)\Octopus\logs\Octopus-x64.msi.log"
+    $msiLog = "$logDirectory\Octopus-x64.msi.log"
     $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $msiPath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
     Write-Verbose "MSI installer returned exit code $msiExitCode"
     if ($msiExitCode -ne 0) {
         throw "Installation of the MSI failed; MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
     }
+}
+
+function Install-MSI {
+    param (
+        [string]$downloadUrl,
+        [switch]$stopService = $false
+    )
+    Write-Verbose "Beginning installation"
+    $logDirectory = Get-LogDirectory
+
+    $msiPath = "$($env:SystemDrive)\Octopus\Octopus-x64.msi"
+    Request-File $downloadUrl $msiPath
+
+    if ($stopService) {
+        Stop-OctopusDeployService -name $name
+    }
+    Invoke-MsiExec $logDirectory
 
     Update-InstallState "DownloadUrl" $downloadUrl -global
 }
