@@ -310,15 +310,21 @@ try
             Context 'Set-TargetResource' {
                 #todo: more tests
                 It 'Throws an exception if .net 4.5.1 or above is not installed (no .net reg key found)' {
-                    Mock Install-Msi {}
+                    Mock Invoke-MsiExec {}
+                    Mock Get-LogDirectory {}
+                    Mock Request-File {}
                     Mock Get-RegistryValue { return "" }
+                    Mock Update-InstallState
                     $desiredConfiguration = Get-DesiredConfiguration
                     { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.5.1. Please install it before attempting to install Octopus Server."
                 }
 
                 It 'Throws an exception if .net 4.5.1 or above is not installed (only .net 4.5.0 installed)' {
-                    Mock Install-Msi {}
+                    Mock Invoke-MsiExec {}
+                    Mock Get-LogDirectory {}
+                    Mock Request-File {}
                     Mock Get-RegistryValue { return "378389" }
+                    Mock Update-InstallState
                     $desiredConfiguration = Get-DesiredConfiguration
                     { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.5.1. Please install it before attempting to install Octopus Server."
                 }
@@ -358,7 +364,9 @@ try
                     Mock Invoke-OctopusServerCommand #{write-host $args}
                     Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstance" }
                     Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-                    Mock Install-MSI {}
+                    Mock Invoke-MsiExec {}
+                    Mock Get-LogDirectory {}
+                    Mock Request-File {}
                     Mock Update-InstallState {}
                     Mock Test-OctopusDeployServerResponding { return $true }
                     Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
@@ -369,7 +377,8 @@ try
 
                     Assert-ExpectedResult "NewInstance"
                     it "Should download the MSI" {
-                        Assert-MockCalled Install-MSI
+                        Assert-MockCalled Request-File
+                        Assert-MockCalled Invoke-MsiExec
                     }
                 }
 
@@ -377,7 +386,9 @@ try
                     Mock Invoke-OctopusServerCommand #{write-host $args}
                     Mock Get-TargetResource { return Get-CurrentConfiguration "MasterKeySupplied" }
                     Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-                    Mock Install-MSI {}
+                    Mock Invoke-MsiExec {}
+                    Mock Get-LogDirectory {}
+                    Mock Request-File {}
                     Mock Update-InstallState {}
                     Mock Test-OctopusDeployServerResponding { return $true }
                     Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
@@ -388,7 +399,8 @@ try
                     Set-TargetResource @params
 
                     it "Should download the MSI" {
-                        Assert-MockCalled Install-MSI
+                        Assert-MockCalled Request-File
+                        Assert-MockCalled Invoke-MsiExec
                     }
                     Assert-ExpectedResult "MasterKeySupplied"
                 }
@@ -396,7 +408,9 @@ try
                 Context "When uninstalling running instance" {
                     Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
                     Mock Get-TargetResource { return Get-CurrentConfiguration "UninstallingRunningInstance" }
-                    Mock Install-MSI {}
+                    Mock Invoke-MsiExec {}
+                    Mock Get-LogDirectory {}
+                    Mock Request-File {}
                     Mock Get-ExistingOctopusServices { return @() }
                     Mock Get-LogDirectory { return Get-TempFolder }
                     Mock Test-Path -ParameterFilter { $path -eq "$($env:SystemDrive)\Octopus\Octopus-x64.msi" } { return $true }
@@ -406,7 +420,8 @@ try
                     Set-TargetResource @params
 
                     it "Should not download the MSI" {
-                        Assert-MockCalled Install-MSI -Times 0 -Exactly
+                        Assert-MockCalled Request-File -Times 0 -Exactly
+                        Assert-MockCalled Invoke-MsiExec -Times 0 -Exactly
                     }
                     it "Should uninstall the MSI" {
                         Assert-MockCalled Start-Process -Times 1 -Exactly -ParameterFilter { $FilePath -eq "msiexec.exe" -and $ArgumentList -eq "/x $($env:SystemDrive)\Octopus\Octopus-x64.msi /quiet /l*v $(Get-TempFolder)\Octopus-x64.msi.uninstall.log"}
@@ -418,7 +433,9 @@ try
                     Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
                     Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstallWithBuiltInWorker" }
                     Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-                    Mock Install-MSI {}
+                    Mock Invoke-MsiExec {}
+                    Mock Get-LogDirectory {}
+                    Mock Request-File {}
                     Mock Update-InstallState {}
                     Mock Test-OctopusDeployServerResponding { return $true }
                     Mock Test-OctopusVersionNewerThan { return $true }
@@ -428,7 +445,8 @@ try
                     Set-TargetResource @params
 
                     it "Should download the MSI" {
-                        Assert-MockCalled Install-MSI
+                        Assert-MockCalled Request-File
+                        Assert-MockCalled Invoke-MsiExec
                     }
                     Assert-ExpectedResult "NewInstallWithBuiltInWorker"
                 }
@@ -437,7 +455,9 @@ try
                     Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
                     Mock Get-TargetResource { return Get-CurrentConfiguration "EnableBuiltInWorkerOnExistingInstance" }
                     Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-                    Mock Install-MSI {}
+                    Mock Invoke-MsiExec {}
+                    Mock Get-LogDirectory {}
+                    Mock Request-File {}
                     Mock Update-InstallState {}
                     Mock Test-OctopusDeployServerResponding { return $true }
                     Mock Test-OctopusVersionNewerThan { return $true }
@@ -447,7 +467,8 @@ try
                     Set-TargetResource @params
 
                     it "Should not download the MSI" {
-                        Assert-MockCalled Install-MSI -Times 0 -Exactly
+                        Assert-MockCalled Request-File -Times 0 -Exactly
+                        Assert-MockCalled Invoke-MsiExec -Times 0 -Exactly
                     }
                     Assert-ExpectedResult "EnableBuiltInWorkerOnExistingInstance"
                 }
@@ -456,7 +477,9 @@ try
                     Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
                     Mock Get-TargetResource { return Get-CurrentConfiguration "UpgradeExistingInstance" }
                     Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-                    Mock Install-MSI {}
+                    Mock Invoke-MsiExec {}
+                    Mock Get-LogDirectory {}
+                    Mock Request-File {}
                     Mock Update-InstallState {}
                     Mock Test-OctopusDeployServerResponding { return $true }
                     Mock Test-OctopusVersionNewerThan { return $true }
@@ -466,7 +489,8 @@ try
                     Set-TargetResource @params
 
                     it "Should download the MSI" {
-                        Assert-MockCalled Install-MSI
+                        Assert-MockCalled Request-File
+                        Assert-MockCalled Invoke-MsiExec
                     }
                     Assert-ExpectedResult "UpgradeExistingInstance"
                 }
