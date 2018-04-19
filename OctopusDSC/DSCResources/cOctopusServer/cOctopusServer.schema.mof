@@ -22,4 +22,7 @@ class cOctopusServer : OMI_BaseResource
   [Write] string LicenseKey;
   [Write] boolean GrantDatabasePermissions;
   [Write, EmbeddedInstance ("MSFT_Credential")] string OctopusBuiltInWorkerCredential;
+  [Write] string PackagesDirectory;
+  [Write] string ArtifactsDirectory;
+  [Write] string TaskLogsDirectory;
 };

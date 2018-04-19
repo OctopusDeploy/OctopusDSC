@@ -14,4 +14,7 @@ return @{
     ListenPort = 10935;
     AllowCollectionOfUsageStatistics = $false;
     HomeDirectory = "C:\Octopus";
+    TaskLogsDirectory = "E:\TaskLogs";
+    PackagesDirectory = "F:\Packages";
+    ArtifactsDirectory = "G:\Artifacts";
 }

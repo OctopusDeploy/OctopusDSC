@@ -5,6 +5,7 @@ return @(
   "service --stop --console --instance HANode",
   "admin --console --instance HANode --username Admin --password S3cur3P4ssphraseHere!",
   "license --console --instance HANode --free",
+  "path --console --instance HANode --nugetRepository C:\ChezOctopusSecondNode\Packages --artifacts C:\ChezOctopusSecondNode\Artifacts --taskLogs C:\ChezOctopusSecondNode\TaskLogs",
   "service --console --instance HANode --install --reconfigure --stop",
   "service --start --console --instance HANode"
 )

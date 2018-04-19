@@ -54,6 +54,9 @@ Configuration SampleConfig
             LegacyWebAuthenticationMode = "UsernamePassword"
 
             HomeDirectory = "C:\Octopus"
+            TaskLogsDirectory = "E:\OctopusTaskLogs" # defaults to "$HomeDirectory\TaskLogs"
+            PackagesDirectory = "E:\OctopusPackages" # defaults to "$HomeDirectory\Packages"
+            ArtifactsDirectory = "E:\OctopusArtifacts" # defaults to "$HomeDirectory\Artifacts"
 
             # if not supplied, Octopus will use a free license
             LicenseKey = "base64encodedlicense"
@@ -107,6 +110,9 @@ When `State` is `Started`, the resource will ensure that the Octopus Servr windo
 | `AutoLoginEnabled`                    | `boolean`                                           |                                                                 | If an authentication provider is enabled that supports pass through authentication (eg Active Directory), allow the user to automatically sign in. Only supported from Octopus 3.5. |
 | `OctopusServiceCredential`            | `PSCredential`                                      | `[PSCredential]::Empty`                                         | Credentials of the account used to run the Octopus Service |
 | `HomeDirectory`                       | `string`                                            | `C:\Octopus`                                                    | Home directory for Octopus logs and config (where supported) |
+| `PackagesDirectory`                   | `string`                                            | `$HomeDirectory\Packages`                                       | Directory where uploaded packages are stored. |
+| `ArtifactsDirectory`                  | `string`                                            | `$HomeDirectory\Artifacts`                                      | Directory where deployment artifacts are stored |
+| `TaskLogsDirectory`                   | `string`                                            | `$HomeDirectory\TaskLogs`                                       | Directory where deployment logs are stored |
 | `LicenseKey`                          | `string`                                            |                                                                 | The Base64 (UTF8) encoded license key. If not supplied, uses a free license. Drift detection is only supported from Octopus 4.1.3. |
 | `GrantDatabasePermissions`            | `boolean`                                           | `$true`                                                         | Whether to grant `db_owner` permissions to the service account user (`$OctopusServiceCredential` user if supplied, or `NT AUTHORITY\System`)  |
 | `OctopusMasterKey`                    | `PSCredential`                                      | `[PSCredential]::Empty`                                         | The master key for the existing database. |

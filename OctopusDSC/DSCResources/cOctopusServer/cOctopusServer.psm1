@@ -28,11 +28,14 @@ function Get-TargetResource {
         [int]$ListenPort = 10943,
         [Nullable[bool]]$AutoLoginEnabled = $null,
         [PSCredential]$OctopusServiceCredential,
-        [string]$HomeDirectory,
+        [string]$HomeDirectory = "$($env:SystemDrive)\Octopus",
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
         [string]$LicenseKey = $null,
         [bool]$GrantDatabasePermissions = $true,
-        [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty
+        [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty,
+        [string]$PackagesDirectory = "$HomeDirectory\Packages",
+        [string]$ArtifactsDirectory = "$HomeDirectory\Artifacts",
+        [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs"
     )
 
     Test-ParameterSet -Ensure $Ensure `
@@ -86,6 +89,9 @@ function Get-TargetResource {
     $existingOctopusServiceCredential = [PSCredential]::Empty
     $existingOctopusBuiltInWorkerCredential = [PSCredential]::Empty
     $existingHomeDirectory = $null
+    $existingPackagesDirectory = $null
+    $existingArtifactsDirectory = $null
+    $existingTaskLogsDirectory = $null
 
     if ($existingEnsure -eq "Present") {
 
@@ -117,6 +123,9 @@ function Get-TargetResource {
             } else {
                 $existingLicenseKey = $existingConfig.OctopusLicenseKey
             }
+            $existingPackagesDirectory = $existingConfig.OctopusFoldersPackagesDirectory
+            $existingTaskLogsDirectory = $existingConfig.OctopusFoldersLogDirectory
+            $existingArtifactsDirectory = $existingConfig.OctopusFoldersArtifactsDirectory
 
             #note: this can get out of sync with reality. Ideally we'd read from `show-configuration`,
             #      but the catch is there can be multple admins. We'd probably need to add support for
@@ -168,6 +177,9 @@ function Get-TargetResource {
         LicenseKey                                = $existingLicenseKey;
         GrantDatabasePermissions                  = $GrantDatabasePermissions;
         OctopusBuiltInWorkerCredential            = $existingOctopusBuiltInWorkerCredential;
+        PackagesDirectory                         = $existingPackagesDirectory
+        ArtifactsDirectory                        = $existingArtifactsDirectory
+        TaskLogsDirectory                         = $existingTaskLogsDirectory
     }
 
     return $currentResource
@@ -218,6 +230,9 @@ function Import-ServerConfig {
             OctopusWebPortalAutoLoginEnabled               = [System.Convert]::ToBoolean($config.Octopus.WebPortal.AutoLoginEnabled)
             OctopusHomeDirectory                           = $config.Octopus.Home
             OctopusLicenseKey                              = $license
+            OctopusFoldersLogDirectory                     = $config.Octopus.Folders.LogDirectory
+            OctopusFoldersArtifactsDirectory               = $config.Octopus.Folders.ArtifactsDirectory
+            OctopusFoldersPackagesDirectory                = $config.Octopus.Folders.PackagesDirectory
         }
     }
     else {
@@ -315,11 +330,14 @@ function Set-TargetResource {
         [int]$ListenPort = 10943,
         [Nullable[bool]]$AutoLoginEnabled = $null,
         [PSCredential]$OctopusServiceCredential,
-        [string]$HomeDirectory,
+        [string]$HomeDirectory = "$($env:SystemDrive)\Octopus",
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
         [string]$LicenseKey = $null,
         [bool]$GrantDatabasePermissions = $true,
-        [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty
+        [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty,
+        [string]$PackagesDirectory = "$HomeDirectory\Packages",
+        [string]$ArtifactsDirectory = "$HomeDirectory\Artifacts",
+        [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs"
     )
 
     Test-ParameterSet -Ensure $Ensure `
@@ -353,7 +371,10 @@ function Set-TargetResource {
             -OctopusMasterKey $OctopusMasterKey `
             -LicenseKey $LicenseKey `
             -GrantDatabasePermissions $GrantDatabasePermissions `
-            -OctopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential)
+            -OctopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
+            -PackagesDirectory $PackagesDirectory `
+            -ArtifactsDirectory $ArtifactsDirectory `
+            -TaskLogsDirectory $TaskLogsDirectory)
 
     $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
     Test-RequestedConfiguration $currentResource $params
@@ -405,7 +426,10 @@ function Set-TargetResource {
             -OctopusMasterKey $OctopusMasterKey `
             -licenseKey $LicenseKey `
             -grantDatabasePermissions $GrantDatabasePermissions `
-            -octopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential
+            -octopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
+            -packagesDirectory $PackagesDirectory `
+            -artifactsDirectory $ArtifactsDirectory `
+            -taskLogsDirectory $TaskLogsDirectory `
     } else {
         #have they asked for a new msi?
         if ($installAndConfigureRequested -and $currentResource["DownloadUrl"] -ne $DownloadUrl) {
@@ -434,7 +458,10 @@ function Set-TargetResource {
                 -octopusServiceCredential $OctopusServiceCredential `
                 -OctopusMasterKey $OctopusMasterKey `
                 -licenseKey $LicenseKey `
-                -octopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential
+                -octopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
+                -packagesDirectory $PackagesDirectory `
+                -artifactsDirectory $ArtifactsDirectory `
+                -taskLogsDirectory $TaskLogsDirectory `
         }
     }
 
@@ -487,7 +514,10 @@ function Set-OctopusDeployConfiguration {
         [PSCredential]$OctopusServiceCredential,
         [PSCredential]$OctopusMasterKey,
         [string]$licenseKey = $null,
-        [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty
+        [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty,
+        [string]$packagesDirectory = $null,
+        [string]$artifactsDirectory = $null,
+        [string]$taskLogsDirectory = $null
     )
 
     Write-Log "Configuring Octopus Deploy instance ..."
@@ -538,6 +568,28 @@ function Set-OctopusDeployConfiguration {
     }
 
     Invoke-OctopusServerCommand $args
+
+    if (
+            (($null -ne $packagesDirectory) -and ($currentState['PackagesDirectory'] -ne $packagesDirectory)) -or
+            (($null -ne $artifactsDirectory) -and ($currentState['ArtifactsDirectory'] -ne $artifactsDirectory)) -or
+            (($null -ne $taskLogsDirectory) -and ($currentState['TaskLogsDirectory'] -ne $taskLogsDirectory))
+        ) {
+        $args = $(
+            'path',
+            '--console',
+            '--instance', $name
+        )
+        if (($null -ne $packagesDirectory) -and ($currentState['PackagesDirectory'] -ne $packagesDirectory)) {
+            $args += @('--nugetRepository', $packagesDirectory)
+        }
+        if (($null -ne $artifactsDirectory) -and ($currentState['ArtifactsDirectory'] -ne $artifactsDirectory)) {
+            $args += @('--artifacts', $artifactsDirectory)
+        }
+        if (($null -ne $taskLogsDirectory) -and ($currentState['TaskLogsDirectory'] -ne $taskLogsDirectory)) {
+            $args += @('--taskLogs', $taskLogsDirectory)
+        }
+        Invoke-OctopusServerCommand $args
+    }
 
     if (-not (Test-PSCredential $currentState['OctopusServiceCredential'] $OctopusServiceCredential)) {
         $args = @(
@@ -634,7 +686,7 @@ function Set-OctopusDeployConfiguration {
 }
 
 function Test-ReconfigurationRequired($currentState, $desiredState) {
-    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'HSTSEnabled', 'HSTSMaxAge', 'AllowCollectionOfUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'LicenseKey', 'OctopusServiceCredential', 'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled', 'OctopusBuiltInWorkerCredential')
+    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'HSTSEnabled', 'HSTSMaxAge', 'AllowCollectionOfUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'LicenseKey', 'OctopusServiceCredential', 'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled', 'OctopusBuiltInWorkerCredential', 'TaskLogsDirectory', 'PackagesDirectory', 'ArtifactsDirectory')
     foreach ($property in $reconfigurableProperties) {
         write-verbose "Checking property '$property'"
         if ($currentState.Item($property) -is [PSCredential]) {
@@ -916,7 +968,10 @@ function Install-OctopusDeploy {
         [PSCredential]$OctopusMasterKey,
         [string]$licenseKey = $null,
         [bool]$grantDatabasePermissions = $true,
-        [PSCredential]$OctopusBuiltInWorkerCredential
+        [PSCredential]$OctopusBuiltInWorkerCredential, 
+        [string]$taskLogsDirectory = $null,
+        [string]$packagesDirectory = $null,
+        [string]$artifactsDirectory = $null
     )
 
     Write-Verbose "Installing Octopus Deploy..."
@@ -1105,6 +1160,24 @@ function Install-OctopusDeploy {
     }
     Invoke-OctopusServerCommand $args
 
+    if (($null -ne $packagesDirectory) -or ($null -ne $artifactsDirectory) -or ($null -ne $taskLogsDirectory)) {
+        $args = $(
+            'path',
+            '--console',
+            '--instance', $name
+        )
+        if ($null -ne $packagesDirectory) {
+            $args += @('--nugetRepository', $packagesDirectory)
+        }
+        if ($null -ne $artifactsDirectory) {
+            $args += @('--artifacts', $artifactsDirectory)
+        }
+        if ($null -ne $taskLogsDirectory) {
+            $args += @('--taskLogs', $taskLogsDirectory)
+        }
+        Invoke-OctopusServerCommand $args
+    }
+
     Write-Log "Install Octopus Deploy service ..."
     $args = @(
         'service',
@@ -1173,11 +1246,14 @@ function Test-TargetResource {
         [int]$ListenPort = 10943,
         [Nullable[bool]]$AutoLoginEnabled = $null,
         [PSCredential]$OctopusServiceCredential,
-        [string]$HomeDirectory,
+        [string]$HomeDirectory = "$($env:SystemDrive)\Octopus",
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
         [string]$LicenseKey = $null,
         [bool]$GrantDatabasePermissions = $true,
-        [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty
+        [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty,
+        [string]$PackagesDirectory = "$HomeDirectory\Packages",
+        [string]$ArtifactsDirectory = "$HomeDirectory\Artifacts",
+        [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs"        
     )
 
     Test-ParameterSet -Ensure $Ensure `
@@ -1210,7 +1286,10 @@ function Test-TargetResource {
             -HomeDirectory $HomeDirectory `
             -LicenseKey $LicenseKey `
             -GrantDatabasePermissions $GrantDatabasePermissions `
-            -OctopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential)
+            -OctopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
+            -PackagesDirectory $PackagesDirectory `
+            -ArtifactsDirectory $ArtifactsDirectory `
+            -TaskLogsDirectory $TaskLogsDirectory)
 
     $paramsWhereNullMeansIgnore = @('AutoLoginEnabled')
 
