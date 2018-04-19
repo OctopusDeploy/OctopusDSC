@@ -5,6 +5,7 @@ return @(
   "service --stop --console --instance OctopusServer",
   "admin --console --instance OctopusServer --username Admin --password S3cur3P4ssphraseHere!",
   "license --console --instance OctopusServer --free",
+  "path --console --instance OctopusServer --nugetRepository F:\Packages --artifacts G:\Artifacts --taskLogs E:\TaskLogs",
   "service --console --instance OctopusServer --install --reconfigure --stop",
   "service --start --console --instance OctopusServer"
 )

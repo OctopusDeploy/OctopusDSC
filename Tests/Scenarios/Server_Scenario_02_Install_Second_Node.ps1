@@ -43,6 +43,10 @@ Configuration Server_Scenario_02_Install_Second_Node
             AllowCollectionOfUsageStatistics = $false
 
             HomeDirectory = "C:\ChezOctopusSecondNode"
+
+            ArtifactsDirectory = "C:\ChezOctopus\Artifacts"
+            PackagesDirectory = "C:\ChezOctopus\Packages"
+            TaskLogsDirectory = "C:\ChezOctopus\TaskLogs"
         }
     }
 }

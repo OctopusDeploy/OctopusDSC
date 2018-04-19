@@ -43,6 +43,9 @@ Configuration SampleConfig
             LegacyWebAuthenticationMode = "UsernamePassword"
 
             HomeDirectory = "C:\Octopus"
+            TaskLogsDirectory = "E:\OctopusTaskLogs" # defaults to "$HomeDirectory\TaskLogs"
+            PackagesDirectory = "E:\OctopusPackages" # defaults to "$HomeDirectory\Packages"
+            ArtifactsDirectory = "E:\OctopusArtifacts" # defaults to "$HomeDirectory\Artifacts"
 
             LicenseKey = "Base64 encoded xml license key"
 

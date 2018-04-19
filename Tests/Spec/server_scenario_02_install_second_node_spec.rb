@@ -8,17 +8,35 @@ describe file('c:/ChezOctopusSecondNode') do
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopus/Artifacts') do # should use the same folders as the first node. They're defined in the DB
+describe file('c:/ChezOctopus/Artifacts') do
   it { should be_directory }
+end
+
+describe file('c:/ChezOctopusSecondNode/Artifacts') do
+  it { should_not be_directory } # they should be pointed at c:/ChezOctopus/ 
 end
 
 describe file('c:/ChezOctopusSecondNode/Logs') do # node logs go in the local instance folder
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopus/TaskLogs') do # should use the same folders as the first node. They're defined in the DB
+describe file('c:/ChezOctopus/TaskLogs') do
   it { should be_directory }
 end
+
+describe file('c:/ChezOctopusSecondNode/TaskLogs') do
+  it { should_not be_directory } # they should be pointed at c:/ChezOctopus/TaskLogs 
+end
+
+# unfortunately, cant test the packages folder at this point - its non determinate when it gets created
+
+# describe file('c:/ChezOctopus/Packages') do
+#   it { should be_directory }
+# end
+
+# describe file('c:/ChezOctopusSecondNode/Packages') do
+#   it { should_not be_directory } # they should be pointed at c:/ChezOctopus/Packages 
+# end
 
 describe file('C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe') do
   it { should be_file }
