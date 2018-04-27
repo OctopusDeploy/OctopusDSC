@@ -35,7 +35,9 @@ function Get-TargetResource {
         [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty,
         [string]$PackagesDirectory = "$HomeDirectory\Packages",
         [string]$ArtifactsDirectory = "$HomeDirectory\Artifacts",
-        [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs"
+        [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs",
+        [bool]$LogTaskMetrics = $false,
+        [bool]$LogRequestMetrics = $false
     )
 
     Test-ParameterSet -Ensure $Ensure `
@@ -92,6 +94,8 @@ function Get-TargetResource {
     $existingPackagesDirectory = $null
     $existingArtifactsDirectory = $null
     $existingTaskLogsDirectory = $null
+    $existingLogTaskMetrics = $null
+    $existingLogRequestMetrics = $null
 
     if ($existingEnsure -eq "Present") {
 
@@ -126,6 +130,8 @@ function Get-TargetResource {
             $existingPackagesDirectory = $existingConfig.OctopusFoldersPackagesDirectory
             $existingTaskLogsDirectory = $existingConfig.OctopusFoldersLogDirectory
             $existingArtifactsDirectory = $existingConfig.OctopusFoldersArtifactsDirectory
+            $existingLogTaskMetrics = $existingConfig.OctopusTasksRecordTaskMetrics
+            $existingLogRequestMetrics = $existingConfig.OctopusWebPortalRequestMetricLoggingEnabled
 
             #note: this can get out of sync with reality. Ideally we'd read from `show-configuration`,
             #      but the catch is there can be multple admins. We'd probably need to add support for
@@ -177,9 +183,11 @@ function Get-TargetResource {
         LicenseKey                                = $existingLicenseKey;
         GrantDatabasePermissions                  = $GrantDatabasePermissions;
         OctopusBuiltInWorkerCredential            = $existingOctopusBuiltInWorkerCredential;
-        PackagesDirectory                         = $existingPackagesDirectory
-        ArtifactsDirectory                        = $existingArtifactsDirectory
-        TaskLogsDirectory                         = $existingTaskLogsDirectory
+        PackagesDirectory                         = $existingPackagesDirectory;
+        ArtifactsDirectory                        = $existingArtifactsDirectory;
+        TaskLogsDirectory                         = $existingTaskLogsDirectory;
+        LogTaskMetrics                            = $existingLogTaskMetrics;
+        LogRequestMetrics                         = $existingLogRequestMetrics;
     }
 
     return $currentResource
@@ -233,6 +241,8 @@ function Import-ServerConfig {
             OctopusFoldersLogDirectory                     = $config.Octopus.Folders.LogDirectory
             OctopusFoldersArtifactsDirectory               = $config.Octopus.Folders.ArtifactsDirectory
             OctopusFoldersPackagesDirectory                = $config.Octopus.Folders.PackagesDirectory
+            OctopusTasksRecordTaskMetrics                  = [System.Convert]::ToBoolean($config.Octopus.Tasks.RecordTaskMetrics)
+            OctopusWebPortalRequestMetricLoggingEnabled    = [System.Convert]::ToBoolean($config.Octopus.WebPortal.RequestMetricLoggingEnabled)
         }
     }
     else {
@@ -290,6 +300,10 @@ function Test-OctopusVersionRequiresDatabaseBeforeConfigure {
     return Test-OctopusVersionNewerThan (New-Object System.Version 4, 0, 0)
 }
 
+function Test-OctopusVersionSupportsTaskMetricsLogging {
+    return Test-OctopusVersionNewerThan (New-Object System.Version 2018, 2, 7)
+}
+
 function Test-OctopusVersionNewerThan($targetVersion) {
     if (-not (Test-Path -LiteralPath $octopusServerExePath)) {
         throw "Octopus.Server.exe path '$octopusServerExePath' does not exist."
@@ -297,7 +311,7 @@ function Test-OctopusVersionNewerThan($targetVersion) {
 
     $exeFile = Get-Item -LiteralPath $octopusServerExePath -ErrorAction Stop
     if ($exeFile -isnot [System.IO.FileInfo]) {
-        throw "Octopus.Server.exe path '$octopusServerExePath ' does not refer to a file."
+        throw "Octopus.Server.exe path '$octopusServerExePath' does not refer to a file."
     }
 
     $fileVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($octopusServerExePath).FileVersion
@@ -337,7 +351,9 @@ function Set-TargetResource {
         [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty,
         [string]$PackagesDirectory = "$HomeDirectory\Packages",
         [string]$ArtifactsDirectory = "$HomeDirectory\Artifacts",
-        [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs"
+        [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs",
+        [bool]$LogTaskMetrics = $false,
+        [bool]$LogRequestMetrics = $false
     )
 
     Test-ParameterSet -Ensure $Ensure `
@@ -374,7 +390,9 @@ function Set-TargetResource {
             -OctopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
             -PackagesDirectory $PackagesDirectory `
             -ArtifactsDirectory $ArtifactsDirectory `
-            -TaskLogsDirectory $TaskLogsDirectory)
+            -TaskLogsDirectory $TaskLogsDirectory `
+            -LogTaskMetrics $LogTaskMetrics `
+            -LogRequestMetrics $LogRequestMetrics)
 
     $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
     Test-RequestedConfiguration $currentResource $params
@@ -430,6 +448,8 @@ function Set-TargetResource {
             -packagesDirectory $PackagesDirectory `
             -artifactsDirectory $ArtifactsDirectory `
             -taskLogsDirectory $TaskLogsDirectory `
+            -logTaskMetrics $LogTaskMetrics `
+            -logRequestMetrics $LogRequestMetrics 
     } else {
         #have they asked for a new msi?
         if ($installAndConfigureRequested -and $currentResource["DownloadUrl"] -ne $DownloadUrl) {
@@ -462,6 +482,8 @@ function Set-TargetResource {
                 -packagesDirectory $PackagesDirectory `
                 -artifactsDirectory $ArtifactsDirectory `
                 -taskLogsDirectory $TaskLogsDirectory `
+                -logTaskMetrics $LogTaskMetrics `
+                -logRequestMetrics $LogRequestMetrics
         }
     }
 
@@ -517,7 +539,9 @@ function Set-OctopusDeployConfiguration {
         [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty,
         [string]$packagesDirectory = $null,
         [string]$artifactsDirectory = $null,
-        [string]$taskLogsDirectory = $null
+        [string]$taskLogsDirectory = $null,
+        [bool]$logTaskMetrics = $false,
+        [bool]$logRequestMetrics = $false
     )
 
     Write-Log "Configuring Octopus Deploy instance ..."
@@ -587,6 +611,28 @@ function Set-OctopusDeployConfiguration {
         }
         if (($null -ne $taskLogsDirectory) -and ($currentState['TaskLogsDirectory'] -ne $taskLogsDirectory)) {
             $args += @('--taskLogs', $taskLogsDirectory)
+        }
+        Invoke-OctopusServerCommand $args
+    }
+
+    if ((-not (Test-OctopusVersionSupportsTaskMetricsLogging)) -and $logTaskMetrics) {
+        throw "LogTaskMetrics = 'true' is only supported from Octopus 2018.2.7"
+    }
+
+    if (
+            (($null -ne $logTaskMetrics) -and ($currentState['LogTaskMetrics'] -ne $logTaskMetrics)) -or
+            (($null -ne $logRequestMetrics) -and ($currentState['LogRequestMetrics'] -ne $logRequestMetrics))
+        ) {
+        $args = $(
+            'metrics',
+            '--console',
+            '--instance', $name
+        )
+        if (($null -ne $logTaskMetrics) -and ($currentState['LogTaskMetrics'] -ne $logTaskMetrics)) {
+            $args += @('--tasks', $logTaskMetrics)
+        }
+        if (($null -ne $logRequestMetrics) -and ($currentState['LogRequestMetrics'] -ne $logRequestMetrics)) {
+            $args += @('--webapi', $logRequestMetrics)
         }
         Invoke-OctopusServerCommand $args
     }
@@ -686,7 +732,7 @@ function Set-OctopusDeployConfiguration {
 }
 
 function Test-ReconfigurationRequired($currentState, $desiredState) {
-    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'HSTSEnabled', 'HSTSMaxAge', 'AllowCollectionOfUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'LicenseKey', 'OctopusServiceCredential', 'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled', 'OctopusBuiltInWorkerCredential', 'TaskLogsDirectory', 'PackagesDirectory', 'ArtifactsDirectory')
+    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'HSTSEnabled', 'HSTSMaxAge', 'AllowCollectionOfUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'LicenseKey', 'OctopusServiceCredential', 'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled', 'OctopusBuiltInWorkerCredential', 'TaskLogsDirectory', 'PackagesDirectory', 'ArtifactsDirectory', 'LogTaskMetrics', 'LogRequestMetrics')
     foreach ($property in $reconfigurableProperties) {
         write-verbose "Checking property '$property'"
         if ($currentState.Item($property) -is [PSCredential]) {
@@ -971,7 +1017,9 @@ function Install-OctopusDeploy {
         [PSCredential]$OctopusBuiltInWorkerCredential, 
         [string]$taskLogsDirectory = $null,
         [string]$packagesDirectory = $null,
-        [string]$artifactsDirectory = $null
+        [string]$artifactsDirectory = $null,
+        [bool]$logTaskMetrics = $false,
+        [bool]$logRequestMetrics = $false
     )
 
     Write-Verbose "Installing Octopus Deploy..."
@@ -1178,6 +1226,25 @@ function Install-OctopusDeploy {
         Invoke-OctopusServerCommand $args
     }
 
+    if ((-not (Test-OctopusVersionSupportsTaskMetricsLogging)) -and $logTaskMetrics) {
+        throw "LogTaskMetrics = 'true' is only supported from Octopus 2018.2.7"
+    }
+
+    if ($logTaskMetrics -or $logRequestMetrics) {
+        $args = $(
+            'metrics',
+            '--console',
+            '--instance', $name
+        )
+        if (($null -ne $logTaskMetrics) -and ($currentState['LogTaskMetrics'] -ne $logTaskMetrics)) {
+            $args += @('--tasks', $logTaskMetrics)
+        }
+        if (($null -ne $logRequestMetrics) -and ($currentState['LogRequestMetrics'] -ne $logRequestMetrics)) {
+            $args += @('--webapi', $logRequestMetrics)
+        }
+        Invoke-OctopusServerCommand $args
+    }
+
     Write-Log "Install Octopus Deploy service ..."
     $args = @(
         'service',
@@ -1253,7 +1320,9 @@ function Test-TargetResource {
         [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty,
         [string]$PackagesDirectory = "$HomeDirectory\Packages",
         [string]$ArtifactsDirectory = "$HomeDirectory\Artifacts",
-        [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs"        
+        [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs",
+        [bool]$LogTaskMetrics = $false,
+        [bool]$LogRequestMetrics = $false
     )
 
     Test-ParameterSet -Ensure $Ensure `
@@ -1289,7 +1358,9 @@ function Test-TargetResource {
             -OctopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
             -PackagesDirectory $PackagesDirectory `
             -ArtifactsDirectory $ArtifactsDirectory `
-            -TaskLogsDirectory $TaskLogsDirectory)
+            -TaskLogsDirectory $TaskLogsDirectory `
+            -LogTaskMetrics $LogTaskMetrics `
+            -LogRequestMetrics $LogRequestMetrics)
 
     $paramsWhereNullMeansIgnore = @('AutoLoginEnabled')
 

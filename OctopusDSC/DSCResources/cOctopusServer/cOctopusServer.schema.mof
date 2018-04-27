@@ -25,4 +25,6 @@ class cOctopusServer : OMI_BaseResource
   [Write] string PackagesDirectory;
   [Write] string ArtifactsDirectory;
   [Write] string TaskLogsDirectory;
+  [Write] boolean LogTaskMetrics;
+  [Write] boolean LogRequestMetrics;
 };

@@ -60,6 +60,10 @@ Configuration SampleConfig
 
             # if not supplied, Octopus will use a free license
             LicenseKey = "base64encodedlicense"
+
+            # whether to log metrics
+            LogTaskMetrics = $false
+            LogRequestMetrics = $false
         }
     }
 }
@@ -117,6 +121,8 @@ When `State` is `Started`, the resource will ensure that the Octopus Servr windo
 | `GrantDatabasePermissions`            | `boolean`                                           | `$true`                                                         | Whether to grant `db_owner` permissions to the service account user (`$OctopusServiceCredential` user if supplied, or `NT AUTHORITY\System`)  |
 | `OctopusMasterKey`                    | `PSCredential`                                      | `[PSCredential]::Empty`                                         | The master key for the existing database. |
 | `OctopusBuiltInWorkerCredential`      | `PSCredential`                                      | `[PSCredential]::Empty`                                         | The user account to use to execute run-on-server scripts. If not supplied, executes scripts under the service account used for `Octopus.Server.exe` |
+| `LogTaskMetrics`                      | `boolean`                                           | `$false`                                                        | Whether to log task metrics |
+| `LogRequestMetrics`                   | `boolean`                                           | `$false`                                                        | Whether to log api requests metrics |
 
 ## Drift
 

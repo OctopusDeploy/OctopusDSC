@@ -4,4 +4,6 @@ return @{
   DownloadUrl="https://octopus.com/downloads/latest/WindowsX64/OctopusServer";
   HomeDirectory="C:\Octopus";
   TaskLogsDirectory="C:\Octopus\TaskLogs"
+  LogTaskMetrics=$false;
+  LogRequestMetrics=$false;
 }
