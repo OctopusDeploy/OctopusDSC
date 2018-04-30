@@ -11,12 +11,8 @@ function Resolve-Error
         $ErrorRecord=$Error[0]
     )
     
-    write-verbose "`r`n" + `
-    "********************************************************`r`n" + `
-    "Unhandled exception: $ErrorRecord`r`n" + `
-    "********************************************************`r`n" + `
-    "$($ErrorRecord.ScriptStackTrace)`r`n" + `
-    "********************************************************`r`n"
+    $separator = "*********************************************************"
+    write-verbose ("`r`n{0}`r`nUnhandled exception: $ErrorRecord`r`n{0}`r`n$($ErrorRecord.ScriptStackTrace)`r`n{0}`r`n" -f $separator)
 }
 
 function Get-TargetResource {
