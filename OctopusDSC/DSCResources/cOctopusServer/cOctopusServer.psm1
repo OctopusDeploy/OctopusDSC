@@ -1258,11 +1258,10 @@ function Install-OctopusDeploy {
             '--instance', $name
         )
 
-        #ERROR IS HERE
-        if (($null -ne $logTaskMetrics) -and ($currentState['LogTaskMetrics'] -ne $logTaskMetrics)) {
+        if ($logTaskMetrics) {
             $args += @('--tasks', $logTaskMetrics)
         }
-        if (($null -ne $logRequestMetrics) -and ($currentState['LogRequestMetrics'] -ne $logRequestMetrics)) {
+        if ($logRequestMetrics) {
             $args += @('--webapi', $logRequestMetrics)
         }
         Invoke-OctopusServerCommand $args
