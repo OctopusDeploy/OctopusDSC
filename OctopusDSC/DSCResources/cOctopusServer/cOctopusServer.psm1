@@ -5,6 +5,20 @@ $script:instancecontext = ''  # a global to hold the name of the current instanc
 # dot-source the helper file (cannot load as a module due to scope considerations)
 . (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1')
 
+function Resolve-Error
+{
+    param (
+        $ErrorRecord=$Error[0]
+    )
+    
+    write-verbose "`r`n" + `
+    "********************************************************`r`n" + `
+    "Unhandled exception: $ErrorRecord`r`n" + `
+    "********************************************************`r`n" + `
+    "$($ErrorRecord.ScriptStackTrace)`r`n" + `
+    "********************************************************`r`n"
+}
+
 function Get-TargetResource {
     [OutputType([Hashtable])]
     param (
@@ -40,157 +54,163 @@ function Get-TargetResource {
         [bool]$LogRequestMetrics = $false
     )
 
-    Test-ParameterSet -Ensure $Ensure `
-                      -Name $Name `
-                      -State $State `
-                      -DownloadUrl $DownloadUrl `
-                      -WebListenPrefix $WebListenPrefix `
-                      -SqlDbConnectionString $SqlDbConnectionString `
-                      -OctopusAdminCredential $OctopusAdminCredential
+    try {
 
-    $script:instancecontext = $Name
+        Test-ParameterSet -Ensure $Ensure `
+                          -Name $Name `
+                          -State $State `
+                          -DownloadUrl $DownloadUrl `
+                          -WebListenPrefix $WebListenPrefix `
+                          -SqlDbConnectionString $SqlDbConnectionString `
+                          -OctopusAdminCredential $OctopusAdminCredential
 
-    $serviceName = (Get-ServiceName $Name)
-    Write-Verbose "Checking for Windows Service: $serviceName"
-    $serviceInstance = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
-    $existingState = "Stopped"
-    if ($null -ne $serviceInstance) {
-        Write-Verbose "Windows service: $($serviceInstance.Status)"
-        $existingEnsure = "Present"
-        if ($serviceInstance.Status -eq "Running") {
-            $existingState = "Started"
-        }
-    }
-    else {
-        Write-Verbose "Windows service: Not installed"
+        $script:instancecontext = $Name
 
-        Write-Verbose "Checking for Octopus Server registry key"
-        $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\OctopusServer" -ErrorAction SilentlyContinue).InstallLocation
-        $regKeyPresent = ($null -ne $installLocation)
-        if ($regKeyPresent) {
-            Write-Verbose "Octopus Server registry key: Found"
-            $existingState = 'Installed'
+        $serviceName = (Get-ServiceName $Name)
+        Write-Verbose "Checking for Windows Service: $serviceName"
+        $serviceInstance = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+        $existingState = "Stopped"
+        if ($null -ne $serviceInstance) {
+            Write-Verbose "Windows service: $($serviceInstance.Status)"
             $existingEnsure = "Present"
-        } else {
-            Write-Verbose "Octopus Server registry key: Not found"
-            $existingEnsure = "Absent"
+            if ($serviceInstance.Status -eq "Running") {
+                $existingState = "Started"
+            }
         }
-    }
+        else {
+            Write-Verbose "Windows service: Not installed"
 
-    $existingDownloadUrl = $null
-    $existingWebListenPrefix = $null
-    $existingSqlDbConnectionString = $null
-    $existingForceSSL = $null
-    $existingHSTSEnabled = $null
-    $existingHSTSMaxAge = $null
-    $existingOctopusUpgradesAllowChecking = $null
-    $existingOctopusUpgradesIncludeStatistics = $null
-    $existingListenPort = $null
-    $existingOctopusAdminCredential = [PSCredential]::Empty
-    $existingAutoLoginEnabled = $null
-    $existingOctopusServiceCredential = [PSCredential]::Empty
-    $existingOctopusBuiltInWorkerCredential = [PSCredential]::Empty
-    $existingHomeDirectory = $null
-    $existingPackagesDirectory = $null
-    $existingArtifactsDirectory = $null
-    $existingTaskLogsDirectory = $null
-    $existingLogTaskMetrics = $null
-    $existingLogRequestMetrics = $null
-
-    if ($existingEnsure -eq "Present") {
-
-        $existingDownloadUrl = Get-InstallStateValue 'DownloadUrl' -global
-
-        if ($existingState -ne "Installed") {
-            if(Test-Path "$($env:SystemDrive)\Octopus\OctopusServer-$Name.config")
-            {
-                $configPath = "$($env:SystemDrive)\Octopus\OctopusServer-$Name.config"
-            }
-            else
-            {
-                $configPath = "$($env:SystemDrive)\Octopus\OctopusServer.config"
-            }
-            $existingConfig = Import-ServerConfig $configPath $Name
-            $existingSqlDbConnectionString = $existingConfig.OctopusStorageExternalDatabaseConnectionString
-            $existingWebListenPrefix = $existingConfig.OctopusWebPortalListenPrefixes
-            $existingForceSSL = $existingConfig.OctopusWebPortalForceSsl
-            $existingHSTSEnabled = $existingConfig.OctopusWebPortalHstsEnabled
-            $existingHSTSMaxAge = $existingConfig.OctopusWebPortalHstsMaxAge
-            $existingOctopusUpgradesAllowChecking = $existingConfig.OctopusUpgradesAllowChecking
-            $existingOctopusUpgradesIncludeStatistics = $existingConfig.OctopusUpgradesIncludeStatistics
-            $existingListenPort = $existingConfig.OctopusCommunicationsServicesPort
-            $existingAutoLoginEnabled = $existingConfig.OctopusWebPortalAutoLoginEnabled
-            $existingLegacyWebAuthenticationMode = $existingConfig.OctopusWebPortalAuthenticationMode
-            $existingHomeDirectory = $existingConfig.OctopusHomeDirectory
-            if ($existingConfig.OctopusLicenseKey -eq "<unknown>") {
-                $existingLicenseKey = $LicenseKey #if we weren't able to determine the existing key, assume its correct
+            Write-Verbose "Checking for Octopus Server registry key"
+            $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\OctopusServer" -ErrorAction SilentlyContinue).InstallLocation
+            $regKeyPresent = ($null -ne $installLocation)
+            if ($regKeyPresent) {
+                Write-Verbose "Octopus Server registry key: Found"
+                $existingState = 'Installed'
+                $existingEnsure = "Present"
             } else {
-                $existingLicenseKey = $existingConfig.OctopusLicenseKey
-            }
-            $existingPackagesDirectory = $existingConfig.OctopusFoldersPackagesDirectory
-            $existingTaskLogsDirectory = $existingConfig.OctopusFoldersLogDirectory
-            $existingArtifactsDirectory = $existingConfig.OctopusFoldersArtifactsDirectory
-            $existingLogTaskMetrics = $existingConfig.OctopusTasksRecordTaskMetrics
-            $existingLogRequestMetrics = $existingConfig.OctopusWebPortalRequestMetricLoggingEnabled
-
-            #note: this can get out of sync with reality. Ideally we'd read from `show-configuration`,
-            #      but the catch is there can be multple admins. We'd probably need to add support for
-            #      an `--assert` or `--validate` parameter to the `admin` command and check its valid
-            $user = Get-InstallStateValue 'OctopusAdminUsername'
-            $pass = Get-InstallStateValue 'OctopusAdminPassword'
-            if (($null -ne $user) -and ($null -ne $pass)) {
-                $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
-            }
-
-            #note: this should read from the service. How do we validate the password though? We moght
-            #      need to add support for an `--assert` or `--validate` parameter to the `service`
-            #      command and check its valid
-            $user = Get-InstallStateValue 'OctopusServiceUsername'
-            $pass = Get-InstallStateValue 'OctopusServicePassword'
-            if (($null -ne $user) -and ($null -ne $pass)) {
-                $existingOctopusServiceCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
-            }
-
-            #note: this should read from `show-configuration`. That wont validate the password is set
-            #      correctly though. We'd probably need to add support for an `--assert` or
-            #      `--validate` parameter to the `runonserver` command and check its valid
-            $user = Get-InstallStateValue 'OctopusRunAsUsername'
-            $pass = Get-InstallStateValue 'OctopusRunAsPassword'
-            if (($null -ne $user) -and ($null -ne $pass)) {
-                $existingOctopusBuiltInWorkerCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
+                Write-Verbose "Octopus Server registry key: Not found"
+                $existingEnsure = "Absent"
             }
         }
-    }
 
-    $currentResource = @{
-        Name                                      = $Name;
-        Ensure                                    = $existingEnsure;
-        State                                     = $existingState;
-        DownloadUrl                               = $existingDownloadUrl;
-        WebListenPrefix                           = $existingWebListenPrefix;
-        SqlDbConnectionString                     = $existingSqlDbConnectionString;
-        ForceSSL                                  = $existingForceSSL;
-        HSTSEnabled                               = $existingHSTSEnabled;
-        HSTSMaxAge                                = $existingHSTSMaxAge;
-        AllowUpgradeCheck                         = $existingOctopusUpgradesAllowChecking;
-        AllowCollectionOfUsageStatistics          = $existingOctopusUpgradesIncludeStatistics;
-        ListenPort                                = $existingListenPort;
-        OctopusAdminCredential                    = $existingOctopusAdminCredential;
-        LegacyWebAuthenticationMode               = $existingLegacyWebAuthenticationMode;
-        AutoLoginEnabled                          = $existingAutoLoginEnabled;
-        OctopusServiceCredential                  = $existingOctopusServiceCredential;
-        HomeDirectory                             = $existingHomeDirectory;
-        LicenseKey                                = $existingLicenseKey;
-        GrantDatabasePermissions                  = $GrantDatabasePermissions;
-        OctopusBuiltInWorkerCredential            = $existingOctopusBuiltInWorkerCredential;
-        PackagesDirectory                         = $existingPackagesDirectory;
-        ArtifactsDirectory                        = $existingArtifactsDirectory;
-        TaskLogsDirectory                         = $existingTaskLogsDirectory;
-        LogTaskMetrics                            = $existingLogTaskMetrics;
-        LogRequestMetrics                         = $existingLogRequestMetrics;
-    }
+        $existingDownloadUrl = $null
+        $existingWebListenPrefix = $null
+        $existingSqlDbConnectionString = $null
+        $existingForceSSL = $null
+        $existingHSTSEnabled = $null
+        $existingHSTSMaxAge = $null
+        $existingOctopusUpgradesAllowChecking = $null
+        $existingOctopusUpgradesIncludeStatistics = $null
+        $existingListenPort = $null
+        $existingOctopusAdminCredential = [PSCredential]::Empty
+        $existingAutoLoginEnabled = $null
+        $existingOctopusServiceCredential = [PSCredential]::Empty
+        $existingOctopusBuiltInWorkerCredential = [PSCredential]::Empty
+        $existingHomeDirectory = $null
+        $existingPackagesDirectory = $null
+        $existingArtifactsDirectory = $null
+        $existingTaskLogsDirectory = $null
+        $existingLogTaskMetrics = $null
+        $existingLogRequestMetrics = $null
 
-    return $currentResource
+        if ($existingEnsure -eq "Present") {
+
+            $existingDownloadUrl = Get-InstallStateValue 'DownloadUrl' -global
+
+            if ($existingState -ne "Installed") {
+                if(Test-Path "$($env:SystemDrive)\Octopus\OctopusServer-$Name.config")
+                {
+                    $configPath = "$($env:SystemDrive)\Octopus\OctopusServer-$Name.config"
+                }
+                else
+                {
+                    $configPath = "$($env:SystemDrive)\Octopus\OctopusServer.config"
+                }
+                $existingConfig = Import-ServerConfig $configPath $Name
+                $existingSqlDbConnectionString = $existingConfig.OctopusStorageExternalDatabaseConnectionString
+                $existingWebListenPrefix = $existingConfig.OctopusWebPortalListenPrefixes
+                $existingForceSSL = $existingConfig.OctopusWebPortalForceSsl
+                $existingHSTSEnabled = $existingConfig.OctopusWebPortalHstsEnabled
+                $existingHSTSMaxAge = $existingConfig.OctopusWebPortalHstsMaxAge
+                $existingOctopusUpgradesAllowChecking = $existingConfig.OctopusUpgradesAllowChecking
+                $existingOctopusUpgradesIncludeStatistics = $existingConfig.OctopusUpgradesIncludeStatistics
+                $existingListenPort = $existingConfig.OctopusCommunicationsServicesPort
+                $existingAutoLoginEnabled = $existingConfig.OctopusWebPortalAutoLoginEnabled
+                $existingLegacyWebAuthenticationMode = $existingConfig.OctopusWebPortalAuthenticationMode
+                $existingHomeDirectory = $existingConfig.OctopusHomeDirectory
+                if ($existingConfig.OctopusLicenseKey -eq "<unknown>") {
+                    $existingLicenseKey = $LicenseKey #if we weren't able to determine the existing key, assume its correct
+                } else {
+                    $existingLicenseKey = $existingConfig.OctopusLicenseKey
+                }
+                $existingPackagesDirectory = $existingConfig.OctopusFoldersPackagesDirectory
+                $existingTaskLogsDirectory = $existingConfig.OctopusFoldersLogDirectory
+                $existingArtifactsDirectory = $existingConfig.OctopusFoldersArtifactsDirectory
+                $existingLogTaskMetrics = $existingConfig.OctopusTasksRecordTaskMetrics
+                $existingLogRequestMetrics = $existingConfig.OctopusWebPortalRequestMetricLoggingEnabled
+
+                #note: this can get out of sync with reality. Ideally we'd read from `show-configuration`,
+                #      but the catch is there can be multple admins. We'd probably need to add support for
+                #      an `--assert` or `--validate` parameter to the `admin` command and check its valid
+                $user = Get-InstallStateValue 'OctopusAdminUsername'
+                $pass = Get-InstallStateValue 'OctopusAdminPassword'
+                if (($null -ne $user) -and ($null -ne $pass)) {
+                    $existingOctopusAdminCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
+                }
+
+                #note: this should read from the service. How do we validate the password though? We moght
+                #      need to add support for an `--assert` or `--validate` parameter to the `service`
+                #      command and check its valid
+                $user = Get-InstallStateValue 'OctopusServiceUsername'
+                $pass = Get-InstallStateValue 'OctopusServicePassword'
+                if (($null -ne $user) -and ($null -ne $pass)) {
+                    $existingOctopusServiceCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
+                }
+
+                #note: this should read from `show-configuration`. That wont validate the password is set
+                #      correctly though. We'd probably need to add support for an `--assert` or
+                #      `--validate` parameter to the `runonserver` command and check its valid
+                $user = Get-InstallStateValue 'OctopusRunAsUsername'
+                $pass = Get-InstallStateValue 'OctopusRunAsPassword'
+                if (($null -ne $user) -and ($null -ne $pass)) {
+                    $existingOctopusBuiltInWorkerCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
+                }
+            }
+        }
+
+        $currentResource = @{
+            Name                                      = $Name;
+            Ensure                                    = $existingEnsure;
+            State                                     = $existingState;
+            DownloadUrl                               = $existingDownloadUrl;
+            WebListenPrefix                           = $existingWebListenPrefix;
+            SqlDbConnectionString                     = $existingSqlDbConnectionString;
+            ForceSSL                                  = $existingForceSSL;
+            HSTSEnabled                               = $existingHSTSEnabled;
+            HSTSMaxAge                                = $existingHSTSMaxAge;
+            AllowUpgradeCheck                         = $existingOctopusUpgradesAllowChecking;
+            AllowCollectionOfUsageStatistics          = $existingOctopusUpgradesIncludeStatistics;
+            ListenPort                                = $existingListenPort;
+            OctopusAdminCredential                    = $existingOctopusAdminCredential;
+            LegacyWebAuthenticationMode               = $existingLegacyWebAuthenticationMode;
+            AutoLoginEnabled                          = $existingAutoLoginEnabled;
+            OctopusServiceCredential                  = $existingOctopusServiceCredential;
+            HomeDirectory                             = $existingHomeDirectory;
+            LicenseKey                                = $existingLicenseKey;
+            GrantDatabasePermissions                  = $GrantDatabasePermissions;
+            OctopusBuiltInWorkerCredential            = $existingOctopusBuiltInWorkerCredential;
+            PackagesDirectory                         = $existingPackagesDirectory;
+            ArtifactsDirectory                        = $existingArtifactsDirectory;
+            TaskLogsDirectory                         = $existingTaskLogsDirectory;
+            LogTaskMetrics                            = $existingLogTaskMetrics;
+            LogRequestMetrics                         = $existingLogRequestMetrics;
+        }
+
+        return $currentResource
+    } catch {
+        Resolve-Error $_
+        throw
+    }
 }
 
 function Import-ServerConfig {
@@ -356,116 +376,82 @@ function Set-TargetResource {
         [bool]$LogRequestMetrics = $false
     )
 
-    Test-ParameterSet -Ensure $Ensure `
-                      -Name $Name `
-                      -State $State `
-                      -DownloadUrl $DownloadUrl `
-                      -WebListenPrefix $WebListenPrefix `
-                      -SqlDbConnectionString $SqlDbConnectionString `
-                      -OctopusAdminCredential $OctopusAdminCredential
+    try {
+        Test-ParameterSet -Ensure $Ensure `
+                          -Name $Name `
+                          -State $State `
+                          -DownloadUrl $DownloadUrl `
+                          -WebListenPrefix $WebListenPrefix `
+                          -SqlDbConnectionString $SqlDbConnectionString `
+                          -OctopusAdminCredential $OctopusAdminCredential
 
-    # update the global
-    $script:instancecontext = $Name
+        # update the global
+        $script:instancecontext = $Name
 
-    $currentResource = (Get-TargetResource -Ensure $Ensure `
-            -Name $Name `
-            -State $State `
-            -DownloadUrl $DownloadUrl `
-            -WebListenPrefix $WebListenPrefix `
-            -SqlDbConnectionString $SqlDbConnectionString `
-            -OctopusAdminCredential $OctopusAdminCredential `
-            -AllowUpgradeCheck $AllowUpgradeCheck `
-            -AllowCollectionOfUsageStatistics $AllowCollectionOfUsageStatistics `
-            -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
-            -ForceSSL $ForceSSL `
-            -HSTSEnabled $HSTSEnabled `
-            -HSTSMaxAge $HSTSMaxAge `
-            -ListenPort $ListenPort `
-            -AutoLoginEnabled $AutoLoginEnabled `
-            -OctopusServiceCredential $OctopusServiceCredential `
-            -HomeDirectory $HomeDirectory `
-            -OctopusMasterKey $OctopusMasterKey `
-            -LicenseKey $LicenseKey `
-            -GrantDatabasePermissions $GrantDatabasePermissions `
-            -OctopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
-            -PackagesDirectory $PackagesDirectory `
-            -ArtifactsDirectory $ArtifactsDirectory `
-            -TaskLogsDirectory $TaskLogsDirectory `
-            -LogTaskMetrics $LogTaskMetrics `
-            -LogRequestMetrics $LogRequestMetrics)
+        $currentResource = (Get-TargetResource -Ensure $Ensure `
+                -Name $Name `
+                -State $State `
+                -DownloadUrl $DownloadUrl `
+                -WebListenPrefix $WebListenPrefix `
+                -SqlDbConnectionString $SqlDbConnectionString `
+                -OctopusAdminCredential $OctopusAdminCredential `
+                -AllowUpgradeCheck $AllowUpgradeCheck `
+                -AllowCollectionOfUsageStatistics $AllowCollectionOfUsageStatistics `
+                -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
+                -ForceSSL $ForceSSL `
+                -HSTSEnabled $HSTSEnabled `
+                -HSTSMaxAge $HSTSMaxAge `
+                -ListenPort $ListenPort `
+                -AutoLoginEnabled $AutoLoginEnabled `
+                -OctopusServiceCredential $OctopusServiceCredential `
+                -HomeDirectory $HomeDirectory `
+                -OctopusMasterKey $OctopusMasterKey `
+                -LicenseKey $LicenseKey `
+                -GrantDatabasePermissions $GrantDatabasePermissions `
+                -OctopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
+                -PackagesDirectory $PackagesDirectory `
+                -ArtifactsDirectory $ArtifactsDirectory `
+                -TaskLogsDirectory $TaskLogsDirectory `
+                -LogTaskMetrics $LogTaskMetrics `
+                -LogRequestMetrics $LogRequestMetrics)
 
-    $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
-    Test-RequestedConfiguration $currentResource $params
+        $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
+        Test-RequestedConfiguration $currentResource $params
 
-    $isCurrentlyNotInstalled = $currentResource["Ensure"] -eq "Absent"
-    $isCurrentlyInstalledAndServiceExists = $currentResource["Ensure"] -eq "Present"
+        $isCurrentlyNotInstalled = $currentResource["Ensure"] -eq "Absent"
+        $isCurrentlyInstalledAndServiceExists = $currentResource["Ensure"] -eq "Present"
 
-    $isCurrentlyInstalledButServiceDoesntExist = $currentResource["State"] -eq "Installed"
-    $isCurrentlyStarted = $currentResource["State"] -eq "Started"
-    $isCurrentlyStopped = $currentResource["State"] -eq "Stopped"
+        $isCurrentlyInstalledButServiceDoesntExist = $currentResource["State"] -eq "Installed"
+        $isCurrentlyStarted = $currentResource["State"] -eq "Started"
+        $isCurrentlyStopped = $currentResource["State"] -eq "Stopped"
 
-    $stopRequested = $State -eq "Stopped"
-    $startRequested = $State -eq "Started"
-    $removeRequested = $Ensure -eq "Absent"
-    $installRequested = $State -eq "Installed"
-    $installAndConfigureRequested = $Ensure -eq "Present" -and $State -ne "Installed"
+        $stopRequested = $State -eq "Stopped"
+        $startRequested = $State -eq "Started"
+        $removeRequested = $Ensure -eq "Absent"
+        $installRequested = $State -eq "Installed"
+        $installAndConfigureRequested = $Ensure -eq "Present" -and $State -ne "Installed"
 
-    if ($stopRequested -and $isCurrentlyStarted) {
-        Stop-OctopusDeployService $Name
-    }
+        if ($stopRequested -and $isCurrentlyStarted) {
+            Stop-OctopusDeployService $Name
+        }
 
-    if ($removeRequested -and ($isCurrentlyInstalledAndServiceExists -or $isCurrentlyInstalledButServiceDoesntExist)) {
-        Uninstall-OctopusDeploy -name $Name -currentState $currentResource["State"]
-    }
-    elseif ($installRequested -and $isCurrentlyNotInstalled) {
-        #no stop/start required
-        Install-MSI $DownloadUrl
-    }
-    elseif ($installAndConfigureRequested -and ($isCurrentlyNotInstalled -or $isCurrentlyInstalledButServiceDoesntExist)) {
-        #they've asked for it to be installed + configured and its not there yet
-        if ($isCurrentlyNotInstalled -or ($currentResource["DownloadUrl"] -ne $DownloadUrl)) {
+        if ($removeRequested -and ($isCurrentlyInstalledAndServiceExists -or $isCurrentlyInstalledButServiceDoesntExist)) {
+            Uninstall-OctopusDeploy -name $Name -currentState $currentResource["State"]
+        }
+        elseif ($installRequested -and $isCurrentlyNotInstalled) {
             #no stop/start required
             Install-MSI $DownloadUrl
         }
-        Install-OctopusDeploy -name $Name `
-            -webListenPrefix $WebListenPrefix `
-            -sqlDbConnectionString $SqlDbConnectionString `
-            -OctopusAdminCredential $OctopusAdminCredential `
-            -allowUpgradeCheck $AllowUpgradeCheck `
-            -allowCollectionOfUsageStatistics $AllowCollectionOfUsageStatistics `
-            -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
-            -forceSSL $ForceSSL `
-            -hstsEnabled $HSTSEnabled `
-            -hstsMaxAge $HSTSMaxAge `
-            -listenPort $ListenPort `
-            -autoLoginEnabled $AutoLoginEnabled `
-            -homeDirectory $HomeDirectory `
-            -octopusServiceCredential $OctopusServiceCredential `
-            -OctopusMasterKey $OctopusMasterKey `
-            -licenseKey $LicenseKey `
-            -grantDatabasePermissions $GrantDatabasePermissions `
-            -octopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
-            -packagesDirectory $PackagesDirectory `
-            -artifactsDirectory $ArtifactsDirectory `
-            -taskLogsDirectory $TaskLogsDirectory `
-            -logTaskMetrics $LogTaskMetrics `
-            -logRequestMetrics $LogRequestMetrics 
-    } else {
-        #have they asked for a new msi?
-        if ($installAndConfigureRequested -and $currentResource["DownloadUrl"] -ne $DownloadUrl) {
-            Update-OctopusDeploy -name $Name `
-                -downloadUrl $DownloadUrl `
-                -state $State `
-                -webListenPrefix $webListenPrefix `
-                -currentState $currentResource["State"]
-        }
-
-        #are there any changes that need to be applied?
-        if (Test-ReconfigurationRequired $currentResource $params) {
-            Set-OctopusDeployConfiguration `
-                -currentState $currentResource `
-                -name $Name `
+        elseif ($installAndConfigureRequested -and ($isCurrentlyNotInstalled -or $isCurrentlyInstalledButServiceDoesntExist)) {
+            #they've asked for it to be installed + configured and its not there yet
+            if ($isCurrentlyNotInstalled -or ($currentResource["DownloadUrl"] -ne $DownloadUrl)) {
+                #no stop/start required
+                Install-MSI $DownloadUrl
+            }
+            Install-OctopusDeploy -name $Name `
                 -webListenPrefix $WebListenPrefix `
+                -sqlDbConnectionString $SqlDbConnectionString `
+                -OctopusAdminCredential $OctopusAdminCredential `
                 -allowUpgradeCheck $AllowUpgradeCheck `
                 -allowCollectionOfUsageStatistics $AllowCollectionOfUsageStatistics `
                 -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
@@ -478,17 +464,56 @@ function Set-TargetResource {
                 -octopusServiceCredential $OctopusServiceCredential `
                 -OctopusMasterKey $OctopusMasterKey `
                 -licenseKey $LicenseKey `
+                -grantDatabasePermissions $GrantDatabasePermissions `
                 -octopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
                 -packagesDirectory $PackagesDirectory `
                 -artifactsDirectory $ArtifactsDirectory `
                 -taskLogsDirectory $TaskLogsDirectory `
                 -logTaskMetrics $LogTaskMetrics `
-                -logRequestMetrics $LogRequestMetrics
-        }
-    }
+                -logRequestMetrics $LogRequestMetrics 
+        } else {
+            #have they asked for a new msi?
+            if ($installAndConfigureRequested -and $currentResource["DownloadUrl"] -ne $DownloadUrl) {
+                Update-OctopusDeploy -name $Name `
+                    -downloadUrl $DownloadUrl `
+                    -state $State `
+                    -webListenPrefix $webListenPrefix `
+                    -currentState $currentResource["State"]
+            }
 
-    if ($startRequested -and ($isCurrentlyStopped -or $isCurrentlyInstalledButServiceDoesntExist)) {
-        Start-OctopusDeployService -name $Name -webListenPrefix $webListenPrefix
+            #are there any changes that need to be applied?
+            if (Test-ReconfigurationRequired $currentResource $params) {
+                Set-OctopusDeployConfiguration `
+                    -currentState $currentResource `
+                    -name $Name `
+                    -webListenPrefix $WebListenPrefix `
+                    -allowUpgradeCheck $AllowUpgradeCheck `
+                    -allowCollectionOfUsageStatistics $AllowCollectionOfUsageStatistics `
+                    -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
+                    -forceSSL $ForceSSL `
+                    -hstsEnabled $HSTSEnabled `
+                    -hstsMaxAge $HSTSMaxAge `
+                    -listenPort $ListenPort `
+                    -autoLoginEnabled $AutoLoginEnabled `
+                    -homeDirectory $HomeDirectory `
+                    -octopusServiceCredential $OctopusServiceCredential `
+                    -OctopusMasterKey $OctopusMasterKey `
+                    -licenseKey $LicenseKey `
+                    -octopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
+                    -packagesDirectory $PackagesDirectory `
+                    -artifactsDirectory $ArtifactsDirectory `
+                    -taskLogsDirectory $TaskLogsDirectory `
+                    -logTaskMetrics $LogTaskMetrics `
+                    -logRequestMetrics $LogRequestMetrics
+            }
+        }
+
+        if ($startRequested -and ($isCurrentlyStopped -or $isCurrentlyInstalledButServiceDoesntExist)) {
+            Start-OctopusDeployService -name $Name -webListenPrefix $webListenPrefix
+        }
+    } catch {
+        Resolve-Error $_
+        throw
     }
 }
 
@@ -1236,6 +1261,8 @@ function Install-OctopusDeploy {
             '--console',
             '--instance', $name
         )
+
+        #ERROR IS HERE
         if (($null -ne $logTaskMetrics) -and ($currentState['LogTaskMetrics'] -ne $logTaskMetrics)) {
             $args += @('--tasks', $logTaskMetrics)
         }
@@ -1325,73 +1352,78 @@ function Test-TargetResource {
         [bool]$LogRequestMetrics = $false
     )
 
-    Test-ParameterSet -Ensure $Ensure `
-                      -Name $Name `
-                      -State $State `
-                      -DownloadUrl $DownloadUrl `
-                      -WebListenPrefix $WebListenPrefix `
-                      -SqlDbConnectionString $SqlDbConnectionString `
-                      -OctopusAdminCredential $OctopusAdminCredential
+    try {
+        Test-ParameterSet -Ensure $Ensure `
+                          -Name $Name `
+                          -State $State `
+                          -DownloadUrl $DownloadUrl `
+                          -WebListenPrefix $WebListenPrefix `
+                          -SqlDbConnectionString $SqlDbConnectionString `
+                          -OctopusAdminCredential $OctopusAdminCredential
 
-    # make sure the global is up to date
-    $script:instancecontext = $Name
+        # make sure the global is up to date
+        $script:instancecontext = $Name
 
-    $currentResource = (Get-TargetResource -Ensure $Ensure `
-            -Name $Name `
-            -State $State `
-            -DownloadUrl $DownloadUrl `
-            -WebListenPrefix $WebListenPrefix `
-            -SqlDbConnectionString $SqlDbConnectionString `
-            -OctopusAdminCredential $OctopusAdminCredential `
-            -AllowUpgradeCheck $AllowUpgradeCheck `
-            -AllowCollectionOfUsageStatistics $AllowCollectionOfUsageStatistics `
-            -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
-            -ForceSSL $ForceSSL `
-            -HSTSEnabled $HSTSEnabled `
-            -HSTSMaxAge $HSTSMaxAge `
-            -ListenPort $ListenPort `
-            -AutoLoginEnabled $AutoLoginEnabled `
-            -OctopusServiceCredential $OctopusServiceCredential `
-            -HomeDirectory $HomeDirectory `
-            -LicenseKey $LicenseKey `
-            -GrantDatabasePermissions $GrantDatabasePermissions `
-            -OctopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
-            -PackagesDirectory $PackagesDirectory `
-            -ArtifactsDirectory $ArtifactsDirectory `
-            -TaskLogsDirectory $TaskLogsDirectory `
-            -LogTaskMetrics $LogTaskMetrics `
-            -LogRequestMetrics $LogRequestMetrics)
+        $currentResource = (Get-TargetResource -Ensure $Ensure `
+                -Name $Name `
+                -State $State `
+                -DownloadUrl $DownloadUrl `
+                -WebListenPrefix $WebListenPrefix `
+                -SqlDbConnectionString $SqlDbConnectionString `
+                -OctopusAdminCredential $OctopusAdminCredential `
+                -AllowUpgradeCheck $AllowUpgradeCheck `
+                -AllowCollectionOfUsageStatistics $AllowCollectionOfUsageStatistics `
+                -LegacyWebAuthenticationMode $LegacyWebAuthenticationMode `
+                -ForceSSL $ForceSSL `
+                -HSTSEnabled $HSTSEnabled `
+                -HSTSMaxAge $HSTSMaxAge `
+                -ListenPort $ListenPort `
+                -AutoLoginEnabled $AutoLoginEnabled `
+                -OctopusServiceCredential $OctopusServiceCredential `
+                -HomeDirectory $HomeDirectory `
+                -LicenseKey $LicenseKey `
+                -GrantDatabasePermissions $GrantDatabasePermissions `
+                -OctopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
+                -PackagesDirectory $PackagesDirectory `
+                -ArtifactsDirectory $ArtifactsDirectory `
+                -TaskLogsDirectory $TaskLogsDirectory `
+                -LogTaskMetrics $LogTaskMetrics `
+                -LogRequestMetrics $LogRequestMetrics)
 
-    $paramsWhereNullMeansIgnore = @('AutoLoginEnabled')
+        $paramsWhereNullMeansIgnore = @('AutoLoginEnabled')
 
-    $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
+        $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
 
-    $currentConfigurationMatchesRequestedConfiguration = $true
-    foreach ($key in $currentResource.Keys) {
-        $currentValue = $currentResource.Item($key)
-        $requestedValue = $params.Item($key)
+        $currentConfigurationMatchesRequestedConfiguration = $true
+        foreach ($key in $currentResource.Keys) {
+            $currentValue = $currentResource.Item($key)
+            $requestedValue = $params.Item($key)
 
-        if ($currentValue -is [PSCredential]) {
-            if (-not (Test-PSCredential $currentValue $requestedValue)) {
-                Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '********' mismatched the specified value '********'"
+            if ($currentValue -is [PSCredential]) {
+                if (-not (Test-PSCredential $currentValue $requestedValue)) {
+                    Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '********' mismatched the specified value '********'"
+                    $currentConfigurationMatchesRequestedConfiguration = $false
+                } else {
+                    Write-Verbose "Configuration parameter '$key' matches the requested value '********'"
+                }
+            }
+            elseif (($null -eq $requestedValue) -and $paramsWhereNullMeansIgnore.contains($key)) {
+                Write-Verbose "Configuration parameter '$key' has value '$currentValue' - requested value not set"
+            }
+            elseif ($currentValue -ne $requestedValue) {
+                Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '$currentValue' mismatched the specified value '$requestedValue'"
                 $currentConfigurationMatchesRequestedConfiguration = $false
-            } else {
-                Write-Verbose "Configuration parameter '$key' matches the requested value '********'"
+            }
+            else {
+                Write-Verbose "Configuration parameter '$key' matches the requested value '$requestedValue'"
             }
         }
-        elseif (($null -eq $requestedValue) -and $paramsWhereNullMeansIgnore.contains($key)) {
-            Write-Verbose "Configuration parameter '$key' has value '$currentValue' - requested value not set"
-        }
-        elseif ($currentValue -ne $requestedValue) {
-            Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '$currentValue' mismatched the specified value '$requestedValue'"
-            $currentConfigurationMatchesRequestedConfiguration = $false
-        }
-        else {
-            Write-Verbose "Configuration parameter '$key' matches the requested value '$requestedValue'"
-        }
-    }
 
-    return $currentConfigurationMatchesRequestedConfiguration
+        return $currentConfigurationMatchesRequestedConfiguration
+    } catch {
+        Resolve-Error $_
+        throw
+    }
 }
 
 function Test-PSCredential($currentValue, $requestedValue) {
