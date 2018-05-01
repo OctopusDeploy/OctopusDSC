@@ -382,6 +382,28 @@ try
                     }
                 }
 
+                Context "New instance with metrics" {
+                    Mock Invoke-OctopusServerCommand #{write-host $args}
+                    Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstanceWithMetrics" }
+                    Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                    Mock Invoke-MsiExec {}
+                    Mock Get-LogDirectory {}
+                    Mock Request-File {}
+                    Mock Update-InstallState {}
+                    Mock Test-OctopusDeployServerResponding { return $true }
+                    Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
+                    Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+
+                    $params = Get-RequestedConfiguration "NewInstanceWithMetrics"
+                    Set-TargetResource @params
+
+                    Assert-ExpectedResult "NewInstanceWithMetrics"
+                    it "Should download the MSI" {
+                        Assert-MockCalled Request-File
+                        Assert-MockCalled Invoke-MsiExec
+                    }
+                }
+
                 Context "When MasterKey is supplied on new instance" {
                     Mock Invoke-OctopusServerCommand #{write-host $args}
                     Mock Get-TargetResource { return Get-CurrentConfiguration "MasterKeySupplied" }
