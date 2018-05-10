@@ -372,6 +372,7 @@ try
                     Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
                     Mock ConvertFrom-SecureString { return "" } # mock this, as it's not available on mac/linux
                     Mock Get-NLogConfig {} # mock this, as it's not available on mac/linux
+                    Mock Save-NlogConfig {} # mock this, as it's not available on mac/linux
 
                     $params = Get-RequestedConfiguration "NewInstance"
                     Set-TargetResource @params

@@ -1290,7 +1290,8 @@ function Install-OctopusDeploy {
     }
 
     if (($serverLogsDirectory -ne "$homeDirectory\Logs") -or ($serverMetricsDirectory -ne "$homeDirectory\Logs")) {
-        $nlogConfig = Get-NLogConfig "$octopusServerExePath.nlog"
+        $nlogConfig = "$octopusServerExePath.nlog"
+        $xml = Get-NLogConfig $nlogPath
 
         if ($serverLogsDirectory -ne "$homeDirectory\Logs") {
             Write-Log "Setting the Octopus Server Logs directory to $serverLogsDirectory ..."
@@ -1304,8 +1305,8 @@ function Install-OctopusDeploy {
             $metrics.fileName = "$serverMetricsDirectory/Metrics-$($env:ComputerName)-$($name).txt"
             $metrics.archiveFileName = "$serverMetricsDirectory/Metrics-$($env:ComputerName)-$($name).{#}.txt"
         }
-
-        $xml.Save($nlogConfig)
+        
+        Save-NlogConfig $xml $nlogConfig
     }
 
     Write-Log "Install Octopus Deploy service ..."
@@ -1565,4 +1566,8 @@ function Test-ParameterSet {
 
 function Get-NLogConfig ([string] $fileName) {
     return [xml] (Get-Content $fileName)
+}
+
+function Save-NlogConfig ($xml, $filename) {
+    $xml.Save($filename)
 }
