@@ -40,7 +40,6 @@ function Get-TargetResource {
         [PSCredential]$OctopusServiceCredential,
         [string]$HomeDirectory = "$($env:SystemDrive)\Octopus",
         [string]$ServerLogsDirectory = "$HomeDirectory\Logs",
-        [string]$ServerMetricsDirectory = "$HomeDirectory\Logs",
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
         [string]$LicenseKey = $null,
         [bool]$GrantDatabasePermissions = $true,
@@ -106,7 +105,6 @@ function Get-TargetResource {
         $existingOctopusBuiltInWorkerCredential = [PSCredential]::Empty
         $existingHomeDirectory = $null
         $existingServerLogsDirectory = $null
-        $existingServerMetricsDirectory = $null
         $existingPackagesDirectory = $null
         $existingArtifactsDirectory = $null
         $existingTaskLogsDirectory = $null
@@ -139,7 +137,6 @@ function Get-TargetResource {
                 $existingLegacyWebAuthenticationMode = $existingConfig.OctopusWebPortalAuthenticationMode
                 $existingHomeDirectory = $existingConfig.OctopusHomeDirectory
                 $existingServerLogsDirectory = $existingConfig.OctopusFoldersServerLogsDirectory
-                $existingServerMetricsDirectory = $existingConfig.OctopusFoldersServerMetricsDirectory
                 if ($existingConfig.OctopusLicenseKey -eq "<unknown>") {
                     $existingLicenseKey = $LicenseKey #if we weren't able to determine the existing key, assume its correct
                 } else {
@@ -199,7 +196,6 @@ function Get-TargetResource {
             OctopusServiceCredential                  = $existingOctopusServiceCredential;
             HomeDirectory                             = $existingHomeDirectory;
             ServerLogsDirectory                       = $existingServerLogsDirectory;
-            ServerMetricsDirectory                    = $existingServerMetricsDirectory;
             LicenseKey                                = $existingLicenseKey;
             GrantDatabasePermissions                  = $GrantDatabasePermissions;
             OctopusBuiltInWorkerCredential            = $existingOctopusBuiltInWorkerCredential;
@@ -262,7 +258,6 @@ function Import-ServerConfig {
             OctopusWebPortalAutoLoginEnabled               = [System.Convert]::ToBoolean($config.Octopus.WebPortal.AutoLoginEnabled)
             OctopusHomeDirectory                           = $config.Octopus.Home
             OctopusFoldersServerLogsDirectory              = $config.Octopus.Folders.ServerLogsDirectory
-            OctopusFoldersServerMetricsDirectory           = $config.Octopus.Folders.ServerMetricsDirectory
             OctopusLicenseKey                              = $license
             OctopusFoldersLogDirectory                     = $config.Octopus.Folders.LogDirectory
             OctopusFoldersArtifactsDirectory               = $config.Octopus.Folders.ArtifactsDirectory
@@ -372,7 +367,6 @@ function Set-TargetResource {
         [PSCredential]$OctopusServiceCredential,
         [string]$HomeDirectory = "$($env:SystemDrive)\Octopus",
         [string]$ServerLogsDirectory = "$HomeDirectory\Logs",
-        [string]$ServerMetricsDirectory = "$HomeDirectory\Logs",
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
         [string]$LicenseKey = $null,
         [bool]$GrantDatabasePermissions = $true,
@@ -414,7 +408,6 @@ function Set-TargetResource {
                 -OctopusServiceCredential $OctopusServiceCredential `
                 -HomeDirectory $HomeDirectory `
                 -ServerLogsDirectory $ServerLogsDirectory `
-                -ServerMetricsDirectory $ServerMetricsDirectory `
                 -OctopusMasterKey $OctopusMasterKey `
                 -LicenseKey $LicenseKey `
                 -GrantDatabasePermissions $GrantDatabasePermissions `
@@ -472,7 +465,6 @@ function Set-TargetResource {
                 -autoLoginEnabled $AutoLoginEnabled `
                 -homeDirectory $HomeDirectory `
                 -serverLogsDirectory $ServerLogsDirectory `
-                -serverMetricsDirectory $ServerMetricsDirectory `
                 -octopusServiceCredential $OctopusServiceCredential `
                 -OctopusMasterKey $OctopusMasterKey `
                 -licenseKey $LicenseKey `
@@ -509,7 +501,6 @@ function Set-TargetResource {
                     -autoLoginEnabled $AutoLoginEnabled `
                     -homeDirectory $HomeDirectory `
                     -serverLogsDirectory $ServerLogsDirectory `
-                    -serverMetricsDirectory $ServerMetricsDirectory `
                     -octopusServiceCredential $OctopusServiceCredential `
                     -OctopusMasterKey $OctopusMasterKey `
                     -licenseKey $LicenseKey `
@@ -573,7 +564,6 @@ function Set-OctopusDeployConfiguration {
         [Nullable[bool]]$autoLoginEnabled = $null,
         [string]$homeDirectory = $null,
         [string]$serverLogsDirectory = $null,
-        [string]$serverMetricsDirectory = $null,
         [PSCredential]$OctopusServiceCredential,
         [PSCredential]$OctopusMasterKey,
         [string]$licenseKey = $null,
@@ -773,7 +763,7 @@ function Set-OctopusDeployConfiguration {
 }
 
 function Test-ReconfigurationRequired($currentState, $desiredState) {
-    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'HSTSEnabled', 'HSTSMaxAge', 'AllowCollectionOfUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'ServerLogsDirectory', 'ServerMetricsDirectory', 'LicenseKey', 'OctopusServiceCredential', 'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled', 'OctopusBuiltInWorkerCredential', 'TaskLogsDirectory', 'PackagesDirectory', 'ArtifactsDirectory', 'LogTaskMetrics', 'LogRequestMetrics')
+    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'HSTSEnabled', 'HSTSMaxAge', 'AllowCollectionOfUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'ServerLogsDirectory', 'LicenseKey', 'OctopusServiceCredential', 'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled', 'OctopusBuiltInWorkerCredential', 'TaskLogsDirectory', 'PackagesDirectory', 'ArtifactsDirectory', 'LogTaskMetrics', 'LogRequestMetrics')
     foreach ($property in $reconfigurableProperties) {
         write-verbose "Checking property '$property'"
         if ($currentState.Item($property) -is [PSCredential]) {
@@ -1052,7 +1042,6 @@ function Install-OctopusDeploy {
         [Nullable[bool]]$autoLoginEnabled = $null,
         [string]$homeDirectory = $null,
         [string]$serverLogsDirectory = $null,
-        [string]$serverMetricsDirectory = $null,
         [PSCredential]$octopusServiceCredential,
         [PSCredential]$OctopusMasterKey,
         [string]$licenseKey = $null,
@@ -1289,17 +1278,16 @@ function Install-OctopusDeploy {
         Invoke-OctopusServerCommand $args
     }
 
-    if (($serverLogsDirectory -ne "$homeDirectory\Logs") -or ($serverMetricsDirectory -ne "$homeDirectory\Logs")) {
+    if ($serverLogsDirectory -ne "$homeDirectory\Logs") {
         $nlogPath = "$octopusServerExePath.nlog"
         $nlogConfig = Get-NLogConfig -Path $nlogPath
 
-        if ($serverLogsDirectory -ne "$homeDirectory\Logs") {
-            Write-Log "Setting the Octopus Server Logs directory to $serverLogsDirectory ..."
-            Set-NLogConfig -NLogConfig $nlogConfig -Target "octopus-log-file" -Destination $serverLogsDirectory
-        }
-        if ($serverMetricsDirectory -ne "$homeDirectory\Logs") {
-            Write-Log "Setting the Octopus Server Metrics directory to $serverMetricsDirectory ..."
-            Set-NLogConfig -NLogConfig $nlogConfig -Target "octopus-metrics-file" -Destination $serverMetricsDirectory
+        Write-Log "Setting the Octopus Server Logs directory to $serverLogsDirectory ..."
+        Set-NLogConfig -NLogConfig $nlogConfig -Destination $serverLogsDirectory
+
+        if (Test-Path -Path "$homeDirectory\Logs") {
+            Write-Log "Moving the existing Octopus Server Logs from $homeDirectory\Logs to $serverLogsDirectory ..."
+            Move-Item -Path "$homeDirectory\Logs" -Destination $serverLogsDirectory
         }
 
         Save-NlogConfig -NLogConfig $nlogConfig -Path $nlogPath
@@ -1375,7 +1363,6 @@ function Test-TargetResource {
         [PSCredential]$OctopusServiceCredential,
         [string]$HomeDirectory = "$($env:SystemDrive)\Octopus",
         [string]$ServerLogsDirectory = "$HomeDirectory\Logs",
-        [string]$ServerMetricsDirectory = "$HomeDirectory\Logs",
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
         [string]$LicenseKey = $null,
         [bool]$GrantDatabasePermissions = $true,
@@ -1417,7 +1404,6 @@ function Test-TargetResource {
                 -OctopusServiceCredential $OctopusServiceCredential `
                 -HomeDirectory $HomeDirectory `
                 -ServerLogsDirectory $ServerLogsDirectory `
-                -ServerMetricsDirectory $ServerMetricsDirectory `
                 -LicenseKey $LicenseKey `
                 -GrantDatabasePermissions $GrantDatabasePermissions `
                 -OctopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
@@ -1571,20 +1557,16 @@ function Get-NLogConfig {
 function Set-NLogConfig {
     param (
         [xml]$NLogConfig,
-        [string]$Target,
         [string]$Destination
     )
 
-    $xml = $NLogConfig.nlog.targets.target | Where-Object {$_.Name -eq $Target}
-    
-    if ($Target -eq "octopus-log-file") {
-        $xml.fileName = "$Destination/OctopusServer-$($env:ComputerName)-$($name).txt"
-        $xml.archiveFileName = "$Destination/OctopusServer-$($env:ComputerName)-$($name).{#}.txt"
-    }
-    if ($Target -eq "octopus-metrics-file") {
-        $xml.fileName = "$Destination/Metrics-$($env:ComputerName)-$($name).txt"
-        $xml.archiveFileName = "$Destination/Metrics-$($env:ComputerName)-$($name).{#}.txt"
-    }
+    $log = $NLogConfig.nlog.targets.target | Where-Object {$_.Name -eq "octopus-log-file"}
+    $log.fileName = "$Destination/OctopusServer-$($env:ComputerName)-$($name).txt"
+    $log.archiveFileName = "$Destination/OctopusServer-$($env:ComputerName)-$($name).{#}.txt"
+
+    $metrics = $NLogConfig.nlog.targets.target | Where-Object {$_.Name -eq "octopus-metrics-file"}
+    $metrics.fileName = "$Destination/Metrics-$($env:ComputerName)-$($name).txt"
+    $metrics.archiveFileName = "$Destination/Metrics-$($env:ComputerName)-$($name).{#}.txt"
 }
 
 function Save-NLogConfig {
