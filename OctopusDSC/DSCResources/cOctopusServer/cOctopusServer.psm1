@@ -1582,8 +1582,8 @@ function Set-NLogConfig {
         $xml.archiveFileName = "$Destination/OctopusServer-$($env:ComputerName)-$($name).{#}.txt"
     }
     if ($Target -eq "octopus-metrics-file") {
-        $metrics.fileName = "$Destination/Metrics-$($env:ComputerName)-$($name).txt"
-        $metrics.archiveFileName = "$Destination/Metrics-$($env:ComputerName)-$($name).{#}.txt"
+        $xml.fileName = "$Destination/Metrics-$($env:ComputerName)-$($name).txt"
+        $xml.archiveFileName = "$Destination/Metrics-$($env:ComputerName)-$($name).{#}.txt"
     }
 }
 
