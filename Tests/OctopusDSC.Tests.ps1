@@ -10,6 +10,10 @@ Describe "PSScriptAnalyzer" {
     $results = @(Invoke-ScriptAnalyzer $path -recurse -exclude $excludedRules)
     $results | ConvertTo-Json | Out-File PsScriptAnalyzer-DSCResources.log
 
+    if ($results.Length -gt 0) {
+        Write-Warning ($results | Out-String)
+    }
+    
     It "Should have zero PSScriptAnalyzer issues in OctopusDSC/DSCResources" {
         $results.length | Should Be 0
     }
