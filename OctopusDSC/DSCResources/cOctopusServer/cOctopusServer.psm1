@@ -1290,23 +1290,19 @@ function Install-OctopusDeploy {
     }
 
     if (($serverLogsDirectory -ne "$homeDirectory\Logs") -or ($serverMetricsDirectory -ne "$homeDirectory\Logs")) {
-        $nlogConfig = "$octopusServerExePath.nlog"
-        $xml = Get-NLogConfig $nlogPath
+        $nlogPath = "$octopusServerExePath.nlog"
+        $nlogConfig = Get-NLogConfig -Path $nlogPath
 
         if ($serverLogsDirectory -ne "$homeDirectory\Logs") {
             Write-Log "Setting the Octopus Server Logs directory to $serverLogsDirectory ..."
-            $log = $xml.nlog.targets.target | ? {$_.Name -eq "octopus-log-file"}
-            $log.fileName = "$serverLogsDirectory/OctopusServer-$($env:ComputerName)-$($name).txt"
-            $log.archiveFileName = "$serverLogsDirectory/OctopusServer-$($env:ComputerName)-$($name).{#}.txt"
+            Set-NLogConfig -NLogConfig $nlogConfig -Target "octopus-log-file" -Destination $serverLogsDirectory
         }
         if ($serverMetricsDirectory -ne "$homeDirectory\Logs") {
             Write-Log "Setting the Octopus Server Metrics directory to $serverMetricsDirectory ..."
-            $metrics = $xml.nlog.targets.target | ? {$_.Name -eq "octopus-metrics-file"}
-            $metrics.fileName = "$serverMetricsDirectory/Metrics-$($env:ComputerName)-$($name).txt"
-            $metrics.archiveFileName = "$serverMetricsDirectory/Metrics-$($env:ComputerName)-$($name).{#}.txt"
+            Set-NLogConfig -NLogConfig $nlogConfig -Target "octopus-metrics-file" -Destination $serverMetricsDirectory
         }
-        
-        Save-NlogConfig $xml $nlogConfig
+
+        Save-NlogConfig -NLogConfig $xml -Path $nlogPath
     }
 
     Write-Log "Install Octopus Deploy service ..."
@@ -1564,10 +1560,38 @@ function Test-ParameterSet {
     }
 }
 
-function Get-NLogConfig ([string] $fileName) {
-    return [xml] (Get-Content $fileName)
+function Get-NLogConfig {
+    param (
+        [string]$Path
+    )
+
+    return [xml](Get-Content -Path $Path)
 }
 
-function Save-NlogConfig ($xml, $filename) {
-    $xml.Save($filename)
+function Set-NLogConfig {
+    param (
+        [xml]$NLogConfig,
+        [string]$Target,
+        [string]$Destination
+    )
+
+    $xml = $NLogConfig.nlog.targets.target | ? {$_.Name -eq $Target}
+    
+    if ($Target -eq "octopus-log-file") {
+        $xml.fileName = "$Destination/OctopusServer-$($env:ComputerName)-$($name).txt"
+        $xml.archiveFileName = "$Destination/OctopusServer-$($env:ComputerName)-$($name).{#}.txt"
+    }
+    if ($Target -eq "octopus-metrics-file") {
+        $metrics.fileName = "$Destination/Metrics-$($env:ComputerName)-$($name).txt"
+        $metrics.archiveFileName = "$Destination/Metrics-$($env:ComputerName)-$($name).{#}.txt"
+    }
+}
+
+function Save-NLogConfig {
+    param (
+        [xml]$NLogConfig,
+        [string]$Path
+    )
+
+    $NLogConfig.Save($Path)
 }
