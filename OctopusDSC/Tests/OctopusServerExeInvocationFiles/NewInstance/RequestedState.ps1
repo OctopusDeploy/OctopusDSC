@@ -15,7 +15,6 @@ return @{
     AllowCollectionOfUsageStatistics = $false;
     HomeDirectory = "C:\Octopus";
     ServerLogsDirectory = "E:\Octopus\Logs";
-    ServerMetricsDirectory = "E:\Octopus\Logs";
     TaskLogsDirectory = "E:\TaskLogs";
     PackagesDirectory = "F:\Packages";
     ArtifactsDirectory = "G:\Artifacts";
