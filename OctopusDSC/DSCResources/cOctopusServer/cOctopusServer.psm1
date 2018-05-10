@@ -1302,7 +1302,7 @@ function Install-OctopusDeploy {
             Set-NLogConfig -NLogConfig $nlogConfig -Target "octopus-metrics-file" -Destination $serverMetricsDirectory
         }
 
-        Save-NlogConfig -NLogConfig $xml -Path $nlogPath
+        Save-NlogConfig -NLogConfig $nlogConfig -Path $nlogPath
     }
 
     Write-Log "Install Octopus Deploy service ..."
