@@ -1575,7 +1575,7 @@ function Set-NLogConfig {
         [string]$Destination
     )
 
-    $xml = $NLogConfig.nlog.targets.target | ? {$_.Name -eq $Target}
+    $xml = $NLogConfig.nlog.targets.target | Where-Object {$_.Name -eq $Target}
     
     if ($Target -eq "octopus-log-file") {
         $xml.fileName = "$Destination/OctopusServer-$($env:ComputerName)-$($name).txt"
