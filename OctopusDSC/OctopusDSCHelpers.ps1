@@ -96,7 +96,10 @@ function Write-Log {
 }
 
 function Invoke-OctopusServerCommand ($arguments) {
-    Write-Verbose "Executing command '$octopusServerExePath $($arguments -join ' ')'"
+    if(-not ($arguments -contains "--masterkey"))
+    {
+        Write-Verbose "Executing command '$octopusServerExePath $($arguments -join ' ')'"
+    }
     $output = .$octopusServerExePath $arguments
 
     Write-CommandOutput $output
