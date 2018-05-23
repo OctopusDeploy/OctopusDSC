@@ -70,6 +70,7 @@ Describe "Request-File" {
 Describe "Invoke-OctopusServerCommand" {
     Context "It should not leak password or masterkey" {
         $OctopusServerExePath = "echo" 
+        Write-Output "Mocked OctopusServerExePath as $OctopusServerExePath"
         Mock Write-Verbose {  } -verifiable -parameterfilter { $message -like "Executing command*" }
 
         $dbargs = @("database", 
