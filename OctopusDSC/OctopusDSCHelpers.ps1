@@ -98,8 +98,9 @@ function Write-Log {
 function Invoke-OctopusServerCommand ($arguments) {
     if
     ( 
-        (($arguments -contains "--masterkey") -eq $false) -and
-        (($arguments -contains "password") -eq $false)
+        (($arguments -match "masterkey").Count -eq 0) -and
+        (($arguments -match "password").Count -eq 0)-and
+        (($arguments -match "license").Count -eq 0)
     )
     {
         Write-Verbose "Executing command '$octopusServerExePath $($arguments -join ' ')'"
