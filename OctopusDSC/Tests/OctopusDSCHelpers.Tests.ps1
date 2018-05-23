@@ -66,3 +66,45 @@ Describe "Request-File" {
         }
     }
 }
+
+Describe "Invoke-OctopusServerCommand" {
+    Context "It should not leak password or masterkey" {
+        $OctopusServerExePath = "echo" 
+        Mock Write-Verbose {  } -verifiable -parameterfilter { $message -like "Executing command*" }
+
+        $dbargs = @("database", 
+            "--instance", "OctopusServer",
+            "--connectionstring", "Data Source=mydbserver;Initial Catalog=Octopus;Integrated Security=SSPI;Max Pool Size=200",
+            "--masterKey", "ABCD123456ASDBD")
+        $pwargs = @("database",
+            "--instance", "OctopusServer",
+            "--connectionstring", "Data Source=mydbserver;Initial Catalog=Octopus;Integrated Security=SSPI;Max Pool Size=200;username=sa;password=p@ssword1234!")
+        $lcargs = @("license",
+            "--console",
+            "--instance", "OctopusServer",
+            "--licenseBase64", "khsandvlinfaslkndsafdvlkjnvdsakljnvasdfkjnsdavkjnvfwq45o3ragoahwer4")
+        $npkargs = @("database",
+            "--instance", "OctopusServer",
+            "--connectionstring", "Data Source=mydbserver;Initial Catalog=Octopus;Integrated Security=SSPI;Max Pool Size=200;")
+
+        It "Doesn't leak the master key by parroting the command" {
+            Invoke-OctopusServerCommand $dbargs
+            Assert-MockCalled Write-Verbose -times 0
+        }
+
+        It "Doesn't leak a password by parroting the command" {
+            Invoke-OctopusServerCommand $pwargs
+            Assert-MockCalled Write-Verbose -times 0
+        }
+
+        It "Doesn't leak a licence by parroting the command" {
+            Invoke-OctopusServerCommand $lcargs
+            Assert-MockCalled Write-Verbose -times 0
+        }
+
+        It "Parrots the command when it ought to " {
+            Invoke-OctopusServerCommand $npkargs
+            Assert-MockCalled Write-Verbose -times 1
+        }
+    }
+}
