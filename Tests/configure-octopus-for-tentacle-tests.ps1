@@ -48,13 +48,15 @@ try
     $projectGroup = $repository.ProjectGroups.Get("ProjectGroups-1")
     if($null -eq $projectGroup)
     {
-      throw "Project Group 'All projects' not found during configuration"
+      throw "Default Project group not found during configuration"
     }
+
     $lifecycle = $repository.Lifecycles.FindByName("Default Lifecycle")
     if($null -eq $lifecycle)
     {
       throw "Lifecycle 'Default Lifecycle' not found during configuration"
     }
+    
     $project = $repository.Projects.CreateOrModify("Multi tenant project", $projectGroup, $lifecycle)
     $project.Save() | Out-Null
 
