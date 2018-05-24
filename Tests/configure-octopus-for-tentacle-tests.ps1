@@ -44,7 +44,6 @@ try
     $repository.Environments.Create($environment) | Out-Null
 
     #create a project
-    #$projectGroup = $repository.ProjectGroups.FindByName("All projects")
     $projectGroup = $repository.ProjectGroups.Get("ProjectGroups-1")
     if($null -eq $projectGroup)
     {
