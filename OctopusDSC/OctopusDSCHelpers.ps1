@@ -135,7 +135,7 @@ Function Get-MaskedOutput
 function Invoke-OctopusServerCommand ($arguments) {
     if
     ( 
-        (($arguments -match "masterkey|password|license").Count -eq 0) 
+        (($arguments -match "masterkey|password|license|pwd=").Count -eq 0) 
     )
     {
         Write-Verbose "Executing command '$octopusServerExePath $($arguments -join ' ')'"
