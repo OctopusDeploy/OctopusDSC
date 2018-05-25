@@ -789,7 +789,7 @@ function Uninstall-OctopusDeploy($name, $currentState) {
         Invoke-OctopusServerCommand $args
     }
 
-    $otherServices = Get-ExistingOctopusServices
+    $otherServices = Get-ExistingOctopusService
     if ($otherServices.length -eq 0) {
         # Uninstall msi
         Write-Verbose "Uninstalling Octopus..."
@@ -821,7 +821,7 @@ function Get-LogDirectory {
     return $logDirectory
 }
 
-function Get-ExistingOctopusServices {
+function Get-ExistingOctopusService {
     return @(Get-CimInstance win32_service | Where-Object {$_.PathName -like "`"$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe*"})
 }
 

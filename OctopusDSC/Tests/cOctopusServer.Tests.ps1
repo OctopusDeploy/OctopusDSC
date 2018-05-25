@@ -433,7 +433,7 @@ try
                     Mock Invoke-MsiExec {}
                     Mock Get-LogDirectory {}
                     Mock Request-File {}
-                    Mock Get-ExistingOctopusServices { return @() }
+                    Mock Get-ExistingOctopusService { return @() }
                     Mock Get-LogDirectory { return Get-TempFolder }
                     Mock Test-Path -ParameterFilter { $path -eq "$($env:SystemDrive)\Octopus\Octopus-x64.msi" } { return $true }
                     Mock Start-Process { return @{ ExitCode = 0} }
