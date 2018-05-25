@@ -142,8 +142,8 @@ function Invoke-OctopusServerCommand ($arguments) {
     }
     else
     {
-        $arguments = Get-MaskedOutput $arguments
-        Write-Verbose "Executing command '$octopusServerExePath $($arguments -join ' ')'"
+        $maskedarguments = Get-MaskedOutput $arguments
+        Write-Verbose "Executing command '$octopusServerExePath $($maskedarguments -join ' ')'"
     }
     $output = .$octopusServerExePath $arguments
 
