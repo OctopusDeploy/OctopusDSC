@@ -110,7 +110,7 @@ Function Get-MaskedOutput
         {
             if(($arguments[$x] -match "--masterKey|--password|--license") -gt 0)
             {
-                $arguments[$x+1] = $arguments[$x+1] -replace "\w", "*"
+                $arguments[$x+1] = $arguments[$x+1] -replace ".", "*"
             }
         }
         $out = $arguments
@@ -142,7 +142,9 @@ function Invoke-OctopusServerCommand ($arguments) {
     }
     else
     {
-        $maskedarguments = Get-MaskedOutput $arguments
+        $copiedarguments = @() # hack to pass a copy of the array, not a reference
+        $copiedarguments += $arguments
+        $maskedarguments = Get-MaskedOutput $copiedarguments
         Write-Verbose "Executing command '$octopusServerExePath $($maskedarguments -join ' ')'"
     }
     $output = .$octopusServerExePath $arguments
