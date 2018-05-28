@@ -100,17 +100,15 @@ Function Get-MaskedOutput
     [CmdletBinding()]
     param($arguments)
 
-    $sensregex = [regex]"--masterkey|--password|--license"
-
     Write-Verbose "Masking output"
 
-    if(($arguments -match $sensregex) -gt 0)
+    if(($arguments -match "--masterkey|--password|--license") -gt 0)
     {
         Write-Verbose "We found a sensitive command line argument. Masking"
 
         for($x=0;$x -lt $arguments.count; $x++)
         {
-            if(($arguments[$x] -match $sensregex) -gt 0)
+            if(($arguments[$x] -match "--masterkey|--password|--license") -gt 0)
             {
                 $arguments[$x+1] = $arguments[$x+1] -replace ".", "*"
             }
