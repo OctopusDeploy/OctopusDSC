@@ -105,20 +105,20 @@ Function Get-MaskedOutput
     $reg = [System.Text.RegularExpressions.RegEx]::new("--masterkey|--password|--license", 
                 [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
 
-    if(($arguments -match "--masterkey|--password|--license") -gt 0)
+    if(($arguments -match "--masterkey|--password|--license"))
     {
         Write-Verbose "We found a sensitive command line argument. Masking"
 
         for($x=0;$x -lt $arguments.count; $x++)
         {
-            if(($arguments[$x] -match "--masterkey|--password|--license") -gt 0)
+            if(($arguments[$x] -match "--masterkey|--password|--license"))
             {
                 $arguments[$x+1] = $arguments[$x+1] -replace ".", "*"
             }
         }
         $out = $arguments
     }
-    elseif(($arguments -match "password|pwd") -gt 0)
+    elseif(($arguments -match "password|pwd"))
     {
         Write-Verbose "We found a SQL connection string. Masking"
         $out = $arguments -replace "(password|pwd)=[^;]*", "`$1=********" 
