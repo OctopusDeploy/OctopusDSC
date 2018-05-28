@@ -82,6 +82,9 @@ Describe "Invoke-OctopusServerCommand" {
         $pwargs = @("database",
             "--instance", "OctopusServer",
             "--connectionstring", "Data Source=mydbserver;Initial Catalog=Octopus;Integrated Security=SSPI;Max Pool Size=200;username=sa;password=p@ssword1234!")
+        $pwargs2 = @("database",
+            "--instance", "OctopusServer",
+            "--connectionstring", "Data Source=mydbserver;Initial Catalog=Octopus;Integrated Security=SSPI;Max Pool Size=200;username=sa;pwd=p@ssword1234!")
         $lcargs = @("license",
             "--console",
             "--instance", "OctopusServer",
@@ -112,6 +115,10 @@ Describe "Invoke-OctopusServerCommand" {
 
         It "Should successfully mask the SQL password" {
             ((Get-MaskedOutput $pwargs) -match "p@ssword1234!").Count | Should be 0
+        }
+
+        It "Should successfully mask a short-arg SQL password" {
+            ((Get-MaskedOutput $pwargs2) -match "p@ssword1234!").Count | Should be 0
         }
 
         It "Should successfully mask the licence key" {
