@@ -7,7 +7,7 @@ $seqApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $s
 Configuration Server_Scenario_01_Install
 {
     Import-DscResource -ModuleName OctopusDSC
-
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
 
     Node "localhost"
     {

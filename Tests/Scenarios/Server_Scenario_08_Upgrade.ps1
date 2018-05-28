@@ -3,6 +3,7 @@ Configuration Server_Scenario_08_Upgrade
     param ($ApiKey)
 
     Import-DscResource -ModuleName OctopusDSC
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
 
     $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
     $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)

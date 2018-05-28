@@ -2,7 +2,7 @@
 Configuration Server_Scenario_12_Built_In_Worker
 {
     Import-DscResource -ModuleName OctopusDSC
-    Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
 
     $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
     $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)

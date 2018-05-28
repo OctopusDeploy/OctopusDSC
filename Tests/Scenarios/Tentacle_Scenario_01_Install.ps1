@@ -6,6 +6,7 @@ Configuration Tentacle_Scenario_01_Install
     param ($OctopusServerUrl, $ApiKey, $Environments, $Roles, $ServerThumbprint)
 
     Import-DscResource -ModuleName OctopusDSC
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
 
     Node "localhost"
     {

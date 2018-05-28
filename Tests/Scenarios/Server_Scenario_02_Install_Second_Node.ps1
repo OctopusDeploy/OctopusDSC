@@ -10,6 +10,7 @@ $MasterKeyCred = New-Object System.Management.Automation.PSCredential  ("notused
 Configuration Server_Scenario_02_Install_Second_Node
 {
     Import-DscResource -ModuleName OctopusDSC
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
 
     Node "localhost"
     {
