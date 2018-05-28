@@ -102,10 +102,8 @@ Function Get-MaskedOutput
 
     if(($arguments -match "--masterkey|--password|--license") -gt 0)
     {
-        # handles cases for --license, --password, --masterkey
         Write-Verbose "We found a sensitive command line argument. Masking"
 
-        # loop the array, find the culprit indexes
         for($x=0;$x -lt $arguments.count; $x++)
         {
             if(($arguments[$x] -match "--masterKey|--password|--license") -gt 0)
@@ -117,15 +115,11 @@ Function Get-MaskedOutput
     }
     elseif(($arguments -match "password|pwd") -gt 0)
     {
-        # handles the password in SQL connection strings
         Write-Verbose "We found a SQL connection string. Masking"
-
-        # do a regex replace for "password=*[;|$]"
         $out = $arguments -replace "(password|pwd)=[^;]*", "password=********" 
     }
     else
     {
-        # mask the entire line because we don't know how to handle this. not sure if this is needed
         Write-Verbose "We found sensitive data but unable to selectively mask"
         $out = @("************************")
     }
