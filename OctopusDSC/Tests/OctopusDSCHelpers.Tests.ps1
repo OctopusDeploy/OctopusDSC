@@ -101,16 +101,19 @@ Describe "Invoke-OctopusServerCommand" {
         It "Tries to mask the master key" {
             Invoke-OctopusServerCommand $dbargs
             Assert-MockCalled Get-MaskedOutput
+            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"}  # has at least four asterisks
         }
 
         It "Tries to mask the Connectionstring password" {
             Invoke-OctopusServerCommand $pwargs
             Assert-MockCalled Get-MaskedOutput
+            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"} 
         }
 
         It "Tries to mask the licencebase64" {
             Invoke-OctopusServerCommand $lcargs
             Assert-MockCalled Get-MaskedOutput
+            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"} 
         }
 
         It "Should successfully mask the SQL password" {
