@@ -71,9 +71,9 @@ Describe "Invoke-OctopusServerCommand" {
     Context "It should not leak password or masterkey" {
         $OctopusServerExePath = "echo" 
         Write-Output "Mocked OctopusServerExePath as $OctopusServerExePath"
-        Mock Write-Verbose {  } -verifiable -parameterfilter { $message -like "Executing command*" }
+        Mock Write-Verbose { } -verifiable 
         Function Write-CommandOutput {}
-        Mock Get-MaskedOutput {} -Verifiable
+        # Mock Get-MaskedOutput {} -Verifiable
 
         $dbargs = @("database", 
             "--instance", "OctopusServer",
@@ -95,25 +95,25 @@ Describe "Invoke-OctopusServerCommand" {
 
         It "Doesn't try to mask output when no sensitive values exist " {
             Invoke-OctopusServerCommand $npkargs
-            Assert-MockCalled Get-MaskedOutput -times 0
+            Assert-MockCalled Write-Verbose -parameterfilter { $Message -eq "Masking output" } -times 0
         }
 
         It "Tries to mask the master key" {
             Invoke-OctopusServerCommand $dbargs
-            Assert-MockCalled Get-MaskedOutput
-            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"}  # has at least four asterisks
+            Assert-MockCalled Write-Verbose -parameterfilter { $Message -eq "Masking output" }
+            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"} -times 1  # has at least four asterisks
         }
 
         It "Tries to mask the Connectionstring password" {
             Invoke-OctopusServerCommand $pwargs
-            Assert-MockCalled Get-MaskedOutput
-            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"} 
+            Assert-MockCalled Write-Verbose -parameterfilter { $Message -eq "Masking output" }
+            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"}  -times 1 
         }
 
         It "Tries to mask the licencebase64" {
             Invoke-OctopusServerCommand $lcargs
-            Assert-MockCalled Get-MaskedOutput
-            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"} 
+            Assert-MockCalled Write-Verbose -parameterfilter { $Message -eq "Masking output" }
+            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"}  -times 1 
         }
 
         It "Should successfully mask the SQL password" {
@@ -127,10 +127,12 @@ Describe "Invoke-OctopusServerCommand" {
         It "Should successfully mask the licence key" {
             $licence = "khsandvlinfaslkndsafdvlkjnvdsakljnvasdfkjnsdavkjnvfwq45o3ragoahwer4"
             ((Get-MaskedOutput $lcargs) -match $licence).Count | Should Be 0
+            ((Get-MaskedOutput $lcargs) -match "\*\*\*\*").Count -gt 0 | Should Be $true
         }
 
         It "Should successfully mask the master key" {
             ((Get-MaskedOutput $dbargs) -match "ABCD123456ASDBD").Count | Should Be 0
+            ((Get-MaskedOutput $dbargs) -match "\*\*\*\*").Count -gt 0 | Should Be $true
         }
     }
 }
