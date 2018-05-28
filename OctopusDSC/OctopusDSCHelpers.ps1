@@ -102,13 +102,16 @@ Function Get-MaskedOutput
 
     Write-Verbose "Masking output"
 
-    if(($arguments -match "--masterkey|--password|--license") -gt 0)
+    $reg = [System.Text.RegularExpressions.RegEx]::new("--masterkey|--password|--license", 
+                [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+
+    if(($arguments -match $reg) -gt 0)
     {
         Write-Verbose "We found a sensitive command line argument. Masking"
 
         for($x=0;$x -lt $arguments.count; $x++)
         {
-            if(($arguments[$x] -match "--masterkey|--password|--license") -gt 0)
+            if(($arguments[$x] -match $reg) -gt 0)
             {
                 $arguments[$x+1] = $arguments[$x+1] -replace ".", "*"
             }
