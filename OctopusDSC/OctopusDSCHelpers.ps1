@@ -95,15 +95,56 @@ function Write-Log {
     Write-Verbose "[$timestamp] $message"
 }
 
+Function Get-MaskedOutput
+{
+    [CmdletBinding()]
+    param($arguments)
+
+    Write-Verbose "Masking output"
+
+    $reg = [System.Text.RegularExpressions.RegEx]::new("--masterkey|--password|--license", 
+                [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+
+    if(($arguments -match "--masterkey|--password|--license"))
+    {
+        Write-Verbose "We found a sensitive command line argument. Masking"
+
+        for($x=0;$x -lt $arguments.count; $x++)
+        {
+            if(($arguments[$x] -match "--masterkey|--password|--license"))
+            {
+                $arguments[$x+1] = $arguments[$x+1] -replace ".", "*"
+            }
+        }
+        $out = $arguments
+    }
+    elseif(($arguments -match "password|pwd"))
+    {
+        Write-Verbose "We found a SQL connection string. Masking"
+        $out = $arguments -replace "(password|pwd)=[^;]*", "`$1=********" 
+    }
+    else
+    {
+        Write-Verbose "We found sensitive data but unable to selectively mask"
+        $out = @("************************")
+    }
+    return $out
+}
+
 function Invoke-OctopusServerCommand ($arguments) {
     if
     ( 
-        (($arguments -match "masterkey").Count -eq 0) -and
-        (($arguments -match "password").Count -eq 0)-and
-        (($arguments -match "license").Count -eq 0)
+        (($arguments -match "masterkey|password|license|pwd=").Count -eq 0) 
     )
     {
         Write-Verbose "Executing command '$octopusServerExePath $($arguments -join ' ')'"
+    }
+    else
+    {
+        $copiedarguments = @() # hack to pass a copy of the array, not a reference
+        $copiedarguments += $arguments
+        $maskedarguments = Get-MaskedOutput $copiedarguments
+        Write-Verbose "Executing command '$octopusServerExePath $($maskedarguments -join ' ')'"
     }
     $output = .$octopusServerExePath $arguments
 

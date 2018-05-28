@@ -71,7 +71,8 @@ Describe "Invoke-OctopusServerCommand" {
     Context "It should not leak password or masterkey" {
         $OctopusServerExePath = "echo" 
         Write-Output "Mocked OctopusServerExePath as $OctopusServerExePath"
-        Mock Write-Verbose {  } -verifiable -parameterfilter { $message -like "Executing command*" }
+        Mock Write-Verbose { } -verifiable 
+        Function Write-CommandOutput {}
 
         $dbargs = @("database", 
             "--instance", "OctopusServer",
@@ -80,6 +81,9 @@ Describe "Invoke-OctopusServerCommand" {
         $pwargs = @("database",
             "--instance", "OctopusServer",
             "--connectionstring", "Data Source=mydbserver;Initial Catalog=Octopus;Integrated Security=SSPI;Max Pool Size=200;username=sa;password=p@ssword1234!")
+        $pwargs2 = @("database",
+            "--instance", "OctopusServer",
+            "--connectionstring", "Data Source=mydbserver;Initial Catalog=Octopus;Integrated Security=SSPI;Max Pool Size=200;username=sa;pwd=p@ssword1234!")
         $lcargs = @("license",
             "--console",
             "--instance", "OctopusServer",
@@ -88,24 +92,46 @@ Describe "Invoke-OctopusServerCommand" {
             "--instance", "OctopusServer",
             "--connectionstring", "Data Source=mydbserver;Initial Catalog=Octopus;Integrated Security=SSPI;Max Pool Size=200;")
 
-        It "Doesn't leak the master key by parroting the command" {
-            Invoke-OctopusServerCommand $dbargs
-            Assert-MockCalled Write-Verbose -times 0
-        }
-
-        It "Doesn't leak a password by parroting the command" {
-            Invoke-OctopusServerCommand $pwargs
-            Assert-MockCalled Write-Verbose -times 0
-        }
-
-        It "Doesn't leak a licence by parroting the command" {
-            Invoke-OctopusServerCommand $lcargs
-            Assert-MockCalled Write-Verbose -times 0
-        }
-
-        It "Parrots the command when it ought to " {
+        It "Doesn't try to mask output when no sensitive values exist " {
             Invoke-OctopusServerCommand $npkargs
-            Assert-MockCalled Write-Verbose -times 1
+            Assert-MockCalled Write-Verbose -parameterfilter { $Message -eq "Masking output" } -times 0
+        }
+
+        It "Tries to mask the master key" {
+            Invoke-OctopusServerCommand $dbargs
+            Assert-MockCalled Write-Verbose -parameterfilter { $Message -eq "Masking output" }
+            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"} -times 1  # has at least four asterisks
+        }
+
+        It "Tries to mask the Connectionstring password" {
+            Invoke-OctopusServerCommand $pwargs
+            Assert-MockCalled Write-Verbose -parameterfilter { $Message -eq "Masking output" }
+            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"}  -times 1 
+        }
+
+        It "Tries to mask the licencebase64" {
+            Invoke-OctopusServerCommand $lcargs
+            Assert-MockCalled Write-Verbose -parameterfilter { $Message -eq "Masking output" }
+            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"}  -times 1 
+        }
+
+        It "Should successfully mask the SQL password" {
+            ((Get-MaskedOutput $pwargs) -match "p@ssword1234!").Count | Should be 0
+        }
+
+        It "Should successfully mask a short-arg SQL password" {
+            ((Get-MaskedOutput $pwargs2) -match "p@ssword1234!").Count | Should be 0
+        }
+
+        It "Should successfully mask the licence key" {
+            $licence = "khsandvlinfaslkndsafdvlkjnvdsakljnvasdfkjnsdavkjnvfwq45o3ragoahwer4"
+            ((Get-MaskedOutput $lcargs) -match $licence).Count | Should Be 0
+            ((Get-MaskedOutput $lcargs) -match "\*\*\*\*").Count -gt 0 | Should Be $true
+        }
+
+        It "Should successfully mask the master key" {
+            ((Get-MaskedOutput $dbargs) -match "ABCD123456ASDBD").Count | Should Be 0
+            ((Get-MaskedOutput $dbargs) -match "\*\*\*\*").Count -gt 0 | Should Be $true
         }
     }
 }
