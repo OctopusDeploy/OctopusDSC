@@ -73,7 +73,6 @@ Describe "Invoke-OctopusServerCommand" {
         Write-Output "Mocked OctopusServerExePath as $OctopusServerExePath"
         Mock Write-Verbose { } -verifiable 
         Function Write-CommandOutput {}
-        # Mock Get-MaskedOutput {} -Verifiable
 
         $dbargs = @("database", 
             "--instance", "OctopusServer",
