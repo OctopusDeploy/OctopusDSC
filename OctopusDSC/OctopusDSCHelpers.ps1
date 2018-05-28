@@ -100,7 +100,7 @@ Function Get-MaskedOutput
     [CmdletBinding()]
     param($arguments)
 
-    $sensregex = "--masterkey|--password|--license"
+    $sensregex = [regex]"--masterkey|--password|--license"
 
     Write-Verbose "Masking output"
 
