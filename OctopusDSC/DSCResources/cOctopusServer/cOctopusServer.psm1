@@ -689,20 +689,20 @@ function Set-OctopusDeployConfiguration {
     }
 
     if (Test-PSCredentialChanged $currentState['OctopusAdminCredential'] $OctopusAdminCredential) {
-        if (Test-PSCredentialIsNullOrEmpty $OctopusMasterKey) {
-            throw "'octopusAdminCredential' must be supplied when creating a new instance from scratch"
-        } else {
+        if (Test-PSCredentialIsNullOrEmpty $OctopusMasterKey -and (Test-PSCredentialIsNullOrEmpty $OctopusAdminCredential)) {
+            throw "'OctopusAdminCredential' must be supplied when creating a new instance from scratch"
+        } elseif(-not (Test-PSCredentialIsNullOrEmpty $OctopusAdminCredential)) {
             Write-Log "Updating Octopus Deploy admin user to $($octopusAdminCredential.UserName) ..."
             $args = @(
                 'admin',
                 '--console'
                 '--instance', $name,
-                '--username', $octopusAdminCredential.UserName,
-                '--password', $octopusAdminCredential.GetNetworkCredential().Password
+                '--username', $OctopusAdminCredential.UserName,
+                '--password', $OctopusAdminCredential.GetNetworkCredential().Password
             )
 
-            Update-InstallState "OctopusAdminUsername" $octopusAdminCredential.UserName
-            Update-InstallState "OctopusAdminPassword" ($octopusAdminCredential.Password | ConvertFrom-SecureString)
+            Update-InstallState "OctopusAdminUsername" $OctopusAdminCredential.UserName
+            Update-InstallState "OctopusAdminPassword" ($OctopusAdminCredential.Password | ConvertFrom-SecureString)
             
             Invoke-OctopusServerCommand $args
         }
@@ -1431,7 +1431,7 @@ function Test-PSCredentialIsNullOrEmpty {
 
 function Test-PSCredentialChanged ($currentValue, $requestedValue) {
 
-    if (($null -ne $currentValue) -and ($currentValue -ne [PSCredential]::Empty)) {
+    if (Test-PSCredentialIsNullOrEmpty $currentValue) {
         $currentUsername = $currentValue.GetNetworkCredential().UserName
         $currentPassword = $currentValue.GetNetworkCredential().Password
     }
@@ -1440,7 +1440,7 @@ function Test-PSCredentialChanged ($currentValue, $requestedValue) {
         $currentPassword = ""
     }
 
-    if (($null -ne $requestedValue) -and ($requestedValue -ne [PSCredential]::Empty)) {
+    if (Test-PSCredentialIsNullOrEmpty $requestedValue) {
         $requestedUsername = $requestedValue.GetNetworkCredential().UserName
         $requestedPassword = $requestedValue.GetNetworkCredential().Password
     }
