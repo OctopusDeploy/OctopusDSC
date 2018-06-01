@@ -488,6 +488,7 @@ function Set-TargetResource {
                     -allowUpgradeCheck $AllowUpgradeCheck `
                     -allowCollectionOfUsageStatistics $AllowCollectionOfUsageStatistics `
                     -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
+                    -OctopusAdminCredential $OctopusAdminCredential `
                     -forceSSL $ForceSSL `
                     -hstsEnabled $HSTSEnabled `
                     -hstsMaxAge $HSTSMaxAge `
@@ -550,6 +551,7 @@ function Set-OctopusDeployConfiguration {
         [bool]$allowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$legacyWebAuthenticationMode = 'Ignore',
+        [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty,
         [bool]$forceSSL = $false,
         [bool]$hstsEnabled = $false,
         [Int64]$hstsMaxAge = 3600, # 1 hour
@@ -689,10 +691,10 @@ function Set-OctopusDeployConfiguration {
     }
 
     if (Test-PSCredentialChanged $currentState['OctopusAdminCredential'] $OctopusAdminCredential) {
-        if (Test-PSCredentialIsNullOrEmpty $OctopusMasterKey -and (Test-PSCredentialIsNullOrEmpty $OctopusAdminCredential)) {
-            throw "'OctopusAdminCredential' must be supplied when creating a new instance from scratch"
+        if ((Test-PSCredentialIsNullOrEmpty $OctopusMasterKey) -and (Test-PSCredentialIsNullOrEmpty $OctopusAdminCredential)) {
+            throw "'OctopusAdminCredential' must be supplied when creating a new instance"
         } elseif(-not (Test-PSCredentialIsNullOrEmpty $OctopusAdminCredential)) {
-            Write-Log "Updating Octopus Deploy admin user to $($octopusAdminCredential.UserName) ..."
+            Write-Log "Updating Octopus Deploy admin user to $($OctopusAdminCredential.UserName) ..."
             $args = @(
                 'admin',
                 '--console'
@@ -1020,7 +1022,7 @@ function Install-OctopusDeploy {
         [string]$webListenPrefix,
         [Parameter(Mandatory = $True)]
         [string]$sqlDbConnectionString,
-        [PSCredential]$octopusAdminCredential = [PSCredential]::Empty,
+        [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty,
         [bool]$allowUpgradeCheck = $true,
         [bool]$allowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
@@ -1199,10 +1201,10 @@ function Install-OctopusDeploy {
 
     Stop-OctopusDeployService -name $name
 
-    if(-not (Test-PSCredentialIsNullOrEmpty $octopusAdminCredential)) {
+    if(-not (Test-PSCredentialIsNullOrEmpty $OctopusAdminCredential)) {
         Write-Log "Creating Admin User for Octopus Deploy instance ..."
-        $extractedUserName = $octopusAdminCredential.GetNetworkCredential().UserName
-        $extractedPassword = $octopusAdminCredential.GetNetworkCredential().Password
+        $extractedUserName = $OctopusAdminCredential.GetNetworkCredential().UserName
+        $extractedPassword = $OctopusAdminCredential.GetNetworkCredential().Password
         $args = @(
             'admin',
             '--console',
@@ -1424,14 +1426,14 @@ function Test-TargetResource {
 }
 
 function Test-PSCredentialIsNullOrEmpty {
-    param ([PSCredential]$cred = [PSCredential]::Empty)
+    param ([PSCredential]$cred)
 
     return $cred -eq [PSCredential]::Empty -or $cred -eq $null
 }
 
 function Test-PSCredentialChanged ($currentValue, $requestedValue) {
 
-    if (Test-PSCredentialIsNullOrEmpty $currentValue) {
+    if (-not (Test-PSCredentialIsNullOrEmpty $currentValue)) {
         $currentUsername = $currentValue.GetNetworkCredential().UserName
         $currentPassword = $currentValue.GetNetworkCredential().Password
     }
@@ -1440,7 +1442,7 @@ function Test-PSCredentialChanged ($currentValue, $requestedValue) {
         $currentPassword = ""
     }
 
-    if (Test-PSCredentialIsNullOrEmpty $requestedValue) {
+    if (-not (Test-PSCredentialIsNullOrEmpty $requestedValue)) {
         $requestedUsername = $requestedValue.GetNetworkCredential().UserName
         $requestedPassword = $requestedValue.GetNetworkCredential().Password
     }
