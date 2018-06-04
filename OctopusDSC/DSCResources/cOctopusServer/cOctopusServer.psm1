@@ -27,7 +27,7 @@ function Get-TargetResource {
         [string]$DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer",
         [string]$WebListenPrefix,
         [string]$SqlDbConnectionString,
-        [PSCredential]$OctopusAdminCredential,
+        [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty,
         [bool]$AllowUpgradeCheck = $true,
         [bool]$AllowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
@@ -58,7 +58,8 @@ function Get-TargetResource {
                           -DownloadUrl $DownloadUrl `
                           -WebListenPrefix $WebListenPrefix `
                           -SqlDbConnectionString $SqlDbConnectionString `
-                          -OctopusAdminCredential $OctopusAdminCredential
+                          -OctopusAdminCredential $OctopusAdminCredential `
+                          -OctopusMasterKey $OctopusMasterKey
 
         $script:instancecontext = $Name
 
@@ -349,7 +350,7 @@ function Set-TargetResource {
         [string]$DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer",
         [string]$WebListenPrefix,
         [string]$SqlDbConnectionString,
-        [PSCredential]$OctopusAdminCredential,
+        [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty,
         [bool]$AllowUpgradeCheck = $true,
         [bool]$AllowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
@@ -379,7 +380,8 @@ function Set-TargetResource {
                           -DownloadUrl $DownloadUrl `
                           -WebListenPrefix $WebListenPrefix `
                           -SqlDbConnectionString $SqlDbConnectionString `
-                          -OctopusAdminCredential $OctopusAdminCredential
+                          -OctopusAdminCredential $OctopusAdminCredential `
+                          -OctopusMasterKey $OctopusMasterKey
 
         # update the global
         $script:instancecontext = $Name
@@ -486,6 +488,7 @@ function Set-TargetResource {
                     -allowUpgradeCheck $AllowUpgradeCheck `
                     -allowCollectionOfUsageStatistics $AllowCollectionOfUsageStatistics `
                     -legacyWebAuthenticationMode $LegacyWebAuthenticationMode `
+                    -OctopusAdminCredential $OctopusAdminCredential `
                     -forceSSL $ForceSSL `
                     -hstsEnabled $HSTSEnabled `
                     -hstsMaxAge $HSTSMaxAge `
@@ -548,6 +551,7 @@ function Set-OctopusDeployConfiguration {
         [bool]$allowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$legacyWebAuthenticationMode = 'Ignore',
+        [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty,
         [bool]$forceSSL = $false,
         [bool]$hstsEnabled = $false,
         [Int64]$hstsMaxAge = 3600, # 1 hour
@@ -658,7 +662,7 @@ function Set-OctopusDeployConfiguration {
         Invoke-OctopusServerCommand $args
     }
 
-    if (-not (Test-PSCredential $currentState['OctopusServiceCredential'] $OctopusServiceCredential)) {
+    if (Test-PSCredentialChanged $currentState['OctopusServiceCredential'] $OctopusServiceCredential) {
         $args = @(
             'service',
             '--console',
@@ -668,7 +672,7 @@ function Set-OctopusDeployConfiguration {
             '--reconfigure'
         )
 
-        if (($null -ne $octopusServiceCredential) -and ($octopusServiceCredential -ne [PSCredential]::Empty)) {
+        if (-not (Test-PSCredentialIsNullOrEmpty $octopusServiceCredential)) {
             Write-Log "Reconfiguring Octopus Deploy service to use run as $($octopusServiceCredential.UserName) ..."
             $args += @(
                 '--username', $octopusServiceCredential.UserName,
@@ -686,24 +690,24 @@ function Set-OctopusDeployConfiguration {
         Invoke-OctopusServerCommand $args
     }
 
-    if (-not (Test-PSCredential $currentState['OctopusAdminCredential'] $OctopusAdminCredential)) {
-        if (($null -ne $octopusAdminCredential) -and ($octopusAdminCredential -ne [PSCredential]::Empty)) {
-            Write-Log "Updating Octopus Deploy admin user to $($octopusAdminCredential.UserName) ..."
+    if (Test-PSCredentialChanged $currentState['OctopusAdminCredential'] $OctopusAdminCredential) {
+        if ((Test-PSCredentialIsNullOrEmpty $OctopusMasterKey) -and (Test-PSCredentialIsNullOrEmpty $OctopusAdminCredential)) {
+            throw "'OctopusAdminCredential' must be supplied when creating a new instance"
+        } elseif(-not (Test-PSCredentialIsNullOrEmpty $OctopusAdminCredential)) {
+            Write-Log "Updating Octopus Deploy admin user to $($OctopusAdminCredential.UserName) ..."
             $args = @(
                 'admin',
                 '--console'
                 '--instance', $name,
-                '--username', $octopusAdminCredential.UserName,
-                '--password', $octopusAdminCredential.GetNetworkCredential().Password
+                '--username', $OctopusAdminCredential.UserName,
+                '--password', $OctopusAdminCredential.GetNetworkCredential().Password
             )
 
-            Update-InstallState "OctopusAdminUsername" $octopusAdminCredential.UserName
-            Update-InstallState "OctopusAdminPassword" ($octopusAdminCredential.Password | ConvertFrom-SecureString)
+            Update-InstallState "OctopusAdminUsername" $OctopusAdminCredential.UserName
+            Update-InstallState "OctopusAdminPassword" ($OctopusAdminCredential.Password | ConvertFrom-SecureString)
+            
+            Invoke-OctopusServerCommand $args
         }
-        else {
-            throw "'OctopusBuiltInWorkerCredential' must be supplied"
-        }
-        Invoke-OctopusServerCommand $args
     }
 
     if ($currentState['LicenseKey'] -ne $licenseKey) {
@@ -722,9 +726,9 @@ function Set-OctopusDeployConfiguration {
         Invoke-OctopusServerCommand $args
     }
 
-    if (-not (Test-PSCredential $currentState['OctopusBuiltInWorkerCredential'] $octopusBuiltInWorkerCredential)) {
+    if (Test-PSCredentialChanged $currentState['OctopusBuiltInWorkerCredential'] $octopusBuiltInWorkerCredential) {
         if (Test-OctopusVersionSupportsRunAsCredential) {
-            if (($null -ne $octopusBuiltInWorkerCredential) -and ($octopusBuiltInWorkerCredential -ne [PSCredential]::Empty)) {
+            if (-not (Test-PSCredentialIsNullOrEmpty $octopusBuiltInWorkerCredential)) {
                 Write-Log "Configuring Octopus Deploy to execute run-on-server scripts as $($octopusBuiltInWorkerCredential.UserName) ..."
 
                 $args = @(
@@ -757,7 +761,7 @@ function Test-ReconfigurationRequired($currentState, $desiredState) {
     foreach ($property in $reconfigurableProperties) {
         write-verbose "Checking property '$property'"
         if ($currentState.Item($property) -is [PSCredential]) {
-            if (-not (Test-PSCredential $currentState.Item($property) $desiredState.Item($property))) {
+            if (Test-PSCredentialChanged $currentState.Item($property) $desiredState.Item($property)) {
                 return $true
             }
         }
@@ -1018,9 +1022,7 @@ function Install-OctopusDeploy {
         [string]$webListenPrefix,
         [Parameter(Mandatory = $True)]
         [string]$sqlDbConnectionString,
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [PSCredential]$octopusAdminCredential,
+        [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty,
         [bool]$allowUpgradeCheck = $true,
         [bool]$allowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
@@ -1050,9 +1052,6 @@ function Install-OctopusDeploy {
     if (($dotnetVersion -eq "") -or ([int]$dotnetVersion -lt 378675)) {
         throw "Octopus Server requires .NET 4.5.1. Please install it before attempting to install Octopus Server."
     }
-
-    $extractedUserName = $octopusAdminCredential.GetNetworkCredential().UserName
-    $extractedPassword = $octopusAdminCredential.GetNetworkCredential().Password
 
     # check if we're joining a cluster, or joining to an existing Database
     $isMasterKeyProvided = ($OctopusMasterKey -ne [PSCredential]::Empty)
@@ -1202,18 +1201,22 @@ function Install-OctopusDeploy {
 
     Stop-OctopusDeployService -name $name
 
-    Write-Log "Creating Admin User for Octopus Deploy instance ..."
-    $args = @(
-        'admin',
-        '--console',
-        '--instance', $name,
-        '--username', $extractedUsername,
-        '--password', $extractedPassword
-    )
+    if(-not (Test-PSCredentialIsNullOrEmpty $OctopusAdminCredential)) {
+        Write-Log "Creating Admin User for Octopus Deploy instance ..."
+        $extractedUserName = $OctopusAdminCredential.GetNetworkCredential().UserName
+        $extractedPassword = $OctopusAdminCredential.GetNetworkCredential().Password
+        $args = @(
+            'admin',
+            '--console',
+            '--instance', $name,
+            '--username', $extractedUsername,
+            '--password', $extractedPassword
+        )
 
-    Invoke-OctopusServerCommand $args
-    Update-InstallState "OctopusAdminUsername" $extractedUsername
-    Update-InstallState "OctopusAdminPassword" ($OctopusAdminCredential.Password | ConvertFrom-SecureString)
+        Invoke-OctopusServerCommand $args
+        Update-InstallState "OctopusAdminUsername" $extractedUsername
+        Update-InstallState "OctopusAdminPassword" ($OctopusAdminCredential.Password | ConvertFrom-SecureString)
+    }
 
     $args = @(
         'license',
@@ -1354,7 +1357,8 @@ function Test-TargetResource {
                           -DownloadUrl $DownloadUrl `
                           -WebListenPrefix $WebListenPrefix `
                           -SqlDbConnectionString $SqlDbConnectionString `
-                          -OctopusAdminCredential $OctopusAdminCredential
+                          -OctopusAdminCredential $OctopusAdminCredential `
+                          -OctopusMasterKey $OctopusMasterKey
 
         # make sure the global is up to date
         $script:instancecontext = $Name
@@ -1395,7 +1399,7 @@ function Test-TargetResource {
             $requestedValue = $params.Item($key)
 
             if ($currentValue -is [PSCredential]) {
-                if (-not (Test-PSCredential $currentValue $requestedValue)) {
+                if (Test-PSCredentialChanged $currentValue $requestedValue) {
                     Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '********' mismatched the specified value '********'"
                     $currentConfigurationMatchesRequestedConfiguration = $false
                 } else {
@@ -1421,9 +1425,15 @@ function Test-TargetResource {
     }
 }
 
-function Test-PSCredential($currentValue, $requestedValue) {
+function Test-PSCredentialIsNullOrEmpty {
+    param ([PSCredential]$cred)
 
-    if (($null -ne $currentValue) -and ($currentValue -ne [PSCredential]::Empty)) {
+    return $cred -eq [PSCredential]::Empty -or $cred -eq $null
+}
+
+function Test-PSCredentialChanged ($currentValue, $requestedValue) {
+
+    if (-not (Test-PSCredentialIsNullOrEmpty $currentValue)) {
         $currentUsername = $currentValue.GetNetworkCredential().UserName
         $currentPassword = $currentValue.GetNetworkCredential().Password
     }
@@ -1432,7 +1442,7 @@ function Test-PSCredential($currentValue, $requestedValue) {
         $currentPassword = ""
     }
 
-    if (($null -ne $requestedValue) -and ($requestedValue -ne [PSCredential]::Empty)) {
+    if (-not (Test-PSCredentialIsNullOrEmpty $requestedValue)) {
         $requestedUsername = $requestedValue.GetNetworkCredential().UserName
         $requestedPassword = $requestedValue.GetNetworkCredential().Password
     }
@@ -1442,9 +1452,9 @@ function Test-PSCredential($currentValue, $requestedValue) {
     }
 
     if ($currentPassword -ne $requestedPassword -or $currentUsername -ne $requestedUsername) {
-        return $false
+        return $true
     }
-    return $true
+    return $false
 }
 
 function Test-ParameterSet {
@@ -1455,7 +1465,8 @@ function Test-ParameterSet {
         [string]$DownloadUrl,
         [string]$WebListenPrefix,
         [string]$SqlDbConnectionString,
-        [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty
+        [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty,
+        [PSCredential]$OctopusMasterKey = [PSCredential]::Empty
     )
 
     if ([string]::IsNullOrEmpty($Ensure)) {
@@ -1494,8 +1505,8 @@ function Test-ParameterSet {
                 throw "Parameter 'SqlDbConnectionString' must be supplied when 'Ensure' is 'Present'."
             }
 
-            if (($null -eq $OctopusAdminCredential) -or ($OctopusAdminCredential -eq [PSCredential]::Empty)) {
-                throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present'."
+            if ((Test-PSCredentialIsNullOrEmpty $OctopusAdminCredential) -and (Test-PSCredentialIsNullOrEmpty $OctopusMasterKey)) {
+                throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
             }
         }
     } elseif ($Ensure -eq "Absent") {
