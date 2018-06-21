@@ -69,12 +69,12 @@ Describe "Request-File" {
 
 Describe "Invoke-OctopusServerCommand" {
     Context "It should not leak password or masterkey" {
-        $OctopusServerExePath = "echo" 
+        $OctopusServerExePath = "echo"
         Write-Output "Mocked OctopusServerExePath as $OctopusServerExePath"
-        Mock Write-Verbose { } -verifiable 
+        Mock Write-Verbose { } -verifiable
         Function Write-CommandOutput {}
 
-        $dbargs = @("database", 
+        $dbargs = @("database",
             "--instance", "OctopusServer",
             "--connectionstring", "Data Source=mydbserver;Initial Catalog=Octopus;Integrated Security=SSPI;Max Pool Size=200",
             "--masterKey", "ABCD123456ASDBD")
@@ -106,13 +106,13 @@ Describe "Invoke-OctopusServerCommand" {
         It "Tries to mask the Connectionstring password" {
             Invoke-OctopusServerCommand $pwargs
             Assert-MockCalled Write-Verbose -parameterfilter { $Message -eq "Masking output" }
-            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"}  -times 1 
+            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"}  -times 1
         }
 
         It "Tries to mask the licencebase64" {
             Invoke-OctopusServerCommand $lcargs
             Assert-MockCalled Write-Verbose -parameterfilter { $Message -eq "Masking output" }
-            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"}  -times 1 
+            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"}  -times 1
         }
 
         It "Should successfully mask the SQL password" {
