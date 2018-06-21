@@ -704,7 +704,6 @@ function Set-OctopusDeployConfiguration {
 
             Update-InstallState "OctopusAdminUsername" $OctopusAdminCredential.UserName
             Update-InstallState "OctopusAdminPassword" ($OctopusAdminCredential.Password | ConvertFrom-SecureString)
-            
             Invoke-OctopusServerCommand $args
         }
     }
@@ -1429,7 +1428,6 @@ function Test-PSCredentialIsNullOrEmpty {
     param (
         [PSCredential]$cred
     )
-    
     return $cred -eq [PSCredential]::Empty -or $cred -eq $null
 }
 
