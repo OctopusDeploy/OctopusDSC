@@ -51,7 +51,6 @@ function Get-TargetResource {
     )
 
     try {
-
         Test-ParameterSet -Ensure $Ensure `
                           -Name $Name `
                           -State $State `
@@ -1327,7 +1326,7 @@ function Test-TargetResource {
         [string]$DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer",
         [string]$WebListenPrefix,
         [string]$SqlDbConnectionString,
-        [PSCredential]$OctopusAdminCredential,
+        [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty,
         [bool]$AllowUpgradeCheck = $true,
         [bool]$AllowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
@@ -1387,7 +1386,8 @@ function Test-TargetResource {
                 -ArtifactsDirectory $ArtifactsDirectory `
                 -TaskLogsDirectory $TaskLogsDirectory `
                 -LogTaskMetrics $LogTaskMetrics `
-                -LogRequestMetrics $LogRequestMetrics)
+                -LogRequestMetrics $LogRequestMetrics `
+                -OctopusMasterKey $OctopusMasterKey)
 
         $paramsWhereNullMeansIgnore = @('AutoLoginEnabled')
 
@@ -1426,8 +1426,10 @@ function Test-TargetResource {
 }
 
 function Test-PSCredentialIsNullOrEmpty {
-    param ([PSCredential]$cred)
-
+    param (
+        [PSCredential]$cred
+    )
+    
     return $cred -eq [PSCredential]::Empty -or $cred -eq $null
 }
 
@@ -1465,8 +1467,8 @@ function Test-ParameterSet {
         [string]$DownloadUrl,
         [string]$WebListenPrefix,
         [string]$SqlDbConnectionString,
-        [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty,
-        [PSCredential]$OctopusMasterKey = [PSCredential]::Empty
+        [PSCredential]$OctopusAdminCredential,
+        [PSCredential]$OctopusMasterKey
     )
 
     if ([string]::IsNullOrEmpty($Ensure)) {
@@ -1525,6 +1527,5 @@ function Test-ParameterSet {
         if ([string]::IsNullOrEmpty($Name)) {
             throw "Parameter 'Name' must be supplied when 'Ensure' is 'Absent'."
         }
-
     }
 }
