@@ -137,7 +137,7 @@ try
                     }
                     It "Should throw if 'DownloadUrl' not supplied" {
                         { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" } | Should throw "Parameter 'DownloadUrl' must be supplied when 'Ensure' is 'Present'."
-                    }	
+                    }
                     It "Should throw if 'WebListenPrefix' not supplied" {
                         { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" } | Should throw "Parameter 'WebListenPrefix' must be supplied when 'Ensure' is 'Present'."
                     }

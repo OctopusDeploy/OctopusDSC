@@ -10,7 +10,6 @@ function Resolve-Error
     param (
         $ErrorRecord=$Error[0]
     )
-    
     $separator = "*********************************************************"
     write-verbose ("`r`n{0}`r`nUnhandled exception: $ErrorRecord`r`n{0}`r`n$($ErrorRecord.ScriptStackTrace)`r`n{0}`r`n" -f $separator)
 }
@@ -468,7 +467,7 @@ function Set-TargetResource {
                 -artifactsDirectory $ArtifactsDirectory `
                 -taskLogsDirectory $TaskLogsDirectory `
                 -logTaskMetrics $LogTaskMetrics `
-                -logRequestMetrics $LogRequestMetrics 
+                -logRequestMetrics $LogRequestMetrics
         } else {
             #have they asked for a new msi?
             if ($installAndConfigureRequested -and $currentResource["DownloadUrl"] -ne $DownloadUrl) {
@@ -547,7 +546,7 @@ function Set-OctopusDeployConfiguration {
         [Parameter(Mandatory = $True)]
         [string]$webListenPrefix,
         [Parameter(Mandatory)]
-        [bool]$allowUpgradeCheck = $true,
+        [bool]$allowUpgradeCheck,
         [bool]$allowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$legacyWebAuthenticationMode = 'Ignore',
@@ -705,7 +704,6 @@ function Set-OctopusDeployConfiguration {
 
             Update-InstallState "OctopusAdminUsername" $OctopusAdminCredential.UserName
             Update-InstallState "OctopusAdminPassword" ($OctopusAdminCredential.Password | ConvertFrom-SecureString)
-            
             Invoke-OctopusServerCommand $args
         }
     }
@@ -1037,7 +1035,7 @@ function Install-OctopusDeploy {
         [PSCredential]$OctopusMasterKey,
         [string]$licenseKey = $null,
         [bool]$grantDatabasePermissions = $true,
-        [PSCredential]$OctopusBuiltInWorkerCredential, 
+        [PSCredential]$OctopusBuiltInWorkerCredential,
         [string]$taskLogsDirectory = $null,
         [string]$packagesDirectory = $null,
         [string]$artifactsDirectory = $null,
