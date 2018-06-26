@@ -10,7 +10,7 @@ function Resolve-Error
     param (
         $ErrorRecord=$Error[0]
     )
-    
+
     $separator = "*********************************************************"
     write-verbose ("`r`n{0}`r`nUnhandled exception: $ErrorRecord`r`n{0}`r`n$($ErrorRecord.ScriptStackTrace)`r`n{0}`r`n" -f $separator)
 }
@@ -51,7 +51,6 @@ function Get-TargetResource {
     )
 
     try {
-
         Test-ParameterSet -Ensure $Ensure `
                           -Name $Name `
                           -State $State `
@@ -468,7 +467,7 @@ function Set-TargetResource {
                 -artifactsDirectory $ArtifactsDirectory `
                 -taskLogsDirectory $TaskLogsDirectory `
                 -logTaskMetrics $LogTaskMetrics `
-                -logRequestMetrics $LogRequestMetrics 
+                -logRequestMetrics $LogRequestMetrics
         } else {
             #have they asked for a new msi?
             if ($installAndConfigureRequested -and $currentResource["DownloadUrl"] -ne $DownloadUrl) {
@@ -547,7 +546,7 @@ function Set-OctopusDeployConfiguration {
         [Parameter(Mandatory = $True)]
         [string]$webListenPrefix,
         [Parameter(Mandatory)]
-        [bool]$allowUpgradeCheck = $true,
+        [bool]$allowUpgradeCheck,
         [bool]$allowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$legacyWebAuthenticationMode = 'Ignore',
@@ -705,7 +704,6 @@ function Set-OctopusDeployConfiguration {
 
             Update-InstallState "OctopusAdminUsername" $OctopusAdminCredential.UserName
             Update-InstallState "OctopusAdminPassword" ($OctopusAdminCredential.Password | ConvertFrom-SecureString)
-            
             Invoke-OctopusServerCommand $args
         }
     }
@@ -1037,7 +1035,7 @@ function Install-OctopusDeploy {
         [PSCredential]$OctopusMasterKey,
         [string]$licenseKey = $null,
         [bool]$grantDatabasePermissions = $true,
-        [PSCredential]$OctopusBuiltInWorkerCredential, 
+        [PSCredential]$OctopusBuiltInWorkerCredential,
         [string]$taskLogsDirectory = $null,
         [string]$packagesDirectory = $null,
         [string]$artifactsDirectory = $null,
@@ -1327,7 +1325,7 @@ function Test-TargetResource {
         [string]$DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer",
         [string]$WebListenPrefix,
         [string]$SqlDbConnectionString,
-        [PSCredential]$OctopusAdminCredential,
+        [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty,
         [bool]$AllowUpgradeCheck = $true,
         [bool]$AllowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
@@ -1387,7 +1385,8 @@ function Test-TargetResource {
                 -ArtifactsDirectory $ArtifactsDirectory `
                 -TaskLogsDirectory $TaskLogsDirectory `
                 -LogTaskMetrics $LogTaskMetrics `
-                -LogRequestMetrics $LogRequestMetrics)
+                -LogRequestMetrics $LogRequestMetrics `
+                -OctopusMasterKey $OctopusMasterKey)
 
         $paramsWhereNullMeansIgnore = @('AutoLoginEnabled')
 
@@ -1426,8 +1425,9 @@ function Test-TargetResource {
 }
 
 function Test-PSCredentialIsNullOrEmpty {
-    param ([PSCredential]$cred)
-
+    param (
+        [PSCredential]$cred
+    )
     return $cred -eq [PSCredential]::Empty -or $cred -eq $null
 }
 
@@ -1465,8 +1465,8 @@ function Test-ParameterSet {
         [string]$DownloadUrl,
         [string]$WebListenPrefix,
         [string]$SqlDbConnectionString,
-        [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty,
-        [PSCredential]$OctopusMasterKey = [PSCredential]::Empty
+        [PSCredential]$OctopusAdminCredential,
+        [PSCredential]$OctopusMasterKey
     )
 
     if ([string]::IsNullOrEmpty($Ensure)) {
@@ -1490,6 +1490,12 @@ function Test-ParameterSet {
     if ($Ensure -eq "Present") {
         if ([string]::IsNullOrEmpty($DownloadUrl)) {
             throw "Parameter 'DownloadUrl' must be supplied when 'Ensure' is 'Present'."
+        }
+
+        if ($State -eq "Installed") {
+            if ((Test-PSCredentialIsNullOrEmpty $OctopusAdminCredential) -and (Test-PSCredentialIsNullOrEmpty $OctopusMasterKey)) {
+                throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+            }
         }
 
         if ($State -ne "Installed") {
@@ -1525,6 +1531,5 @@ function Test-ParameterSet {
         if ([string]::IsNullOrEmpty($Name)) {
             throw "Parameter 'Name' must be supplied when 'Ensure' is 'Absent'."
         }
-
     }
 }

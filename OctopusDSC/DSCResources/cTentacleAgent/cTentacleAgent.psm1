@@ -2,7 +2,7 @@ $defaultTentacleDownloadUrl = "http://octopusdeploy.com/downloads/latest/Octopus
 $defaultTentacleDownloadUrl64 = "http://octopusdeploy.com/downloads/latest/OctopusTentacle64"
 
 # dot-source the helper file (cannot load as a module due to scope considerations)
-. (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1') 
+. (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1')
 
 function Get-TargetResource {
     [OutputType([Hashtable])]
