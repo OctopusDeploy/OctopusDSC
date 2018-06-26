@@ -223,10 +223,10 @@ try
                         { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4"} | Should not throw
                     }
                     It "Should throw if 'OctopusAdminCredential' and 'OctopusMasterKey' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah1" -WebListenPrefix "blah2" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $null } | Should throw "Either the 'OctopusAdminCredential' or 'OctopusMasterKey' parameter must be supplied when 'Ensure' is 'Present' and 'State' equals 'Installed."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah1" -WebListenPrefix "blah2" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $null } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
                     }
                     It "Should throw if 'OctopusAdminCredential' and 'OctopusMasterKey' is '[PSCredential]::Empty'" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah1" -WebListenPrefix "blah2" -SqlDbConnectionString "blah4" } | Should throw "Either the 'OctopusAdminCredential' or 'OctopusMasterKey' parameter must be supplied when 'Ensure' is 'Present' and 'State' equals 'Installed."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah1" -WebListenPrefix "blah2" -SqlDbConnectionString "blah4" } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
                     }
                     It "Should not throw if all params are supplied" {
                         $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
