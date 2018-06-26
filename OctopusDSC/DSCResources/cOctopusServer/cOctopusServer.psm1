@@ -1492,6 +1492,12 @@ function Test-ParameterSet {
             throw "Parameter 'DownloadUrl' must be supplied when 'Ensure' is 'Present'."
         }
 
+        if ($State -eq "Installed") {
+            if ((Test-PSCredentialIsNullOrEmpty $OctopusAdminCredential) -and (Test-PSCredentialIsNullOrEmpty $OctopusMasterKey)) {
+                throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+            }
+        }
+
         if ($State -ne "Installed") {
             if ([string]::IsNullOrEmpty($Name)) {
                 throw "Parameter 'Name' must be supplied when 'Ensure' is 'Present'."
