@@ -216,6 +216,18 @@ try
                     It "Should not throw if 'OctopusAdminCredential' is '[PSCredential]::Empty'" {
                         { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4"} | Should not throw
                     }
+                    It "Should not throw if 'OctopusMasterKey' not supplied" {
+                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusMasterKey $null} | Should not throw
+                    }
+                    It "Should not throw if 'OctopusMasterKey' is '[PSCredential]::Empty'" {
+                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4"} | Should not throw
+                    }
+                    It "Should throw if 'OctopusAdminCredential' and 'OctopusMasterKey' not supplied" {
+                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah1" -WebListenPrefix "blah2" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $null } | Should throw
+                    }
+                    It "Should throw if 'OctopusAdminCredential' and 'OctopusMasterKey' is '[PSCredential]::Empty'" {
+                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah1" -WebListenPrefix "blah2" -SqlDbConnectionString "blah4" } | Should throw
+                    }
                     It "Should not throw if all params are supplied" {
                         $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
                         { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds} | Should not throw
