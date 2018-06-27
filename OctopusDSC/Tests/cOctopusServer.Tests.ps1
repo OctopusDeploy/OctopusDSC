@@ -19,7 +19,7 @@ try
         if ($null -eq $getServiceCommand) {
             function Get-Service {}
         }
-
+        
         Describe 'cOctopusServer' {
             [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
             $mockConfig = [pscustomobject] @{
@@ -386,7 +386,10 @@ try
                     Mock Update-InstallState {}
                     Mock Test-OctopusDeployServerResponding { return $true }
                     Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
-                    Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+                    Mock ConvertFrom-SecureString { return "" } # mock this, as it's not available on mac/linux
+                    Mock Get-NLogConfig {} # mock this, as it's not available on mac/linux
+                    Mock Set-NLogConfig {} # mock this, as it's not available on mac/linux
+                    Mock Save-NLogConfig {} # mock this, as it's not available on mac/linux
 
                     $params = Get-RequestedConfiguration "NewInstance"
                     Set-TargetResource @params

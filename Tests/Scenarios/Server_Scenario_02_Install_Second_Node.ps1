@@ -44,6 +44,8 @@ Configuration Server_Scenario_02_Install_Second_Node
 
             HomeDirectory = "C:\ChezOctopusSecondNode"
 
+            ServerLogsDirectory = "C:\ChezOctopus\Logs"
+
             ArtifactsDirectory = "C:\ChezOctopus\Artifacts"
             PackagesDirectory = "C:\ChezOctopus\Packages"
             TaskLogsDirectory = "C:\ChezOctopus\TaskLogs"

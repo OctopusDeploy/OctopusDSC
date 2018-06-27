@@ -8,16 +8,20 @@ describe file('c:/ChezOctopusSecondNode') do
   it { should be_directory }
 end
 
+describe file('c:/ChezOctopus/Logs') do
+  it { should be_directory }
+end
+
+describe file('c:/ChezOctopusSecondNode/Logs') do
+  it { should_not be_directory }
+end
+
 describe file('c:/ChezOctopus/Artifacts') do
   it { should be_directory }
 end
 
 describe file('c:/ChezOctopusSecondNode/Artifacts') do
   it { should_not be_directory } # they should be pointed at c:/ChezOctopus/ 
-end
-
-describe file('c:/ChezOctopusSecondNode/Logs') do # node logs go in the local instance folder
-  it { should be_directory }
 end
 
 describe file('c:/ChezOctopus/TaskLogs') do

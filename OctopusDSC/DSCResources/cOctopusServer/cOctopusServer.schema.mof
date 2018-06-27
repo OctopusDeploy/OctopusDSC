@@ -18,6 +18,7 @@ class cOctopusServer : OMI_BaseResource
   [Write] boolean AutoLoginEnabled;
   [Write, EmbeddedInstance ("MSFT_Credential")] string OctopusServiceCredential;
   [Write] string HomeDirectory;
+  [Write] string ServerLogsDirectory;
   [Write, EmbeddedInstance ("MSFT_Credential")] string OctopusMasterKey;
   [Write] string LicenseKey;
   [Write] boolean GrantDatabasePermissions;

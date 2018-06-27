@@ -54,6 +54,7 @@ Configuration SampleConfig
             LegacyWebAuthenticationMode = "UsernamePassword"
 
             HomeDirectory = "C:\Octopus"
+            ServerLogsDirectory = "E:\Octopus\Logs" # defaults to "$HomeDirectory\Logs"
             TaskLogsDirectory = "E:\OctopusTaskLogs" # defaults to "$HomeDirectory\TaskLogs"
             PackagesDirectory = "E:\OctopusPackages" # defaults to "$HomeDirectory\Packages"
             ArtifactsDirectory = "E:\OctopusArtifacts" # defaults to "$HomeDirectory\Artifacts"
@@ -114,6 +115,7 @@ When `State` is `Started`, the resource will ensure that the Octopus Servr windo
 | `AutoLoginEnabled`                    | `boolean`                                           |                                                                 | If an authentication provider is enabled that supports pass through authentication (eg Active Directory), allow the user to automatically sign in. Only supported from Octopus 3.5. |
 | `OctopusServiceCredential`            | `PSCredential`                                      | `[PSCredential]::Empty`                                         | Credentials of the account used to run the Octopus Service |
 | `HomeDirectory`                       | `string`                                            | `C:\Octopus`                                                    | Home directory for Octopus logs and config (where supported) |
+| `ServerLogsDirectory`                 | `string`                                            | `$HomeDirectory\Logs`                                           | Directory where server logs are stored. |
 | `PackagesDirectory`                   | `string`                                            | `$HomeDirectory\Packages`                                       | Directory where uploaded packages are stored. |
 | `ArtifactsDirectory`                  | `string`                                            | `$HomeDirectory\Artifacts`                                      | Directory where deployment artifacts are stored |
 | `TaskLogsDirectory`                   | `string`                                            | `$HomeDirectory\TaskLogs`                                       | Directory where deployment logs are stored |

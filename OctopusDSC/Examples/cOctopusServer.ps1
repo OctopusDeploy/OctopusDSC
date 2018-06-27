@@ -43,6 +43,7 @@ Configuration SampleConfig
             LegacyWebAuthenticationMode = "UsernamePassword"
 
             HomeDirectory = "C:\Octopus"
+            ServerLogsDirectory = "E:\Octopus\Logs" # defaults to "$HomeDirectory\Logs"
             TaskLogsDirectory = "E:\OctopusTaskLogs" # defaults to "$HomeDirectory\TaskLogs"
             PackagesDirectory = "E:\OctopusPackages" # defaults to "$HomeDirectory\Packages"
             ArtifactsDirectory = "E:\OctopusArtifacts" # defaults to "$HomeDirectory\Artifacts"
