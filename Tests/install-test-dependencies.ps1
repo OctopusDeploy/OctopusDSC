@@ -1,4 +1,6 @@
 
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12,[System.Net.SecurityProtocolType]::Tls11,[System.Net.SecurityProtocolType]::Tls
+
 if (-not (Test-Path "c:\ProgramData\Chocolatey")) {
   write-output "##teamcity[blockOpened name='Installing Chocolatey']"
 
