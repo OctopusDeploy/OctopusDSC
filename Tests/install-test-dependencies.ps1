@@ -144,6 +144,7 @@ write-output "##teamcity[blockOpened name='Installing gem bundle']"
 
 write-output "Installing msys2"
 & choco install msys2 --yes --no-progress
+if ($LASTEXITCODE -ne 0) { exit 1 }
 
 Set-Location c:\temp\tests
 write-output "installing gem bundle"
