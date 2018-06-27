@@ -1,0 +1,12 @@
+[ClassVersion("1.0.0.0"), FriendlyName("cOctopusLetsEncryptIntegration")]
+class cOctopusLetsEncryptIntegration : OMI_BaseResource
+{
+    [Key] String DnsName;
+    [Write, ValueMap{"Present","Absent"}, Values{"Present","Absent"}] String Ensure;
+    [Write, EmbeddedInstance("MSFT_Credential")] String ApiKey;
+    [Write] String IpAddress;
+    [Write] UInt32 HttpsPort;
+    [Write] String VirtualDirectory;
+    [Write] String RegistrationEmailAddress;
+    [Write] Boolean AcceptTos;
+};
