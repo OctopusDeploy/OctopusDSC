@@ -1507,6 +1507,12 @@ function Test-ParameterSet {
                 throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
             }
         }
+
+        if ($State -eq "Installed" -and ![string]::IsNullOrEmpty($SqlDbConnectionString)) {
+            if ((Test-PSCredentialIsNullOrEmpty $OctopusAdminCredential) -and (Test-PSCredentialIsNullOrEmpty $OctopusMasterKey)) {
+                throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+            }
+        }
     } elseif ($Ensure -eq "Absent") {
         if ($State -eq "Started") {
             throw "Invalid configuration requested. " + `
