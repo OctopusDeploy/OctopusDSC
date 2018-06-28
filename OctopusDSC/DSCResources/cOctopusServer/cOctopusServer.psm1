@@ -1385,7 +1385,8 @@ function Test-TargetResource {
                 -ArtifactsDirectory $ArtifactsDirectory `
                 -TaskLogsDirectory $TaskLogsDirectory `
                 -LogTaskMetrics $LogTaskMetrics `
-                -LogRequestMetrics $LogRequestMetrics)
+                -LogRequestMetrics $LogRequestMetrics `
+                -OctopusMasterKey $OctopusMasterKey)
 
         $paramsWhereNullMeansIgnore = @('AutoLoginEnabled')
 
@@ -1463,8 +1464,8 @@ function Test-ParameterSet {
         [string]$DownloadUrl,
         [string]$WebListenPrefix,
         [string]$SqlDbConnectionString,
-        [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty,
-        [PSCredential]$OctopusMasterKey = [PSCredential]::Empty
+        [PSCredential]$OctopusAdminCredential,
+        [PSCredential]$OctopusMasterKey
     )
 
     if ([string]::IsNullOrEmpty($Ensure)) {
