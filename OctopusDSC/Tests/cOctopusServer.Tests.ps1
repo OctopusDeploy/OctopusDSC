@@ -153,10 +153,15 @@ try
                         { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusMasterKey $creds} | Should not throw
                     }
                     It "Should throw if 'OctopusAdminCredential' not supplied and 'OctopusMasterKey' is not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $null} | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+                    }
+                    It "Should throw if 'OctopusAdminCredential' is null and 'OctopusMasterKey' is null" {
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $null } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
                     }
                     It "Should throw if 'OctopusAdminCredential' is '[PSCredential]::Empty' and 'OctopusMasterKey' is '[PSCredential]::Empty'" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4"} | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+                        $creds = [PSCredential]::Empty
+                        $masterKey = [PSCredential]::Empty
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds -OctopusMasterKey $masterKey } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
                     }
                     It "Should not throw if all params are supplied" {
                         $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
@@ -186,10 +191,15 @@ try
                         { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusMasterKey $creds} | Should not throw
                     }
                     It "Should throw if 'OctopusAdminCredential' not supplied and 'OctopusMasterKey' is not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $null} | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+                    }
+                    It "Should throw if 'OctopusAdminCredential' is null and 'OctopusMasterKey' is null" {
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $null } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
                     }
                     It "Should throw if 'OctopusAdminCredential' is '[PSCredential]::Empty' and 'OctopusMasterKey' is '[PSCredential]::Empty'" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $null} | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+                        $creds = [PSCredential]::Empty
+                        $masterKey = [PSCredential]::Empty
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds -OctopusMasterKey $masterKey } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
                     }
                     It "Should not throw if all params are supplied" {
                         $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
@@ -210,10 +220,10 @@ try
                     It "Should not throw if 'SqlDbConnectionString' not supplied" {
                         { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3"} | Should not throw
                     }
-                    It "Should not throw if 'OctopusAdminCredential' not supplied" {
+                    It "Should not throw if 'OctopusAdminCredential' not supplied and 'SqlDbConnectionString' not supplied" {
                         { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" -OctopusAdminCredential $null } | Should not throw
                     }
-                    It "Should not throw if 'OctopusAdminCredential' is '[PSCredential]::Empty'" {
+                    It "Should not throw if 'OctopusAdminCredential' is '[PSCredential]::Empty' and 'SqlDbConnectionString' not supplied" {
                         { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" } | Should not throw
                     }
                     It "Should not throw if all params are supplied" {
@@ -224,10 +234,15 @@ try
 
                 Context "Ensure = 'Present', 'State' = 'Installed', and 'SqlDbConnectionString' != 'null or empty'" {
                     It "Should throw if 'OctopusAdminCredential' not supplied and 'OctopusMasterKey' is not supplied" {
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+                    }
+                    It "Should throw if 'OctopusAdminCredential' is null and 'OctopusMasterKey' is null" {
                         { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $null } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
                     }
                     It "Should throw if 'OctopusAdminCredential' is '[PSCredential]::Empty' and 'OctopusMasterKey' is '[PSCredential]::Empty'" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+                        $creds = [PSCredential]::Empty
+                        $masterKey = [PSCredential]::Empty
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds -OctopusMasterKey $masterKey } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
                     }
                 }
 
