@@ -1385,7 +1385,8 @@ function Test-TargetResource {
                 -ArtifactsDirectory $ArtifactsDirectory `
                 -TaskLogsDirectory $TaskLogsDirectory `
                 -LogTaskMetrics $LogTaskMetrics `
-                -LogRequestMetrics $LogRequestMetrics)
+                -LogRequestMetrics $LogRequestMetrics `
+                -OctopusMasterKey $OctopusMasterKey)
 
         $paramsWhereNullMeansIgnore = @('AutoLoginEnabled')
 
@@ -1463,8 +1464,8 @@ function Test-ParameterSet {
         [string]$DownloadUrl,
         [string]$WebListenPrefix,
         [string]$SqlDbConnectionString,
-        [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty,
-        [PSCredential]$OctopusMasterKey = [PSCredential]::Empty
+        [PSCredential]$OctopusAdminCredential,
+        [PSCredential]$OctopusMasterKey
     )
 
     if ([string]::IsNullOrEmpty($Ensure)) {
@@ -1503,6 +1504,12 @@ function Test-ParameterSet {
                 throw "Parameter 'SqlDbConnectionString' must be supplied when 'Ensure' is 'Present'."
             }
 
+            if ((Test-PSCredentialIsNullOrEmpty $OctopusAdminCredential) -and (Test-PSCredentialIsNullOrEmpty $OctopusMasterKey)) {
+                throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+            }
+        }
+
+        if ($State -eq "Installed" -and ![string]::IsNullOrEmpty($SqlDbConnectionString)) {
             if ((Test-PSCredentialIsNullOrEmpty $OctopusAdminCredential) -and (Test-PSCredentialIsNullOrEmpty $OctopusMasterKey)) {
                 throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
             }
