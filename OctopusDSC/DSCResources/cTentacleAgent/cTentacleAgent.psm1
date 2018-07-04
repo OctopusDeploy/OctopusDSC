@@ -1,5 +1,5 @@
-$defaultTentacleDownloadUrl = "https://octopusdeploy.com/downloads/latest/OctopusTentacle"
-$defaultTentacleDownloadUrl64 = "https://octopusdeploy.com/downloads/latest/OctopusTentacle64"
+$defaultTentacleDownloadUrl = "https://octopus.com/downloads/latest/OctopusTentacle"
+$defaultTentacleDownloadUrl64 = "https://octopus.com/downloads/latest/OctopusTentacle64"
 
 # dot-source the helper file (cannot load as a module due to scope considerations)
 . (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1')
