@@ -1,6 +1,6 @@
 # OctopusDSC
 
-This repository contains a PowerShell module with DSC resources that can be used to install and configure an [Octopus Deploy](http://octopusdeploy.com) Server and Tentacle agent.
+This repository contains a PowerShell module with DSC resources that can be used to install and configure an [Octopus Deploy](http://octopus.com) Server and Tentacle agent.
 
 There are two main resources:
 
