@@ -60,7 +60,7 @@ try
         if (-not (Test-Path "C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet")) {
             New-Item -type Directory "C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet" | Out-Null
         }
-        Invoke-WebRequest -Uri "http://go.microsoft.com/fwlink/?LinkID=690216&clcid=0x409" -OutFile "C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet\NuGet.exe"
+        Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?LinkID=690216&clcid=0x409" -OutFile "C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet\NuGet.exe"
     }
 
     Write-Output "### Install-PackageProvider nuget -force"
