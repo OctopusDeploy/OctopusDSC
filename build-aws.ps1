@@ -14,7 +14,7 @@ if (-not (Test-AppExists "vagrant")) {
 Write-Output "Vagrant installed - good."
 
 if (-not (Test-AppExists "aws")) {
-  Write-Output "Please install aws-cli. See http://docs.aws.amazon.com/cli/latest/userguide/installing.html."
+  Write-Output "Please install aws-cli. See https://docs.aws.amazon.com/cli/latest/userguide/installing.html."
   exit 1
 }
 Write-Output "AWS CLI installed - good."

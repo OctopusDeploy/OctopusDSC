@@ -49,8 +49,8 @@ Configuration is handled by environment variables. The shell scripts will show a
 
 To run just the scenarios locally, follow these steps:
 
-1. Install Vagrant from [vagrantup.com](http://vagrantup.com)
-2. Install VirtualBox from [virtualbox.org](http://virtualbox.org) or Hyper-V (`Install-WindowsFeature –Name Hyper-V -IncludeManagementTools -Restart`  )
+1. Install Vagrant from [vagrantup.com](https://vagrantup.com)
+2. Install VirtualBox from [virtualbox.org](https://virtualbox.org) or Hyper-V (`Install-WindowsFeature –Name Hyper-V -IncludeManagementTools -Restart`  )
 3. _**If you are on a Mac or Linux**_ you need to install PowerShell, see https://github.com/PowerShell/PowerShell/blob/master/docs/installation/linux.md.
 4. If you want to test locally using virtualbox
     - Run `vagrant plugin install vagrant-dsc`
