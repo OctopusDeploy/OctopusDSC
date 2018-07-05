@@ -3,5 +3,7 @@ return @(
   "path --console --instance OctopusServer --nugetRepository C:\Octopus\Packages --artifacts C:\Octopus\Artifacts"
   "admin --console --instance OctopusServer --username Admin --password S3cur3P4ssphraseHere!",
   "license --console --instance OctopusServer --free",
-  "builtin-worker --instance OctopusServer --username runasuser --password S4cretPassword!"
+  "builtin-worker --instance OctopusServer --username runasuser --password S4cretPassword!",
+  "service --stop --console --instance OctopusServer",
+  "service --start --console --instance OctopusServer"
 )

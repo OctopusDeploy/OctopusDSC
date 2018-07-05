@@ -556,6 +556,28 @@ try
                     }
                     Assert-ExpectedResult "UpgradeExistingInstance"
                 }
+
+                Context "Change WebListenPrefix" {
+                    Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
+                    Mock Get-TargetResource { return Get-CurrentConfiguration "ChangeWebListenPrefix" }
+                    Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                    Mock Invoke-MsiExec {}
+                    Mock Get-LogDirectory {}
+                    Mock Request-File {}
+                    Mock Update-InstallState {}
+                    Mock Test-OctopusDeployServerResponding { return $true }
+                    Mock Test-OctopusVersionNewerThan { return $true }
+                    Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+
+                    $params = Get-RequestedConfiguration "ChangeWebListenPrefix"
+                    Set-TargetResource @params
+
+                    it "Should not download the MSI" {
+                        Assert-MockCalled Request-File -Times 0 -Exactly
+                        Assert-MockCalled Invoke-MsiExec -Times 0 -Exactly
+                    }
+                    Assert-ExpectedResult "ChangeWebListenPrefix"
+                }
             }
         }
     }
