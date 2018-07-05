@@ -776,12 +776,12 @@ function Test-ReconfigurationRequired($currentState, $desiredState) {
 
 function Test-ReconfigurationRequiresServiceRestart($currentState, $desiredState) {
     $reconfigurableProperties = @(
-        'ListenPort', 
-        'WebListenPrefix', 
-        'ForceSSL', 
-        'HomeDirectory', 
-        'SqlDbConnectionString', 
-        'OctopusBuiltInWorkerCredential', 
+        'ListenPort',
+        'WebListenPrefix',
+        'ForceSSL',
+        'HomeDirectory',
+        'SqlDbConnectionString',
+        'OctopusBuiltInWorkerCredential',
         'OctopusMasterKey'
         )
     foreach ($property in $reconfigurableProperties) {
