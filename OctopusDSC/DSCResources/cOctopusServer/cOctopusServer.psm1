@@ -503,6 +503,11 @@ function Set-TargetResource {
                     -taskLogsDirectory $TaskLogsDirectory `
                     -logTaskMetrics $LogTaskMetrics `
                     -logRequestMetrics $LogRequestMetrics
+                if ((Test-ReconfigurationRequiresServiceRestart $currentResource $params) -and $isCurrentlyStarted) {
+                    Stop-OctopusDeployService -name $Name
+                    $isCurrentlyStopped = $true
+                    $isCurrentlyStarted = $false
+                }
             }
         }
 
@@ -755,15 +760,39 @@ function Set-OctopusDeployConfiguration {
 }
 
 function Test-ReconfigurationRequired($currentState, $desiredState) {
-    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'HSTSEnabled', 'HSTSMaxAge', 'AllowCollectionOfUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'LicenseKey', 'OctopusServiceCredential', 'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled', 'OctopusBuiltInWorkerCredential', 'TaskLogsDirectory', 'PackagesDirectory', 'ArtifactsDirectory', 'LogTaskMetrics', 'LogRequestMetrics')
+    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'HSTSEnabled', 'HSTSMaxAge', 'AllowCollectionOfUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'LicenseKey', 'OctopusServiceCredential', 'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled', 'OctopusBuiltInWorkerCredential', 'TaskLogsDirectory', 'PackagesDirectory', 'ArtifactsDirectory', 'LogTaskMetrics', 'LogRequestMetrics', 'OctopusMasterKey')
     foreach ($property in $reconfigurableProperties) {
-        write-verbose "Checking property '$property'"
         if ($currentState.Item($property) -is [PSCredential]) {
             if (Test-PSCredentialChanged $currentState.Item($property) $desiredState.Item($property)) {
                 return $true
             }
         }
         elseif ($currentState.Item($property) -ne ($desiredState.Item($property))) {
+            return $true
+        }
+    }
+    return $false
+}
+
+function Test-ReconfigurationRequiresServiceRestart($currentState, $desiredState) {
+    $reconfigurableProperties = @(
+        'ListenPort',
+        'WebListenPrefix',
+        'ForceSSL',
+        'HomeDirectory',
+        'SqlDbConnectionString',
+        'OctopusBuiltInWorkerCredential',
+        'OctopusMasterKey'
+        )
+    foreach ($property in $reconfigurableProperties) {
+        if ($currentState.Item($property) -is [PSCredential]) {
+            if (Test-PSCredentialChanged $currentState.Item($property) $desiredState.Item($property)) {
+                write-verbose "Triggering service restart as property '$property' has changed"
+                return $true
+            }
+        }
+        elseif ($currentState.Item($property) -ne ($desiredState.Item($property))) {
+            write-verbose "Triggering service restart as property '$property' has changed"
             return $true
         }
     }
