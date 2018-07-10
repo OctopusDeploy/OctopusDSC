@@ -51,6 +51,8 @@ Configuration SampleConfig
 
             # the user account to use for run-on-server tasks (optional)
             OctopusBuiltInWorkerCredential = $runOnServerCred
+
+            TaskCap = 10
         }
     }
 }

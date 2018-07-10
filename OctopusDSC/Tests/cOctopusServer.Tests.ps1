@@ -144,6 +144,14 @@ try
                     It "Should throw if 'SqlDbConnectionString' not supplied" {
                         { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3"} | Should throw "Parameter 'SqlDbConnectionString' must be supplied when 'Ensure' is 'Present'."
                     }
+                    It "Should throw if 'TaskCap' is less than 1" {
+                        $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
+                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds -TaskCap -1} | Should throw "Parameter 'TaskCap' must be greater than 0 when 'Ensure' is 'Present'."
+                    }
+                    It "Should throw if 'TaskCap' is greater than 50" {
+                        $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
+                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds -TaskCap 51} | Should throw "Parameter 'TaskCap' must be less than 50 when 'Ensure' is 'Present'."
+                    }
                     It "Should not throw if 'OctopusAdminCredential' not supplied but 'OctopusMasterKey' is supplied" {
                         $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
                         { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $creds} | Should not throw

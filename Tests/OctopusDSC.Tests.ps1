@@ -3,7 +3,6 @@ Describe "PSScriptAnalyzer" {
     $excludedRules = @(
         'PSUseShouldProcessForStateChangingFunctions'
     )
-    $excludedRules | % { Write-Warning "Excluding Rule $_" }
 
     $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/DSCResources"
     Write-Output "Running PsScriptAnalyzer against $path"

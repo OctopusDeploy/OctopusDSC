@@ -46,7 +46,8 @@ function Get-TargetResource {
         [string]$ArtifactsDirectory = "$HomeDirectory\Artifacts",
         [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs",
         [bool]$LogTaskMetrics = $false,
-        [bool]$LogRequestMetrics = $false
+        [bool]$LogRequestMetrics = $false,
+        [int]$TaskCap = $null
     )
 
     try {
@@ -58,7 +59,8 @@ function Get-TargetResource {
                           -WebListenPrefix $WebListenPrefix `
                           -SqlDbConnectionString $SqlDbConnectionString `
                           -OctopusAdminCredential $OctopusAdminCredential `
-                          -OctopusMasterKey $OctopusMasterKey
+                          -OctopusMasterKey $OctopusMasterKey `
+                          -TaskCap $TaskCap
 
         $script:instancecontext = $Name
 
@@ -108,6 +110,7 @@ function Get-TargetResource {
         $existingTaskLogsDirectory = $null
         $existingLogTaskMetrics = $null
         $existingLogRequestMetrics = $null
+        $existingTaskCap = $null
 
         if ($existingEnsure -eq "Present") {
 
@@ -144,6 +147,7 @@ function Get-TargetResource {
                 $existingArtifactsDirectory = $existingConfig.OctopusFoldersArtifactsDirectory
                 $existingLogTaskMetrics = $existingConfig.OctopusTasksRecordTaskMetrics
                 $existingLogRequestMetrics = $existingConfig.OctopusWebPortalRequestMetricLoggingEnabled
+                $existingTaskCap = $existingConfig.OctopusNodeTaskCap
 
                 #note: this can get out of sync with reality. Ideally we'd read from `show-configuration`,
                 #      but the catch is there can be multple admins. We'd probably need to add support for
@@ -200,6 +204,7 @@ function Get-TargetResource {
             TaskLogsDirectory                         = $existingTaskLogsDirectory;
             LogTaskMetrics                            = $existingLogTaskMetrics;
             LogRequestMetrics                         = $existingLogRequestMetrics;
+            TaskCap                                   = $existingTaskCap
         }
 
         return $currentResource
@@ -259,6 +264,7 @@ function Import-ServerConfig {
             OctopusFoldersPackagesDirectory                = $config.Octopus.Folders.PackagesDirectory
             OctopusTasksRecordTaskMetrics                  = [System.Convert]::ToBoolean($config.Octopus.Tasks.RecordTaskMetrics)
             OctopusWebPortalRequestMetricLoggingEnabled    = [System.Convert]::ToBoolean($config.Octopus.WebPortal.RequestMetricLoggingEnabled)
+            OctopusNodeTaskCap                             = $config.Octopus.Node.TaskCap
         }
     }
     else {
@@ -320,6 +326,10 @@ function Test-OctopusVersionSupportsTaskMetricsLogging {
     return Test-OctopusVersionNewerThan (New-Object System.Version 2018, 2, 7)
 }
 
+function Test-OctopusVersionSupportsTaskCap {
+    return Test-OctopusVersionNewerThan (New-Object System.Version 2018, 6, 13)
+}
+
 function Test-OctopusVersionNewerThan($targetVersion) {
     if (-not (Test-Path -LiteralPath $octopusServerExePath)) {
         throw "Octopus.Server.exe path '$octopusServerExePath' does not exist."
@@ -369,7 +379,8 @@ function Set-TargetResource {
         [string]$ArtifactsDirectory = "$HomeDirectory\Artifacts",
         [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs",
         [bool]$LogTaskMetrics = $false,
-        [bool]$LogRequestMetrics = $false
+        [bool]$LogRequestMetrics = $false,
+        [int]$TaskCap = $null
     )
 
     try {
@@ -380,7 +391,8 @@ function Set-TargetResource {
                           -WebListenPrefix $WebListenPrefix `
                           -SqlDbConnectionString $SqlDbConnectionString `
                           -OctopusAdminCredential $OctopusAdminCredential `
-                          -OctopusMasterKey $OctopusMasterKey
+                          -OctopusMasterKey $OctopusMasterKey `
+                          -TaskCap $TaskCap
 
         # update the global
         $script:instancecontext = $Name
@@ -410,7 +422,8 @@ function Set-TargetResource {
                 -ArtifactsDirectory $ArtifactsDirectory `
                 -TaskLogsDirectory $TaskLogsDirectory `
                 -LogTaskMetrics $LogTaskMetrics `
-                -LogRequestMetrics $LogRequestMetrics)
+                -LogRequestMetrics $LogRequestMetrics `
+                -TaskCap $TaskCap)
 
         $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
         Test-RequestedConfiguration $currentResource $params
@@ -467,7 +480,8 @@ function Set-TargetResource {
                 -artifactsDirectory $ArtifactsDirectory `
                 -taskLogsDirectory $TaskLogsDirectory `
                 -logTaskMetrics $LogTaskMetrics `
-                -logRequestMetrics $LogRequestMetrics
+                -logRequestMetrics $LogRequestMetrics `
+                -taskCap $TaskCap
         } else {
             #have they asked for a new msi?
             if ($installAndConfigureRequested -and $currentResource["DownloadUrl"] -ne $DownloadUrl) {
@@ -502,7 +516,8 @@ function Set-TargetResource {
                     -artifactsDirectory $ArtifactsDirectory `
                     -taskLogsDirectory $TaskLogsDirectory `
                     -logTaskMetrics $LogTaskMetrics `
-                    -logRequestMetrics $LogRequestMetrics
+                    -logRequestMetrics $LogRequestMetrics `
+                    -taskCap $TaskCap
                 if ((Test-ReconfigurationRequiresServiceRestart $currentResource $params) -and $isCurrentlyStarted) {
                     Stop-OctopusDeployService -name $Name
                     $isCurrentlyStopped = $true
@@ -570,7 +585,8 @@ function Set-OctopusDeployConfiguration {
         [string]$artifactsDirectory = $null,
         [string]$taskLogsDirectory = $null,
         [bool]$logTaskMetrics = $false,
-        [bool]$logRequestMetrics = $false
+        [bool]$logRequestMetrics = $false,
+        [int]$TaskCap
     )
 
     Write-Log "Configuring Octopus Deploy instance ..."
@@ -663,6 +679,16 @@ function Set-OctopusDeployConfiguration {
         if (($null -ne $logRequestMetrics) -and ($currentState['LogRequestMetrics'] -ne $logRequestMetrics)) {
             $args += @('--webapi', $logRequestMetrics)
         }
+        Invoke-OctopusServerCommand $args
+    }
+
+    if ((Test-OctopusVersionSupportsTaskCap) -and ($taskCap -ne 0) -and ($currentState['TaskCap'] -ne $taskCap)) {
+        $args = $(
+            'node',
+            '--console',
+            '--instance', $name,
+            '--taskCap', $taskCap
+        )
         Invoke-OctopusServerCommand $args
     }
 
@@ -867,7 +893,7 @@ function Update-OctopusDeploy($name, $downloadUrl, $state, $webListenPrefix, $cu
 
 function Start-OctopusDeployService($name, $webListenPrefix) {
     Write-Log "Checking Octopus Deploy service state:"
-    get-service $name  -ErrorAction SilentlyContinue | write-verbose
+    get-service (Get-ServiceName $name)  -ErrorAction SilentlyContinue | write-verbose
 
     Write-Log "Starting Octopus Deploy instance ..."
     $args = @(
@@ -910,7 +936,7 @@ function Test-OctopusDeployServerResponding($url) {
 
 function Stop-OctopusDeployService($name) {
     Write-Log "Checking Octopus Deploy service state:"
-    get-service $name  -ErrorAction SilentlyContinue | write-verbose
+    get-service (Get-ServiceName $name)  -ErrorAction SilentlyContinue | write-verbose
 
     Write-Log "Stopping Octopus Deploy instance ..."
     $args = @(
@@ -1069,7 +1095,8 @@ function Install-OctopusDeploy {
         [string]$packagesDirectory = $null,
         [string]$artifactsDirectory = $null,
         [bool]$logTaskMetrics = $false,
-        [bool]$logRequestMetrics = $false
+        [bool]$logRequestMetrics = $false,
+        [int]$taskCap
     )
 
     Write-Verbose "Installing Octopus Deploy..."
@@ -1297,6 +1324,16 @@ function Install-OctopusDeploy {
         Invoke-OctopusServerCommand $args
     }
 
+    if ((Test-OctopusVersionSupportsTaskCap) -and ($taskCap -ne 0)) {
+        $args = $(
+            'node',
+            '--console',
+            '--instance', $name,
+            '--taskCap', $taskCap
+        )
+        Invoke-OctopusServerCommand $args
+    }
+
     Write-Log "Install Octopus Deploy service ..."
     $args = @(
         'service',
@@ -1385,7 +1422,8 @@ function Test-TargetResource {
                           -WebListenPrefix $WebListenPrefix `
                           -SqlDbConnectionString $SqlDbConnectionString `
                           -OctopusAdminCredential $OctopusAdminCredential `
-                          -OctopusMasterKey $OctopusMasterKey
+                          -OctopusMasterKey $OctopusMasterKey `
+                          -TaskCap $TaskCap
 
         # make sure the global is up to date
         $script:instancecontext = $Name
@@ -1494,7 +1532,8 @@ function Test-ParameterSet {
         [string]$WebListenPrefix,
         [string]$SqlDbConnectionString,
         [PSCredential]$OctopusAdminCredential,
-        [PSCredential]$OctopusMasterKey
+        [PSCredential]$OctopusMasterKey,
+        [int]$TaskCap
     )
 
     if ([string]::IsNullOrEmpty($Ensure)) {
@@ -1535,6 +1574,14 @@ function Test-ParameterSet {
 
             if ((Test-PSCredentialIsNullOrEmpty $OctopusAdminCredential) -and (Test-PSCredentialIsNullOrEmpty $OctopusMasterKey)) {
                 throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+            }
+
+            #todo: DSC is converting null to 0 :facepalm:. I wonder if we can detect that somehow?
+            if ($TaskCap -ne $null -and $TaskCap -lt 0) {
+                throw "Parameter 'TaskCap' must be greater than 0 when 'Ensure' is 'Present'."
+            }
+            if ($TaskCap -ne $null -and $TaskCap -gt 50) {
+                throw "Parameter 'TaskCap' must be less than 50 when 'Ensure' is 'Present'."
             }
         }
 
