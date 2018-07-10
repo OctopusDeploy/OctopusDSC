@@ -1411,7 +1411,8 @@ function Test-TargetResource {
         [string]$ArtifactsDirectory = "$HomeDirectory\Artifacts",
         [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs",
         [bool]$LogTaskMetrics = $false,
-        [bool]$LogRequestMetrics = $false
+        [bool]$LogRequestMetrics = $false,
+        [int]$taskCap = $null
     )
 
     try {
