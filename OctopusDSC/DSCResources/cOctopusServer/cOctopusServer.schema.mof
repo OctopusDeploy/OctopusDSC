@@ -27,4 +27,5 @@ class cOctopusServer : OMI_BaseResource
   [Write] string TaskLogsDirectory;
   [Write] boolean LogTaskMetrics;
   [Write] boolean LogRequestMetrics;
+  [Write] uint64 TaskCap;
 };

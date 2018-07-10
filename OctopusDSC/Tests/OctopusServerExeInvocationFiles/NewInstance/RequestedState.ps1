@@ -17,4 +17,5 @@ return @{
     TaskLogsDirectory = "E:\TaskLogs";
     PackagesDirectory = "F:\Packages";
     ArtifactsDirectory = "G:\Artifacts";
+    TaskCap = 10;
 }
