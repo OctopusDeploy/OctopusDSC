@@ -69,6 +69,8 @@ Configuration Server_Scenario_07_Reinstall
                 $user = $repository.Users.GetCurrent()
                 $createApiKeyResult = $repository.Users.CreateApiKey($user, "Octopus DSC Testing")
 
+                write-verbose "setting OctopusApiKey to $($createApiKeyResult.ApiKey)"
+
                 #save it to enviornment variables for tests to use
                 [environment]::SetEnvironmentVariable("OctopusServerUrl", "http://localhost:81", "User")
                 [environment]::SetEnvironmentVariable("OctopusServerUrl", "http://localhost:81", "Machine")
