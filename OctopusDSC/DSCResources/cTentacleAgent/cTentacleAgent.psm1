@@ -36,6 +36,7 @@ function Get-TargetResource {
         [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
         [bool]$RegisterWithServer = $true,
         [string]$OctopusServerThumbprint,
+        [string[]]$TrustedServers = "",
         [PSCredential]$TentacleServiceCredential
     )
     Write-Verbose "Checking if Tentacle is installed"
@@ -175,6 +176,7 @@ function Set-TargetResource {
         [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
         [bool]$RegisterWithServer = $true,
         [string]$OctopusServerThumbprint,
+        [string[]]$TrustedServers = "",
         [PSCredential]$TentacleServiceCredential
     )
     Confirm-RequestedState $Ensure $State
@@ -259,6 +261,7 @@ function Set-TargetResource {
             -tentacleHomeDirectory $TentacleHomeDirectory `
             -registerWithServer $RegisterWithServer `
             -octopusServerThumbprint $OctopusServerThumbprint `
+            -trustedServers $TrustedServers `
             -TentacleServiceCredential $TentacleServiceCredential
 
         Write-Verbose "Tentacle installed!"
@@ -314,6 +317,7 @@ function Test-TargetResource {
         [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
         [bool]$RegisterWithServer = $true,
         [string]$OctopusServerThumbprint,
+        [string[]]$TrustedServers = "",
         [PSCredential]$TentacleServiceCredential
     )
 
@@ -446,6 +450,7 @@ function New-Tentacle {
         [bool]$registerWithServer = $true,
         [Parameter(Mandatory = $False)]
         [string]$octopusServerThumbprint,
+        [string[]]$TrustedServers = "",
         [PSCredential]$TentacleServiceCredential
     )
 
@@ -590,6 +595,41 @@ function New-Tentacle {
     else {
         Write-Verbose "Skipping registration with server as 'RegisterWithServer' is set to '$registerWithServer'"
     }
+
+    # Adds additional trusted servers for polling mode in HA setups
+    # This has to be done via config file directly as no command line interface exists
+
+    if ($TrustedServers -ne "" -and $communicationMode -eq "Poll") {
+      Write-Verbose "Setting trusted server list"
+     
+      # Open the config file directly and get the current servers in a PowerShell object
+      # At this point the server will be the one obtained by the OctopusServerUrl parameter
+    [xml]$tentacleConfig = Get-Content $tentacleConfigFile
+    $servers = ($tentacleConfig.'octopus-settings'.set | Where-Object { $_.key -eq "Tentacle.Communication.TrustedOctopusServers" }).'#text' | ConvertFrom-Json
+
+      # Get the variables from the current server to use in the new server properties
+      $communicationStyle = $Servers[0].CommunicationStyle
+      $subscriptionId = $Servers[0].SubscriptionId
+      $squid = $Servers[0].Squid
+
+      # Clear the server list
+      $servers.Clear()
+
+      # Add the new servers to the list
+      foreach ($server in $TrustedServers) {
+        Write-Verbose "Adding the server $server to the trusted list"
+        $Servers += (New-Object PSObject -Property @{"Address" = $server; "CommunicationStyle" = $communicationStyle; "Squid" = $squid; "SubscriptionId" = $subscriptionId; "Thumbprint" = $OctopusServerThumbprint})
+      }
+
+      # Convert the object back to JSON, then save the file and restart the service
+      ($tentacleConfig.'octopus-settings'.set | Where-Object { $_.key -eq "Tentacle.Communication.TrustedOctopusServers" }).'#text' = ($servers | ConvertTo-Json -Compress).ToString()
+      $serviceName = (Get-TentacleServiceName $Name)
+      Write-Verbose "Restarting $serviceName to update the configuration file"
+      Stop-Service -Name $serviceName -Force
+      $tentacleConfig.Save($tentacleConfigFile)
+      Start-Service -Name $serviceName
+    }
+
     Pop-Location
     Write-Verbose "Tentacle commands complete"
 }
