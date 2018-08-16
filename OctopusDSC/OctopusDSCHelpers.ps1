@@ -62,9 +62,18 @@ function Request-File {
             }
             catch {
                 Write-Verbose "Failed to download $url"
-                Write-Verbose "Got exception '$($_.Exception.InnerException.Message)'."
-                Write-Verbose "Retrying up to $maxRetries times."
-                if (($_.Exception.InnerException.Message -notlike "The request was aborted: Could not create SSL/TLS secure channel.") -or ($retryCount -gt $maxRetries)) {
+
+                $ex = $_.Exception
+                while($null -ne $ex)
+                {
+                    Write-Verbose "Got Exception '$($ex.Message)'."
+                    $ex = $ex.InnerException
+                }
+
+                Write-Verbose "Retrying up to $maxRetries times."                
+
+                if ($retryCount -gt $maxRetries) {
+                    # rethrow the inner exception if we've retried enough times
                     throw $_.Exception.InnerException
                 }
                 $retryCount = $retryCount + 1
