@@ -1126,21 +1126,6 @@ function Install-OctopusDeploy {
         }
     }
     Invoke-OctopusServerCommand $args
-    
-    Write-Log "Applying license to Octopus instance"
-    $args = @(
-        'license',
-        '--console',
-        '--instance', $name
-    )
-    if (($null -eq $licenseKey) -or ($licenseKey -eq "")) {
-        Write-Log "Configuring Octopus Deploy instance to use free license ..."
-        $args += @('--free')
-    } else {
-        Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
-        $args += @('--licenseBase64', $licenseKey)
-    }
-    Invoke-OctopusServerCommand $args
 
     Write-Log "Configuring Octopus Deploy instance ..."
 
@@ -1286,6 +1271,20 @@ function Install-OctopusDeploy {
         Update-InstallState "OctopusAdminUsername" $extractedUsername
         Update-InstallState "OctopusAdminPassword" ($OctopusAdminCredential.Password | ConvertFrom-SecureString)
     }
+
+    $args = @(
+        'license',
+        '--console',
+        '--instance', $name
+    )
+    if (($null -eq $licenseKey) -or ($licenseKey -eq "")) {
+        Write-Log "Configuring Octopus Deploy instance to use free license ..."
+        $args += @('--free')
+    } else {
+        Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
+        $args += @('--licenseBase64', $licenseKey)
+    }
+    Invoke-OctopusServerCommand $args
 
     if (($null -ne $packagesDirectory) -or ($null -ne $artifactsDirectory) -or ($null -ne $taskLogsDirectory)) {
         $args = $(

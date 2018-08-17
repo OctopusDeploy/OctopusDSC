@@ -70,9 +70,9 @@ function Request-File {
                     $ex = $ex.InnerException
                 }
 
-                Write-Verbose "Retry $($retryCount + 1) of $maxRetries times."                
+                Write-Verbose "Retrying up to $maxRetries times."                
 
-                if ($retryCount -ge $maxRetries) {
+                if ($retryCount -gt $maxRetries) {
                     # rethrow the inner exception if we've retried enough times
                     throw $_.Exception.InnerException
                 }
