@@ -97,6 +97,8 @@ When `State` is `Started`, the resource will ensure that the Octopus Servr windo
 
 ## Properties
 
+**Please note: property names are case sensitive**
+
 | Property                              | Type                                                | Default Value                                                   | Description |
 | ------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------| ------------|
 | `Ensure`                              | `string` - `Present` or `Absent`                    | `Present`                                                       | The desired state of the Octopus Server - effectively whether to install or uninstall. |
