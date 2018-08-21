@@ -61,6 +61,8 @@ When `State` is `Started`, the resource will ensure that the Tentacle windows se
 
 ## Properties
 
+**Please note: property names are case sensitive**
+
 | Property                      | Type                                                       | Default Value                                                 | Description |
 | ----------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------- | ------------|
 | `ApiKey`                      | `string`                                                   |                                                               | The [Api Key](https://octopus.com/docs/api-and-integration/api/how-to-create-an-api-key) to use to register the Tentacle with the Server. |
