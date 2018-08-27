@@ -30,8 +30,6 @@ Test-DscConfiguration
 
 ## Properties
 
-**Please note: property names are case sensitive**
-
 | Property            | Type         | Default Value    | Description |
 | --------------------| ------------ | -----------------| ------------|
 | `InstanceName`      | `string`     |                  | The name of the Octopus Server instance. Use `OctopusServer` by convention unless you have more than one instance. |
