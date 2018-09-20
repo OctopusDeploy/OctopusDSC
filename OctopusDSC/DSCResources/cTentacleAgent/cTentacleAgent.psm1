@@ -462,7 +462,7 @@ function New-Tentacle {
         $windowsFirewall = Get-Service -Name MpsSvc
         if ($windowsFirewall.Status -eq "Running") {
 			# Check to see if the firewall rule already exists
-			if ((Get-NetFirewallRule | Where-Object {$_.Name -eq "Octopus Tentacle: $Name" -and $_.Direction -eq 'Inbound'}) -eq $null)
+			if ((Get-NetFirewallRule | Where-Object {$_.DisplayName -eq "Octopus Tentacle: $Name" -and $_.Direction -eq 'Inbound'}) -eq $null)
 			{
 				Write-Verbose "Open port $port on Windows Firewall"
 				Invoke-AndAssert { & netsh.exe advfirewall firewall add rule protocol=TCP dir=in localport=$port action=allow name="Octopus Tentacle: $Name" }
