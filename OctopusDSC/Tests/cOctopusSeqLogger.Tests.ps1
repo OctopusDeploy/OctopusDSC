@@ -40,6 +40,23 @@ try
                     Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml")) }
 
                     $config = Get-TargetResourceInternal @desiredConfiguration
+                    $config.ConfigVersion                             | Should Be 2
+                    $config.InstanceType                              | Should Be 'OctopusServer'
+                    $config.Ensure                                    | Should Be 'Present'
+                    $config.SeqServer                                 | Should Be 'https://seq.example.com'
+                    $config.SeqApiKey.GetNetworkCredential().Password | Should Be '1a2b3c4d5e6f'
+                    $config.Properties['Application']                 | Should Be $desiredConfiguration.Properties['Application']
+                    $config.Properties['Server']                      | Should Be $desiredConfiguration.Properties['Server']
+                }
+
+                It 'Returns expected data for old sync config' {
+                    Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
+                    Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe.nlog" }
+                    Mock Test-NLogDll { return $true }
+                    Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-old-sync-configuration-with-api-key.xml")) }
+
+                    $config = Get-TargetResourceInternal @desiredConfiguration
+                    $config.ConfigVersion                             | Should Be 1
                     $config.InstanceType                              | Should Be 'OctopusServer'
                     $config.Ensure                                    | Should Be 'Present'
                     $config.SeqServer                                 | Should Be 'https://seq.example.com'
@@ -52,7 +69,7 @@ try
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe.nlog" }
                     Mock Test-NLogDll { return $true }
-                    Mock Get-NLogConfig { return  [xml] (Get-Content $sampleConfigPath\octopus.server.exe.nlog-when-not-configured.xml) }
+                    Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-when-not-configured.xml")) }
 
                     $config = Get-TargetResourceInternal @desiredConfiguration
                     $config.InstanceType     | Should Be 'OctopusServer'
@@ -66,7 +83,7 @@ try
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe.nlog" }
                     Mock Test-NLogDll { return $false }
-                    Mock Get-NLogConfig { return  [xml] (Get-Content $sampleConfigPath\octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml) }
+                    Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml")) }
 
                     $config = Get-TargetResourceInternal @desiredConfiguration
                     $config.InstanceType                              | Should Be 'OctopusServer'
@@ -81,7 +98,7 @@ try
                     Mock Test-Path { return $false } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $false } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe.nlog" }
                     Mock Test-NLogDll { return $true }
-                    Mock Get-NLogConfig { return  [xml] (Get-Content $sampleConfigPath\octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml) }
+                    Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml")) }
                     { Get-TargetResourceInternal @desiredConfiguration } | Should Throw "Unable to find Octopus (checked for existence of file '$octopusServerExePath')."
                 }
 
@@ -89,7 +106,7 @@ try
                     Mock Test-Path { return $false } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $false } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe.nlog" }
                     Mock Test-NLogDll { return $true }
-                    Mock Get-NLogConfig { return  [xml] (Get-Content $sampleConfigPath\octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml) }
+                    Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml")) }
                     $desiredConfiguration.Ensure = 'Absent'
                     { Get-TargetResourceInternal @desiredConfiguration } | Should Not Throw "Unable to find Octopus (checked for existence of file '$octopusServerExePath')."
                 }
@@ -273,6 +290,29 @@ try
                     Test-TargetResourceInternal @desiredConfiguration
                     Assert-MockCalled Get-TargetResourceInternal
                 }
+
+                It 'returns false when its got the old config' {
+                    $desiredPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                    $desiredApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $desiredPassword)
+
+                    $desiredConfiguration['InstanceType'] = 'OctopusServer'
+                    $desiredConfiguration['Ensure'] = 'Present'
+                    $desiredConfiguration['SeqServer'] = 'https://seq.example.com'
+                    $desiredConfiguration['SeqApiKey'] = $desiredApiKey
+                    $desiredConfiguration['Properties'] = @{ Application = "Octopus"; Server = "MyServer" }
+
+                    $actualPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                    $actualApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $actualPassword)
+
+                    $response['InstanceType'] = 'OctopusServer'
+                    $response['Ensure'] = 'Present'
+                    $response['SeqServer'] = 'https://seq.example.com'
+                    $response['SeqApiKey'] = $actualApiKey
+                    $response['Properties'] = @{ Application = "Octopus"; Server = "MyServer" }
+                    $response['ConfifVersion'] = 1
+
+                    Test-TargetResourceInternal @desiredConfiguration | Should Be $false
+                }
             }
 
             Context 'Set-TargetResource' {
@@ -280,7 +320,7 @@ try
                     $response = @{ InstanceType="OctopusServer"; Ensure='Present'; SeqServer = 'https://seq.example.com' }
                     Mock Get-TargetResourceInternal { return $response }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
-                    Mock Get-NLogConfig { return  [xml] (Get-Content $sampleConfigPath\octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml) }
+                    Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml")) }
                     Mock Request-SeqClientNlogDll
                     Mock Save-NlogConfig
                     Set-TargetResourceInternal @desiredConfiguration
@@ -302,8 +342,26 @@ try
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
                     # the nlog config file does exist
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe.nlog" }
-                    Mock Get-NLogConfig { return  [xml] (Get-Content $sampleConfigPath\octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml) }
-                    $expected = [xml](Get-Content $sampleConfigPath\octopus.server.exe.nlog-when-not-configured.xml)
+                    Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml")) }
+                    $expected = [xml](Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-when-not-configured.xml"))
+
+                    Mock Save-NlogConfig { $nlogConfig.OuterXml | Should be $expected.OuterXml }
+
+                    #call the internal one, as we cant figure out how to mock the ciminstance
+                    Set-TargetResourceInternal -InstanceType 'OctopusServer' -Ensure 'Absent'
+
+                    Assert-MockCalled Save-NlogConfig
+                }
+
+                It 'Removes the settings from the nlog config file if ensure is set to absent when config is the old sync version' {
+                    #octopus is installed
+                    Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
+                    # the nlog dll is NOT installed
+                    Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
+                    # the nlog config file does exist
+                    Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe.nlog" }
+                    Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-old-sync-configuration-with-api-key.xml")) }
+                    $expected = [xml](Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-when-not-configured.xml"))
 
                     Mock Save-NlogConfig { $nlogConfig.OuterXml | Should be $expected.OuterXml }
 
@@ -318,7 +376,7 @@ try
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     # the nlog dll is NOT installed
                     Mock Test-Path { return $false } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
-                    Mock Get-NLogConfig { return  [xml] (Get-Content $sampleConfigPath\octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml) }
+                    Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml")) }
                     Mock Request-SeqClientNlogDll
                     Mock Save-NlogConfig
                     $password = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
@@ -333,8 +391,8 @@ try
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     # the nlog dll is NOT installed
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
-                    Mock Get-NLogConfig { return  [xml] (Get-Content $sampleConfigPath\octopus.server.exe.nlog-when-not-configured.xml) }
-                    $expected = [xml](Get-Content $sampleConfigPath\octopus.server.exe.nlog-with-valid-configuration.xml)
+                    Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-when-not-configured.xml")) }
+                    $expected = [xml](Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration.xml"))
 
                     Mock Save-NlogConfig { $nlogConfig.OuterXml | Should be $expected.OuterXml }
 
@@ -352,8 +410,30 @@ try
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     # the nlog dll is installed
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
-                    Mock Get-NLogConfig { return  [xml] (Get-Content $sampleConfigPath\octopus.server.exe.nlog-when-not-configured.xml) }
-                    $expected = [xml](Get-Content $sampleConfigPath\octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml)
+                    Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-when-not-configured.xml")) }
+                    $expected = [xml](Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml"))
+
+                    Mock Save-NlogConfig { $nlogConfig.OuterXml | Should be $expected.OuterXml }
+                    $password = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
+                    $apiKey = New-Object System.Management.Automation.PSCredential ("ignored", $password)
+
+                    #call the internal one, as we cant figure out how to mock the ciminstance
+                    Set-TargetResourceInternal -InstanceType 'OctopusServer' `
+                                       -Ensure 'Present' `
+                                       -SeqServer "https://seq.example.com" `
+                                       -SeqApiKey $apiKey `
+                                       -Properties @{ Application = "Octopus"; Server="MyServer" }
+
+                    Assert-MockCalled Save-NlogConfig
+                }
+
+                It 'Updates the settings in the nlog config file if config is version 1' {
+                    #octopus is installed
+                    Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
+                    # the nlog dll is installed
+                    Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
+                    Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-old-sync-configuration-with-api-key.xml")) }
+                    $expected = [xml](Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml"))
 
                     Mock Save-NlogConfig { $nlogConfig.OuterXml | Should be $expected.OuterXml }
                     $password = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force

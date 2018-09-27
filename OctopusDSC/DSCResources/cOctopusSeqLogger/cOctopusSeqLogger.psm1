@@ -118,22 +118,45 @@ function Get-TargetResourceInternal {
 
         $nlogConfig = Get-NLogConfig $nlogConfigFile
         $nlogExtensionElementExists = $null -ne ($nlogConfig.nlog.extensions.add.assembly | where-object { $_ -eq "Seq.Client.Nlog" })
-        $nlogTargetElement = ($nlogConfig.nlog.targets.target | where-object {$_.name -eq "seq"})
+        $nlogTargetElement = ($nlogConfig.nlog.targets.target | where-object {$_.name -eq "seq" -and $_.type -eq "Seq"})
         $nlogTargetElementExists = $null -ne $nlogTargetElement
         $nlogRuleElement = ($nlogConfig.nlog.rules.logger | where-object {$_.writeTo -eq "seq"})
         $nlogRuleElementExists = $null -ne $nlogRuleElement
 
-        $plainTextPassword = ($nlogConfig.nlog.targets.target | where-object { $_.name -eq "seq" -and $_.type -eq "Seq" }).ApiKey
-        if ($null -ne $plainTextPassword) {
-            $password = new-object securestring
-            # Avoid using "ConvertTo-SecureString ... -AsPlaintext", to fix PSAvoidUsingConvertToSecureStringWithPlainText
-            # Not sure it actually solves the underlying issue though
-            $plainTextPassword.ToCharArray() | Foreach-Object { $password.AppendChar($_) }
-            $existingApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $password)
-        }
-        $existingServerUrl = $nlogTargetElement.serverUrl
-        if ($null -ne $nlogTargetElementExists -and ($null -ne $nlogTargetElement.property)) {
-            $nlogTargetElement.property | Sort-Object -Property Name | Foreach-Object { $existingProperties[$_.name] = $_.value }
+        $nlogBufferingWrapperElement = ($nlogConfig.nlog.targets.target | where-object {$_.name -eq "seqbufferingwrapper" -and $_.type -eq "BufferingWrapper"})
+        $nlogBufferingWrapperElementExists = $null -ne $nlogBufferingWrapperElement
+        $nlogBufferingWrapperRuleElement = ($nlogConfig.nlog.rules.logger | where-object {$_.writeTo -eq "seqbufferingwrapper"})
+        $nlogBufferingWrapperRuleElementExists = $null -ne $nlogBufferingWrapperRuleElement
+
+        if ($nlogTargetElementExists) {
+            $configVersion = 1
+            $plainTextPassword = ($nlogConfig.nlog.targets.target | where-object { $_.name -eq "seq" -and $_.type -eq "Seq" }).ApiKey
+            if ($null -ne $plainTextPassword) {
+                $password = new-object securestring
+                # Avoid using "ConvertTo-SecureString ... -AsPlaintext", to fix PSAvoidUsingConvertToSecureStringWithPlainText
+                # Not sure it actually solves the underlying issue though
+                $plainTextPassword.ToCharArray() | Foreach-Object { $password.AppendChar($_) }
+                $existingApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $password)
+            }
+            $existingServerUrl = $nlogTargetElement.serverUrl
+            if ($null -ne $nlogTargetElementExists -and ($null -ne $nlogTargetElement.property)) {
+                $nlogTargetElement.property | Sort-Object -Property Name | Foreach-Object { $existingProperties[$_.name] = $_.value }
+            }
+        } elseif ($nlogBufferingWrapperElementExists) {
+            $configVersion = 2
+            $nlogTargetElement = ($nlogConfig.nlog.targets.target | where-object { $_.name -eq "seqbufferingwrapper" -and $_.type -eq "BufferingWrapper" }).target | where-object { $_.name -eq "seq" -and $_.type -eq "Seq"}
+            $plainTextPassword = $nlogTargetElement.ApiKey
+            if ($null -ne $plainTextPassword) {
+                $password = new-object securestring
+                # Avoid using "ConvertTo-SecureString ... -AsPlaintext", to fix PSAvoidUsingConvertToSecureStringWithPlainText
+                # Not sure it actually solves the underlying issue though
+                $plainTextPassword.ToCharArray() | Foreach-Object { $password.AppendChar($_) }
+                $existingApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $password)
+            }
+            $existingServerUrl = $nlogTargetElement.serverUrl
+            if ($null -ne $nlogTargetElementExists -and ($null -ne $nlogTargetElement.property)) {
+                $nlogTargetElement.property | Sort-Object -Property Name | Foreach-Object { $existingProperties[$_.name] = $_.value }
+            }
         }
     }
 
@@ -145,16 +168,17 @@ function Get-TargetResourceInternal {
     }
 
     $existingEnsure = "Absent"
-    if ((Test-NLogDll $dllPath) -and $nlogExtensionElementExists -and $nlogTargetElementExists -and $nlogRuleElementExists) {
+    if ((Test-NLogDll $dllPath) -and $nlogExtensionElementExists -and (($nlogTargetElementExists -and $nlogRuleElementExists) -or ($nlogBufferingWrapperElementExists -and $nlogBufferingWrapperRuleElementExists))) {
         $existingEnsure = "Present"
     }
 
     $result = @{
-        InstanceType = $InstanceType;
-        Ensure       = $existingEnsure
-        SeqServer    = $existingServerUrl
-        SeqApiKey    = $existingApiKey
-        Properties   = $existingProperties
+        InstanceType  = $InstanceType;
+        Ensure        = $existingEnsure
+        SeqServer     = $existingServerUrl
+        SeqApiKey     = $existingApiKey
+        Properties    = $existingProperties
+        ConfigVersion = $configVersion
     }
 
     return $result
@@ -217,11 +241,11 @@ function Set-TargetResourceInternal {
             if ($null -ne $nlogExtensionElement) {
                 $nlogConfig.nlog.extensions.RemoveChild($nlogExtensionElement)
             }
-            $nlogTargetElement = ($nlogConfig.nlog.targets.target | where-object {$_.name -eq "seq"})
+            $nlogTargetElement = ($nlogConfig.nlog.targets.target | where-object { ($_.name -eq 'seq' -and $_.type -eq 'Seq') -or ($_.name -eq 'seqbufferingwrapper' -and $_.type -eq 'BufferingWrapper')})
             if ($null -ne $nlogTargetElement) {
                 $nlogConfig.nlog.targets.RemoveChild($nlogTargetElement)
             }
-            $nlogRuleElement = ($nlogConfig.nlog.rules.logger | where-object {$_.writeTo -eq "seq"})
+            $nlogRuleElement = ($nlogConfig.nlog.rules.logger | where-object {$_.writeTo -eq 'seq' -or $_.writeTo -eq 'seqbufferingwrapper'})
             if ($null -ne $nlogRuleElement) {
                 $nlogConfig.nlog.rules.RemoveChild($nlogRuleElement)
             }
@@ -237,8 +261,8 @@ function Set-TargetResourceInternal {
         $nlogConfig = Get-NLogConfig $nlogConfigFile
 
         #remove then re-add "<add assembly="Seq.Client.NLog"/>" to //nlog/extensions
-        $nlogExtensionElement = ($nlogConfig.nlog.extensions.add | where-object { $_.assembly -eq "Seq.Client.Nlog" })
-        if ($null -ne $nlogPropertyElement) {
+        $nlogExtensionElement = ($nlogConfig.nlog.extensions.add | where-object { $_.assembly -eq "Seq.Client.NLog" })
+        if ($null -ne $nlogExtensionElement) {
             $nlogConfig.nlog.extensions.RemoveChild($nlogExtensionElement)
         }
         $newChild = $nlogConfig.CreateElement("add", $nlogConfig.DocumentElement.NamespaceURI)
@@ -250,10 +274,18 @@ function Set-TargetResourceInternal {
         #    <property name="Application" value="Octopus" />
         #  </target>
         #to //nlog/targets"
-        $nlogTargetElement = ($nlogConfig.nlog.targets.target | where-object {$_.name -eq "seq" -and $_.type -eq "Seq"})
+        $nlogTargetElement = ($nlogConfig.nlog.targets.target | where-object { ($_.name -eq "seq" -and $_.type -eq "Seq") -or ($_.name -eq "seqbufferingwrapper" -and $_.type -eq 'BufferingWrapper')})
         if ($null -ne $nlogTargetElement) {
             $nlogConfig.nlog.targets.RemoveChild($nlogTargetElement)
         }
+        $newBufferingWrapperChild = $nlogConfig.CreateElement("target", $nlogConfig.DocumentElement.NamespaceURI)
+        $newBufferingWrapperChild.Attributes.Append((New-XmlAttribute $nlogConfig "name" "seqbufferingwrapper"))
+        $attribute = $nlogConfig.CreateAttribute("xsi:type", "http://www.w3.org/2001/XMLSchema-instance")
+        $attribute.Value = "BufferingWrapper"
+        $newBufferingWrapperChild.Attributes.Append($attribute)
+        $newBufferingWrapperChild.Attributes.Append((New-XmlAttribute $nlogConfig "bufferSize" "1000"))
+        $newBufferingWrapperChild.Attributes.Append((New-XmlAttribute $nlogConfig "flushTimeout" "2000"))
+
         $newChild = $nlogConfig.CreateElement("target", $nlogConfig.DocumentElement.NamespaceURI)
         $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "name" "seq"))
         $attribute = $nlogConfig.CreateAttribute("xsi:type", "http://www.w3.org/2001/XMLSchema-instance")
@@ -272,17 +304,18 @@ function Set-TargetResourceInternal {
                 $newChild.AppendChild($propertyChild)
             }
         }
-        $nlogConfig.nlog.targets.AppendChild($newChild)
+        $newBufferingWrapperChild.AppendChild($newChild)
+        $nlogConfig.nlog.targets.AppendChild($newBufferingWrapperChild)
 
         # remove then re-add "<logger name="*" minlevel="Info" writeTo="seq" />" to //nlog/rules"
-        $nlogRuleElement = ($nlogConfig.nlog.rules.logger | where-object {$_.writeTo -eq "seq"})
+        $nlogRuleElement = ($nlogConfig.nlog.rules.logger | where-object {$_.writeTo -eq "seq" -or $_.writeTo -eq "seqbufferingwrapper" })
         if ($null -ne $nlogRuleElement) {
             $nlogConfig.nlog.rules.RemoveChild($nlogRuleElement)
         }
         $newChild = $nlogConfig.CreateElement("logger", $nlogConfig.DocumentElement.NamespaceURI)
         $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "name" "*"))
         $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "minlevel" "Info"))
-        $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "writeTo" "seq"))
+        $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "writeTo" "seqbufferingwrapper"))
         $nlogConfig.nlog.rules.AppendChild($newChild)
 
         Write-Verbose "Saving config file $nlogConfigFile"
@@ -335,6 +368,11 @@ function Test-TargetResourceInternal {
         else {
             Write-Verbose "Configuration parameter '$key' matches the requested value '$requestedValue'"
         }
+    }
+
+    if ($currentResource['ConfigVersion'] -eq 1) {
+        Write-Verbose "Current configuration is in the old, synchronous format, which can cause issues when seq has a hiccup."
+        $currentConfigurationMatchesRequestedConfiguration = $false
     }
 
     return $currentConfigurationMatchesRequestedConfiguration
