@@ -18,7 +18,8 @@ function Get-TargetResource {
         [string]$Ensure,
         [string]$SeqServer,
         [PSCredential]$SeqApiKey,
-        [Microsoft.Management.Infrastructure.CimInstance[]]$Properties
+        [Microsoft.Management.Infrastructure.CimInstance[]]$Properties,
+        [int]$ConfigVersion
     )
 
     $propertiesAsHashTable = ConvertTo-HashTable $properties
@@ -26,7 +27,8 @@ function Get-TargetResource {
         -Ensure $Ensure `
         -SeqServer $SeqServer `
         -SeqApiKey $SeqApiKey `
-        -Properties $propertiesAsHashTable
+        -Properties $propertiesAsHashTable `
+        -ConfigVersion $ConfigVersion
 }
 
 function Set-TargetResource {
@@ -42,14 +44,16 @@ function Set-TargetResource {
         [string]$Ensure,
         [string]$SeqServer,
         [PSCredential]$SeqApiKey,
-        [Microsoft.Management.Infrastructure.CimInstance[]]$Properties
+        [Microsoft.Management.Infrastructure.CimInstance[]]$Properties,
+        [int]$ConfigVersion
     )
     $propertiesAsHashTable = ConvertTo-HashTable $properties
     Set-TargetResourceInternal -InstanceType $InstanceType `
         -Ensure $Ensure `
         -SeqServer $SeqServer `
         -SeqApiKey $SeqApiKey `
-        -Properties $propertiesAsHashTable
+        -Properties $propertiesAsHashTable `
+        -ConfigVersion $ConfigVersion
 }
 
 function Test-TargetResource {
@@ -66,7 +70,8 @@ function Test-TargetResource {
         [string]$Ensure,
         [string]$SeqServer,
         [PSCredential]$SeqApiKey,
-        [Microsoft.Management.Infrastructure.CimInstance[]]$Properties
+        [Microsoft.Management.Infrastructure.CimInstance[]]$Properties,
+        [int]$ConfigVersion
     )
 
     $propertiesAsHashTable = ConvertTo-HashTable $properties
@@ -74,7 +79,8 @@ function Test-TargetResource {
         -Ensure $Ensure `
         -SeqServer $SeqServer `
         -SeqApiKey $SeqApiKey `
-        -Properties $propertiesAsHashTable
+        -Properties $propertiesAsHashTable `
+        -ConfigVersion $ConfigVersion
 }
 
 function Get-TargetResourceInternal {
@@ -90,7 +96,8 @@ function Get-TargetResourceInternal {
         [string]$Ensure,
         [string]$SeqServer,
         [PSCredential]$SeqApiKey,
-        [HashTable]$Properties
+        [HashTable]$Properties,
+        [int]$ConfigVersion
     )
 
     if (-not (Test-Path -Path $octopusServerExePath) -and ($InstanceType -eq "OctopusServer") -and ($Ensure -eq "Present")) {
@@ -196,7 +203,8 @@ function Set-TargetResourceInternal {
         [string]$Ensure,
         [string]$SeqServer,
         [PSCredential]$SeqApiKey,
-        [HashTable]$Properties
+        [HashTable]$Properties,
+        [int]$ConfigVersion
     )
 
     if ((($null -eq $SeqServer) -or ("" -eq $SeqServer)) -and ($Ensure -eq 'Present')) {
@@ -207,7 +215,8 @@ function Set-TargetResourceInternal {
         -Ensure $Ensure `
         -SeqServer $SeqServer `
         -SeqApiKey $SeqApiKey `
-        -Properties $Properties
+        -Properties $Properties `
+        -ConfigVersion $ConfigVersion
 
     if ($InstanceType -eq "Tentacle") {
         $dllPath = "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Seq.Client.NLog.dll"
@@ -336,13 +345,15 @@ function Test-TargetResourceInternal {
         [string]$Ensure,
         [string]$SeqServer,
         [PSCredential]$SeqApiKey,
-        [HashTable]$Properties
+        [HashTable]$Properties,
+        [int]$ConfigVersion
     )
     $currentResource = (Get-TargetResourceInternal -InstanceType $InstanceType `
             -Ensure $Ensure `
             -SeqServer $SeqServer `
             -SeqApiKey $SeqApiKey `
-            -Properties $Properties)
+            -Properties $Properties `
+            -ConfigVersion $ConfigVersion)
 
     $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
 
