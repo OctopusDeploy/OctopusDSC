@@ -64,9 +64,6 @@ try
     Write-Output "### Install-PackageProvider nuget -force"
     Install-PackageProvider nuget -force
 
-    Write-Output "### Updating PowerShellGet"
-    Update-Module -Name PowerShellGet -Force
-
     Write-output "### Import Modules"
     Import-Module "C:\Program Files\WindowsPowerShell\Modules\PackageManagement"
     Import-Module "C:\Program Files\WindowsPowerShell\Modules\PowerShellGet"
