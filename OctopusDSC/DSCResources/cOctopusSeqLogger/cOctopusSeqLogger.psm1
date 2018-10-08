@@ -307,7 +307,7 @@ function Set-TargetResourceInternal {
         $newBufferingWrapperChild.AppendChild($newChild)
         $nlogConfig.nlog.targets.AppendChild($newBufferingWrapperChild)
 
-        # remove then re-add "<logger name="*" minlevel="Info" writeTo="seq" />" to //nlog/rules"
+        # remove then re-add "<logger name="*" minlevel="Info" writeTo="seqbufferingwrapper" />" to //nlog/rules"
         $nlogRuleElement = ($nlogConfig.nlog.rules.logger | where-object {$_.writeTo -eq "seq" -or $_.writeTo -eq "seqbufferingwrapper" })
         if ($null -ne $nlogRuleElement) {
             $nlogConfig.nlog.rules.RemoveChild($nlogRuleElement)
