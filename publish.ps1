@@ -51,7 +51,7 @@ try
     Set-Content OctopusDSC/OctopusDSC.psd1 $content
 
     Write-Output "### Updating PowerShellGet"
-    Update-Module -Name PowerShellGet
+    Update-Module -Name PowerShellGet -Force
 
     Write-output "### Import Modules"
     Import-Module "C:\Program Files\WindowsPowerShell\Modules\PackageManagement"
