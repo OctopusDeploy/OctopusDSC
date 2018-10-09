@@ -47,7 +47,7 @@ function Get-TargetResource {
         [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs",
         [bool]$LogTaskMetrics = $false,
         [bool]$LogRequestMetrics = $false,
-        [int]$TaskCap = $null
+        [int]$TaskCap = 5
     )
 
     try {
@@ -380,7 +380,7 @@ function Set-TargetResource {
         [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs",
         [bool]$LogTaskMetrics = $false,
         [bool]$LogRequestMetrics = $false,
-        [int]$TaskCap = $null
+        [int]$TaskCap = 5
     )
 
     try {
@@ -1412,7 +1412,7 @@ function Test-TargetResource {
         [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs",
         [bool]$LogTaskMetrics = $false,
         [bool]$LogRequestMetrics = $false,
-        [int]$taskCap = $null
+        [int]$taskCap = 5
     )
 
     try {
