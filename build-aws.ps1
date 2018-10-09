@@ -26,6 +26,9 @@ Test-PluginInstalled "vagrant-winrm"
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
 Write-Output "##teamcity[blockOpened name='Pester tests']"
+Write-Output "Importing Pester module"
+Import-Module Pester -verbose -force
+
 Write-Output "Running Pester Tests"
 $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
 if ($result.FailedCount -gt 0) {
