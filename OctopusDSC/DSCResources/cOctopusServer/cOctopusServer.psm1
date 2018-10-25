@@ -330,7 +330,7 @@ function Test-OctopusVersionSupportsTaskCap {
     return Test-OctopusVersionNewerThan (New-Object System.Version 2018, 6, 13)
 }
 
-function Test-OctopusVersionSupportSkipLicenseCheck {
+function Test-OctopusVersionSupportsSkipLicenseCheck {
     return Test-OctopusVersionNewerThan (New-Object System.Version 2018, 8, 9)
 }
 
@@ -753,13 +753,11 @@ function Set-OctopusDeployConfiguration {
             Write-Log "Configuring Octopus Deploy instance to use free license ..."
             $args += @('--free')
         } else {
-            if (Test-OctopusVersionSupportSkipLicenseCheck) {
-                Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
-                $args += @('--licenseBase64', $licenseKey, '--skipLicenseCheck')
-            }
-            else {
-                Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
-                $args += @('--licenseBase64', $licenseKey)
+            Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
+            $args += @('--licenseBase64', $licenseKey)
+
+            if (Test-OctopusVersionSupportsSkipLicenseCheck) {
+                $args += @('--skipLicenseCheck')
             }
         }
         Invoke-OctopusServerCommand $args
@@ -1291,13 +1289,11 @@ function Install-OctopusDeploy {
         Write-Log "Configuring Octopus Deploy instance to use free license ..."
         $args += @('--free')
     } else {
-        if (Test-OctopusVersionSupportSkipLicenseCheck) {
-            Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
-            $args += @('--licenseBase64', $licenseKey, '--skipLicenseCheck')
-        }
-        else {
-            Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
-            $args += @('--licenseBase64', $licenseKey)
+        Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
+        $args += @('--licenseBase64', $licenseKey)
+
+        if (Test-OctopusVersionSupportsSkipLicenseCheck) {
+            $args += @('--skipLicenseCheck')
         }
     }
     Invoke-OctopusServerCommand $args
