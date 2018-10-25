@@ -750,7 +750,7 @@ function Set-OctopusDeployConfiguration {
             $args += @('--free')
         } else {
             Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
-            $args += @('--licenseBase64', $licenseKey)
+            $args += @('--licenseBase64', $licenseKey, '--skipLicenseCheck')
         }
         Invoke-OctopusServerCommand $args
     }
@@ -1282,7 +1282,7 @@ function Install-OctopusDeploy {
         $args += @('--free')
     } else {
         Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
-        $args += @('--licenseBase64', $licenseKey)
+        $args += @('--licenseBase64', $licenseKey, '--skipLicenseCheck')
     }
     Invoke-OctopusServerCommand $args
 
