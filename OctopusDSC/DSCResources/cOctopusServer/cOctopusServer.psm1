@@ -330,6 +330,10 @@ function Test-OctopusVersionSupportsTaskCap {
     return Test-OctopusVersionNewerThan (New-Object System.Version 2018, 6, 13)
 }
 
+function Test-OctopusVersionSupportSkipLicenseCheck {
+    return Test-OctopusVersionNewerThan (New-Object System.Version 2018, 8, 9)
+}
+
 function Test-OctopusVersionNewerThan($targetVersion) {
     if (-not (Test-Path -LiteralPath $octopusServerExePath)) {
         throw "Octopus.Server.exe path '$octopusServerExePath' does not exist."
@@ -749,8 +753,14 @@ function Set-OctopusDeployConfiguration {
             Write-Log "Configuring Octopus Deploy instance to use free license ..."
             $args += @('--free')
         } else {
-            Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
-            $args += @('--licenseBase64', $licenseKey, '--skipLicenseCheck')
+            if (Test-OctopusVersionSupportSkipLicenseCheck) {
+                Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
+                $args += @('--licenseBase64', $licenseKey, '--skipLicenseCheck')
+            }
+            else {
+                Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
+                $args += @('--licenseBase64', $licenseKey)
+            }
         }
         Invoke-OctopusServerCommand $args
     }
@@ -1281,8 +1291,14 @@ function Install-OctopusDeploy {
         Write-Log "Configuring Octopus Deploy instance to use free license ..."
         $args += @('--free')
     } else {
-        Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
-        $args += @('--licenseBase64', $licenseKey, '--skipLicenseCheck')
+        if (Test-OctopusVersionSupportSkipLicenseCheck) {
+            Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
+            $args += @('--licenseBase64', $licenseKey, '--skipLicenseCheck')
+        }
+        else {
+            Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
+            $args += @('--licenseBase64', $licenseKey)
+        }
     }
     Invoke-OctopusServerCommand $args
 
