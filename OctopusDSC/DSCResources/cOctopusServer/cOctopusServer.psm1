@@ -40,6 +40,7 @@ function Get-TargetResource {
         [string]$HomeDirectory = "$($env:SystemDrive)\Octopus",
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
         [string]$LicenseKey = $null,
+        [bool]$SkipLicenseCheck = $false,
         [bool]$GrantDatabasePermissions = $true,
         [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty,
         [string]$PackagesDirectory = "$HomeDirectory\Packages",
@@ -377,6 +378,7 @@ function Set-TargetResource {
         [string]$HomeDirectory = "$($env:SystemDrive)\Octopus",
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
         [string]$LicenseKey = $null,
+        [bool]$SkipLicenseCheck = $false,
         [bool]$GrantDatabasePermissions = $true,
         [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty,
         [string]$PackagesDirectory = "$HomeDirectory\Packages",
@@ -420,6 +422,7 @@ function Set-TargetResource {
                 -HomeDirectory $HomeDirectory `
                 -OctopusMasterKey $OctopusMasterKey `
                 -LicenseKey $LicenseKey `
+                -SkipLicenseCheck $SkipLicenseCheck `
                 -GrantDatabasePermissions $GrantDatabasePermissions `
                 -OctopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
                 -PackagesDirectory $PackagesDirectory `
@@ -478,6 +481,7 @@ function Set-TargetResource {
                 -octopusServiceCredential $OctopusServiceCredential `
                 -OctopusMasterKey $OctopusMasterKey `
                 -licenseKey $LicenseKey `
+                -skipLicenseCheck $SkipLicenseCheck `
                 -grantDatabasePermissions $GrantDatabasePermissions `
                 -octopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
                 -packagesDirectory $PackagesDirectory `
@@ -515,6 +519,7 @@ function Set-TargetResource {
                     -octopusServiceCredential $OctopusServiceCredential `
                     -OctopusMasterKey $OctopusMasterKey `
                     -licenseKey $LicenseKey `
+                    -skipLicenseCheck $SkipLicenseCheck `
                     -octopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
                     -packagesDirectory $PackagesDirectory `
                     -artifactsDirectory $ArtifactsDirectory `
@@ -584,6 +589,7 @@ function Set-OctopusDeployConfiguration {
         [PSCredential]$OctopusServiceCredential,
         [PSCredential]$OctopusMasterKey,
         [string]$licenseKey = $null,
+        [bool]$skipLicenseCheck = $false,
         [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty,
         [string]$packagesDirectory = $null,
         [string]$artifactsDirectory = $null,
@@ -756,7 +762,7 @@ function Set-OctopusDeployConfiguration {
             Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
             $args += @('--licenseBase64', $licenseKey)
 
-            if (Test-OctopusVersionSupportsSkipLicenseCheck) {
+            if ($skipLicenseCheck -and (Test-OctopusVersionSupportsSkipLicenseCheck)) {
                 $args += @('--skipLicenseCheck')
             }
         }
@@ -1097,6 +1103,7 @@ function Install-OctopusDeploy {
         [PSCredential]$octopusServiceCredential,
         [PSCredential]$OctopusMasterKey,
         [string]$licenseKey = $null,
+        [bool]$skipLicenseCheck = $false,
         [bool]$grantDatabasePermissions = $true,
         [PSCredential]$OctopusBuiltInWorkerCredential,
         [string]$taskLogsDirectory = $null,
@@ -1292,7 +1299,7 @@ function Install-OctopusDeploy {
         Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
         $args += @('--licenseBase64', $licenseKey)
 
-        if (Test-OctopusVersionSupportsSkipLicenseCheck) {
+        if ($skipLicenseCheck -and (Test-OctopusVersionSupportsSkipLicenseCheck)) {
             $args += @('--skipLicenseCheck')
         }
     }
@@ -1417,6 +1424,7 @@ function Test-TargetResource {
         [string]$HomeDirectory = "$($env:SystemDrive)\Octopus",
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
         [string]$LicenseKey = $null,
+        [bool]$SkipLicenseCheck = $false,
         [bool]$GrantDatabasePermissions = $true,
         [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty,
         [string]$PackagesDirectory = "$HomeDirectory\Packages",
@@ -1459,6 +1467,7 @@ function Test-TargetResource {
                 -OctopusServiceCredential $OctopusServiceCredential `
                 -HomeDirectory $HomeDirectory `
                 -LicenseKey $LicenseKey `
+                -SkipLicenseCheck $SkipLicenseCheck `
                 -GrantDatabasePermissions $GrantDatabasePermissions `
                 -OctopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
                 -PackagesDirectory $PackagesDirectory `
