@@ -335,6 +335,10 @@ function Test-OctopusVersionSupportsSkipLicenseCheck {
     return Test-OctopusVersionNewerThan (New-Object System.Version 2018, 8, 9)
 }
 
+function Test-OctopusVersionSupportsDatabaseUpgrade {
+    return Test-OctopusVersionNewerThan (New-Object System.Version 3, 13, 9)
+}
+
 function Test-OctopusVersionNewerThan($targetVersion) {
     if (-not (Test-Path -LiteralPath $octopusServerExePath)) {
         throw "Octopus.Server.exe path '$octopusServerExePath' does not exist."
@@ -497,7 +501,8 @@ function Set-TargetResource {
                     -downloadUrl $DownloadUrl `
                     -state $State `
                     -webListenPrefix $webListenPrefix `
-                    -currentState $currentResource["State"]
+                    -currentState $currentResource["State"] `
+                    -skipLicenseCheck $SkipLicenseCheck
             }
 
             #are there any changes that need to be applied?
@@ -896,13 +901,31 @@ function Get-ExistingOctopusService {
     return @(Get-CimInstance win32_service | Where-Object {$_.PathName -like "`"$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe*"})
 }
 
-function Update-OctopusDeploy($name, $downloadUrl, $state, $webListenPrefix, $currentState) {
+function Update-OctopusDeploy($name, $downloadUrl, $state, $webListenPrefix, $currentState, $skipLicenseCheck) {
     Write-Verbose "Upgrading Octopus Deploy..."
     Install-MSI $downloadUrl -StopService:($currentState -eq "Started")
     if ($state -eq "Started") {
+        Upgrade-OctopusDatabase -name $name -skipLicenseCheck $skipLicenseCheck
         Start-OctopusDeployService -name $name -webListenPrefix $webListenPrefix
     }
     Write-Verbose "Octopus Deploy upgraded!"
+}
+
+function Upgrade-OctopusDatabase($name, $skipLicenseCheck) {
+    if (Test-OctopusVersionSupportsDatabaseUpgrade) {
+        Write-Log "Upgrading Octopus Database ..."
+        $args = @(
+            'database',
+            '--upgrade',
+            '--instance', $name
+        )
+
+        if ($skipLicenseCheck -and (Test-OctopusVersionSupportsSkipLicenseCheck)) {
+            $args += @('--skipLicenseCheck')
+        }
+
+        Invoke-OctopusServerCommand $args
+    }
 }
 
 function Start-OctopusDeployService($name, $webListenPrefix) {

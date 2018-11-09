@@ -38,6 +38,8 @@ Configuration Server_Scenario_08_Upgrade
 
             # dont mess with stats
             AllowCollectionOfUsageStatistics = $false
+
+            SkipLicenseCheck = $true
         }
 
         cOctopusEnvironment "Delete 'UAT 1' Environment"
