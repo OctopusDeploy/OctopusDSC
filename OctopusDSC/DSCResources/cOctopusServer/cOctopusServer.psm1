@@ -335,6 +335,10 @@ function Test-OctopusVersionSupportsSkipLicenseCheck {
     return Test-OctopusVersionNewerThan (New-Object System.Version 2018, 8, 9)
 }
 
+function Test-OctopusVersionSupportsDatabaseUpgrade {
+    return Test-OctopusVersionNewerThan (New-Object System.Version 3, 13, 9)
+}
+
 function Test-OctopusVersionNewerThan($targetVersion) {
     if (-not (Test-Path -LiteralPath $octopusServerExePath)) {
         throw "Octopus.Server.exe path '$octopusServerExePath' does not exist."
@@ -908,18 +912,20 @@ function Update-OctopusDeploy($name, $downloadUrl, $state, $webListenPrefix, $cu
 }
 
 function Upgrade-OctopusDatabase($name, $skipLicenseCheck) {
-    Write-Log "Upgrading Octopus Database ..."
-    $args = @(
-        'database',
-        '--upgrade',
-        '--instance', $name
-    )
+    if (Test-OctopusVersionSupportsDatabaseUpgrade) {
+        Write-Log "Upgrading Octopus Database ..."
+        $args = @(
+            'database',
+            '--upgrade',
+            '--instance', $name
+        )
 
-    if ($skipLicenseCheck -and (Test-OctopusVersionSupportsSkipLicenseCheck)) {
-        $args += @('--skipLicenseCheck')
+        if ($skipLicenseCheck -and (Test-OctopusVersionSupportsSkipLicenseCheck)) {
+            $args += @('--skipLicenseCheck')
+        }
+
+        Invoke-OctopusServerCommand $args
     }
-
-    Invoke-OctopusServerCommand $args
 }
 
 function Start-OctopusDeployService($name, $webListenPrefix) {
