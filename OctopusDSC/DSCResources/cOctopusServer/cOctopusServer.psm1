@@ -265,7 +265,7 @@ function Import-ServerConfig {
             OctopusFoldersPackagesDirectory                = $config.Octopus.Folders.PackagesDirectory
             OctopusTasksRecordTaskMetrics                  = [System.Convert]::ToBoolean($config.Octopus.Tasks.RecordTaskMetrics)
             OctopusWebPortalRequestMetricLoggingEnabled    = [System.Convert]::ToBoolean($config.Octopus.WebPortal.RequestMetricLoggingEnabled)
-            OctopusNodeTaskCap                             = $config.Octopus.Node.TaskCap
+            OctopusNodeTaskCap                             = $config.Octopus.Server.TaskCap
         }
     }
     else {
@@ -1455,7 +1455,7 @@ function Test-TargetResource {
         [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs",
         [bool]$LogTaskMetrics = $false,
         [bool]$LogRequestMetrics = $false,
-        [int]$taskCap = $null
+        [int]$TaskCap = $null
     )
 
     try {
