@@ -59,10 +59,10 @@ else {
 }
 
 Write-Output "Adding vagrant box"
-vagrant box add OctopusDeploy/dsc-test-server-windows-2012-r2 https://s3-ap-southeast-2.amazonaws.com/octopus-vagrant-boxes/vagrant/json/OctopusDeploy/amazon-ebs/dsc-test-server-windows-2012-r2.json --force
+vagrant box add OctopusDeploy/dsc-test-server-windows-server-1803 https://s3-ap-southeast-2.amazonaws.com/octopus-vagrant-boxes/vagrant/json/OctopusDeploy/amazon-ebs/dsc-test-server-windows-server-1803.json --force
 
 Write-Output "Ensuring vagrant box is latest"
-vagrant box update --box OctopusDeploy/dsc-test-server-windows-2012-r2 --provider aws
+vagrant box update --box OctopusDeploy/dsc-test-server-windows-server-1803 --provider aws
 
 Write-Output "Running 'vagrant up --provider aws'"
 vagrant up --provider aws  | Tee-Object -FilePath vagrant.log
