@@ -437,8 +437,14 @@ function Request-SeqClientNlogDll ($dllPath) {
     }
 
     Write-Verbose "Downloading Seq.Client.NLog.dll version 2.3.25 from nuget to $dllPath"
-    & $nugetexe install Seq.Client.NLog -outputdirectory $folder -version 2.3.24
+    Invoke-NugetExe $nugetexe $folder
     Copy-Item "$folder\Seq.Client.NLog.2.3.24\lib\net40\Seq.Client.NLog.dll" $dllPath
+}
+
+Function Invoke-NugetExe # mockable, to supress running nuget during tests
+{
+    param($nugetexe, $outputfolder)
+    & $nugetexe install Seq.Client.NLog -outputdirectory $folder -version 2.3.24
 }
 
 function Save-NlogConfig ($nlogConfig, $filename) {
