@@ -421,9 +421,23 @@ function Request-SeqClientNlogDll ($dllPath) {
     Write-Verbose "Downloading Seq.Client.NLog.dll version 2.3.25 from nuget to $dllPath"
 
     $ProgressPreference = "SilentlyContinue"
-    $folder = [System.IO.Path]::GetTempPath()
-    Invoke-WebRequest https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -outfile "$folder\nuget.exe"
-    & "$folder\nuget.exe" install Seq.Client.NLog -outputdirectory $folder -version 2.3.24
+    $nugetcmd = Get-Command nuget -ErrorAction SilentlyContinue
+    if($null -eq $nugetcmd)
+    {
+        # download Nuget
+        $folder = [System.IO.Path]::GetTempPath()
+        $nugetexe = "$folder\nuget.exe"
+        Write-Verbose "Downloading Nuget.exe from dist.nuget.org"
+        Invoke-WebRequest https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -outfile $nugetexe
+    }
+    else 
+    {
+        $nugetexe = $nugetcmd.Path
+        Write-verbose "Nuget.exe already on system. Using path $nugetexe"
+    }
+
+    Write-Verbose "Downloading Seq.Client.NLog.dll version 2.3.25 from nuget to $dllPath"
+    & $nugetexe install Seq.Client.NLog -outputdirectory $folder -version 2.3.24
     Copy-Item "$folder\Seq.Client.NLog.2.3.24\lib\net40\Seq.Client.NLog.dll" $dllPath
 }
 

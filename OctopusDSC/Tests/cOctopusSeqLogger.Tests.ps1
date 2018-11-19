@@ -461,6 +461,21 @@ try
                 }
             }
         }
+
+        Describe "Nuget install and DLL download" {
+            Context "Nuget not present locally" {
+                Mock Get-Command { return $null}
+                It "Uses a local Nuget.exe if present" {
+                    
+                } -skip 
+            }
+
+            Context "Nuget not found locally" {
+                It "Downloads a Nuget.exe if not present" {
+
+                } -skip 
+            }
+        }
     }
 }
 finally
