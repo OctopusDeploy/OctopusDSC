@@ -463,17 +463,35 @@ try
         }
 
         Describe "Nuget install and DLL download" {
-            Context "Nuget not present locally" {
-                Mock Get-Command { return $null}
+            Mock Invoke-Nugetexe {} -Verifiable
+            Mock Invoke-WebRequest {} -Verifiable
+            Mock Copy-Item {}
+
+            Context "Nuget present locally" {
+                Mock Get-Command { 
+                    return [pscustomobject]@{
+                        Name = "nuget.exe";
+                        COmmandType = "Application"
+                        Version = [version]"4.5.1.0"
+                        Source = "c:\chocolatey\bin\nuget.exe"
+                        Path = "c:\chocolatey\bin\nuget.exe"
+                    }                
+                }
+                Mock Invoke-Nugetexe {}
                 It "Uses a local Nuget.exe if present" {
-                    
-                } -skip 
+                    Request-SeqClientNlogDll
+                    Assert-MockCalled Invoke-webrequest -times 0
+                    Assert-MockCalled Invoke-Nugetexe -times 1
+                }
             }
 
             Context "Nuget not found locally" {
+                Mock Get-Command { return $null }
                 It "Downloads a Nuget.exe if not present" {
-
-                } -skip 
+                    Request-SeqClientNlogDll
+                    Assert-MockCalled Invoke-webrequest -times 1
+                    Assert-MockCalled Invoke-Nugetexe -times 1
+                }
             }
         }
     }
