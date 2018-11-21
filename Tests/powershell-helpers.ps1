@@ -32,3 +32,11 @@ function Test-AppExists($appName) {
   $command = Get-Command $appName -ErrorAction SilentlyContinue
   return $null -ne $command
 }
+
+function Test-PowershellModuleInstalled($moduleName) {
+  $command = Get-Module $moduleName -listavailable
+  if ($null -eq $command) {
+    write-host "Please install $($moduleName): Install-Module -Name $moduleName -Force"
+    exit 1
+  }
+}

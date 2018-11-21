@@ -27,6 +27,8 @@ Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
 Write-Output "##teamcity[blockOpened name='Pester tests']"
 Write-Output "Importing Pester module"
+Test-PowershellModuleInstalled "Pester"
+Test-PowershellModuleInstalled "PSScriptAnalyzer"
 Import-Module Pester -verbose -force
 
 Write-Output "Running Pester Tests"
