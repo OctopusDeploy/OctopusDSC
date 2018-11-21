@@ -32,7 +32,7 @@ Describe "OctopusDSC.psd1" {
         Import-LocalizedData -BaseDirectory $path -FileName OctopusDSC.psd1 -BindingVariable Data
 
         $expected = ($Data.DscResourcesToExport | Sort-Object) -join ","
-        $actual = (($modules | Sort-Object) -join ",")
+        $actual = (($modules.Name | Sort-Object) -join ",")
         $actual | should be $expected
     }
 }
