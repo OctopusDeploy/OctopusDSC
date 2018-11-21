@@ -50,7 +50,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   config.vm.guest = :windows
   config.vm.communicator = "winrm"
 
-  config.vm.allowed_synced_folder_types = [:rsync]
+  config.vm.allowed_synced_folder_types = [:winrm]
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
   if Vagrant.has_plugin?("vagrant-multi-hostsupdater")
