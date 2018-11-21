@@ -46,7 +46,6 @@ if (-not (Test-AppExists "VBoxManage")) {
 Write-Output "VirtualBox installed - good."
 
 Test-PluginInstalled "vagrant-dsc"
-Test-PluginInstalled "vagrant-winrm"
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
 Write-Output "Importing Pester module"

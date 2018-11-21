@@ -22,7 +22,6 @@ Write-Output "AWS CLI installed - good."
 Test-PluginInstalled "vagrant-aws"
 Test-PluginInstalled "vagrant-aws-winrm"
 Test-PluginInstalled "vagrant-dsc"
-Test-PluginInstalled "vagrant-winrm"
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
 Write-Output "##teamcity[blockOpened name='Pester tests']"
