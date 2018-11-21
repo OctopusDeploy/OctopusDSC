@@ -905,13 +905,13 @@ function Update-OctopusDeploy($name, $downloadUrl, $state, $webListenPrefix, $cu
     Write-Verbose "Upgrading Octopus Deploy..."
     Install-MSI $downloadUrl -StopService:($currentState -eq "Started")
     if ($state -eq "Started") {
-        Upgrade-OctopusDatabase -name $name -skipLicenseCheck $skipLicenseCheck
+        Update-OctopusDatabase -name $name -skipLicenseCheck $skipLicenseCheck
         Start-OctopusDeployService -name $name -webListenPrefix $webListenPrefix
     }
     Write-Verbose "Octopus Deploy upgraded!"
 }
 
-function Upgrade-OctopusDatabase($name, $skipLicenseCheck) {
+function Update-OctopusDatabase($name, $skipLicenseCheck) {
     if (Test-OctopusVersionSupportsDatabaseUpgrade) {
         Write-Log "Upgrading Octopus Database ..."
         $args = @(
