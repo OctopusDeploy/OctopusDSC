@@ -949,7 +949,7 @@ function Start-OctopusDeployService($name, $webListenPrefix) {
     $timeout = new-timespan -Minutes 5
     $sw = [diagnostics.stopwatch]::StartNew()
     while (($sw.elapsed -lt $timeout) -and (-not (Test-OctopusDeployServerResponding $url))) {
-        Write-Verbose "$(date) Waiting until server completes startup"
+        Write-Verbose "$(Get-Date) Waiting until server completes startup"
         Start-Sleep -Seconds 5
     }
 
