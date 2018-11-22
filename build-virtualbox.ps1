@@ -45,10 +45,13 @@ if (-not (Test-AppExists "VBoxManage")) {
 }
 Write-Output "VirtualBox installed - good."
 
-Test-PluginInstalled "vagrant-dsc"
-Test-PluginInstalled "vagrant-winrm"
+Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
+Write-Output "Importing Pester module"
+Test-PowershellModuleInstalled "Pester"
+Test-PowershellModuleInstalled "PSScriptAnalyzer"
+Import-Module Pester -verbose -force
 
 Write-Output "Running Pester Tests"
 $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru

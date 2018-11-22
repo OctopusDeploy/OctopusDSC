@@ -21,12 +21,13 @@ Write-Output "AWS CLI installed - good."
 
 Test-PluginInstalled "vagrant-aws"
 Test-PluginInstalled "vagrant-aws-winrm"
-Test-PluginInstalled "vagrant-dsc"
-Test-PluginInstalled "vagrant-winrm"
+Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
 Write-Output "##teamcity[blockOpened name='Pester tests']"
 Write-Output "Importing Pester module"
+Test-PowershellModuleInstalled "Pester"
+Test-PowershellModuleInstalled "PSScriptAnalyzer"
 Import-Module Pester -verbose -force
 
 Write-Output "Running Pester Tests"
