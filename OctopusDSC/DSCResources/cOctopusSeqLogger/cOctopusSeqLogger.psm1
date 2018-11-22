@@ -430,7 +430,7 @@ function Request-SeqClientNlogDll ($dllPath) {
         Write-Verbose "Downloading Nuget.exe from dist.nuget.org"
         Invoke-WebRequest https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -outfile $nugetexe
     }
-    else 
+    else
     {
         $nugetexe = $nugetcmd.Path
         Write-verbose "Nuget.exe already on system. Using path $nugetexe"
