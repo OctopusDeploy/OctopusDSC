@@ -20,7 +20,7 @@ if (-not (Test-AppExists "azure")) {
 }
 Write-Output "Azure CLI installed - good."
 
-Test-PluginInstalled "vagrant-dsc"
+Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-azure" "2.0.0.pre7"
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
