@@ -468,14 +468,14 @@ try
             Mock Copy-Item {}
 
             Context "Nuget present locally" {
-                Mock Get-Command { 
+                Mock Get-Command {
                     return [pscustomobject]@{
                         Name = "nuget.exe";
                         COmmandType = "Application"
                         Version = [version]"4.5.1.0"
                         Source = "c:\chocolatey\bin\nuget.exe"
                         Path = "c:\chocolatey\bin\nuget.exe"
-                    }                
+                    }
                 }
                 Mock Invoke-Nugetexe {}
                 It "Uses a local Nuget.exe if present" {
