@@ -4,7 +4,7 @@ $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass
 Configuration Server_Scenario_15_Configure_Preinstalled_Instance
 {
     Import-DscResource -ModuleName OctopusDSC
-    Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
 
     Node "localhost"
     {

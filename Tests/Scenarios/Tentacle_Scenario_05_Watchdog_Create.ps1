@@ -1,6 +1,7 @@
 Configuration Tentacle_Scenario_05_Watchdog_Create
 {
     Import-DscResource -ModuleName OctopusDSC
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
 
     Node "localhost"
     {

@@ -3,6 +3,7 @@ Configuration Tentacle_Scenario_07_Remove
     param ($OctopusServerUrl, $ApiKey, $Environments, $Roles)
 
     Import-DscResource -ModuleName OctopusDSC
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
 
     Node "localhost"
     {
