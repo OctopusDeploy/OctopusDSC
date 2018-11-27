@@ -358,6 +358,8 @@ function Get-TentacleServiceName {
 # needs to know the public IP address to use to connect to this Tentacle instance. Is there a way in Windows Azure in which we can
 # know the public IP/host name of the current machine?
 Function Get-MyPublicIPAddress {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "")]
+    param()
     Write-Verbose "Getting public IP address"
 
     $publicIPServices = @('https://api.ipify.org/', 'https://canhazip.com/', 'https://ipv4bot.whatismyipaddress.com/')
@@ -381,7 +383,7 @@ Function Get-MyPublicIPAddress {
     }
     catch
     {
-        throw "Detected Public IP address '$ip', but it failed validation"
+        throw "Detected Public IP address '$ip', but we we couldn't parse it as an IPv4 address"
     }
 
     return $ip
