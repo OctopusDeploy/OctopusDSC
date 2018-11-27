@@ -119,7 +119,7 @@ try
 
         Describe "Testing Get-MyPublicIPAddress" {
             $testIP = "54.121.34.56"
-            Mock Invoke-RestMethod { return $testIP }.GetNewClosure() # does this _need_ to be closed over?
+            Mock Invoke-RestMethod { return $testIP } # does this _need_ to be closed over?
 
             Context "First option works" {
                 It "Should return an IPv4 address" {
@@ -145,6 +145,13 @@ try
                 Mock Invoke-RestMethod { throw }
                 It "Should throw" {
                     { Get-MyPublicIPAddress } | Should Throw
+                }
+            }
+
+            Context "A service returns an invalid IP" {
+                Mock Invoke-RestMethod { return "IAMNOTANIPADDRESS" }
+                It "Should Throw" {
+                      { Get-MyPublicIpAddress } | Should Throw
                 }
             }
         }
