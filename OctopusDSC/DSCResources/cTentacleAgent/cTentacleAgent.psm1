@@ -355,19 +355,47 @@ function Get-TentacleServiceName {
 }
 
 # After the Tentacle is registered with Octopus, Tentacle listens on a TCP port, and Octopus connects to it. The Octopus server
-# needs to know the public IP address to use to connect to this Tentacle instance. Is there a way in Windows Azure in which we can
-# know the public IP/host name of the current machine?
-function Get-MyPublicIPAddress {
+# needs to know the public IP address to use to connect to this Tentacle instance.
+Function Get-MyPublicIPAddress {
+    [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "")]
+    param()
     Write-Verbose "Getting public IP address"
 
-    try {
-        $ip = Invoke-RestMethod -Uri https://api.ipify.org
+    [Net.ServicePointManager]::SecurityProtocol = @(
+        [Net.SecurityProtocolType]::Tls12,
+        [Net.SecurityProtocolType]::Tls11
+    )
+
+    $publicIPServices = @('https://api.ipify.org/', 'https://canhazip.com/', 'https://ipv4bot.whatismyipaddress.com/')
+    $ip = $null
+    $x = 0
+    while($null -eq $ip -and $x -lt $publicIPServices.Length) {
+        try {
+            $target = $publicIpServices[$x++]
+            $ip = Invoke-RestMethod -Uri $target
+        }
+        catch {
+            Write-Verbose "Failed to find a public IP via $target. Reason: $_ "
+        }
     }
-    catch {
-        Write-Verbose $_
+
+    if($null -eq $ip) {
+        throw "Unable to determine your Public IP address. Please supply a hostname or IP address via the PublicHostName parameter."
     }
+
+    try
+    {
+        [Ipaddress]$ip | Out-Null
+    }
+    catch
+    {
+        throw "Detected Public IP address '$ip', but we we couldn't parse it as an IPv4 address."
+    }
+
     return $ip
 }
+
 
 function Install-Tentacle {
     param (
