@@ -355,7 +355,7 @@ function Get-TentacleServiceName {
 }
 
 # After the Tentacle is registered with Octopus, Tentacle listens on a TCP port, and Octopus connects to it. The Octopus server
-# needs to know the public IP address to use to connect to this Tentacle instance. 
+# needs to know the public IP address to use to connect to this Tentacle instance.
 Function Get-MyPublicIPAddress {
     [CmdletBinding()]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "")]
