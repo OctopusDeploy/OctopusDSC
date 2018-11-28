@@ -144,14 +144,14 @@ try
             Context "All three are down, should throw" {
                 Mock Invoke-RestMethod { throw }
                 It "Should throw" {
-                    { Get-MyPublicIPAddress } | Should Throw
+                    { Get-MyPublicIPAddress } | Should Throw "Unable to determine"
                 }
             }
 
             Context "A service returns an invalid IP" {
                 Mock Invoke-RestMethod { return "IAMNOTANIPADDRESS" }
                 It "Should Throw" {
-                      { Get-MyPublicIpAddress } | Should Throw
+                      { Get-MyPublicIpAddress } | Should Throw "couldn't parse"
                 }
             }
         }
