@@ -4,6 +4,135 @@ $defaultTentacleDownloadUrl64 = "https://octopus.com/downloads/latest/OctopusTen
 # dot-source the helper file (cannot load as a module due to scope considerations)
 . (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1')
 
+<#
+    .SYNOPSIS
+        Calls the specified API and returns the results converted from JSON
+
+    .PARAMETER ServerUrl
+        URL of the Octopus Deploy server
+
+    .PARAMETER API
+        Relative url for the API
+
+    .PARAMETER APIKey
+        The API key to use for making the call
+
+    .EXAMPLE
+        Get-APIResults -ServerUrl "http://OctopusServer" -API "/machines/all" -APIKey "API-SOMEAPIKEY"
+#>
+function Get-APIResults
+{
+    # Define parameters
+    param (
+        [Parameter(Mandatory=$true)]
+        [System.String]
+        $ServerUrl,
+
+        [Parameter(Mandatory=$true)]
+        [System.String]
+        $API,
+
+        [Parameter(Mandatory=$true)]
+        [System.String]
+        $APIKey
+    )
+
+    # Check to see if the server url ends with a /
+    if (!$ServerUrl.EndsWith("/"))
+    {
+        # Add trailing slash
+        $ServerUrl = "$ServerUrl/"
+    }
+    
+    # form the api endpoint
+    $apiEndpoint = "{0}api{1}" -f $ServerUrl, $API
+
+    # Call API and capture results
+    $results = Invoke-WebRequest -Uri $apiEndpoint -Headers @{"X-Octopus-ApiKey"="$APIKey"}
+
+    # return the result
+    return ConvertFrom-Json -InputObject $results
+}
+
+<#
+    .SYNOPSIS
+        Gets reference to the specific machine
+
+    .PARAMETER ServerUrl
+        URL of the Octopus Deploy server
+
+    .PARAMETER APIKey
+        The API key to use for making the call 
+        
+    .PARAMETER Instance
+        The instance name to find
+
+    .EXAMPLE
+        Get-APIResults -ServerUrl "http://OctopusServer" -API "/machines/all" -APIKey "API-SOMEAPIKEY"
+#>
+
+function Get-MachineFromOctopusServer
+{
+    # Define parameters
+    param (
+        [Parameter(Mandatory=$true)]
+        [String]
+        $ServerUrl,
+
+        [Parameter(Mandatory=$true)]
+        [System.String]
+        $APIKey,
+
+        [Parameter()]
+        [System.String]
+        $Instance
+    )
+
+    # Get all the machines form Octopus
+    $machines = Get-APIResults -ServerUrl $ServerUrl -APIKey $APIKey -API "/machines/all"
+
+    # Get this machine's thumbprint
+    $thumbprint = Get-TentacleThumbprint -Instance $Instance
+    
+    # Attempt to find this machine by machine name
+    $machine = $machines | Where-Object {$_.Thumbprint -eq $thumbprint}
+
+    # return the machine reference
+    return $machine
+}
+
+<#
+    .SYNOPSIS
+        Gets reference to the specific machine
+
+    .PARAMETER Instance
+        Name of the instance to get the thumbprint for
+    
+    .EXAMPLE
+        Get-TentacleThumbprint
+#>
+function Get-TentacleThumbprint
+{
+    # Define parameters
+    param (
+        [Parameter()]
+        [System.String]
+        $Instance
+    )
+    
+    # Set location
+    Push-Location "${env:ProgramFiles}\Octopus Deploy\Tentacle" 
+    
+    # Get the thumbprint of this tentacle
+    $thumbprint = Invoke-Command {& .\tentacle.exe show-thumbprint --instance=$Instance} | Write-Output
+
+    # Reset location
+    Pop-Location
+
+    # Return the thumbprint
+    return $thumbprint
+}
+
 function Get-TargetResource {
     [OutputType([Hashtable])]
     param (
@@ -36,7 +165,8 @@ function Get-TargetResource {
         [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
         [bool]$RegisterWithServer = $true,
         [string]$OctopusServerThumbprint,
-        [PSCredential]$TentacleServiceCredential
+        [PSCredential]$TentacleServiceCredential,
+        [string[]]$WorkerPools
     )
     Write-Verbose "Checking if Tentacle is installed"
     $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\Tentacle" -ErrorAction SilentlyContinue).InstallLocation
@@ -175,7 +305,8 @@ function Set-TargetResource {
         [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
         [bool]$RegisterWithServer = $true,
         [string]$OctopusServerThumbprint,
-        [PSCredential]$TentacleServiceCredential
+        [PSCredential]$TentacleServiceCredential,
+        [string[]]$WorkerPools
     )
     Confirm-RequestedState $Ensure $State
     Confirm-RegistrationParameter $RegisterWithServer `
@@ -314,7 +445,8 @@ function Test-TargetResource {
         [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
         [bool]$RegisterWithServer = $true,
         [string]$OctopusServerThumbprint,
-        [PSCredential]$TentacleServiceCredential
+        [PSCredential]$TentacleServiceCredential,
+        [string[]]$WorkerPools
     )
 
     $currentResource = (Get-TargetResource -Name $Name)
@@ -337,6 +469,69 @@ function Test-TargetResource {
         Write-Verbose "Download Url: $($currentResource["TentacleDownloadUrl"]) vs. $requestedDownloadUrl = $downloadUrlsMatch"
         if (!$downloadUrlsMatch) {
             return $false
+        }
+    }
+
+    # Check Ensure value
+    if ($Ensure -eq "Present")
+    {
+        # Get reference to machine
+        $machine = Get-MachineFromOctopusServer -ServerUrl $OctopusServerUrl -APIKey $ApiKey -Instance $Name
+
+        # Check to see if machine returned anything
+        if ($null -ne $machine)
+        {
+            # Compare environment counts
+            if ($Environments.Count -ne $machine.EnvironmentIds.Count)
+            {
+                # Not in desired state
+                return $false
+            }
+            else 
+            {
+                # Compare environment names
+                foreach ($environmentId in $machine.EnvironmentIds)
+                {
+                    # Get environment reference
+                    $environment = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API "/environments/$environmentId"
+
+                    # Verify that the environment is in the list of environments
+                    if ($Environments -notcontains $environment.Name)
+                    {
+                        # Not in desired state
+                        return $false
+                    }
+                }
+            }
+
+            # Get reference to worker pools
+            $octoWorkerPools = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API "/workerpools/all"
+
+            # Compare worker assignments
+            foreach ($workerPool in $WorkerPools)
+            {
+                # Get reference to specific pool
+                $octoWorkerPool = $octoWorkerPools | Where-Object {$_.Name -eq $workerPool}
+
+                # Check to see if the pool was found
+                if ($null -ne $octoWorkerPool)
+                {
+                    # Get reference to the pool object
+                    $workerPoolObject = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API "/workerpools/$($octoWorkerPool.Name)"
+
+                    # See if the machine is in the worker pool list
+                    if ($null -eq ($workerPoolObject.Items | Where-Object {$_.Name -eq $machine.Name}))
+                    {
+                        # Not in desired state
+                        return $false
+                    }
+                }
+                else 
+                {
+                    # Not in desired state
+                    return $false
+                }
+            }
         }
     }
 
@@ -660,5 +855,149 @@ function Remove-TentacleRegistration {
     }
     else {
         Write-Verbose "Could not find Tentacle.exe"
+    }
+}
+
+function Remove-WorkerPoolRegistration
+{
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$octopusServerUrl,
+        [Parameter()]
+        [string]$apiKey,
+        [Parameter()]
+        [PSCredential]$TentacleServiceCredential,
+        [Parameter(Mandatory = $true)]
+        [string]$name
+    )
+
+    # Set tentacle location
+    $tentacleDir = "${env:ProgramFiles}\Octopus Deploy\Tentacle"
+
+    # Check to make sure the folder and the file exist
+    if ((Test-Path -Path $tentacleDir) -and (Test-Path -Path "$tentacleDir\tentacle.exe"))
+    {
+        # Display message
+        Write-Verbose "Deregistering $($env:ComputerName) from worker pools"
+
+        # Declare argument list
+        $argumentList = @(
+            "deregister-worker",
+            "--instance", $name,
+            "--server", $octopusServerUrl,
+            "--console"
+        )
+
+        # Set the location
+        Push-Location -Path $tentacleDir
+
+        # Determine which authentication mechanism ot use
+        if (![string]::IsNullOrEmpty($apiKey))
+        {
+            # Add api key to argument list
+            $argumentList += @(
+                "--apiKey", $apiKey
+            )
+        }
+        elseif (![string]::IsNullOrEmpty($TentacleServiceCredential))
+        {
+            # Add username and password to argument list
+            $argumentList += @(
+                "--username", $TentacleServiceCredential.UserName,
+                "--password", $TentacleServiceCredential.GetNetworkCredential().Password
+            )
+        }
+        else 
+        {
+            # Throw an error
+            throw "Both APIKey and TentacleServiceCredential are null!"    
+        }
+
+        # Execute teh process
+        Invoke-AndAssert {&.\tentacle.exe ($argumentList)}
+    }
+    else 
+    {
+        throw "Could not find Tentacle.exe"    
+    }
+}
+
+function Add-TentacleToWorkerPools
+{
+    # Define parameters
+    param(
+        [Parameter(Mandatory = $true)]
+        [String]
+        $name,
+
+        [Parameter(Mandatory = $true)]
+        [String]
+        $octopusServerUrl,
+        
+        [Parameter()]
+        [string]
+        $apiKey,
+        
+        [Parameter()]
+        [PSCredential]
+        $TentacleServiceCredential,
+
+        [Parameter()]
+        [String[]]
+        $workerPools
+    )
+
+    # Set tentacle location
+    $tentacleDir = "${env:ProgramFiles}\Octopus Deploy\Tentacle"
+
+    # Check to make sure the folder and the file exist
+    if ((Test-Path -Path $tentacleDir) -and (Test-Path -Path "$tentacleDir\tentacle.exe"))
+    {
+        # Display message
+        Write-Verbose "Adding $($env:COMPUTERNAME) to pool(s) $([System.String]::Join(", ", $workerPools))"
+
+        # Create argument list
+        $argumentList = @(
+            "register-worker",
+            "--instance", $name,
+            "--server", $octopusServerUrl
+        )
+
+        # Check to see which authentication mechanism to use
+        if (![string]::IsNullOrEmpty($apiKey))
+        {
+            # Add to argument list
+            $argumentList += @(
+                "--apiKey", $apiKey
+            )
+        }
+        elseif (![string]::IsNullOrEmpty($TentacleServiceCredential))
+        {
+            # Add to argument list
+            $argumentList += @(
+                "--username", $TentacleServiceCredential.UserName,
+                "--password", $TentacleServiceCredential.GetNetworkCredential().Password
+            )
+        }
+        else 
+        {
+            # Throw an error
+            throw "Both APIKey and TentacleServiceCredential are null!"    
+        }
+
+        # Loop through work pools
+        foreach ($workerPool in $workerPools)
+        {
+            # Add pool to the arguments
+            $argumentList += @(
+                "--workerpool", $workerPool
+            )
+        }
+
+        # Set the location
+        Push-Location -Path $tentacleDir
+        
+        # Execute the process
+        Invoke-AndAssert { &.\tentacle.exe ($argumentList)}
     }
 }
