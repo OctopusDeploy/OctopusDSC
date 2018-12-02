@@ -111,6 +111,7 @@ function Get-MachineFromOctopusServer
     .EXAMPLE
         Get-TentacleThumbprint
 #>
+
 function Get-TentacleThumbprint
 {
     # Define parameters
@@ -409,6 +410,23 @@ function Set-TargetResource {
         $serviceName = (Get-TentacleServiceName $Name)
         Write-Verbose "Starting $serviceName"
         Start-Service -Name $serviceName
+    }
+
+    # Get reference to machine
+    $machine = Get-MachineFromOctopusServer -ServerUrl $OctopusServerUrl -APIKey $ApiKey -Instance $Name 
+
+    # Determine Ensure
+    switch ($Ensure)
+    {
+        "Present"
+        {
+
+        }
+
+        "Absent"
+        {
+
+        }
     }
 
     Write-Verbose "Finished"
