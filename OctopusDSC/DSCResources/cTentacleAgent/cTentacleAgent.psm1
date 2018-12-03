@@ -332,6 +332,7 @@ function Set-TargetResource {
 
     if ($Ensure -eq "Absent" -and $currentResource["Ensure"] -eq "Present") {
         if ($RegisterWithServer) {
+            Remove-WorkerPoolRegistration -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl
             Remove-TentacleRegistration -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl
         }
 
@@ -420,12 +421,97 @@ function Set-TargetResource {
     {
         "Present"
         {
+            # Define variable to store current environment names
+            $currentEnvironments = @()
+            
+            # Compare the environment lists
+            foreach ($environmentId in $machine.EnvironmentIds)
+            {
+                # Get environment reference
+                $environment = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API "/environments/$environmentId"
 
+                # Verify that the environment is in the list of environments
+                if ($Environments -notcontains $environment.Name)
+                {
+                    # Display message
+                    Write-Verbose "Removing $($environment.Name) from $name"
+                    
+                    # Remove from environment
+                    return $false
+                }
+                else 
+                {
+                    # Add to environment list
+                    $currentEnvironments += $environment.Name                    
+                }
+            }
+
+            # Get difference between environments (if any)
+            $newEnvironments = $Environments | Where-Object {$currentEnvironments -notcontains $_}
+
+            # Loop through newEnvironments
+            foreach ($newEnvironment in $newEnvironments)
+            {
+                # Display message
+                Write-Verbose "Adding $newEnvironment to $name"
+                
+                # Add machine to environment
+            }
+
+            # Check worker pools
+            if (($null -ne $WorkerPools) -and ($WorkerPools.Count -gt 0))
+            {
+                # Declare working variables
+                $isWorkerPoolMember = $false
+
+                # Get reference to worker pools
+                $octoWorkerPools = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API "/workerpools/all"
+
+                foreach ($workerPool in $WorkerPools)
+                {
+                    # Get reference to specific pool
+                    $octoWorkerPool = $octoWorkerPools | Where-Object {$_.Name -eq $workerPool}
+    
+                    # Check to see if the pool was found
+                    if ($null -ne $octoWorkerPool)
+                    {
+                        # Get reference to the pool object
+                        $workerPoolObject = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API "/workerpools/$($octoWorkerPool.Name)"
+    
+                        # See if the machine is in the worker pool list
+                        if ($null -ne ($workerPoolObject.Items | Where-Object {$_.Name -eq $machine.Name}))
+                        {
+                            # Not in desired state
+                            $isWorkerPoolMember = $false
+
+                            # break from for
+                            break
+                        }
+                    }
+                }
+
+                # Check to see if it was found
+                if ($isWorkerPoolMember)
+                {
+                    # Display message
+                    Write-Verbose "Removing $Name from all worker pools."
+
+                    # Remove machine from worker pools
+                    Remove-WorkerPoolRegistration -Instance $Name -ServerUrl $OctopusServerUrl -ApiKey $ApiKey
+                }
+
+                # Add worker pools
+                Write-Verbose "Adding $Name to worker pools $($workerPools -join ", ")."
+
+                # Add the tentacle to specified worker pools
+                Add-TentacleToWorkerPools -name $Name -octopusServerUrl $OctopusServerUrl -apiKey $ApiKey -workerPools $WorkerPools
+            }
         }
+
 
         "Absent"
         {
-
+            # Not implemented
         }
     }
 
@@ -502,6 +588,9 @@ function Test-TargetResource {
             # Compare environment counts
             if ($Environments.Count -ne $machine.EnvironmentIds.Count)
             {
+                # Display message
+                Write-Verbose "Environment counts do not match, not in desired state."
+                
                 # Not in desired state
                 return $false
             }
@@ -516,6 +605,9 @@ function Test-TargetResource {
                     # Verify that the environment is in the list of environments
                     if ($Environments -notcontains $environment.Name)
                     {
+                        # Display message
+                        Write-Verbose "Machine currently has environment $($environment.Name), which is not listed in the passed in Environment list.  Machine is not in desired state."
+                        
                         # Not in desired state
                         return $false
                     }
@@ -526,6 +618,23 @@ function Test-TargetResource {
             $octoWorkerPools = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API "/workerpools/all"
 
             # Compare worker assignments
+            foreach ($octoWorkerPool in $octoWorkerPools)
+            {
+                # Get reference to the worker pool
+                $workerPoolObject = Get-APIResults -ServerUrl $OctopusServerUrl -APIKey $ApiKey -API "/workerpools/$($octoWorkerPool.Name)"
+
+                # Check to see if worker pool has this $Name in it
+                if (($null -eq ($workerPoolObject.Items | Where-Object {$_.Name -eq $machine.Name })) -and ($null -ne ($WorkerPools | Where-Object {$_ -eq $octoWorkerPool.Name})))
+                {
+                    # Display message
+                    Write-Verbose "$($machine.Name) is not a member of Worker Pool $($octoWorkerPool.Name) and should be.  $($machine.Name) is not in desired state."
+
+                    # Not in desired state
+                    return $false
+                }
+            }
+            
+            # Compare worker assignments -- remove this once you've done the loop above
             foreach ($workerPool in $WorkerPools)
             {
                 # Get reference to specific pool
