@@ -422,7 +422,11 @@ function Set-TargetResource {
         -communicationMode $CommunicationMode `
         -displayName $DisplayName `
         -publicHostNameConfiguration $PublicHostNameConfiguration `
-        -customPublicHostName $CustomPublicHostName
+        -customPublicHostName $CustomPublicHostName `
+        -port $ListenPort `
+        -serverPort $ServerPort `
+        -tentacleCommsPort $TentacleCommsPort `
+        
 
         
         # Check worker pools
@@ -729,12 +733,6 @@ function New-Tentacle {
         [string[]] $workerPools
     )
 
-    if ($port -eq 0) {
-        $port = 10933
-    }
-    if ($tentacleCommsPort -eq 0) {
-        $tentacleCommsPort = $port
-    }
 
     Install-Tentacle $tentacleDownloadUrl $tentacleDownloadUrl64 $tentacleHomeDirectory
 
@@ -823,7 +821,10 @@ function New-Tentacle {
         -communicationMode $communicationMode `
         -displayName $displayName `
         -publicHostNameConfiguration $publicHostNameConfiguration `
-        -customPublicHostName $customPublicHostName
+        -customPublicHostName $customPublicHostName `
+        -serverPort $serverPort `
+        -port $port `
+        -tentacleCommsPort $tentacleCommsPort
 
         # Check worker pools
         if (($null -ne $workerPools) -and ($workerPools.Count -gt 0))
@@ -1063,8 +1064,18 @@ function Register-Tentacle
         [string]$communicationMode = "Listen",
         [string]$displayName,
         [string]$publicHostNameConfiguration = "PublicIp",
-        [string]$customPublicHostName
+        [string]$customPublicHostName,
+        [int]$serverPort = 10943,
+        [int]$port = 10933,
+        [int]$tentacleCommsPort = 0
     )
+
+    if ($port -eq 0) {
+        $port = 10933
+    }
+    if ($tentacleCommsPort -eq 0) {
+        $tentacleCommsPort = $port
+    }
 
     # Define working variables
     $registerArguments = @(
