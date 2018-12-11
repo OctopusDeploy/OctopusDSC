@@ -32,7 +32,7 @@ Describe "OctopusDSC.psd1" {
         Import-LocalizedData -BaseDirectory $path -FileName OctopusDSC.psd1 -BindingVariable Data
 
         $expected = ($Data.DscResourcesToExport | Sort-Object) -join ","
-        $actual = (($modules | Sort-Object) -join ",")
+        $actual = (($modules.Name | Sort-Object) -join ",")
         $actual | should be $expected
     }
 }
@@ -99,7 +99,7 @@ Describe "Mandatory Parameters" {
 
 Describe "Test/Get/Set-TargetResource all implement the same properties" {
     $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/DSCResources"
-    $schemaMofFiles = Get-ChildItem $path -Recurse -Filter cOctopusServer.schema.mof
+    $schemaMofFiles = Get-ChildItem $path -Recurse -Filter *.schema.mof
     foreach ($schemaMofFile in $schemaMofFiles) {
         $schemaMofFileContent = Get-Content $schemaMofFile.FullName
         $moduleFile = Get-Item ($schemaMofFile.FullName -replace ".schema.mof", ".psm1")

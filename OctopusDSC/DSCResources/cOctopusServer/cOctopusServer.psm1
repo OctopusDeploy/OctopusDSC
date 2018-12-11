@@ -40,6 +40,7 @@ function Get-TargetResource {
         [string]$HomeDirectory = "$($env:SystemDrive)\Octopus",
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
         [string]$LicenseKey = $null,
+        [bool]$SkipLicenseCheck = $false,
         [bool]$GrantDatabasePermissions = $true,
         [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty,
         [string]$PackagesDirectory = "$HomeDirectory\Packages",
@@ -264,7 +265,7 @@ function Import-ServerConfig {
             OctopusFoldersPackagesDirectory                = $config.Octopus.Folders.PackagesDirectory
             OctopusTasksRecordTaskMetrics                  = [System.Convert]::ToBoolean($config.Octopus.Tasks.RecordTaskMetrics)
             OctopusWebPortalRequestMetricLoggingEnabled    = [System.Convert]::ToBoolean($config.Octopus.WebPortal.RequestMetricLoggingEnabled)
-            OctopusNodeTaskCap                             = $config.Octopus.Node.TaskCap
+            OctopusNodeTaskCap                             = $config.Octopus.Server.TaskCap
         }
     }
     else {
@@ -330,6 +331,14 @@ function Test-OctopusVersionSupportsTaskCap {
     return Test-OctopusVersionNewerThan (New-Object System.Version 2018, 6, 13)
 }
 
+function Test-OctopusVersionSupportsSkipLicenseCheck {
+    return Test-OctopusVersionNewerThan (New-Object System.Version 2018, 8, 9)
+}
+
+function Test-OctopusVersionSupportsDatabaseUpgrade {
+    return Test-OctopusVersionNewerThan (New-Object System.Version 3, 13, 9)
+}
+
 function Test-OctopusVersionNewerThan($targetVersion) {
     if (-not (Test-Path -LiteralPath $octopusServerExePath)) {
         throw "Octopus.Server.exe path '$octopusServerExePath' does not exist."
@@ -373,6 +382,7 @@ function Set-TargetResource {
         [string]$HomeDirectory = "$($env:SystemDrive)\Octopus",
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
         [string]$LicenseKey = $null,
+        [bool]$SkipLicenseCheck = $false,
         [bool]$GrantDatabasePermissions = $true,
         [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty,
         [string]$PackagesDirectory = "$HomeDirectory\Packages",
@@ -416,6 +426,7 @@ function Set-TargetResource {
                 -HomeDirectory $HomeDirectory `
                 -OctopusMasterKey $OctopusMasterKey `
                 -LicenseKey $LicenseKey `
+                -SkipLicenseCheck $SkipLicenseCheck `
                 -GrantDatabasePermissions $GrantDatabasePermissions `
                 -OctopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
                 -PackagesDirectory $PackagesDirectory `
@@ -474,6 +485,7 @@ function Set-TargetResource {
                 -octopusServiceCredential $OctopusServiceCredential `
                 -OctopusMasterKey $OctopusMasterKey `
                 -licenseKey $LicenseKey `
+                -skipLicenseCheck $SkipLicenseCheck `
                 -grantDatabasePermissions $GrantDatabasePermissions `
                 -octopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
                 -packagesDirectory $PackagesDirectory `
@@ -489,7 +501,8 @@ function Set-TargetResource {
                     -downloadUrl $DownloadUrl `
                     -state $State `
                     -webListenPrefix $webListenPrefix `
-                    -currentState $currentResource["State"]
+                    -currentState $currentResource["State"] `
+                    -skipLicenseCheck $SkipLicenseCheck
             }
 
             #are there any changes that need to be applied?
@@ -511,6 +524,7 @@ function Set-TargetResource {
                     -octopusServiceCredential $OctopusServiceCredential `
                     -OctopusMasterKey $OctopusMasterKey `
                     -licenseKey $LicenseKey `
+                    -skipLicenseCheck $SkipLicenseCheck `
                     -octopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
                     -packagesDirectory $PackagesDirectory `
                     -artifactsDirectory $ArtifactsDirectory `
@@ -580,6 +594,7 @@ function Set-OctopusDeployConfiguration {
         [PSCredential]$OctopusServiceCredential,
         [PSCredential]$OctopusMasterKey,
         [string]$licenseKey = $null,
+        [bool]$skipLicenseCheck = $false,
         [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty,
         [string]$packagesDirectory = $null,
         [string]$artifactsDirectory = $null,
@@ -751,6 +766,10 @@ function Set-OctopusDeployConfiguration {
         } else {
             Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
             $args += @('--licenseBase64', $licenseKey)
+
+            if ($skipLicenseCheck -and (Test-OctopusVersionSupportsSkipLicenseCheck)) {
+                $args += @('--skipLicenseCheck')
+            }
         }
         Invoke-OctopusServerCommand $args
     }
@@ -882,13 +901,31 @@ function Get-ExistingOctopusService {
     return @(Get-CimInstance win32_service | Where-Object {$_.PathName -like "`"$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe*"})
 }
 
-function Update-OctopusDeploy($name, $downloadUrl, $state, $webListenPrefix, $currentState) {
+function Update-OctopusDeploy($name, $downloadUrl, $state, $webListenPrefix, $currentState, $skipLicenseCheck) {
     Write-Verbose "Upgrading Octopus Deploy..."
     Install-MSI $downloadUrl -StopService:($currentState -eq "Started")
     if ($state -eq "Started") {
+        Update-OctopusDatabase -name $name -skipLicenseCheck $skipLicenseCheck
         Start-OctopusDeployService -name $name -webListenPrefix $webListenPrefix
     }
     Write-Verbose "Octopus Deploy upgraded!"
+}
+
+function Update-OctopusDatabase($name, $skipLicenseCheck) {
+    if (Test-OctopusVersionSupportsDatabaseUpgrade) {
+        Write-Log "Upgrading Octopus Database ..."
+        $args = @(
+            'database',
+            '--upgrade',
+            '--instance', $name
+        )
+
+        if ($skipLicenseCheck -and (Test-OctopusVersionSupportsSkipLicenseCheck)) {
+            $args += @('--skipLicenseCheck')
+        }
+
+        Invoke-OctopusServerCommand $args
+    }
 }
 
 function Start-OctopusDeployService($name, $webListenPrefix) {
@@ -912,7 +949,7 @@ function Start-OctopusDeployService($name, $webListenPrefix) {
     $timeout = new-timespan -Minutes 5
     $sw = [diagnostics.stopwatch]::StartNew()
     while (($sw.elapsed -lt $timeout) -and (-not (Test-OctopusDeployServerResponding $url))) {
-        Write-Verbose "$(date) Waiting until server completes startup"
+        Write-Verbose "$(Get-Date) Waiting until server completes startup"
         Start-Sleep -Seconds 5
     }
 
@@ -1089,6 +1126,7 @@ function Install-OctopusDeploy {
         [PSCredential]$octopusServiceCredential,
         [PSCredential]$OctopusMasterKey,
         [string]$licenseKey = $null,
+        [bool]$skipLicenseCheck = $false,
         [bool]$grantDatabasePermissions = $true,
         [PSCredential]$OctopusBuiltInWorkerCredential,
         [string]$taskLogsDirectory = $null,
@@ -1283,6 +1321,10 @@ function Install-OctopusDeploy {
     } else {
         Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
         $args += @('--licenseBase64', $licenseKey)
+
+        if ($skipLicenseCheck -and (Test-OctopusVersionSupportsSkipLicenseCheck)) {
+            $args += @('--skipLicenseCheck')
+        }
     }
     Invoke-OctopusServerCommand $args
 
@@ -1405,6 +1447,7 @@ function Test-TargetResource {
         [string]$HomeDirectory = "$($env:SystemDrive)\Octopus",
         [PSCredential]$OctopusMasterKey = [PSCredential]::Empty,
         [string]$LicenseKey = $null,
+        [bool]$SkipLicenseCheck = $false,
         [bool]$GrantDatabasePermissions = $true,
         [PSCredential]$OctopusBuiltInWorkerCredential = [PSCredential]::Empty,
         [string]$PackagesDirectory = "$HomeDirectory\Packages",
@@ -1412,7 +1455,7 @@ function Test-TargetResource {
         [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs",
         [bool]$LogTaskMetrics = $false,
         [bool]$LogRequestMetrics = $false,
-        [int]$taskCap = $null
+        [int]$TaskCap = $null
     )
 
     try {
@@ -1447,6 +1490,7 @@ function Test-TargetResource {
                 -OctopusServiceCredential $OctopusServiceCredential `
                 -HomeDirectory $HomeDirectory `
                 -LicenseKey $LicenseKey `
+                -SkipLicenseCheck $SkipLicenseCheck `
                 -GrantDatabasePermissions $GrantDatabasePermissions `
                 -OctopusBuiltInWorkerCredential $OctopusBuiltInWorkerCredential `
                 -PackagesDirectory $PackagesDirectory `

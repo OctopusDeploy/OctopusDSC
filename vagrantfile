@@ -48,8 +48,9 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   hostname = "vagrantdsc.local"
   config.vm.guest = :windows
-  config.vm.communicator = "winrm"
+  config.vm.communicator = :winrm
 
+  config.vm.allowed_synced_folder_types = [:winrm]
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
   if Vagrant.has_plugin?("vagrant-multi-hostsupdater")
@@ -63,8 +64,9 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     v.customize ["modifyvm", :id, "--audio", "none"]
     v.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
     v.customize ["modifyvm", :id, "--usb", "off"]
-    override.vm.box = "OctopusDeploy/dsc-test-server-windows-2012-r2"
-    override.vm.box_url = "https://s3-ap-southeast-2.amazonaws.com/octopus-vagrant-boxes/vagrant/json/OctopusDeploy/virtualbox/dsc-test-server-windows-2012-r2.json"
+    v.customize ["modifyvm", :id, "--vram", "32"]
+    override.vm.box = "OctopusDeploy/dsc-test-server-windows-server-1803"
+    override.vm.box_url = "https://s3-ap-southeast-2.amazonaws.com/octopus-vagrant-boxes/vagrant/json/OctopusDeploy/virtualbox/dsc-test-server-windows-server-1803.json"
     override.vm.network :forwarded_port, guest: 5985, host: 5985, id: "winrm", auto_correct: true
     override.vm.network :forwarded_port, guest: 80,   host: 8000, id: "web"
     override.vm.network :forwarded_port, guest: 443, host: 8443,  id: "ssl"
@@ -97,7 +99,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     aws.subnet_id = aws_subnet_id
     aws.associate_public_ip = true
     aws.user_data = File.read("Tests/aws_user_data.ps1")
-    override.vm.box = "OctopusDeploy/dsc-test-server-windows-2012-r2" #box added via launcher script
+    override.vm.box = "OctopusDeploy/dsc-test-server-windows-server-1803" #box added via launcher script
     override.ssh.private_key_path = "./#{aws_key_name}.pem"
     override.winrm.username = "Administrator"
     override.winrm.password = :aws # this uses the vagrant-aws-winrm plugin to get the password from aws

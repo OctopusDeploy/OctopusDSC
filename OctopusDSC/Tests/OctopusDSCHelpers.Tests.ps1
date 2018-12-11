@@ -75,15 +75,15 @@ Describe "Invoke-OctopusServerCommand" {
         Function Write-CommandOutput {}
 
         $dbargs = @("database",
-            "--instance", "OctopusServer",
             "--connectionstring", "Data Source=mydbserver;Initial Catalog=Octopus;Integrated Security=SSPI;Max Pool Size=200",
-            "--masterKey", "ABCD123456ASDBD")
+            "--masterKey", "ABCD123456ASDBD",
+            "--instance", "OctopusServer")
         $pwargs = @("database",
             "--instance", "OctopusServer",
             "--connectionstring", "Data Source=mydbserver;Initial Catalog=Octopus;Integrated Security=SSPI;Max Pool Size=200;username=sa;password=p@ssword1234!")
         $pwargs2 = @("database",
-            "--instance", "OctopusServer",
-            "--connectionstring", "Data Source=mydbserver;Initial Catalog=Octopus;Integrated Security=SSPI;Max Pool Size=200;username=sa;pwd=p@ssword1234!")
+            "--connectionstring", "Data Source=mydbserver;Initial Catalog=Octopus;Integrated Security=SSPI;Max Pool Size=200;username=sa;pwd=p@ssword1234!",
+            "--instance", "OctopusServer")
         $lcargs = @("license",
             "--console",
             "--instance", "OctopusServer",
@@ -94,25 +94,22 @@ Describe "Invoke-OctopusServerCommand" {
 
         It "Doesn't try to mask output when no sensitive values exist " {
             Invoke-OctopusServerCommand $npkargs
-            Assert-MockCalled Write-Verbose -parameterfilter { $Message -eq "Masking output" } -times 0
+            Assert-MockCalled Write-Verbose -parameterfilter { $Message -like "*echo database --instance OctopusServer --connectionstring Data Source=mydbserver;Initial Catalog=Octopus;Integrated Security=SSPI;Max Pool Size=200;*" } -times 1
         }
 
         It "Tries to mask the master key" {
             Invoke-OctopusServerCommand $dbargs
-            Assert-MockCalled Write-Verbose -parameterfilter { $Message -eq "Masking output" }
-            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"} -times 1  # has at least four asterisks
+            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*echo database --connectionstring Data Source=mydbserver;Initial Catalog=Octopus;Integrated Security=SSPI;Max Pool Size=200 --masterKey *************** --instance OctopusServer'*"} -times 1  # has at least four asterisks
         }
 
         It "Tries to mask the Connectionstring password" {
             Invoke-OctopusServerCommand $pwargs
-            Assert-MockCalled Write-Verbose -parameterfilter { $Message -eq "Masking output" }
-            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"}  -times 1
+            Assert-MockCalled Write-Verbose -parameterfilter { $Message -like "*echo database --instance OctopusServer --connectionstring Data Source=mydbserver;Initial Catalog=Octopus;Integrated Security=SSPI;Max Pool Size=200;username=sa;password=********'*"}  -times 1
         }
 
         It "Tries to mask the licencebase64" {
             Invoke-OctopusServerCommand $lcargs
-            Assert-MockCalled Write-Verbose -parameterfilter { $Message -eq "Masking output" }
-            Assert-MockCalled Write-Verbose -parameterfilter { $message -like "*`*`*`*`**"}  -times 1
+            Assert-MockCalled Write-Verbose -parameterfilter { $Message -like "*echo license --console --instance OctopusServer --licenseBase64 *******************************************************************'*"}  -times 1
         }
 
         It "Should successfully mask the SQL password" {

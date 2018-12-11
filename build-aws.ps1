@@ -21,11 +21,15 @@ Write-Output "AWS CLI installed - good."
 
 Test-PluginInstalled "vagrant-aws"
 Test-PluginInstalled "vagrant-aws-winrm"
-Test-PluginInstalled "vagrant-dsc"
-Test-PluginInstalled "vagrant-winrm"
+Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
 Write-Output "##teamcity[blockOpened name='Pester tests']"
+Write-Output "Importing Pester module"
+Test-PowershellModuleInstalled "Pester"
+Test-PowershellModuleInstalled "PSScriptAnalyzer"
+Import-Module Pester -verbose -force
+
 Write-Output "Running Pester Tests"
 $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
 if ($result.FailedCount -gt 0) {
@@ -56,10 +60,10 @@ else {
 }
 
 Write-Output "Adding vagrant box"
-vagrant box add OctopusDeploy/dsc-test-server-windows-2012-r2 https://s3-ap-southeast-2.amazonaws.com/octopus-vagrant-boxes/vagrant/json/OctopusDeploy/amazon-ebs/dsc-test-server-windows-2012-r2.json --force
+vagrant box add OctopusDeploy/dsc-test-server-windows-server-1803 https://s3-ap-southeast-2.amazonaws.com/octopus-vagrant-boxes/vagrant/json/OctopusDeploy/amazon-ebs/dsc-test-server-windows-server-1803.json --force
 
 Write-Output "Ensuring vagrant box is latest"
-vagrant box update --box OctopusDeploy/dsc-test-server-windows-2012-r2 --provider aws
+vagrant box update --box OctopusDeploy/dsc-test-server-windows-server-1803 --provider aws
 
 Write-Output "Running 'vagrant up --provider aws'"
 vagrant up --provider aws  | Tee-Object -FilePath vagrant.log

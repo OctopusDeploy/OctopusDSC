@@ -20,10 +20,14 @@ if (-not (Test-AppExists "azure")) {
 }
 Write-Output "Azure CLI installed - good."
 
-Test-PluginInstalled "vagrant-dsc"
+Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-azure" "2.0.0.pre7"
-Test-PluginInstalled "vagrant-winrm"
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
+
+Write-Output "Importing Pester module"
+Test-PowershellModuleInstalled "Pester"
+Test-PowershellModuleInstalled "PSScriptAnalyzer"
+Import-Module Pester -verbose -force
 
 Write-Output "Running Pester Tests"
 $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru

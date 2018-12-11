@@ -45,10 +45,13 @@ if (-not (Test-AppExists "VBoxManage")) {
 }
 Write-Output "VirtualBox installed - good."
 
-Test-PluginInstalled "vagrant-dsc"
-Test-PluginInstalled "vagrant-winrm"
+Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
+Write-Output "Importing Pester module"
+Test-PowershellModuleInstalled "Pester"
+Test-PowershellModuleInstalled "PSScriptAnalyzer"
+Import-Module Pester -verbose -force
 
 Write-Output "Running Pester Tests"
 $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
@@ -57,7 +60,7 @@ if ($result.FailedCount -gt 0) {
 }
 
 Write-Output "Running 'vagrant up --provider virtualbox'"
-vagrant up --provider virtualbox --debug 2>&1 | Tee-Object -FilePath vagrant.log  #  --no-destroy-on-error --debug
+vagrant up --provider virtualbox | Tee-Object -FilePath vagrant.log  #  --no-destroy-on-error --debug
 
 Write-Output "Dont forget to run 'vagrant destroy -f' when you have finished"
 
