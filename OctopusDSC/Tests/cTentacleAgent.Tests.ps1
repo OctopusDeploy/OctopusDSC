@@ -116,6 +116,45 @@ try
                 Mock Install-Tentacle { return $true }
             }
         }
+
+        Describe "Testing Get-MyPublicIPAddress" {
+            $testIP = "54.121.34.56"
+            Mock Invoke-RestMethod { return $testIP }
+
+            Context "First option works" {
+                It "Should return an IPv4 address" {
+                    Get-MyPublicIPAddress | Should Be $testIP
+                }
+            }
+
+            Context "First option is down" {
+                Mock Invoke-RestMethod { throw } -ParameterFilter { $uri -eq "https://api.ipify.org/"}
+                It "Should return an IPv4 address" {
+                    Get-MyPublicIPAddress | Should Be $testIP
+                }
+            }
+
+            Context "First and Second Options are down" {
+                Mock Invoke-RestMethod { throw } -ParameterFilter { $uri -eq "https://api.ipify.org/" -or $uri -eq 'https://canhazip.com/'}
+                It "Should return an IPv4 address" {
+                    Get-MyPublicIPAddress | Should Be $testIP
+                }
+            }
+
+            Context "All three are down, should throw" {
+                Mock Invoke-RestMethod { throw }
+                It "Should throw" {
+                    { Get-MyPublicIPAddress } | Should Throw "Unable to determine"
+                }
+            }
+
+            Context "A service returns an invalid IP" {
+                Mock Invoke-RestMethod { return "IAMNOTANIPADDRESS" }
+                It "Should Throw" {
+                      { Get-MyPublicIpAddress } | Should Throw "couldn't parse"
+                }
+            }
+        }
     }
 }
 finally

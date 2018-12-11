@@ -67,8 +67,7 @@ if (-not (Get-VMSwitch -SwitchType External -Name 'External Connection' -ErrorAc
 }
 Write-Output "External virtual switch detected - good."
 
-Test-PluginInstalled "vagrant-dsc"
-Test-PluginInstalled "vagrant-winrm"
+Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
 Write-Output "Running Pester Tests"

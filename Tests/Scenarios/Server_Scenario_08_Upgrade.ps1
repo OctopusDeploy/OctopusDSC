@@ -3,6 +3,7 @@ Configuration Server_Scenario_08_Upgrade
     param ($ApiKey)
 
     Import-DscResource -ModuleName OctopusDSC
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
 
     $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
     $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
@@ -38,6 +39,8 @@ Configuration Server_Scenario_08_Upgrade
 
             # dont mess with stats
             AllowCollectionOfUsageStatistics = $false
+
+            SkipLicenseCheck = $true
         }
 
         cOctopusEnvironment "Delete 'UAT 1' Environment"

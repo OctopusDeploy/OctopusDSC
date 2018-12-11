@@ -2,7 +2,7 @@
 Configuration Server_Scenario_14_Install_Without_Configure
 {
     Import-DscResource -ModuleName OctopusDSC
-    Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
 
     Node "localhost"
     {

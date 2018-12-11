@@ -1,6 +1,7 @@
 Configuration Tentacle_Scenario_06_Watchdog_Delete
 {
     Import-DscResource -ModuleName OctopusDSC
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
 
     Node "localhost"
     {

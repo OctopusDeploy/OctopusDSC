@@ -3,6 +3,7 @@ Configuration Tentacle_Scenario_08_Tentacle_Comms_Port
     param ($OctopusServerUrl, $ApiKey, $Environments, $Roles)
 
     Import-DscResource -ModuleName OctopusDSC
+    Import-DscResource -ModuleName PSDesiredStateConfiguration
 
     Node "localhost"
     {

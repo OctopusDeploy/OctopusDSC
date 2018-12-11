@@ -48,6 +48,7 @@ Configuration SampleConfig
             ArtifactsDirectory = "E:\OctopusArtifacts" # defaults to "$HomeDirectory\Artifacts"
 
             LicenseKey = "Base64 encoded xml license key"
+            SkipLicenseCheck = $false
 
             # the user account to use for run-on-server tasks (optional)
             OctopusBuiltInWorkerCredential = $runOnServerCred

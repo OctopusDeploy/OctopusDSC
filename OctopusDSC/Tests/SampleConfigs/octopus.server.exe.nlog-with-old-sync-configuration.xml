@@ -32,11 +32,9 @@
     <target xsi:type="ColoredConsole" name="stderr" errorStream="true" layout="${messageLayout}" />
     <target xsi:type="EventLog" name="eventlog" source="${appName}" layout="${normalLayout}" />
     <target xsi:type="RecentInMemory" name="recent" bufferSize="100" />
-    <target name="seqbufferingwrapper" xsi:type="BufferingWrapper" bufferSize="1000" flushTimeout="2000">
-      <target name="seq" xsi:type="Seq" serverUrl="https://seq.example.com">
-        <property name="Application" value="Octopus" />
-        <property name="Server" value="MyServer" />
-      </target>
+    <target name="seq" xsi:type="Seq" serverUrl="https://seq.example.com">
+      <property name="Application" value="Octopus" />
+      <property name="Server" value="MyServer" />
     </target>
   </targets>
 
@@ -47,6 +45,6 @@
     <logger name="*" minlevel="Warn" writeTo="recent" />
     <logger name="*" minlevel="Info" maxLevel="Warn" writeTo="stdout" />
     <logger name="*" minlevel="Error" writeTo="stderr" />
-    <logger name="*" minlevel="Info" writeTo="seqbufferingwrapper" />
+    <logger name="*" minlevel="Info" writeTo="seq" />
   </rules>
 </nlog>

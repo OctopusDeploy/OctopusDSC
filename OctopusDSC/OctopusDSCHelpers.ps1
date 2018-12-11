@@ -109,15 +109,11 @@ Function Get-MaskedOutput
     [CmdletBinding()]
     param($arguments)
 
-    Write-Verbose "Masking output"
-
     $reg = [System.Text.RegularExpressions.RegEx]::new("--masterkey|--password|--license", 
                 [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
 
     if(($arguments -match "--masterkey|--password|--license"))
     {
-        Write-Verbose "We found a sensitive command line argument. Masking"
-
         for($x=0;$x -lt $arguments.count; $x++)
         {
             if(($arguments[$x] -match "--masterkey|--password|--license"))
@@ -129,12 +125,10 @@ Function Get-MaskedOutput
     }
     elseif(($arguments -match "password|pwd"))
     {
-        Write-Verbose "We found a SQL connection string. Masking"
         $out = $arguments -replace "(password|pwd)=[^;]*", "`$1=********" 
     }
     else
     {
-        Write-Verbose "We found sensitive data but unable to selectively mask"
         $out = @("************************")
     }
     return $out

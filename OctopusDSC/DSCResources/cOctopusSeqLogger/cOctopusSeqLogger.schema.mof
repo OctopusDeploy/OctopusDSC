@@ -6,4 +6,5 @@ class cOctopusSeqLogger : OMI_BaseResource
   [Write] string SeqServer;
   [Write, EmbeddedInstance("MSFT_Credential")] string SeqApiKey;
   [Write, EmbeddedInstance("MSFT_KeyValuePair")] string Properties[];
+  [Read] sint8 ConfigVersion;
 };
