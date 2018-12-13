@@ -134,6 +134,47 @@ function Get-TentacleThumbprint
     return $thumbprint
 }
 
+function Get-WorkerPoolMembership
+{
+    # Declare parameters
+    param (
+        [Parameter()]
+        [System.String]
+        $ServerUrl,
+
+        [Parameter()]
+        [System.String]
+        $Thumbprint,
+
+        [Parameter()]
+        [System.String]
+        $ApiKey
+    )
+
+    # Get all worker pool refereces
+    $octoWorkerPools = Get-APIResult -ServerUrl $ServerUrl -ApiKey $ApiKey -API "/workerpools/all"
+
+    # Declare working variables
+    $workerPoolMembership = @()
+
+    # Loop through the worker pools
+    foreach ($octoWorkerPool in $octoWorkerPools)
+    {
+        # Get reference to the workers in this pool
+        $workers = Get-APIResult -ServerUrl $ServerUrl -ApiKey $ApiKey -API "/workerpools/$($octoWorkerPool.Id)/workers"
+
+        # Check to see if the thumbprint is listed
+        if ($null -ne ($workers | Where-Object {$_.Thumbprint -eq $Thumbprint}))
+        {
+            # Add the workerpool to the array
+            $workerPoolMembership += $octoWorkerPool
+        }
+    }
+
+    # Return the pools that this thumbprint is in
+    return $workerPoolMembership
+}
+
 function Get-TargetResource {
     [OutputType([Hashtable])]
     param (
@@ -332,7 +373,6 @@ function Set-TargetResource {
 
     if ($Ensure -eq "Absent" -and $currentResource["Ensure"] -eq "Present") {
         if ($RegisterWithServer) {
-            Remove-WorkerPoolRegistration -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl
             Remove-TentacleRegistration -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl
         }
 
@@ -508,7 +548,7 @@ function Test-TargetResource {
     }
 
     # Check Ensure value
-    if ($Ensure -eq "Present")
+    if ($Ensure -eq "Present" -and ![string]::IsNullOrEmpty($OctopusServerUrl))
     {
         # Get reference to machine
         $machine = Get-MachineFromOctopusServer -ServerUrl $OctopusServerUrl -APIKey $ApiKey -Instance $Name
@@ -545,54 +585,33 @@ function Test-TargetResource {
                 }
             }
 
-            # Get reference to worker pools
-            $octoWorkerPools = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API "/workerpools/all"
-<#
-            # Compare worker assignments
-            foreach ($octoWorkerPool in $octoWorkerPools)
+            # Get thumbprint
+            $tentacleThumbprint = Get-TentacleThumbprint -Instance $Name
+
+            # Get worker pool membership
+            $workerPoolMembership = Get-WorkerPoolMembership -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -Thumbprint $tentacleThumbprint
+
+            # Compare worker pool counts
+            if ($WorkerPools.Count -ne $workerPoolMembership.Count)
             {
-                # Get reference to the worker pool
-                $workerPoolObject = Get-APIResult -ServerUrl $OctopusServerUrl -APIKey $ApiKey -API "/workerpools/$($octoWorkerPool.Id)/workers"
+                # Worker pool counts do not match
+                Write-Verbose "Worker pool counts do not match, not in desired state."
 
-                # Check to see if worker pool has this $Name in it
-                if (($null -eq ($workerPoolObject.Items | Where-Object {$_.Name -eq $machine.Name })) -and ($null -ne ($WorkerPools | Where-Object {$_ -eq $octoWorkerPool.Name})))
-                {
-                    # Display message
-                    Write-Verbose "$($machine.Name) is not a member of Worker Pool $($octoWorkerPool.Name) and should be.  $($machine.Name) is not in desired state."
-
-                    # Not in desired state
-                    return $false
-                }
+                return $false
             }
- #>
-            # Compare worker assignments -- remove this once you've done the loop above
-            foreach ($workerPool in $WorkerPools)
+            else
             {
-                # Get reference to specific pool
-                $octoWorkerPool = $octoWorkerPools | Where-Object {$_.Name -eq $workerPool}
-
-                # Check to see if the pool was found
-                if ($null -ne $octoWorkerPool)
+                # Loop through the worker pool membership
+                foreach ($workerPool in $workerPoolMembership)
                 {
-                    # Get reference to the pool object
-                    $workerPoolObject = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API "/workerpools/$($octoWorkerPool.Id)/workers"
-
-                    # See if the machine is in the worker pool list
-                    if ($null -eq ($workerPoolObject.Items | Where-Object {$_.Name -eq $machine.Name}))
+                    # Check to see if it's in the lsit
+                    if ($WorkerPools -notcontains $workerPool.Name)
                     {
-                        # Display message
-                        Write-Verbose "$($octoWorkerPool.Name) does not contain $($machine.Name), not in desired state."
-
                         # Not in desired state
+                        Write-Verbose "Worker pool membership is not in desired state."
+
                         return $false
                     }
-                }
-                else
-                {
-                    # Not in desired state
-                    #return $false
-                    # Display warning
-                    Write-Verbose "Warning - worker pool $workerPool does not exist."
                 }
             }
 
