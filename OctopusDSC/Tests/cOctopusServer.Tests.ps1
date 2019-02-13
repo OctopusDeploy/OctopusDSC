@@ -357,24 +357,24 @@ try
 
             Context 'Set-TargetResource' {
                 #todo: more tests
-                It 'Throws an exception if .net 4.5.1 or above is not installed (no .net reg key found)' {
+                It 'Throws an exception if .net 4.5.2 or above is not installed (no .net reg key found)' {
                     Mock Invoke-MsiExec {}
                     Mock Get-LogDirectory {}
                     Mock Request-File {}
                     Mock Get-RegistryValue { return "" }
                     Mock Update-InstallState
                     $desiredConfiguration = Get-DesiredConfiguration
-                    { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.5.1. Please install it before attempting to install Octopus Server."
+                    { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.5.2. Please install it before attempting to install Octopus Server."
                 }
 
-                It 'Throws an exception if .net 4.5.1 or above is not installed (only .net 4.5.0 installed)' {
+                It 'Throws an exception if .net 4.5.2 or above is not installed (only .net 4.5.0 installed)' {
                     Mock Invoke-MsiExec {}
                     Mock Get-LogDirectory {}
                     Mock Request-File {}
                     Mock Get-RegistryValue { return "378389" }
                     Mock Update-InstallState
                     $desiredConfiguration = Get-DesiredConfiguration
-                    { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.5.1. Please install it before attempting to install Octopus Server."
+                    { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.5.2. Please install it before attempting to install Octopus Server."
                 }
             }
 
