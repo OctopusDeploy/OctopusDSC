@@ -1139,10 +1139,10 @@ function Install-OctopusDeploy {
 
     Write-Verbose "Installing Octopus Deploy..."
 
-    Write-Log "Checking to make sure .net 4.5.1+ is installed"
+    Write-Log "Checking to make sure .net 4.5.2+ is installed"
     $dotnetVersion = Get-RegistryValue "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" "Release"
-    if (($dotnetVersion -eq "") -or ([int]$dotnetVersion -lt 378675)) {
-        throw "Octopus Server requires .NET 4.5.1. Please install it before attempting to install Octopus Server."
+    if (($dotnetVersion -eq "") -or ([int]$dotnetVersion -lt 379893)) {
+        throw "Octopus Server requires .NET 4.5.2. Please install it before attempting to install Octopus Server."
     }
 
     # check if we're joining a cluster, or joining to an existing Database
