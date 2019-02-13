@@ -190,3 +190,6 @@ PesterTestResults.xml
 offline.config 
 
 .scratch
+
+Tests/vendor/*
+Tests/.bundle
