@@ -51,7 +51,7 @@ function Test-CustomVersionOfVagrantDscPluginIsInstalled() {
     }
   }
 
-  write-host "It doesn't appear that you've got the custom Octopous version of the vagrant-dsc plugin installed" -foregroundcolor red
+  write-host "It doesn't appear that you've got the custom Octopus version of the vagrant-dsc plugin installed" -foregroundcolor red
   write-host "Please download it from github:"
   write-host "  irm https://github.com/OctopusDeploy/vagrant-dsc/releases/download/v2.0.1/vagrant-dsc-2.0.1.gem -outfile vagrant-dsc-2.0.1.gem"
   write-host "  vagrant plugin install vagrant-dsc-2.0.1.gem"
