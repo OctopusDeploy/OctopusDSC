@@ -40,7 +40,7 @@ if (-not (Test-AppExists "vagrant")) {
 Write-Output "Vagrant installed - good."
 
 if (-not (Test-AppExists "VBoxManage")) {
-  Write-Output "Please install VirtualBox from virtualbox.org."
+  Write-Output "Please install VirtualBox from virtualbox.org and ensure the installation path is added to the system environment path."
   exit 1
 }
 Write-Output "VirtualBox installed - good."
