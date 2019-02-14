@@ -37,6 +37,8 @@ Configuration Server_Scenario_02_Install_Second_Node
             # The admin user to create
             OctopusAdminCredential = $cred
 
+            DownloadUrl = "https://s3-ap-southeast-1.amazonaws.com/octopus-testing/server/Octopus.2019.1.0-enh-reg-be-gone-3413-x64.msi"
+
             # Don't clash the comms port
             ListenPort = 10935
 

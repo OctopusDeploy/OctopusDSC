@@ -47,9 +47,11 @@ describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer
   it { should have_property_value('InstallLocation', :type_string, "C:\\Program Files\\Octopus Deploy\\Octopus\\") }
 end
 
-describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer\HANode') do
+describe file('C:/ProgramData/Octopus/OctopusServer/Instances/HANode.config') do
   it { should exist }
-  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\OctopusServer-HANode.config') }
+  it { should be_file }
+  its(:content) { should match /"ConfigurationFilePath": "C:\\Octopus\\OctopusServer-HANode.config"/ }
+  its(:content) { should match /"Name": "HANode"/ }
 end
 
 describe service('OctopusDeploy: HANode') do
