@@ -28,8 +28,8 @@ end
 describe file('C:/ProgramData/Octopus/OctopusServer/Instances/ConfigurePreInstalledInstance.config') do
   it { should exist }
   it { should be_file }
-  its(:content) { should match /"ConfigurationFilePath": "C:\\Octopus\\OctopusServer-ConfigurePreInstalledInstance.config"/ }
-  its(:content) { should match /"Name": "ConfigurePreInstalledInstance"/ }
+  its(:content) { should match /\"ConfigurationFilePath\": \"C:\\Octopus\\OctopusServer-ConfigurePreInstalledInstance.config\"/ }
+  its(:content) { should match /\"Name\": \"ConfigurePreInstalledInstance\"/ }
 end
 
 describe service('OctopusDeploy: ConfigurePreInstalledInstance') do

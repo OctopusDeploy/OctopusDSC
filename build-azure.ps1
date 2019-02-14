@@ -14,7 +14,7 @@ if (-not (Test-AppExists "vagrant")) {
 }
 Write-Output "Vagrant installed - good."
 
-if (-not (Test-AppExists "azure")) {
+if (-not (Test-AppExists "az")) {
   Write-Output "Azure CLI not found. Please install from https://docs.microsoft.com/en-us/azure/xplat-cli-install."
   exit 1
 }

@@ -23,8 +23,8 @@ end
 describe file('C:/ProgramData/Octopus/OctopusServer/Instances/OctopusServer.config') do
   it { should exist }
   it { should be_file }
-  its(:content) { should match /"ConfigurationFilePath": "C:\\Octopus\\OctopusServer-OctopusServer.config"/ }
-  its(:content) { should match /"Name": "OctopusServer"/ }
+  its(:content) { should match /\"ConfigurationFilePath\": \"C:\\Octopus\\OctopusServer-OctopusServer.config\"/ }
+  its(:content) { should match /\"Name\": \"OctopusServer\"/ }
 end
 
 describe service('OctopusDeploy') do
