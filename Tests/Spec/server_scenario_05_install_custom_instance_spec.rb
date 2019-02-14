@@ -21,7 +21,7 @@ end
 describe file('C:/ProgramData/Octopus/OctopusServer/Instances/MyOctopusServer.config') do
   it { should exist }
   it { should be_file }
-  its(:content) { should match /\"ConfigurationFilePath\": \"C:\\Octopus\\OctopusServer-MyOctopusServer.config\"/ }
+  its(:content) { should match /\"ConfigurationFilePath\": \"C:\\\\Octopus\\\\OctopusServer-MyOctopusServer.config\"/ }
   its(:content) { should match /\"Name\": \"MyOctopusServer\"/ }
 end
 
