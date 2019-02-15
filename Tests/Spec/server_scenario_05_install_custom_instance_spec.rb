@@ -13,11 +13,6 @@ describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer
   it { should have_property_value('InstallLocation', :type_string, "C:\\Program Files\\Octopus Deploy\\Octopus\\") }
 end
 
-describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer\MyOctopusServer') do
-  it { should exist }
-  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\OctopusServer-MyOctopusServer.config') }
-end
-
 describe file('C:/ProgramData/Octopus/OctopusServer/Instances/MyOctopusServer.config') do
   it { should exist }
   it { should be_file }
