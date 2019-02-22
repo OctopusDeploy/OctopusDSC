@@ -25,9 +25,11 @@ describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer
   it { should have_property_value('InstallLocation', :type_string, "C:\\Program Files\\Octopus Deploy\\Octopus\\") }
 end
 
-describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer\ConfigurePreInstalledInstance') do
+describe file('C:/ProgramData/Octopus/OctopusServer/Instances/ConfigurePreInstalledInstance.config') do
   it { should exist }
-  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\OctopusServer-ConfigurePreInstalledInstance.config') }
+  it { should be_file }
+  its(:content) { should match /\"ConfigurationFilePath\": \"C:\\\\Octopus\\\\OctopusServer-ConfigurePreInstalledInstance.config\"/ }
+  its(:content) { should match /\"Name\": \"ConfigurePreInstalledInstance\"/ }
 end
 
 describe service('OctopusDeploy: ConfigurePreInstalledInstance') do

@@ -18,6 +18,10 @@ describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer
   it { should_not exist }
 end
 
+describe file('C:/ProgramData/Octopus/OctopusServer/Instances/OctopusServer.config') do
+  it { should_not exist }
+end
+
 describe service('OctopusDeploy') do
   it { should_not be_installed }
 end
