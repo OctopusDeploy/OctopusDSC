@@ -36,7 +36,6 @@ Configuration Server_Scenario_08_Upgrade
 
             # The admin user to create
             OctopusAdminCredential = $cred
-            DownloadUrl = "https://s3-ap-southeast-1.amazonaws.com/octopus-testing/server/Octopus.2019.1.0-enh-reg-be-gone-3413-x64.msi"
             # dont mess with stats
             AllowCollectionOfUsageStatistics = $false
 

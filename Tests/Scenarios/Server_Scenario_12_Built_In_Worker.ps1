@@ -67,8 +67,7 @@ Configuration Server_Scenario_12_Built_In_Worker
             # dont mess with stats
             AllowCollectionOfUsageStatistics = $false
 
-            //DownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.2018.1.0-x64.msi"
-            DownloadUrl = "https://s3-ap-southeast-1.amazonaws.com/octopus-testing/server/Octopus.2019.1.0-enh-reg-be-gone-3413-x64.msi"
+            DownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.2018.1.0-x64.msi"
 
             OctopusServiceCredential = $svccred
 
