@@ -22,6 +22,7 @@ Configuration Server_Scenario_15_Configure_Preinstalled_Instance
             WebListenPrefix = "http://localhost:81"
             SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario15;Trusted_Connection=True;"
             OctopusAdminCredential = $cred
+            
             AllowCollectionOfUsageStatistics = $false
         }
 

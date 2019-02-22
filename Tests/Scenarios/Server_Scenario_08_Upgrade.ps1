@@ -36,6 +36,7 @@ Configuration Server_Scenario_08_Upgrade
 
             # The admin user to create
             OctopusAdminCredential = $cred
+            
             # dont mess with stats
             AllowCollectionOfUsageStatistics = $false
 
