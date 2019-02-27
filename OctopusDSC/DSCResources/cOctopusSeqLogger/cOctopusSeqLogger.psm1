@@ -418,13 +418,13 @@ function ConvertTo-HashTable {
 }
 
 function Request-SeqClientNlogDll ($dllPath) {
-    Write-Verbose "Downloading Seq.Client.NLog.dll version 2.3.25 from nuget to $dllPath"
+    Write-Verbose "Downloading Seq.Client.NLog.dll version 2.3.27 from nuget to $dllPath"
 
     $ProgressPreference = "SilentlyContinue"
     $folder = [System.IO.Path]::GetTempPath()
     Invoke-WebRequest https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -outfile "$folder\nuget.exe"
-    & "$folder\nuget.exe" install Seq.Client.NLog -outputdirectory $folder -version 2.3.24
-    Copy-Item "$folder\Seq.Client.NLog.2.3.24\lib\net40\Seq.Client.NLog.dll" $dllPath
+    & "$folder\nuget.exe" install Seq.Client.NLog -outputdirectory $folder -version 2.3.27
+    Copy-Item "$folder\Seq.Client.NLog.2.3.27\lib\net40\Seq.Client.NLog.dll" $dllPath
 }
 
 function Save-NlogConfig ($nlogConfig, $filename) {
