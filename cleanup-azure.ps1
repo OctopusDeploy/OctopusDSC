@@ -22,7 +22,6 @@ Write-Output "Azure CLI installed - good."
 
 Test-PluginInstalled "vagrant-dsc"
 Test-PluginInstalled "vagrant-azure" "2.0.0.pre7"
-Test-PluginInstalled "vagrant-winrm"
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
 #todo: check vagrant status and exit cleanly if not running

@@ -21,7 +21,6 @@ if (-not (Test-AppExists "aws")) {
 Test-PluginInstalled "vagrant-aws"
 Test-PluginInstalled "vagrant-aws-winrm"
 Test-PluginInstalled "vagrant-dsc"
-Test-PluginInstalled "vagrant-winrm"
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
 #get key name from file

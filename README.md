@@ -54,12 +54,10 @@ To run just the scenarios locally, follow these steps:
 3. _**If you are on a Mac or Linux**_ you need to install PowerShell, see https://github.com/PowerShell/PowerShell/blob/master/docs/installation/linux.md.
 4. If you want to test locally using virtualbox
     - Run `vagrant plugin install vagrant-dsc`
-    - Run `vagrant plugin install vagrant-winrm`
     - Run `vagrant plugin install vagrant-winrm-syncedfolders`
     - Run `vagrant up -- provider virtualbox`. This will run all the scenarios under the [Tests](Tests) folder.
 5. If you want to test locally using Hyper-V
     - Run `vagrant plugin install vagrant-dsc`
-    - Run `vagrant plugin install vagrant-winrm`
     - Run `vagrant plugin install vagrant-winrm-syncedfolders`
     - Run `vagrant up -- provider hyperv`. This will run all the scenarios under the [Tests](Tests) folder.
 6. If you want to test using AWS
