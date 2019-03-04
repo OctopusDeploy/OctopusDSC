@@ -3,6 +3,8 @@ param(
   [switch]$offline
 )
 
+. Tests/powershell-helpers.ps1
+
 Start-Transcript .\vagrant-hyperv.log -Append
 
 # remove psreadline as it interferes with the SMB password prompt
@@ -77,7 +79,7 @@ if ($result.FailedCount -gt 0) {
 }
 
 Write-Output "Running 'vagrant up --provider hyperv'"
-vagrant up --provider hyperv --no-destroy-on-error | Tee-Object -FilePath vagrant.log  #   --debug
+vagrant up --provider hyperv --no-destroy-on-error --debug | Tee-Object -FilePath vagrant.log  #   --debug
 
 Write-Output "Dont forget to run 'vagrant destroy -f' when you have finished"
 
