@@ -26,7 +26,7 @@ if($offline)   # if you want to use offline, then you need a v3 and a v4 install
   if(-not (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.3.*.msi"}))
   {
     Write-Warning "To run tests offline, you will need a v3 installer in the .\Tests folder"
-    throw 
+    throw
   }
 
   [pscustomobject]@{
@@ -79,8 +79,8 @@ if ($result.FailedCount -gt 0) {
 }
 
 Write-Output "Running 'vagrant up --provider hyperv'"
-vagrant up --provider hyperv --no-destroy-on-error --debug | Tee-Object -FilePath vagrant.log  #   --debug
+vagrant up --provider hyperv --no-destroy-on-error | Tee-Object -FilePath vagrant.log  #   --debug
 
 Write-Output "Dont forget to run 'vagrant destroy -f' when you have finished"
 
-stop-transcript 
+stop-transcript

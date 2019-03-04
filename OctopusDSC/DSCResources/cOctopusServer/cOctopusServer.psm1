@@ -5,7 +5,7 @@ $script:instancecontext = ''  # a global to hold the name of the current instanc
 # dot-source the helper file (cannot load as a module due to scope considerations)
 . (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1')
 
-function Resolve-ODSCError
+function Resolve-OctopusDSCError
 {
     param (
         $ErrorRecord=$Error[0]
@@ -210,7 +210,7 @@ function Get-TargetResource {
 
         return $currentResource
     } catch {
-        Resolve-ODSCError $_
+        Resolve-OctopusDSCError $_
         throw
     }
 }
@@ -544,7 +544,7 @@ function Set-TargetResource {
             Start-OctopusDeployService -name $Name -webListenPrefix $webListenPrefix
         }
     } catch {
-        Resolve-ODSCError $_
+        Resolve-OctopusDSCError $_
         throw
     }
 }
@@ -1531,7 +1531,7 @@ function Test-TargetResource {
 
         return $currentConfigurationMatchesRequestedConfiguration
     } catch {
-        Resolve-ODSCError $_
+        Resolve-OctopusDSCError $_
         throw
     }
 }
