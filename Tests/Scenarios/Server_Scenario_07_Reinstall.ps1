@@ -35,7 +35,7 @@ Configuration Server_Scenario_07_Reinstall
             # The admin user to create
             OctopusAdminCredential = $cred
 
-            DownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.3.3.24-x64.msi"
+            DownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.2019.1.11-x64.msi"
 
             # dont mess with stats
             AllowCollectionOfUsageStatistics = $false
