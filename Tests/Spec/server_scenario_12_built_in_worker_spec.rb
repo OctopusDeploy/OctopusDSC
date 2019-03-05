@@ -18,7 +18,6 @@ end
 
 describe file('C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe') do
   it { should be_file }
-  it { should be_version('2018.1.0') }
 end
 
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer') do
