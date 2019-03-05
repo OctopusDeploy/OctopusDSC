@@ -30,7 +30,7 @@ Configuration Server_Scenario_07_Reinstall
 
             SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario5;Trusted_Connection=True;"
 
-            LegacyWebAuthenticationMode = "UsernamePassword"
+            # LegacyWebAuthenticationMode = "UsernamePassword"
 
             # The admin user to create
             OctopusAdminCredential = $cred
