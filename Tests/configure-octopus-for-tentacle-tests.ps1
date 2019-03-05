@@ -55,14 +55,14 @@ try
     {
       throw "Lifecycle 'Default Lifecycle' not found during configuration"
     }
-    
+
     $project = $repository.Projects.CreateOrModify("Multi tenant project", $projectGroup, $lifecycle)
     $project.Save() | Out-Null
 
-    #enable Tenants feature
-    $featureConfig = $repository.FeaturesConfiguration.GetFeaturesConfiguration()
-    $featureConfig.IsMultiTenancyEnabled = $true
-    $repository.FeaturesConfiguration.ModifyFeaturesConfiguration($featureConfig) | Out-Null
+    #enable Tenants feature  # as of 2019 versions, this is permanently on.
+    #$featureConfig = $repository.FeaturesConfiguration.GetFeaturesConfiguration()
+    #$featureConfig.IsMultiTenancyEnabled = $true
+    #$repository.FeaturesConfiguration.ModifyFeaturesConfiguration($featureConfig) | Out-Null
 
     #reconnect after changing the feature config as the OctopusRepository caches some stuff
     $endpoint = new-object Octopus.Client.OctopusServerEndpoint $OctopusURI
