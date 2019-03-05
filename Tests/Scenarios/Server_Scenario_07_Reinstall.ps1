@@ -41,6 +41,13 @@ Configuration Server_Scenario_07_Reinstall
             AllowCollectionOfUsageStatistics = $false
         }
 
+        cOctopusServerUsernamePasswordAuthentication "Enable Username/Password Auth"
+        {
+            InstanceName = "OctopusServer"
+            Enabled = $true
+            DependsOn = "[cOctopusServer]OctopusServer"
+        }
+
         cOctopusEnvironment "Create 'UAT 1' Environment"
         {
             Url = "http://localhost:81"
