@@ -59,7 +59,7 @@ Configuration Server_Scenario_12_Built_In_Worker
             # The url that Octopus will listen on
             WebListenPrefix = "http://localhost:81"
 
-            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario10;Trusted_Connection=True;"
+            SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario12;Trusted_Connection=True;"
 
             # The admin user to create
             OctopusAdminCredential = $cred
@@ -67,7 +67,7 @@ Configuration Server_Scenario_12_Built_In_Worker
             # dont mess with stats
             AllowCollectionOfUsageStatistics = $false
 
-            DownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.2018.1.0-x64.msi"
+            # DownloadUrl = "https://download.octopusdeploy.com/octopus/Octopus.2018.1.0-x64.msi"
 
             OctopusServiceCredential = $svccred
 
