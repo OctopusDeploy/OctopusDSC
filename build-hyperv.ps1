@@ -3,6 +3,8 @@ param(
   [switch]$offline
 )
 
+. Tests/powershell-helpers.ps1
+
 Start-Transcript .\vagrant-hyperv.log -Append
 
 # remove psreadline as it interferes with the SMB password prompt
@@ -24,7 +26,7 @@ if($offline)   # if you want to use offline, then you need a v3 and a v4 install
   if(-not (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.3.*.msi"}))
   {
     Write-Warning "To run tests offline, you will need a v3 installer in the .\Tests folder"
-    throw 
+    throw
   }
 
   [pscustomobject]@{
@@ -81,4 +83,4 @@ vagrant up --provider hyperv --no-destroy-on-error | Tee-Object -FilePath vagran
 
 Write-Output "Dont forget to run 'vagrant destroy -f' when you have finished"
 
-stop-transcript 
+stop-transcript
