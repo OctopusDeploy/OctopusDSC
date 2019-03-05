@@ -14,9 +14,9 @@ end
 #  it { should have_property_value('InstallLocation', :type_string, "C:\\Program Files\\Octopus Deploy\\Octopus\\") }
 #end
 
-describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer\OctopusServer') do
-  it { should_not exist }
-end
+#describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer\OctopusServer') do
+#  it { should_not exist }
+#end
 
 describe file('C:/ProgramData/Octopus/OctopusServer/Instances/OctopusServer.config') do
   it { should_not exist }
