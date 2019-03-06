@@ -24,7 +24,7 @@ Function Get-ConfigPath
     if( (Test-Path "HKLM:\SOFTWARE\Octopus\Tentacle\" ) )
     {
         Get-ChildItem  "HKLM:\SOFTWARE\Octopus\Tentacle\" | ForEach-Object {
-            Get-ChildItem $_ | ForEach-Object {
+            $_ | ForEach-Object {
                 $ConfigPaths += Get-ItemProperty -Path $_.PSPath | select -expand Configurationfilepath
             }
         }
