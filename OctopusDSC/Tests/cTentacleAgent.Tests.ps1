@@ -25,6 +25,7 @@ try
                      Name                   = 'Stub'
                      Ensure                 = 'Present'
                      State                  = 'Started'
+                     Space                  = 'Default'
                 }
             }
 

@@ -24,6 +24,7 @@ function Get-TargetResource {
         [string]$Policy,
         [string[]]$Tenants = "",
         [string[]]$TenantTags = "",
+        [string]$Space = "",
         [string]$DefaultApplicationDirectory,
         [int]$ListenPort = 10933,
         [int]$TentacleCommsPort = 0,
@@ -163,6 +164,7 @@ function Set-TargetResource {
         [string]$Policy,
         [string[]]$Tenants = "",
         [string[]]$TenantTags = "",
+        [string]$Space = "",
         [string]$DefaultApplicationDirectory = "$($env:SystemDrive)\Applications",
         [int]$ListenPort = 10933,
         [int]$TentacleCommsPort = 0,
@@ -245,6 +247,7 @@ function Set-TargetResource {
             -tentacleCommsPort $TentacleCommsPort `
             -displayName $DisplayName `
             -environments $Environments `
+            -space $Space `
             -roles $Roles `
             -policy $Policy `
             -tenants $Tenants `
@@ -302,6 +305,7 @@ function Test-TargetResource {
         [string]$Policy,
         [string[]]$Tenants = "",
         [string[]]$TenantTags = "",
+        [string]$Space = "",
         [string]$DefaultApplicationDirectory,
         [int]$ListenPort = 10933,
         [int]$TentacleCommsPort = 0,
@@ -456,6 +460,8 @@ function New-Tentacle {
         [string[]]$tenants = "",
         [Parameter(Mandatory = $False)]
         [string[]]$tenantTags = "",
+        [Parameter(Mandatory = $False)]
+        [string]$space = "",
         [Parameter(Mandatory = $False)]
         [string]$policy,
         [int]$port = 10933,
@@ -612,6 +618,10 @@ function New-Tentacle {
                     $registerArguments += $t2.Trim()
                 }
             }
+        }
+
+        if ($space -ne "") {
+            $registerArguments += += @("--space", $space)
         }
 
         if ($tenantTags -ne "") {
