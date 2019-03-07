@@ -41,8 +41,10 @@ function Test-PowershellModuleInstalled($moduleName) {
   }
 }
 
-function Test-CustomVersionOfVagrantDscPluginIsInstalled() {
-  $path = Resolve-Path ~/.vagrant.d/gems/*/gems/vagrant-dsc-*/lib/vagrant-dsc/provisioner.rb
+function Test-CustomVersionOfVagrantDscPluginIsInstalled() {  # does not deal well with machines that have two vesioned folders under /gems/
+  $path = Resolve-Path ~/.vagrant.d/gems/*/gems/vagrant-dsc-*/lib/vagrant-dsc/provisioner.rb |
+            Sort-Object -descending |
+            Select-Object -first 1 # sort and select to cope with multiple gem folders (upgraded vagrant)
 
   if (Test-Path $path) {
     $content = Get-Content $path -raw
