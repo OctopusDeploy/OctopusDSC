@@ -81,6 +81,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
       config.vm.network "public_network", bridge: "External Connection"
       v.memory = 4096
       v.maxmemory = 4096
+      v.cpus = 2
       override.vm.network :forwarded_port, guest: 5985, host: 5985, id: "winrm", auto_correct: true
       override.vm.network :forwarded_port, guest: 80,   host: 8000, id: "web"
       override.vm.network :forwarded_port, guest: 443, host: 8443,  id: "ssl"
@@ -141,7 +142,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   config.vm.provision "shell", path: "Tests/configure-dsc-local-configuration-manager.ps1"
 
   # Run DSC to install server
-  #run_octopus_scenario(config, 'Server_Scenario_01_Install')
+  run_octopus_scenario(config, 'Server_Scenario_01_Install')
 
   # Run DSC to install second HA node
   #run_octopus_scenario(config, 'Server_Scenario_02_Install_Second_Node')
@@ -180,10 +181,10 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   #run_octopus_scenario(config, 'Server_Scenario_13_Remove')
 
   # install only without configure
-  run_octopus_scenario(config, 'Server_Scenario_14_Install_Without_Configure')
+  #run_octopus_scenario(config, 'Server_Scenario_14_Install_Without_Configure')
 
   # go from installed to configured
-  run_octopus_scenario(config, 'Server_Scenario_15_Configure_Preinstalled_Instance')
+  #run_octopus_scenario(config, 'Server_Scenario_15_Configure_Preinstalled_Instance')
 
   config.vm.provision "shell", path: "Tests/configure-octopus-for-tentacle-tests.ps1"
 
