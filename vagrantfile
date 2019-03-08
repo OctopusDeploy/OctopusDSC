@@ -24,7 +24,7 @@ def run_octopus_scenario(config, scenario, configuration_params = nil)
   config.vm.provision "dsc" do |dsc|
     dsc.configuration_file  = "#{scenario}.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
-    dsc.manifests_path = "Tests/Scenarios"
+    dsc.manifests_path = "Tests/Scenarios/"
     dsc.abort_on_dsc_failure = true
     dsc.configuration_params = configuration_params unless configuration_params.nil?
   end
@@ -38,7 +38,7 @@ def run_tentacle_scenario(config, scenario, configuration_params = nil)
   config.vm.provision "dsc" do |dsc|
     dsc.configuration_file  = "#{scenario}.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
-    dsc.manifests_path = "Tests/Scenarios"
+    dsc.manifests_path = "Tests/Scenarios/"
     dsc.abort_on_dsc_failure = true
     dsc.configuration_params = configuration_params unless configuration_params.nil?
   end
@@ -145,46 +145,46 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   run_octopus_scenario(config, 'Server_Scenario_01_Install')
 
   # Run DSC to install second HA node
-  #run_octopus_scenario(config, 'Server_Scenario_02_Install_Second_Node')
+  run_octopus_scenario(config, 'Server_Scenario_02_Install_Second_Node')
 
   # remove the first node
-  #run_octopus_scenario(config, 'Server_Scenario_03_Remove')
+  run_octopus_scenario(config, 'Server_Scenario_03_Remove')
 
   # remove the second ode
-  #run_octopus_scenario(config, 'Server_Scenario_04_Remove_Second_Node')
+  run_octopus_scenario(config, 'Server_Scenario_04_Remove_Second_Node')
 
   # Run DSC to install server with a custom instance name
-  #run_octopus_scenario(config, 'Server_Scenario_05_Install_Custom_Instance')
+  run_octopus_scenario(config, 'Server_Scenario_05_Install_Custom_Instance')
 
   # remove the server with a custom instance name
-  #run_octopus_scenario(config, 'Server_Scenario_06_Remove_Custom_Instance')
+  run_octopus_scenario(config, 'Server_Scenario_06_Remove_Custom_Instance')
 
   # re-install old version
-  #run_octopus_scenario(config, 'Server_Scenario_07_Reinstall')
+  run_octopus_scenario(config, 'Server_Scenario_07_Reinstall')
 
   # upgrade to the latest
-  #run_octopus_scenario(config, 'Server_Scenario_08_Upgrade', { "-ApiKey" => "$ENV:OctopusApiKey" })
+  run_octopus_scenario(config, 'Server_Scenario_08_Upgrade', { "-ApiKey" => "$ENV:OctopusApiKey" })
 
   # install watchdog
-  #run_octopus_scenario(config, 'Server_Scenario_09_Watchdog_Create')
+  run_octopus_scenario(config, 'Server_Scenario_09_Watchdog_Create')
 
   # delete watchdog
-  #run_octopus_scenario(config, 'Server_Scenario_10_Watchdog_Delete')
+  run_octopus_scenario(config, 'Server_Scenario_10_Watchdog_Delete')
 
   # remove again prior to installing 4
-  #run_octopus_scenario(config, 'Server_Scenario_11_Remove')
+  run_octopus_scenario(config, 'Server_Scenario_11_Remove')
 
   # install v4
-  #run_octopus_scenario(config, 'Server_Scenario_12_Built_In_Worker')
+  run_octopus_scenario(config, 'Server_Scenario_12_Built_In_Worker')
 
   # remove again prior to testing "install only"
-  #run_octopus_scenario(config, 'Server_Scenario_13_Remove')
+  run_octopus_scenario(config, 'Server_Scenario_13_Remove')
 
   # install only without configure
-  #run_octopus_scenario(config, 'Server_Scenario_14_Install_Without_Configure')
+  run_octopus_scenario(config, 'Server_Scenario_14_Install_Without_Configure')
 
   # go from installed to configured
-  #run_octopus_scenario(config, 'Server_Scenario_15_Configure_Preinstalled_Instance')
+  run_octopus_scenario(config, 'Server_Scenario_15_Configure_Preinstalled_Instance')
 
   config.vm.provision "shell", path: "Tests/configure-octopus-for-tentacle-tests.ps1"
 
