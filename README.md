@@ -25,7 +25,7 @@ Version 3.0 of OctopusDSC supports Octopus Deploy 4.x with backwards compatibili
 2. Install DSC module via `PowerShellGet\Install-Module -Name OctopusDSC`
 
 ### Manual ###
-1. Download the [latest release](https://github.com/OctopusDeploy/OctopusDSC/releases) 
+1. Download the [latest release](https://github.com/OctopusDeploy/OctopusDSC/releases)
 2. If required, unblock the zip file
 3. Extract the zip file to a folder called OctopusDSC under your modules folder (usually `%USERPROFILE%\Documents\WindowsPowerShell\Modules`)
 4. To confirm it's installed correctly, in a new powershell session run `Get-Module -ListAvailable -Name OctopusDSC`
@@ -38,7 +38,7 @@ This project is setup to use [Vagrant](vagrant.io) to provide a dev/test environ
 
 There are four options provided:
 
- - [build-aws.ps1](build-aws.ps1) 
+ - [build-aws.ps1](build-aws.ps1)
  - [build-azure.ps1](build-azure.ps1)
  - [build-hyperv-ps1](build-hyperv-ps1) - windows virtualisation (new)
  - [build-virtualbox.ps1](build-virtualbox.ps1) - cross-platform virtualisation
@@ -49,17 +49,17 @@ Configuration is handled by environment variables. The shell scripts will show a
 
 To run just the scenarios locally, follow these steps:
 
-1. Install Vagrant from [vagrantup.com](https://vagrantup.com)
+1. Install Vagrant from [vagrantup.com](https://vagrantup.com). (Note: version after 2.2.3 have altered WinRM upload behaviour which may cause issues)
 2. Install VirtualBox from [virtualbox.org](https://virtualbox.org) or Hyper-V (`Install-WindowsFeature –Name Hyper-V -IncludeManagementTools -Restart`  )
 3. _**If you are on a Mac or Linux**_ you need to install PowerShell, see https://github.com/PowerShell/PowerShell/blob/master/docs/installation/linux.md.
 4. If you want to test locally using virtualbox
     - Run `vagrant plugin install vagrant-dsc`
     - Run `vagrant plugin install vagrant-winrm-syncedfolders`
-    - Run `vagrant up -- provider virtualbox`. This will run all the scenarios under the [Tests](Tests) folder.
+    - Run `build-virtualbox.ps1`. This will run all the scenarios under the [Tests](Tests) folder.
 5. If you want to test locally using Hyper-V
     - Run `vagrant plugin install vagrant-dsc`
     - Run `vagrant plugin install vagrant-winrm-syncedfolders`
-    - Run `vagrant up -- provider hyperv`. This will run all the scenarios under the [Tests](Tests) folder.
+    - Run `build-hyperv.ps1`. This will run all the scenarios under the [Tests](Tests) folder.
 6. If you want to test using AWS
     - Run `vagrant plugin install vagrant-aws`
     - Run `vagrant plugin install vagrant-aws-winrm`
@@ -67,7 +67,7 @@ To run just the scenarios locally, follow these steps:
     - Set an environment variable `AWS_SECRET_ACCESS_KEY` to a valid value
     - Set an environment variable `AWS_SUBNET_ID` to a valid subnet where you want the instance launched
     - Set an environment variable `AWS_SECURITY_GROUP_ID` to a valid security group you want to assign to the instance
-    - Run `vagrant up --provider aws`. This will run all the scenarios under the [Tests](Tests) folder.
+    - Run `build-aws.ps1`. This will run all the scenarios under the [Tests](Tests) folder.
 7. If you want to test using Azure
     - Run `vagrant plugin install vagrant-azure`
     - Set an environment variable `AZURE_VM_PASSWORD` to a valid value
@@ -75,8 +75,8 @@ To run just the scenarios locally, follow these steps:
     - Set an environment variable `AZURE_TENANT_ID` to a valid value
     - Set an environment variable `AZURE_CLIENT_ID` to a valid value
     - Srt an environment variable `AZURE_CLIENT_SECRET` to a valid value
-    - Run `vagrant up --provider azure`. This will run all the scenarios under the [Tests](Tests) folder.
-8. Run `vagrant destroy -f` once you have finished to kill the virtual machine.
+    - Run `build-azure.ps1`. This will run all the scenarios under the [Tests](Tests) folder.
+8. Run `vagrant destroy -f` or the appropriate `cleanup-*.ps1` once you have finished to kill the virtual machine.
 
 Tests are written in [ServerSpec](serverspec.org), which is an infrastructure oriented layer over [RSpec](rspec.info).
 
