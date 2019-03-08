@@ -85,7 +85,7 @@ try
     $tenantEditor.Save() | Out-Null
 
     # create a non-default Test Machine Policy w/ defaults
-    $policyResource = new-object Octopus.Client.Model.MachinePolicyResource
+    $policyResource = $repository.MachinePolicies.GetTemplate()
     $policyResource.Name = "Test Policy"
     $policyResource.IsDefault = $false
     $policyResource.Description = "Test Machine Policy"
