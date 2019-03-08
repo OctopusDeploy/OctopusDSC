@@ -42,7 +42,7 @@ Configuration Tentacle_Scenario_01_Install
             Tenants = "John"
             TenantTags = "Hosting/Cloud"
 
-            # Policy = "Test Policy"
+            Policy = "Test Policy"
         }
 
         cOctopusSeqLogger "Enable logging to seq"
