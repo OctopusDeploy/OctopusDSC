@@ -91,6 +91,19 @@ try
     $policyResource.Description = "Test Machine Policy"
     $repository.MachinePolicies.Create($policyResource) | Out-Null
 
+    # create a team to be space managers
+    $teamResource = new-object Octopus.Client.Model.TeamResource
+    $teamResource.Name = "space-test-team"
+    $teamResource.MemberUserIds = [Octopus.Client.Model.ReferenceCollection]::new($user.Id)
+    $repository.Team.Create($teamResource) | Out-Null
+    $spaceTeam = $repository.Team.FindByName($teamResource.Name)
+
+    # create a space with required space manager team
+    $spaceResource = new-object Octopus.Client.Model.SpaceResource
+    $spaceResource.Name = "AdditionalSpace"
+    $spaceResource.SpaceManagersTeams = [Octopus.Client.Model.ReferenceCollection]::new($spaceTeam.Id)
+    $repository.Space.Create($spaceResource) | Out-Null
+
     set-content "c:\temp\octopus-configured.marker" ""
     Stop-Transcript
   }

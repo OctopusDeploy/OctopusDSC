@@ -160,5 +160,30 @@ Configuration Tentacle_Scenario_01_Install
             TentacleServiceCredential = $svccred
             DependsOn = @("[User]ServiceUser", "[Group]AddUserToLocalAdminGroup")
         }
+
+        cTentacleAgent ListeningTentacleInDifferentSpace
+        {
+            Ensure = "Present";
+            State = "Started";
+
+            # Tentacle instance name. Leave it as 'Tentacle' unless you have more
+            # than one instance
+            Name = "ListeningTentacleInDifferentSpace";
+
+            DisplayName = "My Listening Tentacle in a Different Space"
+
+            # Registration - all parameters required
+            ApiKey = $ApiKey;
+            OctopusServerUrl = $OctopusServerUrl;
+            Environments = $Environments;
+            Roles = $Roles;
+
+            # Optional settings
+            ListenPort = 10937;
+            DefaultApplicationDirectory = "C:\Applications"
+            PublicHostNameConfiguration = "ComputerName"
+            TentacleHomeDirectory = "C:\Octopus\ListeningTentacleInDifferentSpaceHome"
+            Space = "AdditionalSpace"
+        }
     }
 }

@@ -67,6 +67,7 @@ describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], 
   it { should have_role('Test-Tentacle') }
   it { should have_display_name("#{ENV['COMPUTERNAME']}_PollingTentacle") }
   it { should have_policy('Default Machine Policy') }
+  it { should be_in_space('AdditionalSpace') }
 end
 
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\PollingTentacle') do
