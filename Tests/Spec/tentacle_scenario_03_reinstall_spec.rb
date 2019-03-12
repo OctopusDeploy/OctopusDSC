@@ -10,7 +10,7 @@ end
 
 describe file('C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe') do
   it { should be_file }
-  it { should have_version('3.20.0') }
+  it { should have_version('3.20.0.0') }
 end
 
 describe service('OctopusDeploy Tentacle') do
