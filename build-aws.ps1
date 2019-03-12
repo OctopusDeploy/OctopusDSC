@@ -1,4 +1,5 @@
 #!/usr/local/bin/pwsh
+param([switch]$SkipPester)
 
 . Tests/powershell-helpers.ps1
 
@@ -24,18 +25,21 @@ Test-PluginInstalled "vagrant-aws-winrm"
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
-Write-Output "##teamcity[blockOpened name='Pester tests']"
-Write-Output "Importing Pester module"
-Test-PowershellModuleInstalled "Pester"
-Test-PowershellModuleInstalled "PSScriptAnalyzer"
-Import-Module Pester -verbose -force
+if(-not $SkipPester)
+{
+  Write-Output "##teamcity[blockOpened name='Pester tests']"
+  Write-Output "Importing Pester module"
+  Test-PowershellModuleInstalled "Pester"
+  Test-PowershellModuleInstalled "PSScriptAnalyzer"
+  Import-Module Pester -verbose -force
 
-Write-Output "Running Pester Tests"
-$result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
-if ($result.FailedCount -gt 0) {
-  exit 1
+  Write-Output "Running Pester Tests"
+  $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
+  if ($result.FailedCount -gt 0) {
+    exit 1
+  }
+  Write-Output "##teamcity[blockClosed name='Pester tests']"
 }
-Write-Output "##teamcity[blockClosed name='Pester tests']"
 
 $randomGuid=[guid]::NewGuid()
 $keyName = "vagrant_$randomGuid"

@@ -1,6 +1,7 @@
 #!/usr/local/bin/pwsh
 param(
-  [switch]$offline
+  [switch]$offline,
+  [switch]$SkipPester
 )
 
 . Tests/powershell-helpers.ps1
@@ -72,10 +73,13 @@ Write-Output "External virtual switch detected - good."
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
-Write-Output "Running Pester Tests"
-$result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
-if ($result.FailedCount -gt 0) {
-  exit 1
+if(-not $SkipPester)
+{
+  Write-Output "Running Pester Tests"
+  $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
+  if ($result.FailedCount -gt 0) {
+    exit 1
+  }
 }
 
 Write-Output "Running 'vagrant up --provider hyperv'"
