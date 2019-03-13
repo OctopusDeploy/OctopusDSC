@@ -235,7 +235,7 @@ function Get-CleanedJson
     $extractedjson = $jsonstring.Substring($jsonstart, $jsonstring.length - $jsonstart)
 
     $dumpedstring = $jsonstring.substring(0, $jsonstart-1)
-    Write-Warning "stripped extra content from JSON configuration string`r`n`r`n$dumpedstring"
+    Write-Warning "stripped extra content from JSON configuration string`r`n`r`n" + (Get-MaskedOutput $dumpedstring)
 
     return $extractedjson
 }

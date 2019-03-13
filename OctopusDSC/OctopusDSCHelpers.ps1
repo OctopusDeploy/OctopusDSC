@@ -70,7 +70,7 @@ function Request-File {
                     $ex = $ex.InnerException
                 }
 
-                Write-Verbose "Retrying up to $maxRetries times."                
+                Write-Verbose "Retrying up to $maxRetries times."
 
                 if ($retryCount -gt $maxRetries) {
                     # rethrow the inner exception if we've retried enough times
@@ -109,7 +109,7 @@ Function Get-MaskedOutput
     [CmdletBinding()]
     param($arguments)
 
-    $reg = [System.Text.RegularExpressions.RegEx]::new("--masterkey|--password|--license", 
+    $reg = [System.Text.RegularExpressions.RegEx]::new("--masterkey|--password|--license",
                 [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
 
     if(($arguments -match "--masterkey|--password|--license"))
@@ -125,7 +125,7 @@ Function Get-MaskedOutput
     }
     elseif(($arguments -match "password|pwd"))
     {
-        $out = $arguments -replace "(password|pwd)=[^;]*", "`$1=********" 
+        $out = $arguments -replace "(password|pwd)=[^;|`"]*", "`$1=********"
     }
     else
     {
@@ -136,8 +136,8 @@ Function Get-MaskedOutput
 
 function Invoke-OctopusServerCommand ($arguments) {
     if
-    ( 
-        (($arguments -match "masterkey|password|license|pwd=").Count -eq 0) 
+    (
+        (($arguments -match "masterkey|password|license|pwd=").Count -eq 0)
     )
     {
         Write-Verbose "Executing command '$octopusServerExePath $($arguments -join ' ')'"
