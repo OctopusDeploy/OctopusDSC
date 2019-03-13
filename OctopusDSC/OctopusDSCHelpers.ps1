@@ -191,7 +191,7 @@ function Test-ValidJson
 {
     param($string)
     try {
-        $string | ConvertFrom-Json
+        $string | ConvertFrom-Json | Out-Null
         return $true
     }
     catch {
@@ -199,15 +199,16 @@ function Test-ValidJson
     }
 }
 
+# Operates on a very specific json output failure. See issue #179  (https://github.com/OctopusDeploy/OctopusDSC/issues/179)
 function Get-CleanedJson
 {
+    [CmdletBinding()]
     param($jsonstring)
     $jsonstart = $jsonstring.IndexOf("{")
     Write-Verbose "Found start of JSON at character $jsonstart"
     $extractedjson = $jsonstring.Substring($jsonstart, $jsonstring.length - $jsonstart)
-
-    $dumpedstring = $jsonstring.substring(0, $jsonstart-1)
-    Write-Warning "stripped extra content from JSON configuration string`r`n`r`n" + (Get-MaskedOutput $dumpedstring)
+    $dumpedstring = $jsonstring.substring(0, $jsonstart)
+    Write-Warning ("stripped extra content from JSON configuration string`r`n`r`n" + (Get-MaskedOutput $dumpedstring))
 
     return $extractedjson
 }
