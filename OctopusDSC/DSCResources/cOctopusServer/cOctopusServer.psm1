@@ -274,7 +274,7 @@ function Import-ServerConfig {
             if(Test-ValidJson $cleanedUpConfig ) {
                 $config = $cleanedUpConfig | ConvertFrom-Json
             } else {
-                Write-Error "Attempted to cleanup bad JSON and failed. String we attempted to parse was`r`n`r`n$rawConfig"
+                Write-Error "Attempted to cleanup bad JSON and failed."
             }
         }
 
