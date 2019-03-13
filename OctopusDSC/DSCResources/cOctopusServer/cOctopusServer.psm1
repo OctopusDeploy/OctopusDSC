@@ -215,31 +215,6 @@ function Get-TargetResource {
     }
 }
 
-function Test-ValidJson
-{
-    param($string)
-    try {
-        $string | ConvertFrom-Json
-        return $true
-    }
-    catch {
-        return $false
-    }
-}
-
-function Get-CleanedJson
-{
-    param($jsonstring)
-    $jsonstart = $jsonstring.IndexOf("{")
-    Write-Verbose "Found start of JSON at character $jsonstart"
-    $extractedjson = $jsonstring.Substring($jsonstart, $jsonstring.length - $jsonstart)
-
-    $dumpedstring = $jsonstring.substring(0, $jsonstart-1)
-    Write-Warning "stripped extra content from JSON configuration string`r`n`r`n" + (Get-MaskedOutput $dumpedstring)
-
-    return $extractedjson
-}
-
 function Import-ServerConfig {
     [CmdletBinding()]
     param (
