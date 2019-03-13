@@ -237,7 +237,26 @@ function Import-ServerConfig {
 
     if (Test-OctopusVersionSupportsShowConfiguration) {
         $rawConfig = & $octopusServerExePath show-configuration --format=json-hierarchical --noconsolelogging --console --instance $InstanceName
-        $config = $rawConfig | ConvertFrom-Json
+        try
+        {
+            $config = $rawConfig | ConvertFrom-Json
+        }
+        catch
+        {
+            # catches a specific error where an exception in registry migration finds its way into the json-hierarchical output
+            try
+            {
+                Write-Verbose "Incorrectly formatted JSON output detected. Attemtping to clean up."
+                $jsonstart = $config.IndexOf("{")
+                Write-Verbose "Detected JSON start at character $start"
+                $config = $rawConfig.substring($jsonstart, ($config.length - $jsonstart)) | ConvertFrom-Json
+            }
+            catch
+            {
+                # if we failed to do the cleanup
+                Write-Error "Attempted to cleanup bad JSON and failed. String we attempted to parse was`r`n`r`n$rawConfig"
+            }
+        }
 
         # show-configuration only added support for the license from 4.1.3
         # unfortunately, $null implies that its the free license, so it would trigger a change every time DSC runs
