@@ -215,6 +215,27 @@ function Get-TargetResource {
     }
 }
 
+function Test-ValidJson
+{
+    param($string)
+    try {
+        $string | ConvertFrom-Json
+        return $true
+    }
+    catch {
+        return $false
+    }
+}
+
+function Get-CleanedJson
+{
+    param($jsonstring)
+    $jsonstart = $jsonstring.IndexOf("{")
+    Write-Host "Found start of JSON at character $jsonstart"
+    $extractedjson = $jsonstring.Substring($jsonstart, $jsonstring.length - $jsonstart)
+    return $extractedjson
+}
+
 function Import-ServerConfig {
     [CmdletBinding()]
     param (
@@ -237,23 +258,14 @@ function Import-ServerConfig {
 
     if (Test-OctopusVersionSupportsShowConfiguration) {
         $rawConfig = & $octopusServerExePath show-configuration --format=json-hierarchical --noconsolelogging --console --instance $InstanceName
-        try
-        {
+
+        if(Test-ValidJson $rawConfig) {
             $config = $rawConfig | ConvertFrom-Json
-        }
-        catch
-        {
-            # catches a specific error where an exception in registry migration finds its way into the json-hierarchical output
-            try
-            {
-                Write-Verbose "Incorrectly formatted JSON output detected. Attempting to clean up."
-                $jsonstart = $config.IndexOf("{")
-                Write-Verbose "Detected JSON start at character $start"
-                $config = $rawConfig.substring($jsonstart, ($config.length - $jsonstart)) | ConvertFrom-Json
-            }
-            catch
-            {
-                # if we failed to do the cleanup
+        } else {
+            $cleanedUpConfig = Get-CleanedJson $rawConfig
+            if(Test-ValidJson $cleanedUpConfig ) {
+                $config = $cleanedUpConfig | ConvertFrom-Json
+            } else {
                 Write-Error "Attempted to cleanup bad JSON and failed. String we attempted to parse was`r`n`r`n$rawConfig"
             }
         }
