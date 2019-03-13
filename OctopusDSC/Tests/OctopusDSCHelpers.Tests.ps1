@@ -138,17 +138,17 @@ Describe "Invoke-OctopusServerCommand" {
 
 Describe "Test-ValidJson" {
     It "Returns false for known bad json" {
-        Test-ValidJson (gc "$SamplePath\octopus.server.exe-output-when-json-has-exception-prepended.json" -raw) | Should Be $false
+        Test-ValidJson (Get-Content "$SamplePath\octopus.server.exe-output-when-json-has-exception-prepended.json" -raw) | Should Be $false
      }
 
     It "returns true for known good json" {
-        Test-ValidJson (gc "$SamplePath\octopus.server.exe-output-clean.json" -raw) | Should Be $true
+        Test-ValidJson (Get-Content "$SamplePath\octopus.server.exe-output-clean.json" -raw) | Should Be $true
     }
 }
 
 Describe "Get-CleanedJson" {
     It "Correctly cleans our expected exception-prepended output" {
-        $clean = Get-CleanedJson (gc "$SamplePath\octopus.server.exe-output-when-json-has-exception-prepended.json" -raw)
+        $clean = Get-CleanedJson (Get-Content "$SamplePath\octopus.server.exe-output-when-json-has-exception-prepended.json" -raw)
         Test-ValidJson $clean | Should Be $true
     }
 }
