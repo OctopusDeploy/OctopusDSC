@@ -231,8 +231,12 @@ function Get-CleanedJson
 {
     param($jsonstring)
     $jsonstart = $jsonstring.IndexOf("{")
-    Write-Host "Found start of JSON at character $jsonstart"
+    Write-Verbose "Found start of JSON at character $jsonstart"
     $extractedjson = $jsonstring.Substring($jsonstart, $jsonstring.length - $jsonstart)
+
+    $dumpedstring = $jsonstring.substring(0, $jsonstart-1)
+    Write-Verbose "stripped extra content from JSON configuration string`r`n`r`n$dumpedstring"
+
     return $extractedjson
 }
 
@@ -259,6 +263,7 @@ function Import-ServerConfig {
     if (Test-OctopusVersionSupportsShowConfiguration) {
         $rawConfig = & $octopusServerExePath show-configuration --format=json-hierarchical --noconsolelogging --console --instance $InstanceName
 
+        # handle a specific error where an exception in registry migration finds its way into the json-hierarchical output
         if(Test-ValidJson $rawConfig) {
             $config = $rawConfig | ConvertFrom-Json
         } else {
