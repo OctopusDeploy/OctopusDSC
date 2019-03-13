@@ -246,7 +246,7 @@ function Import-ServerConfig {
             # catches a specific error where an exception in registry migration finds its way into the json-hierarchical output
             try
             {
-                Write-Verbose "Incorrectly formatted JSON output detected. Attemtping to clean up."
+                Write-Verbose "Incorrectly formatted JSON output detected. Attempting to clean up."
                 $jsonstart = $config.IndexOf("{")
                 Write-Verbose "Detected JSON start at character $start"
                 $config = $rawConfig.substring($jsonstart, ($config.length - $jsonstart)) | ConvertFrom-Json
