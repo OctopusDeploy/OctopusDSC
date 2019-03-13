@@ -235,7 +235,7 @@ function Get-CleanedJson
     $extractedjson = $jsonstring.Substring($jsonstart, $jsonstring.length - $jsonstart)
 
     $dumpedstring = $jsonstring.substring(0, $jsonstart-1)
-    Write-Verbose "stripped extra content from JSON configuration string`r`n`r`n$dumpedstring"
+    Write-Warning "stripped extra content from JSON configuration string`r`n`r`n$dumpedstring"
 
     return $extractedjson
 }
@@ -264,9 +264,12 @@ function Import-ServerConfig {
         $rawConfig = & $octopusServerExePath show-configuration --format=json-hierarchical --noconsolelogging --console --instance $InstanceName
 
         # handle a specific error where an exception in registry migration finds its way into the json-hierarchical output
+        # Refer to Issue #179 (https://github.com/OctopusDeploy/OctopusDSC/issues/179)
+
         if(Test-ValidJson $rawConfig) {
             $config = $rawConfig | ConvertFrom-Json
         } else {
+            Write-Warning "Invalid json encountered in show-configuration; attempting to clean up."
             $cleanedUpConfig = Get-CleanedJson $rawConfig
             if(Test-ValidJson $cleanedUpConfig ) {
                 $config = $cleanedUpConfig | ConvertFrom-Json
