@@ -10,7 +10,7 @@ Migrating OctopusServer instance from registry - HostedOctopus
       "WebSocketPrefix": null
     },
     "Storage": {
-      "ExternalDatabaseConnectionString": "Data Source=sqlserverinstance.doesnotexist.com;Initial Catalog=4ed0bf7f-c2cc-4fbe-b2dc-6630b60f9a66;User ID=4ed0bf7f-c2cc-4fbe-b2dc-6630b60f9a66;Password=9oG%N@r4e2zuU#zTrPhOBMVqRXc@A7oJ"
+      "ExternalDatabaseConnectionString": "Data Source=sqlserverinstance.doesnotexist.com;Initial Catalog=4ed0bf7f-c2cc-4fbe-b2dc-6630b60f9a66;User ID=4ed0bf7f-c2cc-4fbe-b2dc-6630b60f9a66;Password=SuperSecr3tP4ssword!!"
     },
     "Server": {
       "NodeName": "EC2AMAZ-16C2OU9",
