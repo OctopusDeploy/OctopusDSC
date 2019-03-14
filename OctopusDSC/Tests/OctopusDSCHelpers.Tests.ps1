@@ -150,5 +150,6 @@ Describe "Get-CleanedJson" {
     It "Correctly cleans our expected exception-prepended output" {
         $clean = Get-CleanedJson (Get-Content "$SamplePath\octopus.server.exe-output-when-json-has-exception-prepended.json" -raw)
         Test-ValidJson $clean | Should Be $true
+        $clean -eq (Get-Content "$SamplePath\octopus.server.exe-output-clean.json" -raw) | Should Be $true
     }
 }
