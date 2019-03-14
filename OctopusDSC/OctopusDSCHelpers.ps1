@@ -70,7 +70,7 @@ function Request-File {
                     $ex = $ex.InnerException
                 }
 
-                Write-Verbose "Retrying up to $maxRetries times."                
+                Write-Verbose "Retrying up to $maxRetries times."
 
                 if ($retryCount -gt $maxRetries) {
                     # rethrow the inner exception if we've retried enough times
@@ -109,7 +109,7 @@ Function Get-MaskedOutput
     [CmdletBinding()]
     param($arguments)
 
-    $reg = [System.Text.RegularExpressions.RegEx]::new("--masterkey|--password|--license", 
+    $reg = [System.Text.RegularExpressions.RegEx]::new("--masterkey|--password|--license",
                 [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
 
     if(($arguments -match "--masterkey|--password|--license"))
@@ -125,7 +125,7 @@ Function Get-MaskedOutput
     }
     elseif(($arguments -match "password|pwd"))
     {
-        $out = $arguments -replace "(password|pwd)=[^;]*", "`$1=********" 
+        $out = $arguments -replace "(password|pwd)=[^;|`"]*", "`$1=********"
     }
     else
     {
@@ -136,8 +136,8 @@ Function Get-MaskedOutput
 
 function Invoke-OctopusServerCommand ($arguments) {
     if
-    ( 
-        (($arguments -match "masterkey|password|license|pwd=").Count -eq 0) 
+    (
+        (($arguments -match "masterkey|password|license|pwd=").Count -eq 0)
     )
     {
         Write-Verbose "Executing command '$octopusServerExePath $($arguments -join ' ')'"
@@ -185,4 +185,30 @@ function Get-TentacleConfiguration($instanceName)
   $rawConfig = & $tentacleExePath show-configuration --instance $instanceName
   $config = $rawConfig | ConvertFrom-Json
   return $config
+}
+
+function Test-ValidJson
+{
+    param($string)
+    try {
+        $string | ConvertFrom-Json | Out-Null
+        return $true
+    }
+    catch {
+        return $false
+    }
+}
+
+# Operates on a very specific json output failure. See issue #179  (https://github.com/OctopusDeploy/OctopusDSC/issues/179)
+function Get-CleanedJson
+{
+    [CmdletBinding()]
+    param($jsonstring)
+    $jsonstart = $jsonstring.IndexOf("{")
+    Write-Verbose "Found start of JSON at character $jsonstart"
+    $extractedjson = $jsonstring.Substring($jsonstart, $jsonstring.length - $jsonstart)
+    $dumpedstring = $jsonstring.substring(0, $jsonstart)
+    Write-Warning ("stripped extra content from JSON configuration string`r`n`r`n" + (Get-MaskedOutput $dumpedstring))
+
+    return $extractedjson
 }

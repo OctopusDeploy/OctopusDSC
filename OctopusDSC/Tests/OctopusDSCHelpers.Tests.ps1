@@ -4,6 +4,9 @@ $modulePath = Resolve-Path "$PSCommandPath/../../$moduleName.ps1"
 
 . $modulePath
 
+$samplePath = Split-Path $PSCommandPath -parent
+$samplePath = Resolve-path "$samplePath/SampleConfigs/"
+
 Describe "Get-ODSCParameter" {
     $desiredConfiguration = @{
         Name                   = 'Stub'
@@ -130,5 +133,23 @@ Describe "Invoke-OctopusServerCommand" {
             ((Get-MaskedOutput $dbargs) -match "ABCD123456ASDBD").Count | Should Be 0
             ((Get-MaskedOutput $dbargs) -match "\*\*\*\*").Count -gt 0 | Should Be $true
         }
+    }
+}
+
+Describe "Test-ValidJson" {
+    It "Returns false for known bad json" {
+        Test-ValidJson (Get-Content "$SamplePath\octopus.server.exe-output-when-json-has-exception-prepended.json" -raw) | Should Be $false
+     }
+
+    It "returns true for known good json" {
+        Test-ValidJson (Get-Content "$SamplePath\octopus.server.exe-output-clean.json" -raw) | Should Be $true
+    }
+}
+
+Describe "Get-CleanedJson" {
+    It "Correctly cleans our expected exception-prepended output" {
+        $clean = Get-CleanedJson (Get-Content "$SamplePath\octopus.server.exe-output-when-json-has-exception-prepended.json" -raw)
+        Test-ValidJson $clean | Should Be $true
+        $clean -eq (Get-Content "$SamplePath\octopus.server.exe-output-clean.json" -raw) | Should Be $true
     }
 }
