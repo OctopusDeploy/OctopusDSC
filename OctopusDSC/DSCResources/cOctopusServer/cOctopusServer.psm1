@@ -236,7 +236,7 @@ function Import-ServerConfig {
     }
 
     if (Test-OctopusVersionSupportsShowConfiguration) {
-        $rawConfig = & $octopusServerExePath show-configuration --format=json-hierarchical --noconsolelogging --console --instance $InstanceName
+        $rawConfig = & $octopusServerExePath show-configuration --format=json-hierarchical --noconsolelogging --console --instance $InstanceName | out-string
 
         # handle a specific error where an exception in registry migration finds its way into the json-hierarchical output
         # Refer to Issue #179 (https://github.com/OctopusDeploy/OctopusDSC/issues/179)
