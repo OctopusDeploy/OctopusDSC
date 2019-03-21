@@ -101,11 +101,30 @@ try
                 }
 
                It 'Returns True when Ensure is set to Present and Tentacle exists' {
-                    $desiredConfiguration['Ensure'] = 'Present'
-                    $desiredConfiguration['State'] = 'Started'
+                    $desiredConfiguration = @{
+                        Ensure = 'Present'
+                        State = 'Started'
+                        OctopusServerUrl = 'http://fakeserver1'
+                        APIKey = 'API-GRKUQFCFIJM7G2RJM3VMRW43SK'
+                        Name = 'Tentacle1'
+                        Environments = @()
+                        Roles = @()
+                        WorkerPools = @()
+                    }
                     $response['Ensure'] = 'Present'
                     $response['State'] = 'Started'
 
+                    # Declare mock objects
+                    $mockMachine = @{
+                        Name = "MockMachine"
+                        EnvironmentIds = @()
+                        WorkerPools = @()
+                        Roles = @()
+                    }
+
+                    # Declare mock calls
+                    Mock Get-MachineFromOctopusServer {return $mockMachine}
+                    Mock Get-APIResult {return [string]::Empty}
                     Test-TargetResource @desiredConfiguration | Should Be $true
                 }
             }
