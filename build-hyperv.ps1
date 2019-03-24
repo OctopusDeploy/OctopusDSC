@@ -1,12 +1,37 @@
 #!/usr/local/bin/pwsh
 param(
   [switch]$offline,
-  [switch]$SkipPester
+  [switch]$SkipPester,
+  [switch]$ServerOnly,
+  [switch]$TentacleOnly
 )
 
 . Tests/powershell-helpers.ps1
 
 Start-Transcript .\vagrant-hyperv.log -Append
+
+# Clear the OctopusDSCTestMode Env Var
+if(Test-Path env:\OctopusDSCTestMode)
+{
+  get-item env:\OctopusDSCTestMode | Remove-Item
+}
+
+if($ServerOnly -and $TentacleOnly)
+{
+  throw "Cannot specify both 'ServerOnly' and 'TentacleOnly'"
+}
+
+if($ServerOnly)
+{
+  Write-Output "'ServerOnly' switch detected, running only server-related Integration tests"
+  $env:OctopusDSCTestMode = 'ServerOnly'
+}
+
+if($TentacleOnly)
+{
+  Write-Output "'TentacleOnly' switch detected, running only tentacle-related Integration tests"
+  $env:OctopusDSCTestMode = 'TentacleOnly'
+}
 
 # remove psreadline as it interferes with the SMB password prompt
 if(Get-Module PSReadLine)
@@ -14,7 +39,7 @@ if(Get-Module PSReadLine)
   Remove-Module PSReadLine
 }
 
-if($offline)   # if you want to use offline, then you need a v3 and a v4 installer locally in the .\Tests folder (gitignored)
+if($offline)   # if you want to use offline, then you need a v3 and a v4 installer locally in the .\Tests folder (gitignored) - currently broken
 {
   Write-Warning "Offline run requested, writing an offline.config file"
 

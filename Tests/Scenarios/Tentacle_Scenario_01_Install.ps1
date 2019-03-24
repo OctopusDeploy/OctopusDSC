@@ -114,6 +114,32 @@ Configuration Tentacle_Scenario_01_Install
             OctopusServerThumbprint = $ServerThumbprint
         }
 
+        cTentacleAgent WorkerTentacle
+        {
+            Ensure = "Present";
+            State = "Started";
+
+            # Tentacle instance name. Leave it as 'Tentacle' unless you have more
+            # than one instance
+            Name = "WorkerTentacle";
+
+            DisplayName = "My Worker Tentacle"
+
+            # Registration - all parameters required
+            ApiKey = $ApiKey;
+            OctopusServerUrl = $OctopusServerUrl;
+            Environments = $Environments;
+            Roles = $Roles;
+
+            # Optional settings
+            ListenPort = 10937;
+            DefaultApplicationDirectory = "C:\Applications"
+            PublicHostNameConfiguration = "ComputerName"
+            TentacleHomeDirectory = "C:\Octopus\WorkerTentacleHome"
+
+            WorkerPools = "Default Worker Pool"
+        }
+
         # load the credential for said user
         $svcpass = ConvertTo-SecureString "HyperS3cretPassw0rd!" -AsPlainText -Force
         $svccred = New-Object System.Management.Automation.PSCredential (($env:computername + "\ServiceUser"), $svcpass)

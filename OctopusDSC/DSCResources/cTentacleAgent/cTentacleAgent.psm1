@@ -4,25 +4,8 @@ $defaultTentacleDownloadUrl64 = "https://octopus.com/downloads/latest/OctopusTen
 # dot-source the helper file (cannot load as a module due to scope considerations)
 . (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1')
 
-<#
-    .SYNOPSIS
-        Calls the specified API and returns the results converted from JSON
-
-    .PARAMETER ServerUrl
-        URL of the Octopus Deploy server
-
-    .PARAMETER API
-        Relative url for the API
-
-    .PARAMETER APIKey
-        The API key to use for making the call
-
-    .EXAMPLE
-        Get-APIResults -ServerUrl "http://OctopusServer" -API "/machines/all" -APIKey "API-SOMEAPIKEY"
-#>
 function Get-APIResult
 {
-    # Define parameters
     param (
         [Parameter(Mandatory=$true)]
         [System.String]
@@ -54,23 +37,6 @@ function Get-APIResult
     return ConvertFrom-Json -InputObject $results
 }
 
-<#
-    .SYNOPSIS
-        Gets reference to the specific machine
-
-    .PARAMETER ServerUrl
-        URL of the Octopus Deploy server
-
-    .PARAMETER APIKey
-        The API key to use for making the call
-
-    .PARAMETER Instance
-        The instance name to find
-
-    .EXAMPLE
-        Get-APIResult -ServerUrl "http://OctopusServer" -API "/machines/all" -APIKey "API-SOMEAPIKEY"
-#>
-
 function Get-MachineFromOctopusServer
 {
     # Define parameters
@@ -101,36 +67,16 @@ function Get-MachineFromOctopusServer
     return $machine
 }
 
-<#
-    .SYNOPSIS
-        Gets reference to the specific machine
-
-    .PARAMETER Instance
-        Name of the instance to get the thumbprint for
-
-    .EXAMPLE
-        Get-TentacleThumbprint
-#>
-
 function Get-TentacleThumbprint
 {
     # Define parameters
     param (
-        [Parameter()]
-        [System.String]
         $Instance
     )
 
-    # Set location
-    Push-Location "${env:ProgramFiles}\Octopus Deploy\Tentacle"
-
-    # Get the thumbprint of this tentacle
-    $thumbprint = Invoke-Command {& .\tentacle.exe show-thumbprint --instance=$Instance} | Write-Output
-
-    # Reset location
-    Pop-Location
-
-    # Return the thumbprint
+    $tentaclepath = "${env:ProgramFiles}\Octopus Deploy\Tentacle"
+    # Get the thumbprint of this tentacle. original version added non-printing chars
+    $thumbprint = & $tentaclepath\tentacle.exe show-thumbprint --instance=$Instance --console --thumbprint-only
     return $thumbprint
 }
 
@@ -138,16 +84,8 @@ function Get-WorkerPoolMembership
 {
     # Declare parameters
     param (
-        [Parameter()]
-        [System.String]
         $ServerUrl,
-
-        [Parameter()]
-        [System.String]
         $Thumbprint,
-
-        [Parameter()]
-        [System.String]
         $ApiKey
     )
 
@@ -164,7 +102,8 @@ function Get-WorkerPoolMembership
         $workers = Get-APIResult -ServerUrl $ServerUrl -ApiKey $ApiKey -API "/workerpools/$($octoWorkerPool.Id)/workers"
 
         # Check to see if the thumbprint is listed
-        if ($null -ne ($workers | Where-Object {$_.Thumbprint -eq $Thumbprint}))
+        $workerWithThumbprint = ($workers | Where-Object {$_.Thumbprint -eq $Thumbprint})
+        if ($null -ne $workerWithThumbprint)
         {
             # Add the workerpool to the array
             $workerPoolMembership += $octoWorkerPool
@@ -466,8 +405,6 @@ function Set-TargetResource {
         -port $ListenPort `
         -serverPort $ServerPort `
         -tentacleCommsPort $TentacleCommsPort `
-
-
 
         # Check worker pools
         if (($null -ne $WorkerPools) -and ($WorkerPools.Count -gt 0))

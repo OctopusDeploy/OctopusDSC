@@ -72,6 +72,16 @@ Configuration Server_Scenario_01_Install
             DependsOn = "[cOctopusServer]OctopusServer"
         }
 
+        cOctopusWorkerPool "Create a second workerpool"
+        {
+            Url = "http://localhost:81"
+            Ensure = "Present"
+            OctopusCredentials = $cred
+            WorkerPoolName = "Secondary Worker Pool"
+            WorkerPoolDescription = "A secondary worker pool to test the resource"
+            SpaceId = "Spaces-1" # default space.
+        }
+
         Script "Create Api Key and set environment variables for tests"
         {
             SetScript = {
