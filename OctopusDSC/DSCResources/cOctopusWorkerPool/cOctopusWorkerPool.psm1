@@ -108,7 +108,7 @@ function Test-TargetResource {
     )
     $currentResource = (Get-TargetResource -Url $Url `
             -Ensure $Ensure `
-            -WorkerPoolName $EnvironmentName `
+            -WorkerPoolName $WorkerPoolName `
             -WorkerPoolDescription $WorkerPoolDescription `
             -SpaceID $SpaceId `
             -OctopusCredentials $OctopusCredentials `
@@ -146,7 +146,7 @@ function Remove-WorkerPool {
         -OctopusApiKey $OctopusApiKey
 
 
-    $workerpool = $repository.WorkerPools.FindByName($EnvironmentName)
+    $workerpool = $repository.WorkerPools.FindByName($WorkerPoolName)
     $repository.WorkerPools.Delete($workerpool)
 }
 
@@ -182,7 +182,7 @@ function Get-WorkerPool {
         -OctopusCredentials $OctopusCredentials `
         -OctopusApiKey $OctopusApiKey
 
-    $workerpool = $repository.WorkerPools.FindByName($EnvironmentName)
+    $workerpool = $repository.WorkerPools.FindByName($WorkerPoolName)
     return $workerpool
 }
 
