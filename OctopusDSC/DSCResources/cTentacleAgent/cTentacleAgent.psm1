@@ -621,7 +621,7 @@ function New-Tentacle {
         }
 
         if ($space -ne "") {
-            $registerArguments += += @("--space", $space)
+            $registerArguments += @("--space", $space)
         }
 
         if ($tenantTags -ne "") {
