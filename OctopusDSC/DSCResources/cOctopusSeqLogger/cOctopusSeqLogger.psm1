@@ -302,7 +302,7 @@ function Set-TargetResourceInternal {
         $newChild.Attributes.Append($attribute)
         $newChild.Attributes.Append((New-XmlAttribute -xml $nlogConfig -name "serverUrl" -value $SeqServer))
         if ($null -ne $SeqApiKey) {
-            $newChild.Attributes.Append((New-XmlAttribute -xml $nlogConfig -name "apiKey" -name $SeqApiKey.GetNetworkCredential().Password))
+            $newChild.Attributes.Append((New-XmlAttribute -xml $nlogConfig -name "apiKey" -value $SeqApiKey.GetNetworkCredential().Password))
         }
         if ($null -ne $properties) {
             $sortedProperties = ($Properties.GetEnumerator() | Sort-Object -Property Key)
