@@ -380,7 +380,9 @@ function Set-TargetResource {
         Write-Verbose "Upgrading Tentacle..."
         $serviceName = (Get-TentacleServiceName $Name)
         Stop-Service -Name $serviceName
-        Install-Tentacle $tentacleDownloadUrl $tentacleDownloadUrl64 $TentacleHomeDirectory
+        Install-Tentacle    -tentacleDownloadUrl $tentacleDownloadUrl `
+                            -tentacleDownloadUrl64 $tentacleDownloadUrl64 `
+                            -tentacleHomeDirectory $TentacleHomeDirectory
         if ($State -eq "Started") {
             Start-Service $serviceName
         }
@@ -718,7 +720,9 @@ function New-Tentacle {
     )
 
 
-    Install-Tentacle $tentacleDownloadUrl $tentacleDownloadUrl64 $tentacleHomeDirectory
+    Install-Tentacle    -tentacleDownloadUrl $tentacleDownloadUrl `
+                        -tentacleDownloadUrl64 $tentacleDownloadUrl64 `
+                        -tentacleHomeDirectory $tentacleHomeDirectory
 
     if ($communicationMode -eq "Listen") {
         $windowsFirewall = Get-Service -Name MpsSvc
