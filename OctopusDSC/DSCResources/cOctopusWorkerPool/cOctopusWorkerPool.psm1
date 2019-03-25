@@ -78,7 +78,7 @@ function Set-TargetResource {
     }
     elseif ($Ensure -eq "Present" -and $currentResource.Ensure -eq "Absent") {
         New-WorkerPool -Url $Url `
-            -WorkerPoolName $EnvironmentName `
+            -WorkerPoolName $WorkerPoolName `
             -WorkerPoolDescription $WorkerPoolDescription `
             -SpaceId $SpaceId `
             -OctopusCredentials $OctopusCredentials `
