@@ -61,7 +61,7 @@ describe octopus_deploy_environment(ENV['OctopusServerUrl'], ENV['OctopusApiKey'
 end
 
 #TODO: worker pool
-describe octopus_deploy_workerpool(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "Secondary Worker Pool") do
+describe octopus_deploy_worker_pool(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "Secondary Worker Pool") do
   it { should exist}
 end
 
