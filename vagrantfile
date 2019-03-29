@@ -77,7 +77,8 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   if Vagrant::Util::Platform.windows? then
     config.vm.provider "hyperv" do |v, override|
-      override.vm.box = "gusztavvargadr/w16s-sql17d"   # temporary box url. We'll need to build one eventually
+      override.vm.box = "OctopusDeploy/dsc-test-server-windows-server-1803"
+      override.vm.box_url = "https://s3-ap-southeast-2.amazonaws.com/octopus-vagrant-boxes/vagrant/json/OctopusDeploy/hyperv/dsc-test-server-windows-server-1803.json"
       config.vm.network "public_network", bridge: "External Connection"
       v.memory = 4096
       v.maxmemory = 4096

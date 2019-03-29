@@ -137,7 +137,7 @@ Configuration Tentacle_Scenario_01_Install
             PublicHostNameConfiguration = "ComputerName"
             TentacleHomeDirectory = "C:\Octopus\WorkerTentacleHome"
 
-            WorkerPools = "Default Worker Pool"
+            WorkerPools = @("Default Worker Pool")
         }
 
         # load the credential for said user

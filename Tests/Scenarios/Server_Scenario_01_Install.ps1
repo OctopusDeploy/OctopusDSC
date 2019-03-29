@@ -79,7 +79,7 @@ Configuration Server_Scenario_01_Install
             OctopusCredentials = $cred
             WorkerPoolName = "Secondary Worker Pool"
             WorkerPoolDescription = "A secondary worker pool to test the resource"
-            SpaceId = "Spaces-1" # default space.
+            SpaceId = "Spaces-1"
         }
 
         Script "Create Api Key and set environment variables for tests"

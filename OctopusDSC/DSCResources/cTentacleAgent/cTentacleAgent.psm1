@@ -1018,6 +1018,7 @@ function Add-TentacleToWorkerPool
         foreach ($workerPool in $workerPools)
         {
             # Add pool to the arguments
+            Write-Verbose "Appending worker pool name $WorkerPool"
             $argumentList += @(
                 "--workerpool", $workerPool
             )
