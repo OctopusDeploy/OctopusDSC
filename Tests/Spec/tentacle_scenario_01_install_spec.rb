@@ -156,16 +156,17 @@ describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], 
   it { should be_listening_tentacle }
   it { should be_in_environment('The-Env') }
   it { should have_role('Test-Tentacle') }
-  it { should have_display_name("WorkerTentacle")}
+  it { should have_display_name("My Worker Tentacle")}
   # TODO check pool membership
 end
 
-describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\WorkerTentacle') do
-  it { should exist }
-  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\WorkerTentacle\WorkerTentacle\Tentacle.config') }
-end
+# worker tentacle is a new version, has no reg key
+#describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\WorkerTentacle') do
+#  it { should exist }
+#  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\WorkerTentacle\WorkerTentacle\Tentacle.config') }
+#end
 
-describe file('C:\Octopus\WorkerTentacle\WorkerTentacle\Tentacle.config') do
+describe file('C:\Octopus\WorkerTentacleHome\WorkerTentacle\Tentacle.config') do
   it { should be_file }
   its(:content) { should match /Tentacle\.Communication\.TrustedOctopusServers.*#{ENV['OctopusServerThumbprint']}/}
 end
