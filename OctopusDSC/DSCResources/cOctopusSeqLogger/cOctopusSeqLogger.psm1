@@ -275,7 +275,7 @@ function Set-TargetResourceInternal {
             $nlogConfig.nlog.extensions.RemoveChild($nlogExtensionElement)
         }
         $newChild = $nlogConfig.CreateElement("add", $nlogConfig.DocumentElement.NamespaceURI)
-        $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "assembly" "Seq.Client.NLog"))
+        $newChild.Attributes.Append((New-XmlAttribute -xml $nlogConfig -name "assembly"  -value "Seq.Client.NLog"))
         $nlogConfig.nlog.extensions.AppendChild($newChild)
 
         #remove then re-add "
@@ -288,28 +288,28 @@ function Set-TargetResourceInternal {
             $nlogConfig.nlog.targets.RemoveChild($nlogTargetElement)
         }
         $newBufferingWrapperChild = $nlogConfig.CreateElement("target", $nlogConfig.DocumentElement.NamespaceURI)
-        $newBufferingWrapperChild.Attributes.Append((New-XmlAttribute $nlogConfig "name" "seqbufferingwrapper"))
+        $newBufferingWrapperChild.Attributes.Append((New-XmlAttribute -xml $nlogConfig -name "name" -value "seqbufferingwrapper"))
         $attribute = $nlogConfig.CreateAttribute("xsi:type", "http://www.w3.org/2001/XMLSchema-instance")
         $attribute.Value = "BufferingWrapper"
         $newBufferingWrapperChild.Attributes.Append($attribute)
-        $newBufferingWrapperChild.Attributes.Append((New-XmlAttribute $nlogConfig "bufferSize" "1000"))
-        $newBufferingWrapperChild.Attributes.Append((New-XmlAttribute $nlogConfig "flushTimeout" "2000"))
+        $newBufferingWrapperChild.Attributes.Append((New-XmlAttribute -xml $nlogConfig -name "bufferSize" -value "1000"))
+        $newBufferingWrapperChild.Attributes.Append((New-XmlAttribute -xml $nlogConfig -name "flushTimeout" -value "2000"))
 
         $newChild = $nlogConfig.CreateElement("target", $nlogConfig.DocumentElement.NamespaceURI)
-        $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "name" "seq"))
+        $newChild.Attributes.Append((New-XmlAttribute -xml $nlogConfig -name "name" -value "seq"))
         $attribute = $nlogConfig.CreateAttribute("xsi:type", "http://www.w3.org/2001/XMLSchema-instance")
         $attribute.Value = "Seq"
         $newChild.Attributes.Append($attribute)
-        $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "serverUrl" $SeqServer))
+        $newChild.Attributes.Append((New-XmlAttribute -xml $nlogConfig -name "serverUrl" -value $SeqServer))
         if ($null -ne $SeqApiKey) {
-            $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "apiKey" $SeqApiKey.GetNetworkCredential().Password))
+            $newChild.Attributes.Append((New-XmlAttribute -xml $nlogConfig -name "apiKey" -value $SeqApiKey.GetNetworkCredential().Password))
         }
         if ($null -ne $properties) {
             $sortedProperties = ($Properties.GetEnumerator() | Sort-Object -Property Key)
             foreach ($property in $sortedProperties) {
                 $propertyChild = $nlogConfig.CreateElement("property", $nlogConfig.DocumentElement.NamespaceURI)
-                $propertyChild.Attributes.Append((New-XmlAttribute $nlogConfig "name" $property.Key))
-                $propertyChild.Attributes.Append((New-XmlAttribute $nlogConfig "value" $property.value))
+                $propertyChild.Attributes.Append((New-XmlAttribute -xml $nlogConfig -name "name" -value $property.Key))
+                $propertyChild.Attributes.Append((New-XmlAttribute -xml $nlogConfig -name "value" -value $property.value))
                 $newChild.AppendChild($propertyChild)
             }
         }
@@ -322,9 +322,9 @@ function Set-TargetResourceInternal {
             $nlogConfig.nlog.rules.RemoveChild($nlogRuleElement)
         }
         $newChild = $nlogConfig.CreateElement("logger", $nlogConfig.DocumentElement.NamespaceURI)
-        $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "name" "*"))
-        $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "minlevel" "Info"))
-        $newChild.Attributes.Append((New-XmlAttribute $nlogConfig "writeTo" "seqbufferingwrapper"))
+        $newChild.Attributes.Append((New-XmlAttribute -xml $nlogConfig -name "name" -value "*"))
+        $newChild.Attributes.Append((New-XmlAttribute -xml $nlogConfig -name "minlevel" -value "Info"))
+        $newChild.Attributes.Append((New-XmlAttribute -xml $nlogConfig -name "writeTo" -value "seqbufferingwrapper"))
         $nlogConfig.nlog.rules.AppendChild($newChild)
 
         Write-Verbose "Saving config file $nlogConfigFile"

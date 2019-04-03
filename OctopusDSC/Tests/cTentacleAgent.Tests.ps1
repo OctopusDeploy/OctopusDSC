@@ -125,6 +125,7 @@ try
                     # Declare mock calls
                     Mock Get-MachineFromOctopusServer {return $mockMachine}
                     Mock Get-APIResult {return [string]::Empty}
+                    Mock Get-TentacleThumbprint { return "ABCDE123456" }
                     Test-TargetResource @desiredConfiguration | Should Be $true
                 }
             }

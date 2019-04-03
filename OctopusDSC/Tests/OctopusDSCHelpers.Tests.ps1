@@ -147,6 +147,7 @@ Describe "Test-ValidJson" {
 }
 
 Describe "Get-CleanedJson" {
+    Mock Write-Warning {} # supress warning text
     It "Correctly cleans our expected exception-prepended output" {
         $clean = Get-CleanedJson (Get-Content "$SamplePath\octopus.server.exe-output-when-json-has-exception-prepended.json" -raw)
         Test-ValidJson $clean | Should Be $true

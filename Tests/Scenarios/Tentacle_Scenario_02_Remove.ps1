@@ -111,6 +111,33 @@ Configuration Tentacle_Scenario_02_Remove
             DependsOn = "[cOctopusSeqLogger]Disable logging to seq"
         }
 
+        cTentacleAgent WorkerTentacle
+        {
+            Ensure = "Absent";
+            State = "Stopped";
+
+            # Tentacle instance name. Leave it as 'Tentacle' unless you have more
+            # than one instance
+            Name = "WorkerTentacle";
+
+            DisplayName = "My Worker Tentacle"
+
+            # Registration - all parameters required
+            ApiKey = $ApiKey;
+            OctopusServerUrl = $OctopusServerUrl;
+            Environments = $Environments;
+            Roles = $Roles;
+
+            # Optional settings
+            ListenPort = 10937;
+            DefaultApplicationDirectory = "C:\Applications"
+            PublicHostNameConfiguration = "ComputerName"
+            TentacleHomeDirectory = "C:\Octopus\WorkerTentacleHome"
+
+            WorkerPools = @("Default Worker Pool")
+        }
+
+
         cTentacleAgent ListeningTentacleWithCustomAccount
         {
             Ensure = "Absent";

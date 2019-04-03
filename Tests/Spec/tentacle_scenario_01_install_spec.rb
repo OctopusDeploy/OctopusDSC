@@ -136,6 +136,41 @@ describe file('C:\Octopus\ListeningTentacleWithThumbprintWithoutAutoRegisterHome
   its(:content) { should match /Tentacle\.Communication\.TrustedOctopusServers.*#{ENV['OctopusServerThumbprint']}/}
 end
 
+### worker tentacle
+
+describe service('OctopusDeploy Tentacle: WorkerTentacle') do
+  it { should be_installed }
+  it { should be_running }
+  it { should have_start_mode('Automatic') }
+  it { should run_under_account('LocalSystem') }
+end
+
+describe port(10937) do
+  it { should be_listening.with('tcp') }
+end
+
+describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "WorkerTentacle") do
+  it { should exist }
+  it { should be_registered_with_the_server }
+  it { should be_online }
+  it { should be_listening_tentacle }
+  it { should be_in_environment('The-Env') }
+  it { should have_role('Test-Tentacle') }
+  it { should have_display_name("My Worker Tentacle")}
+  # TODO check pool membership
+end
+
+# worker tentacle is a new version, has no reg key
+#describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\WorkerTentacle') do
+#  it { should exist }
+#  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\WorkerTentacle\WorkerTentacle\Tentacle.config') }
+#end
+
+describe file('C:\Octopus\WorkerTentacleHome\WorkerTentacle\Tentacle.config') do
+  it { should be_file }
+  its(:content) { should match /Tentacle\.Communication\.TrustedOctopusServers.*#{ENV['OctopusServerThumbprint']}/}
+end
+
 ### listening tentacle with specific service account
 
 describe service('OctopusDeploy Tentacle: ListeningTentacleWithCustomAccount') do

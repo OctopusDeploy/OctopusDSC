@@ -60,6 +60,11 @@ describe octopus_deploy_environment(ENV['OctopusServerUrl'], ENV['OctopusApiKey'
   it { should exist }
 end
 
+#TODO: worker pool
+describe octopus_deploy_worker_pool(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "Secondary Worker Pool") do
+  it { should exist}
+end
+
 #seq logging
 describe file('C:/Program Files/Octopus Deploy/Octopus/Seq.Client.NLog.dll') do
   it { should be_file }
