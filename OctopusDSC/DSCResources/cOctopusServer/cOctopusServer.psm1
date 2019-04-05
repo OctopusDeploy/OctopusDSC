@@ -23,7 +23,7 @@ function Get-TargetResource {
         [string]$Name,
         [ValidateSet("Started", "Stopped", "Installed")]
         [string]$State = "Started",
-        [string]$DownloadUrl = "https://s3-ap-southeast-1.amazonaws.com/octopus-testing/server/Octopus.2019.3.1-vnext0262-x64.msi",
+        [string]$DownloadUrl = "https://s3-ap-southeast-1.amazonaws.com/octopus-testing/server/Octopus.2019.4.0-x64.msi",
         [string]$WebListenPrefix,
         [string]$SqlDbConnectionString,
         [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty,
