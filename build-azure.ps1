@@ -9,9 +9,17 @@ Test-EnvVar AZURE_CLIENT_ID
 Test-EnvVar AZURE_CLIENT_SECRET
 
 if (-not (Test-AppExists "vagrant")) {
-  Write-Output "Please install vagrant from vagrantup.com."
+  Write-Output "Please install vagrant 2.2.3 from vagrantup.com."
   exit 1
+} else { 
+  $version = & vagrant --version
+  if ($version -ne "Vagrant 2.2.3") {
+    Write-Output "You have $version, but winrm connections are broken in 2.2.4 - see https://github.com/OctopusDeploy/OctopusDSC/issues/180"
+    Write-Output "Please install vagrant 2.2.3 from vagrantup.com."
+    exit 1
+  }
 }
+
 Write-Output "Vagrant installed - good."
 
 if (-not (Test-AppExists "azure")) {
