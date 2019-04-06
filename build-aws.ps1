@@ -25,8 +25,7 @@ Test-PluginInstalled "vagrant-aws-winrm"
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
-if(-not $SkipPester)
-{
+if(-not $SkipPester) {
   Write-Output "##teamcity[blockOpened name='Pester tests']"
   Write-Output "Importing Pester module"
   Test-PowershellModuleInstalled "Pester"

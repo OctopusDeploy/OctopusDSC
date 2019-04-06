@@ -86,10 +86,12 @@ Write-Output "VirtualBox installed - good."
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
-Write-Output "Importing Pester module"
-Test-PowershellModuleInstalled "Pester"
-Test-PowershellModuleInstalled "PSScriptAnalyzer"
-Import-Module Pester -verbose -force
+if(-not $SkipPester)
+{
+  Write-Output "Importing Pester module"
+  Test-PowershellModuleInstalled "Pester"
+  Test-PowershellModuleInstalled "PSScriptAnalyzer"
+  Import-Module Pester -verbose -force
 
 if(-not $SkipPester)
 {
