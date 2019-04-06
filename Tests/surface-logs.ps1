@@ -1,14 +1,18 @@
 Function Get-ConfigPath
 {
-    $files = Get-ChildItem "C:\ProgramData\Octopus\OctopusServer\Instances" -filter "*.config"
-
     $ConfigPaths = @()
 
-    if($null -ne $files)
+    if( (Test-Path "C:\ProgramData\Octopus\OctopusServer\Instances"))
     {
-        $files | ForEach-Object {
-            $Config = Get-Content $_.FullName | ConvertFrom-Json
-            $ConfigPaths += $Config.ConfigurationFilePath
+        $files = Get-ChildItem "C:\ProgramData\Octopus\OctopusServer\Instances" -filter "*.config"
+
+        if($null -ne $files)
+        {
+            $files | ForEach-Object {
+                $Config = Get-Content $_.FullName | ConvertFrom-Json
+                write-host "adding '$($Config.ConfigurationFilePath)'"
+                $ConfigPaths += $Config.ConfigurationFilePath
+            }
         }
     }
 
@@ -16,6 +20,7 @@ Function Get-ConfigPath
     {
         Get-ChildItem  "HKLM:\SOFTWARE\Octopus\OctopusServer\" | ForEach-Object {
             $_ | ForEach-Object {
+                write-host "adding '$(Get-ItemProperty $_.PSPath | select -expand Configurationfilepath)'"
                 $ConfigPaths += Get-ItemProperty $_.PSPath | select -expand Configurationfilepath
             }
         }
@@ -25,18 +30,19 @@ Function Get-ConfigPath
     {
         Get-ChildItem  "HKLM:\SOFTWARE\Octopus\Tentacle\" | ForEach-Object {
             $_ | ForEach-Object {
+                write-host "adding '$(Get-ItemProperty $_.PSPath | select -expand Configurationfilepath)'"
                 $ConfigPaths += Get-ItemProperty -Path $_.PSPath | select -expand Configurationfilepath
             }
         }
     }
-    return $ConfigPaths | select -Unique
+    return , $ConfigPaths | select -Unique | where-object { $null -ne $_ }
 }
 
 Function Get-LogPath
 {
     param([string[]]$ConfigPaths)
     $LogPaths = @()
-    $ConfigPaths| ForEach-Object {
+    $ConfigPaths | ForEach-Object {
         $ConfigXML = [xml](Get-Content $_ )
         $Homepath = $ConfigXML.SelectSingleNode('/octopus-settings/set[@key="Octopus.Home"]/text()').Value
         $LogPath = "$Homepath\Logs"
@@ -49,7 +55,7 @@ Write-Host "##teamcity[blockOpened name='Log Files']"
 
 $configPaths = Get-ConfigPath
 $configPaths | ForEach-Object {
-    $configPath = $_.FullName
+    $configPath = $_
     Write-Host "##teamcity[blockOpened name='Config File $($configPath)']"
     Get-Content $configPath | Write-Host
     Write-Host "##teamcity[blockClosed name='Config File $($configPath)']"
