@@ -142,9 +142,9 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   config.vm.provision "shell", path: "Tests/configure-dsc-local-configuration-manager.ps1"
 
-  if ENV['OctopusDSCPreReleaseVersion'] != nil? then
-    config.vm.provision "shell", path: "Tests/configure-module-for-prerelease-tests.ps1", args: ("-version " + ENV['OctopusDSCPreReleaseVersion'])
-  end
+  # if ENV['OctopusDSCPreReleaseVersion'] != nil? then
+  #   config.vm.provision "shell", path: "Tests/configure-module-for-prerelease-tests.ps1", args: ("-version " + ENV['OctopusDSCPreReleaseVersion'])
+  # end
 
   if ENV['OctopusDSCTestMode'] != "TentacleOnly" then
     # Run DSC to install server
