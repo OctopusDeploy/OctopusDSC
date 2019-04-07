@@ -3,7 +3,8 @@ param(
   [switch]$offline,
   [switch]$SkipPester,
   [switch]$ServerOnly,
-  [switch]$TentacleOnly
+  [switch]$TentacleOnly,
+  [string]$PreReleaseVersion
 )
 
 . Tests/powershell-helpers.ps1
@@ -15,7 +16,6 @@ if(Test-Path env:\OctopusDSCTestMode)
 {
   get-item env:\OctopusDSCTestMode | Remove-Item
 }
-
 if($ServerOnly -and $TentacleOnly)
 {
   throw "Cannot specify both 'ServerOnly' and 'TentacleOnly'"
@@ -31,6 +31,17 @@ if($TentacleOnly)
 {
   Write-Output "'TentacleOnly' switch detected, running only tentacle-related Integration tests"
   $env:OctopusDSCTestMode = 'TentacleOnly'
+}
+
+# Allow testing pre-releases
+if(Test-Path Env:\OctopusDSCPreReleaseVersion)
+{
+  get-item env:\OctopusDSCPreReleaseVersion| Remove-Item
+}
+
+if($null -ne $PreReleaseVersion)
+{
+  $env:OctopusDSCPreReleaseVersion = $PreReleaseVersion
 }
 
 # remove psreadline as it interferes with the SMB password prompt
