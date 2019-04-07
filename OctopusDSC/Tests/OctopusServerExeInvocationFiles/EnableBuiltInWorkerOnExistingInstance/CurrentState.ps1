@@ -1,7 +1,7 @@
 return @{
   Ensure="Present";
   State="Started";
-  DownloadUrl="https://octopus.com/downloads/latest/WindowsX64/OctopusServer";
+  DownloadUrl="https://s3-ap-southeast-1.amazonaws.com/octopus-testing/server/Octopus.2019.4.0-x64.msi";
   HomeDirectory="C:\Octopus";
   TaskLogsDirectory="C:\Octopus\TaskLogs"
   LogTaskMetrics=$false;

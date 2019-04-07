@@ -47,7 +47,15 @@ Function Get-LogPath
 
 Write-Host "##teamcity[blockOpened name='Log Files']"
 
-Get-LogPath -ConfigPaths (Get-ConfigPath) | ForEach-Object {
+$configPaths = Get-ConfigPath
+$configPaths | ForEach-Object {
+    $configPath = $_.FullName
+    Write-Host "##teamcity[blockOpened name='Config File $($configPath)']"
+    Get-Content $configPath | Write-Host
+    Write-Host "##teamcity[blockClosed name='Config File $($configPath)']"
+}
+
+Get-LogPath -ConfigPaths $configPaths | ForEach-Object {
     Get-ChildItem $_ -filter "*.txt" | ForEach-Object {
         $LogPath = $_.FullName
         Write-Host "##teamcity[blockOpened name='Log File $($LogPath)']"
