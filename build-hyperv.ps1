@@ -117,6 +117,10 @@ if(-not $SkipPester)
     exit 1
   }
 }
+else
+{
+  Write-Output "-SkipPester was specified, skipping pester tests"
+}
 
 Write-Output "Running 'vagrant up --provider hyperv'"
 vagrant up --provider hyperv --no-destroy-on-error | Tee-Object -FilePath vagrant.log  #   --debug
