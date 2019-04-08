@@ -2,7 +2,6 @@ param($version)
 
 # check if the version exists in the octopus-testing bucket
 $resp = Invoke-WebRequest "https://s3-ap-southeast-1.amazonaws.com/octopus-testing/server/Octopus.$version-x64.msi" -Method HEAD -verbose -UseBasicParsing
-    #                  iwr https://s3-ap-southeast-1.amazonaws.com/octopus-testing/server/Octopus.2019.3.1-vnext0262-x64.msi -method head
 
 if($resp.statuscode -ne 200)
 {
@@ -22,3 +21,17 @@ $outfile = $infile -replace "[string]$DownloadUrl = `"https://octopus.com/downlo
 $outfile | Out-File $ModulePath
 
 Write-Output "Module modified to use $version as 'latest'"
+
+Write-Output "Looking for CurrentState files in $pwd/OctopusDSC/Tests/OctopusServerExeInvocationFiles/"
+$currentstatefiles = Get-ChildItem -recurse "OctopusDSC/Tests/OctopusServerExeInvocationFiles/" -filter CurrentState.ps1
+
+$currentstatefiles | ForEach-Object {
+    Write-Version "Modifying CurrentState file ${$_.FullName} to use $version as latest"
+
+    $infile = Get-Content $_.FullName
+
+    $outfile = $infile -replace "https://octopus.com/downloads/latest/WindowsX64/OctopusServer",
+    "https://s3-ap-southeast-1.amazonaws.com/octopus-testing/server/Octopus.$version-x64.msi"
+
+    $outfile | Out-File $_.FullName
+}
