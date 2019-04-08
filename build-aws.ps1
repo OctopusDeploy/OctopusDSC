@@ -68,10 +68,27 @@ vagrant box add OctopusDeploy/dsc-test-server-windows-server-1803 https://s3-ap-
 Write-Output "Ensuring vagrant box is latest"
 vagrant box update --box OctopusDeploy/dsc-test-server-windows-server-1803 --provider aws
 
-Write-Output "Running 'vagrant up --provider aws'"
-vagrant up --provider aws  | Tee-Object -FilePath vagrant.log
-Write-Output "'vagrant up' exited with exit code $LASTEXITCODE"
+$attempts = 0
+do {
+  Write-Output "Running 'vagrant up --provider aws'"
+  vagrant up --provider aws  | Tee-Object -FilePath vagrant.log
+  Write-Output "'vagrant up' exited with exit code $LASTEXITCODE"
+  $attempts = $attempts + 1
+  $retryAgain = ($attempts -lt 3) -and (Test-LogContainsRetriableFailure) -and ($LASTEXITCODE -ne 0)
+  if ($retryAgain) {
+    Write-Output "Running 'vagrant destroy -f' to cleanup, so we can try again."
+    vagrant destroy -f
+  }
+} while ($retryAgain)
 
+function Test-LogContainsRetriableFailure() {
+    $log = Get-Content vagrant.log -raw
+    if ($log.Contains("[WinRM::FS::Core::FileTransporter] Upload failed (exitcode: 0), but stderr present (WinRM::FS::Core::FileTransporterFailed)")) {
+        return $true
+    }
+
+    return $false
+}
 
 if ($LASTEXITCODE -ne 0)
 {
