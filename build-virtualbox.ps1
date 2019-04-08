@@ -92,9 +92,6 @@ if(-not $SkipPester)
   Test-PowershellModuleInstalled "Pester"
   Test-PowershellModuleInstalled "PSScriptAnalyzer"
   Import-Module Pester -verbose -force
-
-if(-not $SkipPester)
-{
   Write-Output "Running Pester Tests"
   $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
   if ($result.FailedCount -gt 0) {
