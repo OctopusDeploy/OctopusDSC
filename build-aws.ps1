@@ -1,5 +1,13 @@
 #!/usr/local/bin/pwsh
-param([switch]$SkipPester)
+param(
+  [switch]$offline,
+  [switch]$SkipPester,
+  [switch]$ServerOnly,
+  [switch]$TentacleOnly,
+  [string]$OctopusVersion,
+  [switch]$retainondestroy,
+  [switch]$debug
+)
 
 . Tests/powershell-helpers.ps1
 
@@ -7,6 +15,8 @@ Test-EnvVar AWS_ACCESS_KEY_ID
 Test-EnvVar AWS_SECRET_ACCESS_KEY
 Test-EnvVar AWS_SUBNET_ID
 Test-EnvVar AWS_SECURITY_GROUP_ID
+
+Set-OctopusDscEnvVars @PSBoundParameters
 
 if (-not (Test-AppExists "vagrant")) {
   Write-Output "Please install vagrant from vagrantup.com."
@@ -25,8 +35,7 @@ Test-PluginInstalled "vagrant-aws-winrm"
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
-if(-not $SkipPester)
-{
+if(-not $SkipPester) {
   Write-Output "##teamcity[blockOpened name='Pester tests']"
   Write-Output "Importing Pester module"
   Test-PowershellModuleInstalled "Pester"
@@ -69,10 +78,12 @@ vagrant box add OctopusDeploy/dsc-test-server-windows-server-1803 https://s3-ap-
 Write-Output "Ensuring vagrant box is latest"
 vagrant box update --box OctopusDeploy/dsc-test-server-windows-server-1803 --provider aws
 
-Write-Output "Running 'vagrant up --provider aws'"
-vagrant up --provider aws  | Tee-Object -FilePath vagrant.log
-Write-Output "'vagrant up' exited with exit code $LASTEXITCODE"
-
+$splat = @{
+  provider="aws";
+  retainondestroy = $retainondestroy.IsPresent;
+  debug = $debug.IsPresent;
+}
+Invoke-VagrantWithRetries @splat
 
 if ($LASTEXITCODE -ne 0)
 {
@@ -81,5 +92,4 @@ if ($LASTEXITCODE -ne 0)
   exit $LASTEXITCODE
 }
 
-
-Write-Output "Dont forget to run 'cleanup-aws.ps1' when you have finished"
+Write-Output "Don't forget to run 'cleanup-aws.ps1' when you have finished"

@@ -8,6 +8,7 @@ aws_subnet_id = ENV['AWS_SUBNET_ID'] || 'not-set'
 aws_security_group_id = ENV['AWS_SECURITY_GROUP_ID'] || 'not-set'
 aws_key_name = ENV['KEY_NAME'] || 'not-set'
 azure_vm_password = ENV['AZURE_VM_PASSWORD'] || 'not-set'
+pre_release_version = ENV['OctopusDSCPreReleaseVersion'] || 'not-set'
 
 $run_test_scenario_script = <<SCRIPT
   write-output "##teamcity[blockOpened name='Testing Scenario {scenario_name}']"
@@ -141,6 +142,10 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   config.vm.provision "file", source: "OctopusDSC", destination: 'C:\Windows\System32\WindowsPowerShell\v1.0\modules\OctopusDSC'
 
   config.vm.provision "shell", path: "Tests/configure-dsc-local-configuration-manager.ps1"
+
+  if pre_release_version != 'not-set' then
+    config.vm.provision "shell", path: "Tests/configure-module-for-prerelease-tests.ps1", args: ("-version " + pre_release_version)
+  end
 
   if ENV['OctopusDSCTestMode'] != "TentacleOnly" then
     # Run DSC to install server

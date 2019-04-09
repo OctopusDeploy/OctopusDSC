@@ -3,69 +3,23 @@ param(
   [switch]$offline,
   [switch]$SkipPester,
   [switch]$ServerOnly,
-  [switch]$TentacleOnly
+  [switch]$TentacleOnly,
+  [string]$OctopusVersion,
+  [switch]$retainondestroy,
+  [switch]$debug
 )
 
 . Tests/powershell-helpers.ps1
 
 Start-Transcript .\vagrant-hyperv.log -Append
 
-# Clear the OctopusDSCTestMode Env Var
-if(Test-Path env:\OctopusDSCTestMode)
-{
-  get-item env:\OctopusDSCTestMode | Remove-Item
-}
-
-if($ServerOnly -and $TentacleOnly)
-{
-  throw "Cannot specify both 'ServerOnly' and 'TentacleOnly'"
-}
-
-if($ServerOnly)
-{
-  Write-Output "'ServerOnly' switch detected, running only server-related Integration tests"
-  $env:OctopusDSCTestMode = 'ServerOnly'
-}
-
-if($TentacleOnly)
-{
-  Write-Output "'TentacleOnly' switch detected, running only tentacle-related Integration tests"
-  $env:OctopusDSCTestMode = 'TentacleOnly'
-}
+Set-OctopusDscEnvVars @PSBoundParameters
 
 # remove psreadline as it interferes with the SMB password prompt
 if(Get-Module PSReadLine)
 {
   Remove-Module PSReadLine
 }
-
-if($offline)   # if you want to use offline, then you need a v3 and a v4 installer locally in the .\Tests folder (gitignored) - currently broken
-{
-  Write-Warning "Offline run requested, writing an offline.config file"
-
-  if(-not (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.4.*.msi"}))
-  {
-    Write-Warning "To run tests offline, you will need a v4 installer in the .\Tests folder"
-    throw
-  }
-
-  if(-not (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.3.*.msi"}))
-  {
-    Write-Warning "To run tests offline, you will need a v3 installer in the .\Tests folder"
-    throw
-  }
-
-  [pscustomobject]@{
-      v4file = (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.3.*.msi"} | Select-Object -first 1 | Select-Object -expand Name);
-      v3file = (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.4.*.msi"} | Select-Object -first 1 | Select-Object -expand Name);
-  } | ConvertTo-Json | Out-File ".\Tests\offline.config"
-}
-else {
-  # make sure the offline.config is not there
-  Remove-item ".\tests\offline.config" -verbose -ErrorAction SilentlyContinue
-}
-
-. Tests/powershell-helpers.ps1
 
 if (-not (Test-AppExists "vagrant")) {
   Write-Output "Please install vagrant from vagrantup.com."
@@ -106,10 +60,19 @@ if(-not $SkipPester)
     exit 1
   }
 }
+else
+{
+  Write-Output "-SkipPester was specified, skipping pester tests"
+}
 
-Write-Output "Running 'vagrant up --provider hyperv'"
-vagrant up --provider hyperv --no-destroy-on-error | Tee-Object -FilePath vagrant.log  #   --debug
+$splat = @{
+  provider="hyperv";
+  retainondestroy = $retainondestroy.IsPresent; # set to $true to override in this script
+  debug = $debug.IsPresent; # set to $true to override in this script
+}
 
-Write-Output "Dont forget to run 'vagrant destroy -f' when you have finished"
+Invoke-VagrantWithRetries @splat
+
+Write-Output "Don't forget to run 'vagrant destroy -f' when you have finished"
 
 stop-transcript

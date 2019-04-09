@@ -1,35 +1,17 @@
 #!/usr/local/bin/pwsh
 param(
-  [switch]$offline
+  [switch]$offline,
+  [switch]$SkipPester,
+  [switch]$ServerOnly,
+  [switch]$TentacleOnly,
+  [string]$OctopusVersion,
+  [switch]$retainondestroy,
+  [switch]$debug
 )
 
 Start-Transcript .\vagrant-virtualbox.log
 
-if($offline)   # if you want to use offline, then you need a v3 and a v4 installer locally in the .\Tests folder (gitignored)
-{
-  Write-Warning "Offline run requested, writing an offline.config file"
-
-  if(-not (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.4.*.msi"}))
-  {
-    Write-Warning "To run tests offline, you will need a v4 installer in the .\Tests folder"
-    throw
-  }
-
-  if(-not (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.3.*.msi"}))
-  {
-    Write-Warning "To run tests offline, you will need a v3 installer in the .\Tests folder"
-    throw 
-  }
-
-  [pscustomobject]@{
-      v4file = (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.3.*.msi"} | Select-Object -first 1 | Select-Object -expand Name);
-      v3file = (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.4.*.msi"} | Select-Object -first 1 | Select-Object -expand Name);
-  } | ConvertTo-Json | Out-File ".\Tests\offline.config"
-}
-else {
-  # make sure the offline.config is not there
-  Remove-item ".\tests\offline.config" -verbose -ErrorAction SilentlyContinue
-}
+Set-OctopusDscEnvVars @PSBoundParameters
 
 . Tests/powershell-helpers.ps1
 
@@ -48,20 +30,31 @@ Write-Output "VirtualBox installed - good."
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
-Write-Output "Importing Pester module"
-Test-PowershellModuleInstalled "Pester"
-Test-PowershellModuleInstalled "PSScriptAnalyzer"
-Import-Module Pester -verbose -force
-
-Write-Output "Running Pester Tests"
-$result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
-if ($result.FailedCount -gt 0) {
-  exit 1
+if(-not $SkipPester)
+{
+  Write-Output "Importing Pester module"
+  Test-PowershellModuleInstalled "Pester"
+  Test-PowershellModuleInstalled "PSScriptAnalyzer"
+  Import-Module Pester -verbose -force
+  Write-Output "Running Pester Tests"
+  $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
+  if ($result.FailedCount -gt 0) {
+    exit 1
+  }
+}
+else
+{
+  Write-Output "-SkipPester was specified, skipping pester tests"
 }
 
-Write-Output "Running 'vagrant up --provider virtualbox'"
-vagrant up --provider virtualbox | Tee-Object -FilePath vagrant.log  #  --no-destroy-on-error --debug
+$splat = {
+  provider = 'virtualbox';
+  retainondestroy = $retainondestroy.IsPresent;
+  debug = $debug.IsPresent;
+}
 
-Write-Output "Dont forget to run 'vagrant destroy -f' when you have finished"
+Invoke-VagrantWithRetries @splat
 
-stop-transcript 
+Write-Output "Don't forget to run 'vagrant destroy -f' when you have finished"
+
+stop-transcript

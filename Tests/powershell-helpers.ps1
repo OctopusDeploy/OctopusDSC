@@ -41,7 +41,7 @@ function Test-PowershellModuleInstalled($moduleName) {
   }
 }
 
-function Test-CustomVersionOfVagrantDscPluginIsInstalled() {  # does not deal well with machines that have two vesioned folders under /gems/
+function Test-CustomVersionOfVagrantDscPluginIsInstalled() {  # does not deal well with machines that have two versioned folders under /gems/
   $path = Resolve-Path ~/.vagrant.d/gems/*/gems/vagrant-dsc-*/lib/vagrant-dsc/provisioner.rb |
             Sort-Object -descending |
             Select-Object -first 1 # sort and select to cope with multiple gem folders (upgraded vagrant)
@@ -58,4 +58,122 @@ function Test-CustomVersionOfVagrantDscPluginIsInstalled() {  # does not deal we
   write-host "  irm https://github.com/OctopusDeploy/vagrant-dsc/releases/download/v2.0.1/vagrant-dsc-2.0.1.gem -outfile vagrant-dsc-2.0.1.gem"
   write-host "  vagrant plugin install vagrant-dsc-2.0.1.gem"
   exit 1
+}
+
+function Test-LogContainsRetriableFailure() {
+  $log = Get-Content vagrant.log -raw
+  if ($log.Contains("[WinRM::FS::Core::FileTransporter] Upload failed (exitcode: 0), but stderr present (WinRM::FS::Core::FileTransporterFailed)")) {
+      return $true
+  }
+  Write-Warning "Attempted retry, but no retriable failures found"
+  return $false
+}
+
+Function Invoke-VagrantWithRetries {
+  param(
+    [ValidateSet("aws", "azure", "hyperv", "virtualbox")]
+    $provider,
+    $retries = 3,
+    [switch]$retainondestroy,
+    [switch]$debug
+  )
+
+  $attempts = 0
+  $args = @(
+    'up',
+    '--provider',
+    $provider
+  )
+
+  if($retainondestroy) {
+    $args += '--no-destroy-on-error'
+  }
+
+  if($debug) {
+    $args += '--debug'
+  }
+
+  do {
+    Write-Output (@("Running Vagrant with arguments '", $args, "'") -join "")
+    vagrant $args  | Tee-Object -FilePath vagrant.log
+    Write-Output "'vagrant up' exited with exit code $LASTEXITCODE"
+    $attempts = $attempts + 1
+    $retryAgain = ($attempts -lt $retries) -and (Test-LogContainsRetriableFailure) -and ($LASTEXITCODE -ne 0)
+    if ($retryAgain) {
+      Write-Output "Running 'vagrant destroy -f' to cleanup, so we can try again."
+      vagrant destroy -f
+    }
+  } while ($retryAgain)
+}
+
+Function Set-OctopusDSCEnvVars {
+  param(
+    [switch]$offline,
+    [switch]$SkipPester,
+    [switch]$ServerOnly,
+    [switch]$TentacleOnly,
+    [string]$OctopusVersion
+  )
+
+  # Clear the OctopusDSCTestMode Env Var
+  if(Test-Path env:\OctopusDSCTestMode)  {
+    get-item env:\OctopusDSCTestMode | Remove-Item
+  }
+  if($ServerOnly.IsPresent -and $TentacleOnly.IsPresent)  {
+    throw "Cannot specify both 'ServerOnly' and 'TentacleOnly'"
+  }
+
+  if($ServerOnly.IsPresent)  {
+    Write-Output "'ServerOnly' switch detected, running only server-related Integration tests"
+    $env:OctopusDSCTestMode = 'ServerOnly'
+  }
+
+  if($TentacleOnly.IsPresent)  {
+    Write-Output "'TentacleOnly' switch detected, running only tentacle-related Integration tests"
+    $env:OctopusDSCTestMode = 'TentacleOnly'
+  }
+
+  # Allow testing pre-releases
+  if(Test-Path Env:\OctopusDSCPreReleaseVersion)  {
+    get-item env:\OctopusDSCPreReleaseVersion| Remove-Item
+  }
+
+  if($OctopusVersion -ne "")  {
+    Write-Output "Setting pre-release version to $OctopusVersion"
+    $env:OctopusDSCPreReleaseVersion = $OctopusVersion
+  }
+
+  # offline installers - saves downloading a ton of installer data, can speed things up on slow connections
+  # only really useful for hyper-v and virtualbox. currently broken
+  if($offline.IsPresent) {
+    Set-OfflineConfig
+  } else {
+    # make sure the offline.config is not there
+    Remove-item ".\tests\offline.config" -verbose -ErrorAction SilentlyContinue
+  }
+}
+
+Function Set-OfflineConfig
+{
+  # if you want to use offline, then you need a v3 and a v4 MSI installer locally in the .\Tests folder (gitignored)
+
+  Write-Warning "Offline run requested, writing an offline.config file"
+
+  if(-not (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.2019.*.msi"}))
+  {
+    Write-Warning "To run tests offline, you will need a v4 (2018 or 2019) installer in the .\Tests folder"
+    throw
+  }
+
+  if(-not (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.3.*.msi"}))
+  {
+    Write-Warning "To run tests offline, you will need a v3 installer in the .\Tests folder"
+    throw
+  }
+
+  [pscustomobject]@{
+      v4file = (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.2019.*.msi"} | Select-Object -first 1 | Select-Object -expand Name);
+      v3file = (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.3.*.msi"} | Select-Object -first 1 | Select-Object -expand Name);
+  } | ConvertTo-Json | Out-File ".\Tests\offline.config"
+
 }
