@@ -94,7 +94,7 @@ Function Invoke-VagrantWithRetries {
   }
 
   do {
-    Write-Output "Running 'vagrant up --provider $provider"
+    Write-Output (@("Running Vagrant with arguments '", $args, "'") -join "")
     vagrant $args  | Tee-Object -FilePath vagrant.log
     Write-Output "'vagrant up' exited with exit code $LASTEXITCODE"
     $attempts = $attempts + 1
@@ -112,7 +112,7 @@ Function Set-OctopusDSCEnvVars {
     [switch]$SkipPester,
     [switch]$ServerOnly,
     [switch]$TentacleOnly,
-    [string]$PreReleaseVersion
+    [string]$OctopusVersion
   )
 
   # Clear the OctopusDSCTestMode Env Var
@@ -138,9 +138,9 @@ Function Set-OctopusDSCEnvVars {
     get-item env:\OctopusDSCPreReleaseVersion| Remove-Item
   }
 
-  if($PreReleaseVersion -ne "")  {
-    Write-Output "Setting pre-release version to $Prereleaseversion"
-    $env:OctopusDSCPreReleaseVersion = $PreReleaseVersion
+  if($OctopusVersion -ne "")  {
+    Write-Output "Setting pre-release version to $OctopusVersion"
+    $env:OctopusDSCPreReleaseVersion = $OctopusVersion
   }
 
   # offline installers - saves downloading a ton of installer data, can speed things up on slow connections

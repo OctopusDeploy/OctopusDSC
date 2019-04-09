@@ -4,7 +4,7 @@ param(
   [switch]$SkipPester,
   [switch]$ServerOnly,
   [switch]$TentacleOnly,
-  [string]$PreReleaseVersion
+  [string]$OctopusVersion
 )
 
 . Tests/powershell-helpers.ps1

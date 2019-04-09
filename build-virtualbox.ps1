@@ -4,7 +4,7 @@ param(
   [switch]$SkipPester,
   [switch]$ServerOnly,
   [switch]$TentacleOnly,
-  [string]$PreReleaseVersion
+  [string]$OctopusVersion
 )
 
 Start-Transcript .\vagrant-virtualbox.log
