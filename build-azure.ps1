@@ -1,5 +1,11 @@
 #!/usr/local/bin/pwsh
-param([switch]$SkipPester)
+param(
+  [switch]$offline,
+  [switch]$SkipPester,
+  [switch]$ServerOnly,
+  [switch]$TentacleOnly,
+  [string]$PreReleaseVersion
+)
 
 . Tests/powershell-helpers.ps1
 
@@ -8,6 +14,8 @@ Test-EnvVar AZURE_SUBSCRIPTION_ID
 Test-EnvVar AZURE_TENANT_ID
 Test-EnvVar AZURE_CLIENT_ID
 Test-EnvVar AZURE_CLIENT_SECRET
+
+Set-OctopusDscEnvVars @PSBoundParameters
 
 if (-not (Test-AppExists "vagrant")) {
   Write-Output "Please install vagrant from vagrantup.com."
@@ -39,7 +47,8 @@ if(-not $SkipPester) {
 }
 
 Write-Output "Running 'vagrant up --provider azure'"
-vagrant up --provider azure # --debug &> vagrant.log
+
+Invoke-VagrantWithRetries -provider azure
 
 Write-Output "'vagrant up' exited with exit code $LASTEXITCODE"
 
