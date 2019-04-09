@@ -4,7 +4,9 @@ param(
   [switch]$SkipPester,
   [switch]$ServerOnly,
   [switch]$TentacleOnly,
-  [string]$OctopusVersion
+  [string]$OctopusVersion,
+  [switch]$retainondestroy,
+  [switch]$debug
 )
 
 Start-Transcript .\vagrant-virtualbox.log
@@ -45,8 +47,14 @@ else
   Write-Output "-SkipPester was specified, skipping pester tests"
 }
 
-Invoke-VagrantWithRetries -provider virtualbox -retainondestroy # -debug
+$splat = {
+  provider = 'virtualbox';
+  retainondestroy = $retainondestroy.IsPresent;
+  debug = $debug.IsPresent;
+}
 
-Write-Output "Dont forget to run 'vagrant destroy -f' when you have finished"
+Invoke-VagrantWithRetries @splat
+
+Write-Output "Don't forget to run 'vagrant destroy -f' when you have finished"
 
 stop-transcript

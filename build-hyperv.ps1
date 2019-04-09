@@ -4,7 +4,9 @@ param(
   [switch]$SkipPester,
   [switch]$ServerOnly,
   [switch]$TentacleOnly,
-  [string]$OctopusVersion
+  [string]$OctopusVersion,
+  [switch]$retainondestroy,
+  [switch]$debug
 )
 
 . Tests/powershell-helpers.ps1
@@ -63,8 +65,14 @@ else
   Write-Output "-SkipPester was specified, skipping pester tests"
 }
 
-Invoke-VagrantWithRetries -provider hyperv -retainondestroy # -debug
+$splat = @{
+  provider="hyperv";
+  retainondestroy = $retainondestroy.IsPresent; # set to $true to override in this script
+  debug = $debug.IsPresent; # set to $true to override in this script
+}
 
-Write-Output "Dont forget to run 'vagrant destroy -f' when you have finished"
+Invoke-VagrantWithRetries @splat
+
+Write-Output "Don't forget to run 'vagrant destroy -f' when you have finished"
 
 stop-transcript

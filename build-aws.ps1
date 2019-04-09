@@ -4,7 +4,9 @@ param(
   [switch]$SkipPester,
   [switch]$ServerOnly,
   [switch]$TentacleOnly,
-  [string]$OctopusVersion
+  [string]$OctopusVersion,
+  [switch]$retainondestroy,
+  [switch]$debug
 )
 
 . Tests/powershell-helpers.ps1
@@ -76,7 +78,12 @@ vagrant box add OctopusDeploy/dsc-test-server-windows-server-1803 https://s3-ap-
 Write-Output "Ensuring vagrant box is latest"
 vagrant box update --box OctopusDeploy/dsc-test-server-windows-server-1803 --provider aws
 
-Invoke-VagrantWithRetries -provider aws
+$splat = @{
+  provider="aws";
+  retainondestroy = $retainondestroy.IsPresent;
+  debug = $debug.IsPresent;
+}
+Invoke-VagrantWithRetries @splat
 
 if ($LASTEXITCODE -ne 0)
 {
@@ -85,4 +92,4 @@ if ($LASTEXITCODE -ne 0)
   exit $LASTEXITCODE
 }
 
-Write-Output "Dont forget to run 'cleanup-aws.ps1' when you have finished"
+Write-Output "Don't forget to run 'cleanup-aws.ps1' when you have finished"

@@ -4,7 +4,9 @@ param(
   [switch]$SkipPester,
   [switch]$ServerOnly,
   [switch]$TentacleOnly,
-  [string]$OctopusVersion
+  [string]$OctopusVersion,
+  [switch]$retainondestroy,
+  [switch]$debug
 )
 
 . Tests/powershell-helpers.ps1
@@ -59,4 +61,4 @@ if ($LASTEXITCODE -ne 0)
   exit $LASTEXITCODE
 }
 
-Write-Output "Dont forget to run 'cleanup-azure.ps1' when you have finished"
+Write-Output "Don't forget to run 'cleanup-azure.ps1' when you have finished"
