@@ -1193,25 +1193,16 @@ function Install-OctopusDeploy {
     )
 
     if (Test-OctopusVersionRequiresDatabaseBeforeConfigure) {
-        if ($isMasterKeyProvided) {
-            Write-Log "Running Octopus Deploy database command for existing database with provided masterkey"
-            $dbargs = @(
-                'database',
-                '--instance', $name,
-                '--connectionstring', $sqlDbConnectionString,
-                "--masterKey", $OctopusMasterKey.GetNetworkCredential().Password
-            )
-        }
-        else {
-            Write-Log "Creating Octopus Deploy database for v4"
-            $action = '--create'
+        $dbargs = @(
+            'database',
+            '--instance', $name,
+            '--connectionstring', $sqlDbConnectionString,
+            '--create'
+        )
 
-            $dbargs = @(
-                'database',
-                '--instance', $name,
-                '--connectionstring', $sqlDbConnectionString,
-                $action
-            )
+        if ($isMasterKeyProvided) {
+            Write-Log "Running Octopus Deploy database command with provided masterkey"
+            $dbargs += @("--masterKey", $OctopusMasterKey.GetNetworkCredential().Password)
         }
 
         if ($GrantDatabasePermissions) {
