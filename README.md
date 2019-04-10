@@ -40,7 +40,7 @@ There are four options provided:
 
  - [build-aws.ps1](build-aws.ps1)
  - [build-azure.ps1](build-azure.ps1)
- - [build-hyperv-ps1](build-hyperv-ps1) - windows virtualisation (new)
+ - [build-hyperv-ps1](build-hyperv-ps1) - windows virtualisation
  - [build-virtualbox.ps1](build-virtualbox.ps1) - cross-platform virtualisation
 
 On a build server, you most likely want to use [build-aws.ps1](build-aws.ps1) to spin up a virtual machine on AWS to run the tests.
