@@ -376,7 +376,8 @@ function Set-TargetResource {
             -registerWithServer $RegisterWithServer `
             -octopusServerThumbprint $OctopusServerThumbprint `
             -TentacleServiceCredential $TentacleServiceCredential `
-            -WorkerPools $WorkerPools
+            -WorkerPools $WorkerPools `
+            -TenantedDeploymentParticipation $TenantedDeploymentParticipation
 
         Write-Verbose "Tentacle installed!"
     }
@@ -411,6 +412,7 @@ function Set-TargetResource {
         -port $ListenPort `
         -serverPort $ServerPort `
         -tentacleCommsPort $TentacleCommsPort `
+        -TenantedDeploymentParticipation $TenantedDeploymentParticipation
 
         # Check worker pools
         if (($null -ne $WorkerPools) -and ($WorkerPools.Count -gt 0))
@@ -723,7 +725,6 @@ function New-Tentacle {
         [string]$octopusServerThumbprint,
         [PSCredential]$TentacleServiceCredential,
         [string[]] $workerPools,
-        [ValidateSet("Untenanted","TenantedOrUntenanted","Tenanted")]
         [string]$TenantedDeploymentParticipation
     )
 
@@ -1066,8 +1067,7 @@ function Register-Tentacle
         [int]$serverPort = 10943,
         [int]$port = 10933,
         [int]$tentacleCommsPort = 0,
-        [ValidateSet("Untenanted","TenantedOrUntenanted","Tenanted")]
-        [string]$TenantedDeploymentParticipation = ""
+        [string]$TenantedDeploymentParticipation
     )
 
     if ($port -eq 0) {
@@ -1146,7 +1146,7 @@ function Register-Tentacle
         }
     }
 
-    if ($tenantedDeploymentParticipation -ne "") {
+    if ($TenantedDeploymentParticipation -ne "") {
         $registerArguments += @("--tenanted-deployment-participation", $TenantedDeploymentParticipation)
     }
 

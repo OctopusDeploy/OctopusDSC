@@ -42,6 +42,8 @@ Configuration Tentacle_Scenario_01_Install
             Tenants = "John"
             TenantTags = "Hosting/Cloud"
 
+            TenantedDeploymentParticipation = "TenantedOrUntenanted"
+
             Policy = "Test Policy"
         }
 
