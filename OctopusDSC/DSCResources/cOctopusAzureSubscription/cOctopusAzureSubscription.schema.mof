@@ -1,0 +1,23 @@
+[ClassVersion("1.0.0"), FriendlyName("cOctopusAzureSubscription")]
+class cOctopusAzureSubscription : OMI_BaseResource
+{
+  [Required, ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
+  [Key] string Name;
+  [Write] string Description;
+
+  [Write] string Url;
+  [Write, EmbeddedInstance("MSFT_Credential")] string OctopusCredentials;
+  [Write, EmbeddedInstance("MSFT_Credential")] string OctopusApiKey;
+
+  [Write] string SubscriptionNumber;
+  [Write] string ServiceManagementEndpointBaseUri;
+  [Write] string ServiceManagementEndpointSuffix;
+  [Write] string CertificateBytes;
+  [Write] string CertificateThumbprint;
+
+  [Write] string Environments[];
+  [Write] string Tenants[];
+  [Write] string TenantTags[];
+  [Write] string TenantedDeploymentParticipation;
+  [Write] string SpaceId;
+};

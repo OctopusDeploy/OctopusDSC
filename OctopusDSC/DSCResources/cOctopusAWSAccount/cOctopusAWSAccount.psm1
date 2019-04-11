@@ -3,12 +3,10 @@
 
 Function Get-TargetResource
 {
-    # TODO: Add parameters here
-    # Make sure to use the same parameters for
-    # Get-TargetResource, Set-TargetResource, and Test-TargetResource
     param (
+        [Parameter(Mandatory)]
         [ValidateSet("Present", "Absent")]
-        [string]$Ensure = 'Present',
+        [string]$Ensure,
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         $Name,
@@ -26,22 +24,60 @@ Function Get-TargetResource
         [string]$TenantedDeploymentParticipation,
         [string]$SpaceId
     )
+
+
 }
 
 Function Set-TargetResource
 {
-    # TODO: Add parameters here
-    # Make sure to use the same parameters for
-    # Get-TargetResource, Set-TargetResource, and Test-TargetResource
-    param(
+    param (
+        [Parameter(Mandatory)]
+        [ValidateSet("Present", "Absent")]
+        [string]$Ensure,
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        $Name,
+        [string]$Description,
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        $Url,
+        [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
+        [PSCredential]$OctopusApiKey = [PSCredential]::Empty,
+        [PSCredential]$AWSKeyPair = [PSCredential]::Empty,
+        [string[]]$Environments,
+        [string[]]$Tenants,
+        [string[]]$TenantTags,
+        [ValidateSet("Untenanted","TenantedOrUntenanted","Tenanted")]
+        [string]$TenantedDeploymentParticipation,
+        [string]$SpaceId
     )
+
+
 }
 
 Function Test-TargetResource
 {
-    # TODO: Add parameters here
-    # Make sure to use the same parameters for
-    # Get-TargetResource, Set-TargetResource, and Test-TargetResource
-    param(
+    param (
+        [Parameter(Mandatory)]
+        [ValidateSet("Present", "Absent")]
+        [string]$Ensure,
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        $Name,
+        [string]$Description,
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        $Url,
+        [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
+        [PSCredential]$OctopusApiKey = [PSCredential]::Empty,
+        [PSCredential]$AWSKeyPair = [PSCredential]::Empty,
+        [string[]]$Environments,
+        [string[]]$Tenants,
+        [string[]]$TenantTags,
+        [ValidateSet("Untenanted","TenantedOrUntenanted","Tenanted")]
+        [string]$TenantedDeploymentParticipation,
+        [string]$SpaceId
     )
+
+
 }

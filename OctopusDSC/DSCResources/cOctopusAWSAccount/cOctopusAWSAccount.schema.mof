@@ -15,4 +15,5 @@ class cOctopusAWSAccount : OMI_BaseResource
   [Write] string Tenants[];
   [Write] string TenantTags[];
   [Write] string TenantedDeploymentParticipation;
+  [Write] string SpaceId;
 };
