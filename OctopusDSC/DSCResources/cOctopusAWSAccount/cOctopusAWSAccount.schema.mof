@@ -1,0 +1,18 @@
+[ClassVersion("1.0.0"), FriendlyName("cOctopusAWSAccount")]
+class cOctopusAWSAccount : OMI_BaseResource
+{
+  [Required, ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
+  [Key] string Name;
+  [Write] string Description;
+
+  [Write] string Url;
+  [Write, EmbeddedInstance("MSFT_Credential")] string OctopusCredentials;
+  [Write, EmbeddedInstance("MSFT_Credential")] string OctopusApiKey;
+
+  [Write, EmbeddedInstance("MSFT_Credential")] string AWSKeypair;
+
+  [Write] string Environments[];
+  [Write] string Tenants[];
+  [Write] string TenantTags[];
+  [Write] string TenantedDeploymentParticipation;
+};
