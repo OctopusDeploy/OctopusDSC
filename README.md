@@ -86,7 +86,7 @@ Each of the `build-*` scripts can take parameters at the command prompt. These a
 | `-SkipPester`                 | Switch    | False            | Skips the Pester and PSScriptAnalyzer unit tests, going straight to the VM-based integration tests.             |
 | `-ServerOnly`                 | Switch    | False            | Runs only the Server-related integration scenarios. |
 | `-TentacleOnly`               | Switch    | False            | Runs Server scenarios 14 and 15, then moves on to Tentacle-related tests (which require a server instance to be present). |
-| `-OctopusVersion`             | String    | `vLatest`        | Allows you to run tests against a specific version of Octopus deploy, pulled from the `octopus-testing` s3 bucket. Does not apply to 'Scenario_07'). |
+| `-OctopusVersion`             | String    | `vLatest`        | Allows you to run tests against a specific version of Octopus Deploy, pulled from the `octopus-testing` s3 bucket. Does not apply to 'Scenario_07'. |
 | `-RetainOnDestroy`            | Switch    | False            | Retains the virtual machine after the tests finish, so you can examine the state of the VM. |
 | `-debug`                      | Switch    | False            | Adds the `--debug` flag to the vagrant invocation, allowing you to step through the process and examine machine state before moving on. |
 
