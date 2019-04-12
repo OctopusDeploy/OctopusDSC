@@ -115,6 +115,11 @@ Function Set-OctopusDSCEnvVars {
     [string]$OctopusVersion
   )
 
+  if(-not $env:OctopusDSCVMSwitch)
+  {
+    $env:OctopusDSCVMSwitch = 'Default Switch' # Override this variable to use a different switch in hyper-v
+  }
+
   # Clear the OctopusDSCTestMode Env Var
   if(Test-Path env:\OctopusDSCTestMode)  {
     get-item env:\OctopusDSCTestMode | Remove-Item
