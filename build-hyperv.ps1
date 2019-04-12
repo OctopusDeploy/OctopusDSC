@@ -15,6 +15,11 @@ Start-Transcript .\vagrant-hyperv.log -Append
 
 Set-OctopusDscEnvVars @PSBoundParameters
 
+if(-not $env:OctopusDSCVMSwitch)
+{
+  $env:OctopusDSCVMSwitch = 'Default Switch' # Override this variable to use a different switch
+}
+
 # remove psreadline as it interferes with the SMB password prompt
 if(Get-Module PSReadLine)
 {
@@ -43,11 +48,11 @@ else {
 }
 Write-Output "Hyper-V installed - good."
 
-if (-not (Get-VMSwitch -SwitchType External -Name 'External Connection' -ErrorAction SilentlyContinue)) {
-    Write-Output "Please create an external virtual switch named 'External Connection'."
+if (-not (Get-VMSwitch -Name $env:OctopusDSCVMSwitch -ErrorAction SilentlyContinue)) {
+    Write-Output (@("Could not find a Hyper-V switch called", $env:OctopusDSCVMSwitch) -join "")
     exit 1
 }
-Write-Output "External virtual switch detected - good."
+Write-Output (@("Hyper-V virtual switch '", $env:OctopusDSCVMSwitch, "' detected - good.") -join "")
 
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
