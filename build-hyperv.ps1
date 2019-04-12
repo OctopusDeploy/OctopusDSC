@@ -15,11 +15,6 @@ Start-Transcript .\vagrant-hyperv.log -Append
 
 Set-OctopusDscEnvVars @PSBoundParameters
 
-if(-not $env:OctopusDSCVMSwitch)
-{
-  $env:OctopusDSCVMSwitch = 'Default Switch' # Override this variable to use a different switch in hyper-v
-}
-
 # remove psreadline as it interferes with the SMB password prompt
 if(Get-Module PSReadLine)
 {
