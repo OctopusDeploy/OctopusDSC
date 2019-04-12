@@ -12,4 +12,4 @@ If your pull request or proposed change is for a bug that is causing problems fo
 
 If you have an idea or a feature request, please post it to [our UserVoice site](http://octopusdeploy.uservoice.com) so others can vote for it.
 
-If you're a keen contributor, a regular OctopusDSC user or just curious, please feel free to join us in the `#octopusdsc` channel at our [Community Slack](https://octopususergroup.slack.com/)
+If you're a keen contributor, a regular OctopusDSC user or just curious, please feel free to join us in the `#octopusdsc` channel at our [Community Slack](https://join.slack.com/t/octopususergroup/shared_invite/enQtNDcyNjM3OTczNzAxLTU0MjI3YmIyMDc1MzdmYjk3OTYzZGY4ZTI2NTcwMzY3OGJkZTExYTVkNThjYjM1MWE2YjlmNWQyMmQwNzRmMjk)

@@ -44,7 +44,7 @@ else {
 Write-Output "Hyper-V installed - good."
 
 if (-not (Get-VMSwitch -Name $env:OctopusDSCVMSwitch -ErrorAction SilentlyContinue)) {
-    Write-Output (@("Could not find a Hyper-V switch called", $env:OctopusDSCVMSwitch) -join "")
+    Write-Output "Could not find a Hyper-V switch called $($env:OctopusDSCVMSwitch)"
     exit 1
 }
 Write-Output (@("Hyper-V virtual switch '", $env:OctopusDSCVMSwitch, "' detected - good.") -join "")

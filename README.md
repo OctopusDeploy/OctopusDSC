@@ -59,7 +59,7 @@ To run just the scenarios locally, follow these steps:
 5. If you want to test locally using Hyper-V
     - Run `vagrant plugin install vagrant-dsc`
     - Run `vagrant plugin install vagrant-winrm-syncedfolders`
-    - Optionally set the environment variable `OctopusDSCVMSwitch`, to use a switch other than 'Default Switch'
+    - Optionally set the environment variable `OctopusDSCVMSwitch`, to use a specific Hyper-V switch by name. For example, for older Hyper-V systems, you may wish to set this to 'External Connection'
     - Run `build-hyperv.ps1`. This will run all the scenarios under the [Tests](Tests) folder.
 6. If you want to test using AWS
     - Run `vagrant plugin install vagrant-aws`
@@ -79,14 +79,16 @@ To run just the scenarios locally, follow these steps:
     - Run `build-azure.ps1`. This will run all the scenarios under the [Tests](Tests) folder.
 8. Run `vagrant destroy -f` or the appropriate `cleanup-*.ps1` once you have finished to kill the virtual machine.
 
-Each of the `build-*` scripts can take parameters at the command prompt. These are gnerally designed to tighten the feedback loop during development.
+Each of the `build-*` scripts can take parameters at the command prompt.
+
+These are generally designed to tighten the feedback loop during development, since the VM-based integration test phase can be quite time consuming.
 
 | Parameter                     | Type      | Default Value    | Description |
 | ----------------------------- | --------- | ---------------- | -------------------------------------------- |
-| `-SkipPester`                 | Switch    | False            | Skips the Pester and PSScriptAnalyzer unit tests, going straight to the VM-based integration tests.             |
+| `-SkipPester`                 | Switch    | False            | Skips the Pester and PSScriptAnalyzer unit tests, going straight to the slower, VM-based integration tests.            |
 | `-ServerOnly`                 | Switch    | False            | Runs only the Server-related integration scenarios. |
-| `-TentacleOnly`               | Switch    | False            | Runs Server scenarios 14 and 15, then moves on to Tentacle-related tests (which require a server instance to be present). |
-| `-OctopusVersion`             | String    | `vLatest`        | Allows you to run tests against a specific version of Octopus Deploy, pulled from the `octopus-testing` s3 bucket. Does not apply to 'Scenario_07'. |
+| `-TentacleOnly`               | Switch    | False            | Runs Server scenarios 14 and 15 to install and configure an Octopus Deploy server instance, then moves on to Tentacle-related tests (which require a server to be present). |
+| `-OctopusVersion`             | String    | `vLatest`        | Allows you to run tests against a specific version of Octopus Deploy. Does not apply to 'Scenario_07', which installs an older version in order to test upgrading. |
 | `-RetainOnDestroy`            | Switch    | False            | Retains the virtual machine after the tests finish, so you can examine the state of the VM. |
 | `-debug`                      | Switch    | False            | Adds the `--debug` flag to the vagrant invocation, allowing you to step through the process and examine machine state before moving on. |
 
