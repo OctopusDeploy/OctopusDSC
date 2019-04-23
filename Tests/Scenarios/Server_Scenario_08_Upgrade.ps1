@@ -8,7 +8,7 @@ Configuration Server_Scenario_08_Upgrade
     $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
     $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
 
-    $pass = ConvertTo-SecureString $ApiKey -AsPlainText -Force
+    $pass = ConvertTo-SecureString $ENV:OctopusApiKey -AsPlainText -Force
     $apiCred = New-Object System.Management.Automation.PSCredential ("ignored", $pass)
 
     Node "localhost"
