@@ -108,6 +108,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     override.vm.box = "OctopusDeploy/dsc-test-server-windows-server-1803" #box added via launcher script
     override.ssh.private_key_path = "./#{aws_key_name}.pem"
     override.winrm.username = "Administrator"
+    override.winrm.timeout = 180
     override.winrm.password = :aws # this uses the vagrant-aws-winrm plugin to get the password from aws
     override.winrm.transport = :ssl
     override.winrm.port = 5986
