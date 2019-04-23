@@ -80,7 +80,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     config.vm.provider "hyperv" do |v, override|
       override.vm.box = "OctopusDeploy/dsc-test-server-windows-server-1803"
       override.vm.box_url = "https://s3-ap-southeast-2.amazonaws.com/octopus-vagrant-boxes/vagrant/json/OctopusDeploy/hyperv/dsc-test-server-windows-server-1803.json"
-      config.vm.network "public_network", bridge: "External Connection"
+      config.vm.network "public_network", bridge: ENV['OctopusDSCVMSwitch']
       v.memory = 4096
       v.maxmemory = 4096
       v.cpus = 2
