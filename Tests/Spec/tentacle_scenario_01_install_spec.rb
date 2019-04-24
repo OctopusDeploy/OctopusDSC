@@ -42,6 +42,7 @@ describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], 
   it { should have_tenant('John') }
   it { should have_tenant_tag('Hosting', 'Cloud') }
   it { should have_policy('Test Policy') }
+  it { should have_tenanted_deployment_participation('TenantedOrUntenanted') }
 end
 
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\ListeningTentacle') do

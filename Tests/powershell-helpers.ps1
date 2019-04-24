@@ -55,8 +55,8 @@ function Test-CustomVersionOfVagrantDscPluginIsInstalled() {  # does not deal we
 
   write-host "It doesn't appear that you've got the custom Octopus version of the vagrant-dsc plugin installed" -foregroundcolor red
   write-host "Please download it from github:"
-  write-host "  irm https://github.com/OctopusDeploy/vagrant-dsc/releases/download/v2.0.1/vagrant-dsc-2.0.1.gem -outfile vagrant-dsc-2.0.1.gem"
-  write-host "  vagrant plugin install vagrant-dsc-2.0.1.gem"
+  write-host "  irm https://github.com/OctopusDeploy/vagrant-dsc/releases/download/v2.0.1/vagrant-dsc-2.0.2.gem -outfile vagrant-dsc-2.0.2.gem"
+  write-host "  vagrant plugin install vagrant-dsc-2.0.2.gem"
   exit 1
 }
 
@@ -114,6 +114,11 @@ Function Set-OctopusDSCEnvVars {
     [switch]$TentacleOnly,
     [string]$OctopusVersion
   )
+
+  if(-not $env:OctopusDSCVMSwitch)
+  {
+    $env:OctopusDSCVMSwitch = 'Default Switch' # Override this variable to use a different switch in hyper-v
+  }
 
   # Clear the OctopusDSCTestMode Env Var
   if(Test-Path env:\OctopusDSCTestMode)  {

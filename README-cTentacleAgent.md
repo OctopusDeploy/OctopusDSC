@@ -88,6 +88,7 @@ When `State` is `Started`, the resource will ensure that the Tentacle windows se
 | `TentacleHomeDirectory`       | `string`                                                   | `$($env:SystemDrive)\Octopus`                                 | The location where Octopus should store its working files, logs, packages etc. |
 | `TentacleServiceCredential`   | `PSCredential`                                             |                                                               | Credentials of the account used to run the Tentacle Service
 | `WorkerPools`                 | `string[]`                                                 |                                                               | Worker Pool Name(s) in which this tentacle participates as a worker.
+| `TenantedDeploymentParticipation` | `string` - `Untenanted` ,`TenantedOrUntenanted` or `Tenanted`    | `Untenanted`                                        | Determines the Tenancy mode of this tentacle
 
 ## Drift
 
