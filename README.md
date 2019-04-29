@@ -56,6 +56,7 @@ To run just the scenarios locally, follow these steps:
     - Download the Octopus version of [vagrant-dsc](https://github.com/OctopusDeploy/vagrant-dsc/releases/download/v2.0.2/vagrant-dsc-2.0.2.gem)
     - Run `vagrant plugin install <filepath to downloaded .gem file> ie vagrant plugin install c:\temp\vagrant-dsc-2.0.2.gem`
     - Run `vagrant plugin install vagrant-winrm-syncedfolders`
+     - Run `Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))` to install Chocolatey on the Host system.
     - Run `build-virtualbox.ps1`. This will run all the scenarios under the [Tests](Tests) folder.
 5. If you want to test locally using Hyper-V
     - Download the Octopus version of [vagrant-dsc](https://github.com/OctopusDeploy/vagrant-dsc/releases/download/v2.0.2/vagrant-dsc-2.0.2.gem)
