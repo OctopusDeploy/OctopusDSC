@@ -104,6 +104,37 @@ function Write-Log {
     Write-Verbose "[$timestamp] $message"
 }
 
+Function Invoke-WithRetries {
+    [CmdletBinding()]
+    param(
+        [scriptblock]$ScriptBlock,
+        [int]$MaxRetries = 10,
+        [int]$IntervalInMilliseconds = 200
+    )
+
+    $backoff = 1
+    $retrycount = 0
+    $returnvalue = $null
+    while ($null -eq $returnvalue -and $retrycount -lt $MaxRetries) {
+        try {
+            $returnvalue = Invoke-Command $ScriptBlock
+            if ($null -ne $LastExitCode -and $LastExitCode -ne 0) {
+                throw "Command exited with exit code $LastExitCode"
+            }
+        }
+        catch
+        {
+            Write-Verbose ($error | Select-Object -first 1)
+            Write-Verbose "We have tried $retrycount times, sleeping for $($backoff * $IntervalInMilliseconds) milliseconds and trying again."
+            Start-Sleep -MilliSeconds ($backoff * $IntervalInMilliseconds)
+            $backoff = $backoff + $backoff
+            $retrycount++
+        }
+    }
+
+    return $returnvalue
+}
+
 Function Get-MaskedOutput
 {
     [CmdletBinding()]
@@ -179,18 +210,20 @@ function Get-ServerConfiguration($instanceName) {
 
     # handle a specific error where an exception in registry migration finds its way into the json-hierarchical output
     # Refer to Issue #179 (https://github.com/OctopusDeploy/OctopusDSC/issues/179)
-
-    if(Test-ValidJson $rawConfig) {
-        $config = $rawConfig | ConvertFrom-Json
-    } else {
-        Write-Warning "Invalid json encountered in show-configuration; attempting to clean up."
-        $cleanedUpConfig = Get-CleanedJson $rawConfig
-        if(Test-ValidJson $cleanedUpConfig ) {
-            $config = $cleanedUpConfig | ConvertFrom-Json
+    # wrapped in retries to catch transient issues in json output
+    $config = Invoke-WithRetries {
+        if(Test-ValidJson $rawConfig) {
+            return $rawConfig | ConvertFrom-Json
         } else {
-            Write-Error "Attempted to cleanup bad JSON and failed."
+            Write-Warning "Invalid json encountered in show-configuration; attempting to clean up."
+            $cleanedUpConfig = Get-CleanedJson $rawConfig
+            if(Test-ValidJson $cleanedUpConfig ) {
+                return $cleanedUpConfig | ConvertFrom-Json
+            } else {
+                throw "Attempted to cleanup bad JSON and failed."
+            }
         }
-    }
+    } -MaxRetries 3 -IntervalInMilliseconds 100
 
     return $config
 }
