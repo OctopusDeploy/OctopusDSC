@@ -124,7 +124,13 @@ Function Invoke-WithRetries {
         }
         catch
         {
-            Write-Verbose ($error | Select-Object -first 1)
+            if($error)
+            {
+                Write-Verbose ($error | Select-Object -first 1)
+            }
+            else {
+                Write-Verbose ("Invoke-WithRetries threw an exception: " + ($_| Out-String))
+            }
             Write-Verbose "We have tried $retrycount times, sleeping for $($backoff * $IntervalInMilliseconds) milliseconds and trying again."
             Start-Sleep -MilliSeconds ($backoff * $IntervalInMilliseconds)
             $backoff = $backoff + $backoff
