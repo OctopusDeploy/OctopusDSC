@@ -45,7 +45,7 @@ There are four options provided:
 
 On a build server, you most likely want to use [build-aws.ps1](build-aws.ps1) to spin up a virtual machine on AWS to run the tests.
 
-Configuration is handled by environment variables. The shell scripts will show a message letting you know what variables need to be set. `The build-*` scripts also invoke [Pester](https://github.com/Pester/Pester) and [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer) tests, so you'll need those modules installed.
+Configuration is handled by environment variables. The shell scripts will show a message letting you know what variables need to be set. `The build-*` scripts also invoke [Pester](https://github.com/Pester/Pester) and [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer) tests, so you'll need those modules installed.  Be sure to update [Pester](https://github.com/Pester/Pester), the version that ships with Windows 10 is incompatible.
 
 To run just the scenarios locally, follow these steps:
 
@@ -53,12 +53,16 @@ To run just the scenarios locally, follow these steps:
 2. Install VirtualBox from [virtualbox.org](https://virtualbox.org) or Hyper-V (`Install-WindowsFeature –Name Hyper-V -IncludeManagementTools -Restart`  )
 3. _**If you are on a Mac or Linux**_ you need to install PowerShell, see https://github.com/PowerShell/PowerShell/blob/master/docs/installation/linux.md.
 4. If you want to test locally using virtualbox
-    - Run `vagrant plugin install vagrant-dsc`
+    - Download the Octopus version of [vagrant-dsc](https://github.com/OctopusDeploy/vagrant-dsc/releases/download/v2.0.2/vagrant-dsc-2.0.2.gem)
+    - Run `vagrant plugin install <filepath to downloaded .gem file> ie vagrant plugin install c:\temp\vagrant-dsc-2.0.2.gem`
     - Run `vagrant plugin install vagrant-winrm-syncedfolders`
+     - Run `Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))` to install Chocolatey on the Host system.
     - Run `build-virtualbox.ps1`. This will run all the scenarios under the [Tests](Tests) folder.
 5. If you want to test locally using Hyper-V
-    - Run `vagrant plugin install vagrant-dsc`
+    - Download the Octopus version of [vagrant-dsc](https://github.com/OctopusDeploy/vagrant-dsc/releases/download/v2.0.2/vagrant-dsc-2.0.2.gem)
+    - Run `vagrant plugin install <filepath to downloaded .gem file> ie vagrant plugin install c:\temp\vagrant-dsc-2.0.2.gem`
     - Run `vagrant plugin install vagrant-winrm-syncedfolders`
+    - Run `Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))` to install Chocolatey on the Host system.
     - Optionally set the environment variable `OctopusDSCVMSwitch`, to use a specific Hyper-V switch by name. For example, for older Hyper-V systems, you may wish to set this to 'External Connection'
     - Run `build-hyperv.ps1`. This will run all the scenarios under the [Tests](Tests) folder.
 6. If you want to test using AWS

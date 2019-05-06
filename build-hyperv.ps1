@@ -49,6 +49,18 @@ if (-not (Get-VMSwitch -Name $env:OctopusDSCVMSwitch -ErrorAction SilentlyContin
 }
 Write-Output (@("Hyper-V virtual switch '", $env:OctopusDSCVMSwitch, "' detected - good.") -join "")
 
+# Check to see if Chocolatey is installed
+if (!(Get-Command choco.exe -ErrorAction SilentlyContinue))
+{
+  # Display message to user
+  Write-Output 'Please install Chocolatey.'
+  exit 1
+}
+else 
+{
+  Write-Output "Chocolatey installed - good."
+}
+
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
