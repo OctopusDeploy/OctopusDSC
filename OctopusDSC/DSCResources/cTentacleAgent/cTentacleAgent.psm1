@@ -926,9 +926,6 @@ function Remove-WorkerPoolRegistration
             "--console"
         )
 
-        # Set the location
-        Push-Location -Path $tentacleDir
-
         # Determine which authentication mechanism ot use
         if (![string]::IsNullOrEmpty($apiKey))
         {
@@ -952,7 +949,7 @@ function Remove-WorkerPoolRegistration
         }
 
         # Execute teh process
-        Invoke-AndAssert {&.\tentacle.exe ($argumentList)}
+        Invoke-AndAssert { & $tentacleDir\tentacle.exe ($argumentList)}
     }
     else
     {
@@ -1034,11 +1031,8 @@ function Add-TentacleToWorkerPool
             )
         }
 
-        # Set the location
-        Push-Location -Path $tentacleDir
-
         # Execute the process
-        Invoke-AndAssert { &.\tentacle.exe ($argumentList)}
+        Invoke-AndAssert { & $tentacleDir\tentacle.exe ($argumentList)}
     }
 }
 
