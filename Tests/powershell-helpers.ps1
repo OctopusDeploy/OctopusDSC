@@ -94,7 +94,7 @@ Function Invoke-VagrantWithRetries {
   }
 
   do {
-    Write-Output (@("Running Vagrant with arguments '", $args, "'") -join "")
+    Write-Output (@("Running Vagrant with arguments '", ($args -join " "), "'") -join "")
     vagrant $args  | Tee-Object -FilePath vagrant.log
     Write-Output "'vagrant up' exited with exit code $LASTEXITCODE"
     $attempts = $attempts + 1
