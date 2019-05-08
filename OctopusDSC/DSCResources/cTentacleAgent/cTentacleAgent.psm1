@@ -757,25 +757,25 @@ function New-Tentacle {
 
     Write-Verbose "Configuring and registering Tentacle"
 
-    Push-Location "${env:ProgramFiles}\Octopus Deploy\Tentacle"
+    $tentacleDir = "${env:ProgramFiles}\Octopus Deploy\Tentacle"
 
     $tentacleAppDirectory = $DefaultApplicationDirectory
     $tentacleConfigFile = "$tentacleHomeDirectory\$Name\Tentacle.config"
     Write-Verbose "Tentacle configuration set as $tentacleConfigFile"
-    Invoke-AndAssert { & .\tentacle.exe create-instance --instance $name --config "$tentacleConfigFile" --console }
-    Invoke-AndAssert { & .\tentacle.exe configure --instance $name --home "$tentacleHomeDirectory" --console }
-    Invoke-AndAssert { & .\tentacle.exe configure --instance $name --app "$tentacleAppDirectory" --console }
-    Invoke-AndAssert { & .\tentacle.exe new-certificate --instance $name --console }
+    Invoke-AndAssert { & $tentacleDir\tentacle.exe create-instance --instance $name --config "$tentacleConfigFile" --console }
+    Invoke-AndAssert { & $tentacleDir\tentacle.exe configure --instance $name --home "$tentacleHomeDirectory" --console }
+    Invoke-AndAssert { & $tentacleDir\tentacle.exe configure --instance $name --app "$tentacleAppDirectory" --console }
+    Invoke-AndAssert { & $tentacleDir\tentacle.exe new-certificate --instance $name --console }
 
     if (($null -ne $octopusServerThumbprint) -and ($octopusServerThumbprint -ne "")) {
-        Invoke-AndAssert { & .\tentacle.exe configure --instance $name --trust $octopusServerThumbprint --console }
+        Invoke-AndAssert { & $tentacleDir\tentacle.exe configure --instance $name --trust $octopusServerThumbprint --console }
     }
 
     if ($CommunicationMode -eq "Listen") {
-        Invoke-AndAssert { & .\tentacle.exe configure --instance $name --port $port --console }
+        Invoke-AndAssert { & $tentacleDir\tentacle.exe configure --instance $name --port $port --console }
     }
     else {
-        Invoke-AndAssert { & .\tentacle.exe configure --instance $name --port $port --noListen "True" --console }
+        Invoke-AndAssert { & $tentacleDir\tentacle.exe configure --instance $name --port $port --noListen "True" --console }
     }
 
     $serviceArgs = @(
@@ -795,7 +795,7 @@ function New-Tentacle {
         )
     }
 
-    Invoke-AndAssert { & .\tentacle.exe ($serviceArgs) }
+    Invoke-AndAssert { & $tentacleDir\tentacle.exe ($serviceArgs) }
 
     # Reset location
     Pop-Location
@@ -803,7 +803,7 @@ function New-Tentacle {
     if ($registerWithServer) {
 
         if (($null -ne $octopusServerThumbprint) -and ($octopusServerThumbprint -ne "")) {
-            Invoke-AndAssert { & .\tentacle.exe configure --instance $name --trust $octopusServerThumbprint --console }
+            Invoke-AndAssert { & $tentacleDir\tentacle.exe configure --instance $name --trust $octopusServerThumbprint --console }
         }
 
         # Register the tentacle
@@ -834,7 +834,7 @@ function New-Tentacle {
     else {
         Write-Verbose "Skipping registration with server as 'RegisterWithServer' is set to '$registerWithServer'"
     }
-    Pop-Location
+
     Write-Verbose "Tentacle commands complete"
 }
 
@@ -887,9 +887,7 @@ function Remove-TentacleRegistration {
     if ((test-path $tentacleDir) -and (test-path "$tentacleDir\tentacle.exe")) {
         Write-Verbose "Beginning Tentacle deregistration"
         Write-Verbose "Tentacle commands complete"
-        Push-Location $tentacleDir
-        Invoke-AndAssert { & .\tentacle.exe deregister-from --instance "$name" --server $octopusServerUrl --apiKey $apiKey --console }
-        Pop-Location
+        Invoke-AndAssert { & $tentacleDir\tentacle.exe deregister-from --instance "$name" --server $octopusServerUrl --apiKey $apiKey --console }
     }
     else {
         Write-Verbose "Could not find Tentacle.exe"
@@ -926,9 +924,6 @@ function Remove-WorkerPoolRegistration
             "--console"
         )
 
-        # Set the location
-        Push-Location -Path $tentacleDir
-
         # Determine which authentication mechanism ot use
         if (![string]::IsNullOrEmpty($apiKey))
         {
@@ -952,7 +947,7 @@ function Remove-WorkerPoolRegistration
         }
 
         # Execute teh process
-        Invoke-AndAssert {&.\tentacle.exe ($argumentList)}
+        Invoke-AndAssert { & $tentacleDir\tentacle.exe ($argumentList)}
     }
     else
     {
@@ -1034,11 +1029,8 @@ function Add-TentacleToWorkerPool
             )
         }
 
-        # Set the location
-        Push-Location -Path $tentacleDir
-
         # Execute the process
-        Invoke-AndAssert { &.\tentacle.exe ($argumentList)}
+        Invoke-AndAssert { & $tentacleDir\tentacle.exe ($argumentList)}
     }
 }
 
@@ -1151,11 +1143,9 @@ function Register-Tentacle
     }
 
     # Set the location
-    Push-Location "${env:ProgramFiles}\Octopus Deploy\Tentacle"
+    $tentacleDir = "${env:ProgramFiles}\Octopus Deploy\Tentacle"
 
     Write-Verbose "Registering with arguments: $registerArguments"
-    Invoke-AndAssert { & .\tentacle.exe ($registerArguments) }
+    Invoke-AndAssert { & $tentacleDir\tentacle.exe ($registerArguments) }
 
-    # Reset location
-    Pop-Location
 }

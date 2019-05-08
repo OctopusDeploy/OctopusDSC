@@ -9,6 +9,8 @@ param(
   [switch]$debug
 )
 
+. Tests/powershell-helpers.ps1
+
 Start-Transcript .\vagrant-virtualbox.log
 
 Set-OctopusDscEnvVars @PSBoundParameters
@@ -37,7 +39,7 @@ if (!(Get-Command choco.exe -ErrorAction SilentlyContinue))
   Write-Output 'Please install Chocolatey.'
   exit 1
 }
-else 
+else
 {
   Write-Output "Chocolatey installed - good."
 }
@@ -60,7 +62,7 @@ else
   Write-Output "-SkipPester was specified, skipping pester tests"
 }
 
-$splat = {
+$splat = @{
   provider = 'virtualbox';
   retainondestroy = $retainondestroy.IsPresent;
   debug = $debug.IsPresent;
