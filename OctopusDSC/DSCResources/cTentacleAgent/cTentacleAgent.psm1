@@ -396,25 +396,29 @@ function Set-TargetResource {
     elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Present")
     {
 
-        # Re-register tentacle
-        Register-Tentacle -name $Name `
-        -apiKey $ApiKey `
-        -octopusServerUrl $OctopusServerUrl `
-        -environments $Environments `
-        -roles $Roles `
-        -tenants $Tenants `
-        -tenantTags $TenantTags `
-        -policy $Policy `
-        -communicationMode $CommunicationMode `
-        -displayName $DisplayName `
-        -publicHostNameConfiguration $PublicHostNameConfiguration `
-        -customPublicHostName $CustomPublicHostName `
-        -port $ListenPort `
-        -serverPort $ServerPort `
-        -tentacleCommsPort $TentacleCommsPort `
-        -TenantedDeploymentParticipation $TenantedDeploymentParticipation
+         # Check to see if roles and environments have something
+         if (($null -ne $Environments -and $Environments.Count -gt 0) -and ($null -ne $Roles -and $Roles.Count -gt 0))
+         {
+             # Re-register tentacle
+             Register-Tentacle -name $Name `
+             -apiKey $ApiKey `
+             -octopusServerUrl $OctopusServerUrl `
+             -environments $Environments `
+             -roles $Roles `
+             -tenants $Tenants `
+             -tenantTags $TenantTags `
+             -policy $Policy `
+             -communicationMode $CommunicationMode `
+             -displayName $DisplayName `
+             -publicHostNameConfiguration $PublicHostNameConfiguration `
+             -customPublicHostName $CustomPublicHostName `
+             -port $ListenPort `
+             -serverPort $ServerPort `
+             -tentacleCommsPort $TentacleCommsPort `
+             -TenantedDeploymentParticipation $TenantedDeploymentParticipation
+         }
 
-        # Check worker pools
+         # Check worker pools
         if (($null -ne $WorkerPools) -and ($WorkerPools.Count -gt 0))
         {
             # Add worker pools
@@ -806,23 +810,27 @@ function New-Tentacle {
             Invoke-AndAssert { & $tentacleDir\tentacle.exe configure --instance $name --trust $octopusServerThumbprint --console }
         }
 
-        # Register the tentacle
-        Register-Tentacle -name $name `
-        -apiKey $apiKey `
-        -octopusServerUrl $octopusServerUrl `
-        -environments $environments `
-        -roles $roles `
-        -tenants $tenants `
-        -tenantTags $tenantTags `
-        -policy $policy `
-        -communicationMode $communicationMode `
-        -displayName $displayName `
-        -publicHostNameConfiguration $publicHostNameConfiguration `
-        -customPublicHostName $customPublicHostName `
-        -serverPort $serverPort `
-        -port $port `
-        -tentacleCommsPort $tentacleCommsPort `
-        -TenantedDeploymentParticipation $TenantedDeploymentParticipation
+         # Check to see if roles and environments have something
+         if (($null -ne $Environments -and $Environments.Count -gt 0) -and ($null -ne $Roles -and $Roles.Count -gt 0))
+         {
+            # Register the tentacle
+            Register-Tentacle -name $name `
+            -apiKey $apiKey `
+            -octopusServerUrl $octopusServerUrl `
+            -environments $environments `
+            -roles $roles `
+            -tenants $tenants `
+            -tenantTags $tenantTags `
+            -policy $policy `
+            -communicationMode $communicationMode `
+            -displayName $displayName `
+            -publicHostNameConfiguration $publicHostNameConfiguration `
+            -customPublicHostName $customPublicHostName `
+            -serverPort $serverPort `
+            -port $port `
+            -tentacleCommsPort $tentacleCommsPort `
+            -TenantedDeploymentParticipation $TenantedDeploymentParticipation
+         }
 
         # Check worker pools
         if (($null -ne $workerPools) -and ($workerPools.Count -gt 0))
@@ -1102,7 +1110,7 @@ function Register-Tentacle
         )
     }
 
-    if ($environments -ne "") {
+    if ($environments -ne "" -and $environments.Count -gt 0) {
         foreach ($environment in $environments) {
             foreach ($e2 in $environment.Split(',')) {
                 $registerArguments += "--environment"
@@ -1111,7 +1119,7 @@ function Register-Tentacle
         }
     }
 
-    if ($roles -ne "") {
+    if ($roles -ne "" -and $roles.Count -gt 0) {
         foreach ($role in $roles) {
             foreach ($r2 in $role.Split(',')) {
                 $registerArguments += "--role"
@@ -1120,7 +1128,7 @@ function Register-Tentacle
         }
     }
 
-    if ($tenants -ne "") {
+    if ($tenants -ne "" -and $tenants.Count -gt 0) {
         foreach ($tenant in $tenants) {
             foreach ($t2 in $tenant.Split(',')) {
                 $registerArguments += "--tenant"
@@ -1129,7 +1137,7 @@ function Register-Tentacle
         }
     }
 
-    if ($tenantTags -ne "") {
+    if ($tenantTags -ne "" -and $tenantTags.Count -gt 0) {
         foreach ($tenantTag in $tenantTags) {
             foreach ($tt2 in $tenantTag.Split(',')) {
                 $registerArguments += "--tenanttag"
