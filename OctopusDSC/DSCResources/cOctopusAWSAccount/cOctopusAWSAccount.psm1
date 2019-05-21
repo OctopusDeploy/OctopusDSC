@@ -26,6 +26,8 @@ Function Get-TargetResource
     )
 
 
+
+
 }
 
 Function Set-TargetResource
@@ -79,5 +81,6 @@ Function Test-TargetResource
         [string]$SpaceId
     )
 
+    $currentresource = Get-TargetResource
 
 }
