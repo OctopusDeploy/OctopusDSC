@@ -397,7 +397,7 @@ function Set-TargetResource {
     {
 
          # Check to see if roles and environments have something
-         if (($null -ne $Environments -and $Environments.Count -gt 0) -and ($null -ne $Roles -and $Roles.Count -gt 0))
+         if (![string]::IsNullOrEmpty($Environments) -and ![string]::IsNullOrEmpty($Roles))
          {
              # Re-register tentacle
              Register-Tentacle -name $Name `
@@ -811,7 +811,7 @@ function New-Tentacle {
         }
 
          # Check to see if roles and environments have something
-         if (($null -ne $Environments -and $Environments.Count -gt 0) -and ($null -ne $Roles -and $Roles.Count -gt 0))
+         if (![string]::IsNullOrEmpty($Environments) -and ![string]::IsNullOrEmpty($Roles))
          {
             # Register the tentacle
             Register-Tentacle -name $name `
