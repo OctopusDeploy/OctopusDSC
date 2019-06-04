@@ -99,8 +99,8 @@ function Get-WorkerPoolMembership
     foreach ($octoWorkerPool in $octoWorkerPools)
     {
         # Get reference to the workers in this pool
-        $workers = Get-APIResult -ServerUrl $ServerUrl -ApiKey $ApiKey -API "/workerpools/$($octoWorkerPool.Id)/workers"
-
+        $workersall = Get-APIResult -ServerUrl $ServerUrl -ApiKey $ApiKey -API "/workers/all"
+        $workers = $workersall | Where-Object { $_.WorkerPoolIds -contains $($octoWorkerPool.Id) }
         # Check to see if the thumbprint is listed
         $workerWithThumbprint = ($workers | Where-Object {$_.Thumbprint -eq $Thumbprint})
         if ($null -ne $workerWithThumbprint)
