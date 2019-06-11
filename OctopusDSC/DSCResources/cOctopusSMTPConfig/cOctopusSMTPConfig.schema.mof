@@ -1,0 +1,13 @@
+[ClassVersion("1.0.0"), FriendlyName("cOctopusSMTPConfig")]
+class cOctopusSMTPConfig : OMI_BaseResource
+{
+  [Required, ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
+  [Write] string SMTPHost;
+  [Write] uint32 SMTPPort;
+  [Write] boolean UseSSLTLS;
+  [Write] string FromAddress;
+  [Write, EmbeddedInstance("MSFT_Credential")] string SMTPCredentials;
+  [Key] string Url;
+  [Write, EmbeddedInstance("MSFT_Credential")] string OctopusCredentials;
+  [Write, EmbeddedInstance("MSFT_Credential")] string OctopusApiKey;
+};
