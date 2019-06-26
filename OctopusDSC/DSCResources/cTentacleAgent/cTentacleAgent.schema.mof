@@ -28,4 +28,5 @@ class cTentacleAgent : OMI_BaseResource
   [Write, EmbeddedInstance ("MSFT_Credential")] string TentacleServiceCredential;
   [Write] String WorkerPools[];
   [Write, ValueMap{"Untenanted","TenantedOrUntenanted","Tenanted"}] String TenantedDeploymentParticipation;
+  [Write] String SpaceName;
 };
