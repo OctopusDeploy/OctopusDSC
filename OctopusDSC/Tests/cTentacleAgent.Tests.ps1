@@ -132,7 +132,41 @@ try
                     Mock Get-MachineFromOctopusServer {return $mockMachine}
                     Mock Get-APIResult {return [string]::Empty}
                     Mock Get-TentacleThumbprint { return "ABCDE123456" }
+                    Mock Get-Space { return @{
+                        "Id" = "Spaces-1"
+                    }}
                     Test-TargetResource @desiredConfiguration | Should Be $true
+                }
+
+                It 'Throws an error when space does not exist' {
+                    $desiredConfiguration = @{
+                        Ensure = 'Present'
+                        State = 'Started'
+                        OctopusServerUrl = 'http://fakeserver1'
+                        APIKey = 'API-GRKUQFCFIJM7G2RJM3VMRW43SK'
+                        Name = 'Tentacle1'
+                        Environments = @()
+                        Roles = @()
+                        WorkerPools = @()
+                        SpaceName = "NonExistentSpace"
+                    }
+                    $response['Ensure'] = 'Present'
+                    $response['State'] = 'Started'
+
+                    # Declare mock objects
+                    $mockMachine = @{
+                        Name = "MockMachine"
+                        EnvironmentIds = @()
+                        WorkerPools = @()
+                        Roles = @()
+                    }
+
+                    # Declare mock calls
+                    Mock Get-MachineFromOctopusServer {return $mockMachine}
+                    Mock Get-APIResult {return [string]::Empty}
+                    Mock Get-TentacleThumbprint { return "ABCDE123456" }
+                    Mock Get-Space { return $null}
+                    { Test-TargetResource @desiredConfiguration } | Should -Throw -ExpectedMessage "Unable to find a space by the name of"
                 }
             }
 
