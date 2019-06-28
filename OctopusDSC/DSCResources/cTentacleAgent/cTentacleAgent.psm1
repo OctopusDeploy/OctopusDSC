@@ -541,7 +541,6 @@ function Test-TargetResource {
     if ($Ensure -eq "Present" -and ![string]::IsNullOrEmpty($OctopusServerUrl))
     {
         # Get reference to the space
-        Write-Warning "Getting space"
         $space = Get-Space -SpaceName $SpaceName -ServerUrl $OctopusServerUrl -APIKey $ApiKey
 
         # Check to see if something was returned
@@ -552,7 +551,6 @@ function Test-TargetResource {
         }
 
         # Get reference to machine
-        Write-Warning "Getting machine"
         $machine = Get-MachineFromOctopusServer -ServerUrl $OctopusServerUrl -APIKey $ApiKey -Instance $Name -SpaceId $space.Id
 
         # Check to see if machine returned anything
@@ -573,9 +571,7 @@ function Test-TargetResource {
                 foreach ($environmentId in $machine.EnvironmentIds)
                 {
                     # Get environment reference
-                    Write-Warning "Getting Environments $($space.Id)/environments/$environmentId"
-                    #$environment = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API "$($space.Id)/environments/$environmentId"
-                    $environment = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API "$($space.Id)/environments/$environmentId"
+                    $environment = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API "/$($space.Id)/environments/$environmentId"
 
                     # Verify that the environment is in the list of environments
                     if ($Environments -notcontains $environment.Name)
@@ -593,7 +589,6 @@ function Test-TargetResource {
             $tentacleThumbprint = Get-TentacleThumbprint -Instance $Name
 
             # Get worker pool membership
-            Write-Warning "Getting worker pool membership"
             $workerPoolMembership = Get-WorkerPoolMembership -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -Thumbprint $tentacleThumbprint -SpaceId $space.Id
 
             # Compare worker pool counts
