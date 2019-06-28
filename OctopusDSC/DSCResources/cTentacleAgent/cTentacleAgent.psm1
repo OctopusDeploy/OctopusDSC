@@ -556,10 +556,6 @@ function Test-TargetResource {
     if ($Ensure -eq "Present" -and ![string]::IsNullOrEmpty($OctopusServerUrl))
     {
         # Get reference to the space
-<<<<<<< HEAD
-=======
-        Write-Warning "Getting space"
->>>>>>> Adding spaces support
         $space = Get-Space -SpaceName $SpaceName -ServerUrl $OctopusServerUrl -APIKey $ApiKey
 
         # Check to see if something was returned
@@ -570,10 +566,6 @@ function Test-TargetResource {
         }
 
         # Get reference to machine
-<<<<<<< HEAD
-=======
-        Write-Warning "Getting machine"
->>>>>>> Adding spaces support
         $machine = Get-MachineFromOctopusServer -ServerUrl $OctopusServerUrl -APIKey $ApiKey -Instance $Name -SpaceId $space.Id
 
         # Check to see if machine returned anything
@@ -594,13 +586,7 @@ function Test-TargetResource {
                 foreach ($environmentId in $machine.EnvironmentIds)
                 {
                     # Get environment reference
-<<<<<<< HEAD
                     $environment = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API "/$($space.Id)/environments/$environmentId"
-=======
-                    Write-Warning "Getting Environments $($space.Id)/environments/$environmentId"
-                    #$environment = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API "$($space.Id)/environments/$environmentId"
-                    $environment = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API "$($space.Id)/environments/$environmentId"
->>>>>>> Adding spaces support
 
                     # Verify that the environment is in the list of environments
                     if ($Environments -notcontains $environment.Name)
@@ -618,10 +604,6 @@ function Test-TargetResource {
             $tentacleThumbprint = Get-TentacleThumbprint -Instance $Name
 
             # Get worker pool membership
-<<<<<<< HEAD
-=======
-            Write-Warning "Getting worker pool membership"
->>>>>>> Adding spaces support
             $workerPoolMembership = Get-WorkerPoolMembership -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -Thumbprint $tentacleThumbprint -SpaceId $space.Id
 
             # Compare worker pool counts
