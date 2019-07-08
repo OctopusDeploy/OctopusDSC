@@ -25,6 +25,9 @@ Configuration SampleConfig
             # Defaults to <MachineName>_<InstanceName> unless overridden
             DisplayName = "My Tentacle"
 
+            # Defaults to 10933 unless otherwise specified
+            ListenPort = $ListenPort
+
             # Required parameters. See full properties list below
             ApiKey = $ApiKey
             OctopusServerUrl = $OctopusServerUrl

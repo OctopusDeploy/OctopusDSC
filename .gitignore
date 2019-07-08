@@ -73,6 +73,9 @@ ipch/
 # Visual Studio Code
 .vscode/
 
+# Ionide VSCode add-in
+.ionide
+
 # TFS 2012 Local Workspace
 $tf/
 
@@ -187,7 +190,7 @@ vagrant_*.pem
 PesterTestResults.xml
 
 *.msi
-offline.config 
+offline.config
 
 .scratch
 
