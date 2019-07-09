@@ -84,6 +84,14 @@ function Get-TentacleThumbprint
     return $thumbprint
 }
 
+function Get-TentacleVersion
+{
+    $tentaclepath = "${env:ProgramFiles}\Octopus Deploy\Tentacle"
+    # Get the thumbprint of this tentacle. original version added non-printing chars
+    $version = & $tentaclepath\tentacle.exe Version --console
+    return $version.SubString(0, 5)
+}
+
 function Get-WorkerPoolMembership
 {
     # Declare parameters
@@ -968,7 +976,25 @@ function Remove-TentacleRegistration {
     if ((test-path $tentacleDir) -and (test-path "$tentacleDir\tentacle.exe")) {
         Write-Verbose "Beginning Tentacle deregistration"
         Write-Verbose "Tentacle commands complete"
-        Invoke-AndAssert { & $tentacleDir\tentacle.exe deregister-from --instance "$name" --server $octopusServerUrl --apiKey $apiKey --console --space "$SpaceName" }
+
+        # Define argument list
+        $argumentList = @(
+            "deregister-from",
+            "--instance", $name,
+            "--server", $octopusServerUrl,
+            "--apiKey", $apiKey,
+            "--console"
+        )
+
+        # Get tentacle version to determine spaces compatiblity
+        if ([System.Version](Get-TentacleVersion) -ge [System.Version]"4.0.0")
+        {
+            # Add space name to argument list
+            $argumentList += @("--space", $SpaceName)
+        }
+
+        #Invoke-AndAssert { & $tentacleDir\tentacle.exe deregister-from --instance "$name" --server $octopusServerUrl --apiKey $apiKey --console --space "$SpaceName" }
+        Invoke-AndAssert { & $tentacleDir\tentacle.exe ($argumentList)}
     }
     else {
         Write-Verbose "Could not find Tentacle.exe"
@@ -1005,9 +1031,15 @@ function Remove-WorkerPoolRegistration
             "deregister-worker",
             "--instance", $name,
             "--server", $octopusServerUrl,
-            "--console",
-            "--space", "$SpaceName"
+            "--console"
         )
+
+        # Get tentacle version to determine spaces compatiblity
+        if ([System.Version](Get-TentacleVersion) -ge [System.Version]"4.0.0")
+        {
+            # Add space name to argument list
+            $argumentList += @("--space", "$SpaceName")
+        }
 
         # Determine which authentication mechanism ot use
         if (![string]::IsNullOrEmpty($apiKey))
@@ -1031,7 +1063,7 @@ function Remove-WorkerPoolRegistration
             throw "Both APIKey and TentacleServiceCredential are null!"
         }
 
-        # Execute teh process
+        # Execute the process
         Invoke-AndAssert { & $tentacleDir\tentacle.exe ($argumentList)}
     }
     else
@@ -1083,9 +1115,15 @@ function Add-TentacleToWorkerPool
             "register-worker",
             "--instance", $name,
             "--server", $octopusServerUrl,
-            "--force",
-            "--space", "$SpaceName"
+            "--force"
         )
+
+        # Get tentacle version to determine spaces compatiblity
+        if ([System.Version](Get-TentacleVersion) -ge [System.Version]"4.0.0")
+        {
+            # Add space name to argument list
+            $argumentList += @("--space", "$SpaceName")
+        }
 
         # Check to see which authentication mechanism to use
         if (![string]::IsNullOrEmpty($apiKey))
@@ -1168,9 +1206,16 @@ function Register-Tentacle
         "--name", $displayName,
         "--apiKey", $apiKey,
         "--force",
-        "--console",
-        "--space", "$SpaceName"
+        "--console"
     )
+
+    # Get tentacle version to determine spaces compatiblity
+    if ([System.Version](Get-TentacleVersion) -ge [System.Version]"4.0.0")
+    {
+        # Add space name to argument list
+        $argumentList += @("--space", "$SpaceName")
+    }
+
 
     if (($null -ne $policy) -and ($policy -ne "")) {
         $registerArguments += @("--policy", $policy)
