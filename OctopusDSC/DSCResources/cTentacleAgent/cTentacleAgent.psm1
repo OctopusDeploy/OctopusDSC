@@ -900,7 +900,7 @@ function New-Tentacle {
         if (($null -ne $workerPools) -and ($workerPools.Count -gt 0))
         {
             # Add the worker pools
-            Add-TentacleToWorkerPool -name $name -octopusServerUrl $octopusServerUrl -apiKey $apiKey -workerPools $workerPools -SpaceName $SpaceName
+            Add-TentacleToWorkerPool -name $name -octopusServerUrl $octopusServerUrl -apiKey $apiKey -workerPools $workerPools -SpaceName $SpaceName -CommunicationsMode $communicationMode
         }
     }
     else {
@@ -1083,8 +1083,37 @@ function Add-TentacleToWorkerPool
 
         [Parameter()]
         [String]
-        $SpaceName = "Default"
+        $SpaceName = "Default",
+
+        [Parameter()]
+        [String]
+        [ValidateSet("Listen", "Poll")]
+        $CommunicationsMode = "Listen"
     )
+
+    # Declare local variables
+    $commsStyle = ""
+
+    # Translate communications mode
+    switch ($communicationsMode)
+    {
+        "Listen"
+        {
+            # Set to tentacle passive
+            $commsStyle = "TentaclePassive"
+
+            # Break from statement
+            break
+        }
+        "Poll"
+        {
+            # Set to active
+            $commsStyle = "TentacleActive"
+
+            # Break from switch
+            break
+        }
+    }
 
     # Set tentacle location
     $tentacleDir = "${env:ProgramFiles}\Octopus Deploy\Tentacle"
@@ -1100,7 +1129,8 @@ function Add-TentacleToWorkerPool
             "register-worker",
             "--instance", $name,
             "--server", $octopusServerUrl,
-            "--force"
+            "--force",
+            "--comms-style", $commsStyle
         )
 
         # Get tentacle version to determine spaces compatiblity
