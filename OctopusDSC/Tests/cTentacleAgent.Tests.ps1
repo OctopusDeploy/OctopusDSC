@@ -142,7 +142,7 @@ try
                         Environments = @()
                         Roles = @()
                         WorkerPools = @()
-                        SpaceName = "NonExistentSpace"
+                        Space = "NonExistentSpace"
                     }
                     $response['Ensure'] = 'Present'
                     $response['State'] = 'Started'
