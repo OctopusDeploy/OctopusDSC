@@ -1,4 +1,24 @@
 require 'spec_helper'
+require 'Win32API'
+
+def get_file_version_info_size(filename)
+  file = filename.dup
+  s=""
+  vsize=Win32API.new('version.dll', 'GetFileVersionInfoSize', ['P', 'P'], 'L').call(file, s)
+
+  if (vsize > 0)
+    result = ' ' * vsize
+    Win32API.new('version.dll', 'GetFileVersionInfo', ['P', 'L', 'L', 'P'], 'L').call(file, 0, vsize, result)
+    rstring = result.unpack('v*').map{|s| s.chr if s<256}*''
+    r = /FileVersion..(.*?)\000/.match(rstring)
+  
+    return r[1]
+  else
+    return nil
+  end
+end
+
+tentacle_version = get_file_version_info_size('C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe')
 
 describe file('c:/Octopus') do
   it { should be_directory }
@@ -11,12 +31,13 @@ end
 describe file('C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe') do
   it { should be_file }
 end
-=begin
-describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle') do
-  it { should exist }
-  it { should have_property_value('InstallLocation', :type_string, "C:\\Program Files\\Octopus Deploy\\Tentacle\\") }
+
+if Gem::Version.new(tentacle_version) > Gem::Version.new('4.0.0')
+  describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle') do
+    it { should exist }
+    it { should have_property_value('InstallLocation', :type_string, "C:\\Program Files\\Octopus Deploy\\Tentacle\\") }
+  end
 end
-=end
 
 ### listening tentacle:
 
