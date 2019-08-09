@@ -85,6 +85,12 @@ try
                     $config['Ensure']                  | Should Be 'Present'
                     $config['State']                   | Should Be 'Started'
                 }
+
+                It "Throws if we specify a null or invlid CustomHostName" {
+                    { Get-TargetResource -Name "Stub" -PublicHostNameConfiguration "Custom" } | Should Throw "invalid or null"
+                    { Get-TargetResource -Name "Stub" -PublicHostNameConfiguration "Custom" -CustomPublicHostName "  " } | Should Throw "invalid or null"
+                    { Get-TargetResource -Name "Stub" -PublicHostNameConfiguration "Custom" -CustomPublicHostName "mydnsname" } | Should Not Throw
+                }
             }
 
             Context 'Test-TargetResource' {

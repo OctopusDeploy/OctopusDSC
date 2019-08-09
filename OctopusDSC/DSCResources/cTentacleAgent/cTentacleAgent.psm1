@@ -114,6 +114,18 @@ function Get-WorkerPoolMembership
     return $workerPoolMembership
 }
 
+Function Test-ParameterSet
+{
+    param(
+        [string]$publicHostNameConfiguration,
+        [string]$CustomPublicHostName
+    )
+
+    if($publicHostNameConfiguration -eq "Custom" -and [String]::IsNullOrWhiteSpace($CustomPublicHostName)) {
+        throw "PublicHostNameConfiguration was set to 'Custom' but an invalid or null CustomPublicHostName was specified"
+    }
+}
+
 function Get-TargetResource {
     [OutputType([Hashtable])]
     param (
@@ -151,6 +163,10 @@ function Get-TargetResource {
         [ValidateSet("Untenanted","TenantedOrUntenanted","Tenanted")]
         [string]$TenantedDeploymentParticipation
     )
+
+    Test-ParameterSet   -publicHostNameConfiguration $PublicHostNameConfiguration `
+                        -customPublicHostName $CustomPublicHostName
+
     Write-Verbose "Checking if Tentacle is installed"
     $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\Tentacle" -ErrorAction SilentlyContinue).InstallLocation
     $present = ($null -ne $installLocation)
