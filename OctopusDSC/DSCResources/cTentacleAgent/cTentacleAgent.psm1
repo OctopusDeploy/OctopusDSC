@@ -142,6 +142,18 @@ function Get-WorkerPoolMembership
     return $workerPoolMembership
 }
 
+Function Test-ParameterSet
+{
+    param(
+        [string]$publicHostNameConfiguration,
+        [string]$CustomPublicHostName
+    )
+
+    if($publicHostNameConfiguration -eq "Custom" -and [String]::IsNullOrWhiteSpace($CustomPublicHostName)) {
+        throw "PublicHostNameConfiguration was set to 'Custom' but an invalid or null CustomPublicHostName was specified"
+    }
+}
+
 Function Get-Space
 {
     # Define parameters
