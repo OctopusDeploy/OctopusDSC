@@ -7,7 +7,7 @@ $ServiceCred = New-Object PSCredential "ServiceUser", $password
 
 Configuration SampleConfig
 {
-    param ($ApiKey, $OctopusServerUrl, $Environments, $Roles, $ListenPort)
+    param ($ApiKey, $OctopusServerUrl, $Environments, $Roles, $ListenPort, $Space)
 
     Import-DscResource -Module OctopusDSC
 
@@ -26,6 +26,7 @@ Configuration SampleConfig
             ApiKey = $ApiKey
             Environments = $Environments
             Roles = $Roles
+            Space = $Space # This is for versions 2019.1 and above.  If null or not specified, it uses the space designated as Default
 
             # How Tentacle will communicate with the server
             CommunicationMode = "Listen"

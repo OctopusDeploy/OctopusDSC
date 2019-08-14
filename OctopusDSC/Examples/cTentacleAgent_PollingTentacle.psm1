@@ -3,7 +3,7 @@
 
 Configuration SampleConfig
 {
-    param ($ApiKey, $OctopusServerUrl, $Environments, $Roles, $ServerPort)
+    param ($ApiKey, $OctopusServerUrl, $Environments, $Roles, $ServerPort, $Space)
 
     Import-DscResource -Module OctopusDSC
 
@@ -23,6 +23,7 @@ Configuration SampleConfig
             OctopusServerUrl = $OctopusServerUrl
             Environments = $Environments
             Roles = $Roles
+            Space = $Space # This is for versions 2019.1 and above.  If null or not specified, it uses the space designated as Default
 
             # How Tentacle will communicate with the server
             CommunicationMode = "Poll"

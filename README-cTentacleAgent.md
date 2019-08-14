@@ -7,7 +7,7 @@ First, ensure the OctopusDSC module is on your `$env:PSModulePath`. Then you can
 ```PowerShell
 Configuration SampleConfig
 {
-    param ($ApiKey, $OctopusServerUrl, $Environments, $Roles, $ListenPort)
+    param ($ApiKey, $OctopusServerUrl, $Environments, $Roles, $ListenPort, $Space)
 
     Import-DscResource -Module OctopusDSC
 
@@ -33,6 +33,7 @@ Configuration SampleConfig
             OctopusServerUrl = $OctopusServerUrl
             Environments = $Environments
             Roles = $Roles
+            Space = $Space # This is for versions 2019.1 and above.  If null or not specified, it uses the space designated as Default
         }
     }
 }
