@@ -92,6 +92,7 @@ When `State` is `Started`, the resource will ensure that the Tentacle windows se
 | `TentacleServiceCredential`   | `PSCredential`                                             |                                                               | Credentials of the account used to run the Tentacle Service
 | `WorkerPools`                 | `string[]`                                                 |                                                               | Worker Pool Name(s) in which this tentacle participates as a worker.
 | `TenantedDeploymentParticipation` | `string` - `Untenanted` ,`TenantedOrUntenanted` or `Tenanted`    | `Untenanted`                                        | Determines the Tenancy mode of this tentacle
+|  `Space`                      | `string`                                                   |                                                               | The name of the Space in which the tentacle works with
 
 ## Drift
 
