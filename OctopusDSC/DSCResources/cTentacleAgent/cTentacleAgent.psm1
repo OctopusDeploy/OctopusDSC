@@ -37,6 +37,23 @@ function Get-APIResult
     return ConvertFrom-Json -InputObject $results
 }
 
+function Add-SpaceIfPresent
+{
+    param (
+        [string]
+        $Space,
+        [stringp[]]
+        $argumentList
+     )
+
+    ![String]::IsNullOrEmpty($Space)
+    {
+        $argumentList += @("--space", $Space)
+    }
+
+    return $argumentList
+}
+
 function Get-MachineFromOctopusServer
 {
     # Define parameters
@@ -999,11 +1016,7 @@ function Remove-TentacleRegistration {
         )
 
         # Check to see if space is defined
-        if (![String]::IsNullOrEmpty($Space))
-        {
-            # Add space name to argument list
-            $argumentList += @("--space", $Space)
-        }
+        $argumentList = Add-SpaceIfPresent -Space $Space -ArgumentList $argumentList
 
         Invoke-AndAssert { & $tentacleDir\tentacle.exe ($argumentList)}
     }
@@ -1045,12 +1058,7 @@ function Remove-WorkerPoolRegistration
             "--console"
         )
 
-        # Get tentacle version to determine spaces compatiblity
-        if (![String]::IsNullOrEmpty($Space))
-        {
-            # Add space name to argument list
-            $argumentList += @("--space", "$Space")
-        }
+        $argumentList = Add-SpaceIfPresent -Space $Space -ArgumentList $argumentList
 
         # Determine which authentication mechanism ot use
         if (![string]::IsNullOrEmpty($apiKey))
@@ -1119,37 +1127,28 @@ function Add-TentacleToWorkerPool
 
     $commsStyle = ""
 
-    # Translate communications mode
     switch ($communicationsMode)
     {
         "Listen"
         {
-            # Set to tentacle passive
             $commsStyle = "TentaclePassive"
 
-            # Break from statement
             break
         }
         "Poll"
         {
-            # Set to active
             $commsStyle = "TentacleActive"
 
-            # Break from switch
             break
         }
     }
 
-    # Set tentacle location
     $tentacleDir = "${env:ProgramFiles}\Octopus Deploy\Tentacle"
 
-    # Check to make sure the folder and the file exist
     if ((Test-Path -Path $tentacleDir) -and (Test-Path -Path "$tentacleDir\tentacle.exe"))
     {
-        # Display message
         Write-Verbose "Adding $($env:COMPUTERNAME) to pool(s) $([System.String]::Join(", ", $workerPools))"
 
-        # Create argument list
         $argumentList = @(
             "register-worker",
             "--instance", $name,
@@ -1158,12 +1157,7 @@ function Add-TentacleToWorkerPool
             "--comms-style", $commsStyle
         )
 
-        # Get tentacle version to determine spaces compatiblity
-        if (![String]::IsNullOrEmpty($Space))
-        {
-            # Add space name to argument list
-            $argumentList += @("--space", "$Space")
-        }
+        $argumentList = Add-SpaceIfPresent -Space $Space -ArgumentList $argumentList
 
         # Check to see which authentication mechanism to use
         if (![string]::IsNullOrEmpty($apiKey))
@@ -1249,13 +1243,7 @@ function Register-Tentacle
         "--console"
     )
 
-    # Get tentacle version to determine spaces compatiblity
-    if (![String]::IsNullOrEmpty($Space))
-    {
-        # Add space name to argument list
-        $argumentList += @("--space", "$Space")
-    }
-
+    $argumentList = Add-SpaceIfPresent -Space $Space -ArgumentList $argumentList
 
     if (($null -ne $policy) -and ($policy -ne "")) {
         $registerArguments += @("--policy", $policy)
