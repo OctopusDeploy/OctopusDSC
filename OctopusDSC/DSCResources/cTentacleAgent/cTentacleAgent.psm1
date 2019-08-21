@@ -1117,7 +1117,6 @@ function Add-TentacleToWorkerPool
         $CommunicationsMode = "Listen"
     )
 
-    # Declare local variables
     $commsStyle = ""
 
     # Translate communications mode
