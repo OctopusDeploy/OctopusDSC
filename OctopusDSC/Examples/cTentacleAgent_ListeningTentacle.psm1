@@ -26,7 +26,7 @@ Configuration SampleConfig
             ApiKey = $ApiKey
             Environments = $Environments
             Roles = $Roles
-            Space = $Space # This is for versions 2019.1 and above.  If null or not specified, it uses the space designated as Default
+            Space = $Space # Spaces are supported for Octopus Server 2019.1 and above. If null or not specified, it uses the default space
 
             # How Tentacle will communicate with the server
             CommunicationMode = "Listen"
