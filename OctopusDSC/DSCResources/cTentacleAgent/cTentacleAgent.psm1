@@ -42,11 +42,11 @@ function Add-SpaceIfPresent
     param (
         [string]
         $Space,
-        [stringp[]]
+        [string[]]
         $argumentList
      )
 
-    ![String]::IsNullOrEmpty($Space)
+    if(![String]::IsNullOrEmpty($Space))
     {
         $argumentList += @("--space", $Space)
     }
