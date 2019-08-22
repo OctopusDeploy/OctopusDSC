@@ -163,11 +163,11 @@ function Get-TargetResource {
         [ValidateSet("Untenanted","TenantedOrUntenanted","Tenanted")]
         [string]$TenantedDeploymentParticipation
     )
-
-    Test-ParameterSet   -publicHostNameConfiguration $PublicHostNameConfiguration `
+    
+	 Test-ParameterSet   -publicHostNameConfiguration $PublicHostNameConfiguration `
                         -customPublicHostName $CustomPublicHostName
-
-    Write-Verbose "Checking if Tentacle is installed"
+	
+	 Write-Verbose "Checking if Tentacle is installed"
     $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\Tentacle" -ErrorAction SilentlyContinue).InstallLocation
     $present = ($null -ne $installLocation)
     Write-Verbose "Tentacle present: $present"
@@ -872,8 +872,7 @@ function Get-PublicHostName {
         $publicHostName = $customPublicHostName
     }
     elseif ($publicHostNameConfiguration -eq "FQDN") {
-        $computer = Get-CimInstance win32_computersystem
-        $publicHostName = "$($computer.DNSHostName).$($computer.Domain)"
+        $publicHostName = [System.Net.Dns]::GetHostByName($env:computerName).HostName
     }
     elseif ($publicHostNameConfiguration -eq "ComputerName") {
         $publicHostName = $env:COMPUTERNAME
