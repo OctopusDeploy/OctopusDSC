@@ -26,7 +26,7 @@ function Get-TargetResource {
         -OctopusCredentials $OctopusCredentials `
         -OctopusApiKey $OctopusApiKey
     $existingEnsure = 'Present'
-    if ($null -eq $environment) {
+    if ($null -eq $space) {
         $existingEnsure = 'Absent'
     }
 

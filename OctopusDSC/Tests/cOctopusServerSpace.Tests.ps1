@@ -38,6 +38,7 @@ try
                     {Get-TargetResource -Url 'https://octopus.example.com' `
                                                  -Ensure 'Present' `
                                                  -Name 'Integration Team' `
+                                                 -Description 'Integration team space' `
                                                  -OctopusCredentials $creds `
                                                  -OctopusApiKey $creds } | should throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey', not both."
                 }
@@ -45,13 +46,15 @@ try
                 It 'Throws when neither OctopusCredentials and OctopusApiKey are provided' {
                     {Get-TargetResource -Url 'https://octopus.example.com' `
                                                  -Ensure 'Present' `
-                                                 -Name 'Integration Team'} | should throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey'."
+                                                 -Name 'Integration Team' `
+                                                 -Description 'Integration team space'} | should throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey'."
                 }
             }
 
             Context 'Get-TargetResource - when present' {
                 It 'Returns present when space exists' {
-                    Mock Get-Space { return [PSCustomObject]@{ Name = 'Integration Team', Description = 'The integration team space' } }
+                    Mock Get-Space { return [PSCustomObject]@{ Name = 'Integration Team'; Description = 'The integration team space' } }
+                    Mock Update-Space
                     $result = Get-TargetResource -Url 'https://octopus.example.com' `
                                                  -Ensure 'Present' `
                                                  -Name 'Integration Team' `
@@ -163,7 +166,7 @@ try
 
             Context 'Set-TargetResource - general' {
                 It 'Calls Get-TargetResource (and therefore inherits its checks)' {
-                    $response = @{ Url = 'https://octopus.example.com'; Ensure='Present'; Name = 'Integration Team'; Description = 'Desc'; OctopusCredentials = $creds }
+                    $response = @{ Url = 'https://octopus.example.com'; Ensure='Present'; Name = 'Integration Team'; Description = 'The integration team space'; OctopusCredentials = $creds }
                     Mock Get-TargetResource { return $response }
                     Set-TargetResource @desiredConfiguration
                     Assert-MockCalled Get-TargetResource -Exactly 1
