@@ -153,7 +153,7 @@ function Remove-Space {
 
     $space = $repository.Spaces.FindByName($Name)
 
-    $space.TaskQueueStopped = $true    
+    $space.TaskQueueStopped = $true
     $repository.Spaces.Modify($space)
 
     # todo: we should probably check to make sure the task queue is empty
