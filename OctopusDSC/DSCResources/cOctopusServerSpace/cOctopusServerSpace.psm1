@@ -18,9 +18,16 @@ function Get-TargetResource {
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Description,
+        [string[]]$SpaceManagersTeamMembers,
+        [string[]]$SpaceManagersTeams,
         [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
         [PSCredential]$OctopusApiKey = [PSCredential]::Empty
     )
+
+    if (($null -eq $SpaceManagersTeamMembers) -and ($null -eq $SpaceManagersTeams)) {
+        throw "Please provide at least one of 'SpaceManagersTeamMembers' or 'SpaceManagersTeams'."
+    }
+
     $space = Get-Space -Url $Url `
         -Name $Name `
         -OctopusCredentials $OctopusCredentials `
@@ -58,6 +65,8 @@ function Set-TargetResource {
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Description,
+        [string[]]$SpaceManagersTeamMembers,
+        [string[]]$SpaceManagersTeams,
         [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
         [PSCredential]$OctopusApiKey = [PSCredential]::Empty
     )
@@ -66,6 +75,8 @@ function Set-TargetResource {
         -Ensure $Ensure `
         -Name $Name `
         -Description $Description `
+        -SpaceManagersTeamMembers $SpaceManagersTeamMembers `
+        -SpaceManagersTeams $SpaceManagersTeams `
         -OctopusCredentials $OctopusCredentials `
         -OctopusApiKey $OctopusApiKey
 
@@ -74,18 +85,20 @@ function Set-TargetResource {
             -Name $Name `
             -OctopusCredentials $OctopusCredentials `
             -OctopusApiKey $OctopusApiKey
-    }
-    elseif ($Ensure -eq "Present" -and $currentResource.Ensure -eq "Absent") {
+    } elseif ($Ensure -eq "Present" -and $currentResource.Ensure -eq "Absent") {
         New-Space -Url $Url `
             -Name $Name `
             -Description $Description `
+            -SpaceManagersTeamMembers $SpaceManagersTeamMembers `
+            -SpaceManagersTeams $SpaceManagersTeams `
             -OctopusCredentials $OctopusCredentials `
             -OctopusApiKey $OctopusApiKey
-    }
-    elseif ($Description -ne $currentResource.Description) {
+    } else {
         Update-Space -Url $Url `
             -Name $Name `
             -Description $Description `
+            -SpaceManagersTeamMembers $SpaceManagersTeamMembers `
+            -SpaceManagersTeams $SpaceManagersTeams `
             -OctopusCredentials $OctopusCredentials `
             -OctopusApiKey $OctopusApiKey
     }
@@ -108,6 +121,8 @@ function Test-TargetResource {
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Description,
+        [string[]]$SpaceManagersTeamMembers,
+        [string[]]$SpaceManagersTeams,
         [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
         [PSCredential]$OctopusApiKey = [PSCredential]::Empty
     )
@@ -115,6 +130,8 @@ function Test-TargetResource {
             -Ensure $Ensure `
             -Name $Name `
             -Description $Description `
+            -SpaceManagersTeamMembers $SpaceManagersTeamMembers `
+            -SpaceManagersTeams $SpaceManagersTeams `
             -OctopusCredentials $OctopusCredentials `
             -OctopusApiKey $OctopusApiKey)
 
@@ -169,6 +186,8 @@ function New-Space {
         [string]$Name,
         [Parameter(Mandatory)]
         [string]$Description,
+        [string[]]$SpaceManagersTeamMembers,
+        [string[]]$SpaceManagersTeams,
         [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
         [PSCredential]$OctopusApiKey = [PSCredential]::Empty
     )
@@ -179,6 +198,8 @@ function New-Space {
     $space = New-Object Octopus.Client.Model.SpaceResource
     $space.Name = $Name
     $space.Description = $Description
+    $space.SpaceManagersTeamMembers = $SpaceManagersTeamMembers
+    $space.SpaceManagersTeams = $SpaceManagersTeams
     $repository.Spaces.Create($space) | Out-Null
 }
 
@@ -190,6 +211,8 @@ function Update-Space {
         [string]$Name,
         [Parameter(Mandatory)]
         [string]$Description,
+        [string[]]$SpaceManagersTeamMembers,
+        [string[]]$SpaceManagersTeams,
         [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
         [PSCredential]$OctopusApiKey = [PSCredential]::Empty
     )
@@ -199,6 +222,21 @@ function Update-Space {
 
     $space = $repository.Spaces.FindByName($Name)
     $space.Description = $Description
+
+    $users = $repository.Users.FindAll()
+    $space.SpaceManagersTeamMembers = @($SpaceManagersTeamMembers | foreach-object {
+        $user = $_
+        ($users | where-object { $_.Username -eq $user }).Id
+    })
+    $teams = $repository.Teams.FindAll() | where-object { ($null -eq $_.SpaceId) -or ($_.SpaceId -eq $space.Id) }
+    $space.SpaceManagersTeams = @($SpaceManagersTeams | foreach-object {
+        $team = $_
+        ($teams | where-object { $_.Name -eq $team }).Id
+    })
+    if (($SpaceManagersTeams | where-object { $_ -eq 'Space Managers' }) -eq $null) {
+        write-host ($space.SpaceManagersTeams.GetType())
+        $space.SpaceManagersTeams += ($teams | where-object { $_.Name -eq 'Space Managers'}).Id
+    }
     $repository.Spaces.Modify($space) | Out-Null
 }
 
@@ -217,9 +255,21 @@ function Get-Space {
         -OctopusApiKey $OctopusApiKey
 
     $space = $repository.Spaces.FindByName($Name)
+
+    if ($null -ne $space) {
+        $users = $repository.Users.FindAll()
+        $teams = $repository.Teams.FindAll() | where-object { ($null -eq $_.SpaceId) -or ($_.SpaceId -eq $space.Id) }
+        $space.SpaceManagersTeamMembers = $space.SpaceManagersTeamMembers | foreach-object {
+            $user = $_
+            ($users | where-object { $_.Id -eq $user }).Username
+        }
+        $space.SpaceManagersTeams = $space.SpaceManagersTeams | foreach-object {
+            $team = $_
+            ($teams | where-object { $_.Id -eq $team }).Name
+        }
+    }
     return $space
 }
-
 
 function Get-OctopusClientRepository {
     param (

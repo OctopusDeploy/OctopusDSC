@@ -5,6 +5,8 @@ class cOctopusServerSpace : OMI_BaseResource
   [Key] string Name;
   [Write] string Description;
   [Write] string Url;
+  [Write] string SpaceManagersTeamMembers[];
+  [Write] string SpaceManagersTeams[];
   [Write, EmbeddedInstance("MSFT_Credential")] string OctopusCredentials;
   [Write, EmbeddedInstance("MSFT_Credential")] string OctopusApiKey;
 };

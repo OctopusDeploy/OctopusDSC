@@ -15,6 +15,8 @@ Configuration SampleConfig
             Ensure = "Present"
             Name = "Integration Team"
             Description = "The top secret work of the Integration Team"
+            SpaceManagersTeamMembers = @('admin')
+            SpaceManagersTeams = @('Everyone')
             Url = "https://octopus.example.com"
             OctopusCredentials = $creds
         }
