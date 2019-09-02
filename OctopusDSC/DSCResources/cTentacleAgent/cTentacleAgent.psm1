@@ -163,11 +163,11 @@ function Get-TargetResource {
         [ValidateSet("Untenanted","TenantedOrUntenanted","Tenanted")]
         [string]$TenantedDeploymentParticipation
     )
-    
-	 Test-ParameterSet   -publicHostNameConfiguration $PublicHostNameConfiguration `
+
+    Test-ParameterSet   -publicHostNameConfiguration $PublicHostNameConfiguration `
                         -customPublicHostName $CustomPublicHostName
-	
-	 Write-Verbose "Checking if Tentacle is installed"
+
+    Write-Verbose "Checking if Tentacle is installed"
     $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\Tentacle" -ErrorAction SilentlyContinue).InstallLocation
     $present = ($null -ne $installLocation)
     Write-Verbose "Tentacle present: $present"
