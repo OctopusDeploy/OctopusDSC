@@ -84,7 +84,6 @@ end
 
 config_file = File.read('C:/ProgramData/Octopus/Tentacle/Instances/pollingtentacle.config')
 config_json = JSON.parse(config_file)
-
 describe config_json['ConfigurationFilePath'] do
   it { should eq('C:\Octopus\Polling Tentacle Home\PollingTentacle\Tentacle.config') }
 end
@@ -146,11 +145,6 @@ describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], 
   it { should have_policy('Default Machine Policy') }
 end
 
-describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\ListeningTentacleWithThumbprintWithoutAutoRegister') do
-  it { should exist }
-  it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\ListeningTentacleWithThumbprintWithoutAutoRegisterHome\ListeningTentacleWithThumbprintWithoutAutoRegister\Tentacle.config') }
-end
-
 describe file('C:/ProgramData/Octopus/Tentacle/Instances/ListeningTentacleWithThumbprintWithoutAutoRegister.config') do
   it { should be_file }
 end
@@ -158,7 +152,7 @@ end
 config_file = File.read('C:/ProgramData/Octopus/Tentacle/Instances/ListeningTentacleWithThumbprintWithoutAutoRegister.config')
 config_json = JSON.parse(config_file)
 describe config_json['ConfigurationFilePath'] do
-  it { should eq('C:\Octopus\ListeningTentacleWithThumbprintWithoutAutoRegisterHome\ListeningTentacleWithThumbprintWithoutAutoRegister\Tentacle\Tentacle.config') }
+  it { should eq('C:\Octopus\ListeningTentacleWithThumbprintWithoutAutoRegisterHome\ListeningTentacleWithThumbprintWithoutAutoRegister\Tentacle.config') }
 end
 
 describe file('C:\Octopus\ListeningTentacleWithThumbprintWithoutAutoRegisterHome\ListeningTentacleWithThumbprintWithoutAutoRegister\Tentacle.config') do
