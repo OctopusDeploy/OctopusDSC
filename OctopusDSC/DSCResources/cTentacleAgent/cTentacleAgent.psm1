@@ -872,8 +872,7 @@ function Get-PublicHostName {
         $publicHostName = $customPublicHostName
     }
     elseif ($publicHostNameConfiguration -eq "FQDN") {
-        $computer = Get-CimInstance win32_computersystem
-        $publicHostName = "$($computer.DNSHostName).$($computer.Domain)"
+        $publicHostName = [System.Net.Dns]::GetHostByName($env:computerName).HostName
     }
     elseif ($publicHostNameConfiguration -eq "ComputerName") {
         $publicHostName = $env:COMPUTERNAME
