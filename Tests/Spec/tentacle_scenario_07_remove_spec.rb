@@ -16,6 +16,9 @@ describe service('OctopusDeploy Tentacle') do
   it { should_not be_installed }
 end
 
+# should reg entry be deleted?
+# should instance file be deleted?
+
 describe windows_dsc do
   it { should be_able_to_get_dsc_configuration }
   it { should have_applied_dsc_configuration_successfully }
