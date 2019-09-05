@@ -45,6 +45,16 @@ describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\Tent
   it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config') }
 end
 
+describe file('C:/ProgramData/Octopus/Tentacle/Instances/Tentacle.config') do
+  it { should be_file }
+end
+
+config_file = File.read('C:/ProgramData/Octopus/Tentacle/Instances/Tentacle.config')
+config_json = JSON.parse(config_file)
+describe config_json['ConfigurationFilePath'] do
+  it { should eq('C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config') }
+end
+
 describe windows_dsc do
   it { should be_able_to_get_dsc_configuration }
   it { should have_applied_dsc_configuration_successfully }
