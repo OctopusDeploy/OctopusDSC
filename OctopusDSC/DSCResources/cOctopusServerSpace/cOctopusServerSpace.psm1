@@ -233,8 +233,7 @@ function Update-Space {
         $team = $_
         ($teams | where-object { $_.Name -eq $team }).Id
     })
-    if (($SpaceManagersTeams | where-object { $_ -eq 'Space Managers' }) -eq $null) {
-        write-host ($space.SpaceManagersTeams.GetType())
+    if ($null -eq ($SpaceManagersTeams | where-object { $_ -eq 'Space Managers' })) {
         $space.SpaceManagersTeams += ($teams | where-object { $_.Name -eq 'Space Managers'}).Id
     }
     $repository.Spaces.Modify($space) | Out-Null

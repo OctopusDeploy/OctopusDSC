@@ -309,14 +309,14 @@ try
                     Assert-MockCalled Get-TargetResource -Exactly 1
                     # we would expect to check that Update-Space is not called
                     # but as Set-TargetResource is only called by DSC when there
-                    # are changes, so Set-TargetResource can safely assume that 
+                    # are changes, so Set-TargetResource can safely assume that
                     # changes are required
                 }
             }
 
             Context 'Team and User mapping' {
                 $spacesRepository = New-Object -TypeName PSObject
-                $getSpaceResponse = @{ 
+                $getSpaceResponse = @{
                     Id = "Spaces-262";
                     Name = "Integration Space";
                     Description = "The old description";
