@@ -78,8 +78,8 @@ Configuration Server_Scenario_01_Install
             Ensure = "Present"
             OctopusCredentials = $cred
             Name = "Integration Team"
-            SpaceManagersTeamMembers @("admin")
-            SpaceManagersTeams @("Everyone")
+            SpaceManagersTeamMembers = @("admin")
+            SpaceManagersTeams = @("Everyone")
             Description = "Description for the Integration Team Space"
             DependsOn = "[cOctopusServer]OctopusServer"
         }
