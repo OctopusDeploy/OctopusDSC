@@ -195,11 +195,24 @@ function New-Space {
         -OctopusCredentials $OctopusCredentials `
         -OctopusApiKey $OctopusApiKey
 
-    $space = New-Object Octopus.Client.Model.SpaceResource
-    $space.Name = $Name
-    $space.Description = $Description
-    $space.SpaceManagersTeamMembers = $SpaceManagersTeamMembers
-    $space.SpaceManagersTeams = $SpaceManagersTeams
+    $space = @{
+        Name = $Name;
+        Description = $Description;
+        SpaceManagersTeamMembers = $SpaceManagersTeamMembers;
+        SpaceManagersTeams = $SpaceManagersTeams;
+    }
+
+    $users = $repository.Users.FindAll()
+    $space.SpaceManagersTeamMembers = @($SpaceManagersTeamMembers | foreach-object {
+        $user = $_
+        ($users | where-object { $_.Username -eq $user }).Id
+    })
+    $teams = $repository.Teams.FindAll() | where-object { ($null -eq $_.SpaceId) -or ($_.SpaceId -eq $space.Id) }
+    $space.SpaceManagersTeams = @($SpaceManagersTeams | foreach-object {
+        $team = $_
+        ($teams | where-object { $_.Name -eq $team }).Id
+    })
+    
     $repository.Spaces.Create($space) | Out-Null
 }
 

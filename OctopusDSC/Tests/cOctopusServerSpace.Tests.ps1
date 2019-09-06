@@ -325,8 +325,10 @@ try
                     SpaceManagersTeams = @("teams-spacemanagers-Spaces-262", "teams-everyone");
                     SpaceManagersTeamMembers = @("Users-582") }
                 $spacesRepository | Add-Member -MemberType ScriptMethod -Name "FindByName" -Force -Value { return $getSpaceResponse }
-                $script:receivedValue = $null
-                $spacesRepository | Add-Member -MemberType ScriptMethod -Name "Modify" -Force -Value { param($space) $script:receivedValue = $space }
+                $script:valueReceivedByModifyFunction = $null
+                $spacesRepository | Add-Member -MemberType ScriptMethod -Name "Modify" -Force -Value { param($space) $script:valueReceivedByModifyFunction = $space }
+                $script:valueReceivedByCreateFunction = $null
+                $spacesRepository | Add-Member -MemberType ScriptMethod -Name "Create" -Force -Value { param($space) $script:valueReceivedByCreateFunction = $space }
 
                 $usersRepository = New-Object -TypeName PSObject
                 $findUsersResponse = @(@{ Id = "Users-1001"; Username = "bob@example.com"}, @{ Id = "Users-582"; Username = 'admin'} )
@@ -370,10 +372,27 @@ try
                         -OctopusCredentials $null `
                         -OctopusApiKey $null
                     It 'Maps user names supplied by user to ids' {
-                        $script:receivedValue.SpaceManagersTeamMembers | should be @("Users-582")
+                        $script:valueReceivedByModifyFunction.SpaceManagersTeamMembers | should be @("Users-582")
                     }
                     It 'Maps team names supplied by user to ids and adds space managers' {
-                        $script:receivedValue.SpaceManagersTeams | should be @("teams-everyone", "teams-spacemanagers-Spaces-262")
+                        $script:valueReceivedByModifyFunction.SpaceManagersTeams | should be @("teams-everyone", "teams-spacemanagers-Spaces-262")
+                    }
+                }
+
+                Context 'New-Space' {
+                    New-Space `
+                        -Url 'https://octopus.example.com' `
+                        -Name 'Integration Team' `
+                        -Description 'The new description' `
+                        -SpaceManagersTeamMembers @('admin') `
+                        -SpaceManagersTeams @('Everyone') `
+                        -OctopusCredentials $null `
+                        -OctopusApiKey $null
+                    It 'Maps user names supplied by user to ids' {
+                        $script:valueReceivedByCreateFunction.SpaceManagersTeamMembers | should be @("Users-582")
+                    }
+                    It 'Maps team names supplied by user to ids and adds space managers' {
+                        $script:valueReceivedByCreateFunction.SpaceManagersTeams | should be @("teams-everyone")
                     }
                 }
             }
