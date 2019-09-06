@@ -24,6 +24,7 @@ Describe "PSScriptAnalyzer" {
 
     $existingPSModulePath = $env:PSModulePath
     $path = Resolve-Path "$PSCommandPath/../../"
+    Write-host "Setting `$env:PSModulePath to '$($env:PSModulePath);$path'"
     $env:PSModulePath = "$($env:PSModulePath);$path"
 
     $excludedRules += 'PSAvoidUsingConvertToSecureStringWithPlainText'
