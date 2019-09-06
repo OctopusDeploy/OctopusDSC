@@ -202,12 +202,12 @@ function New-Space {
     $space.SpaceManagersTeams = $SpaceManagersTeams;
 
     $users = $repository.Users.FindAll()
-    $space.SpaceManagersTeamMembers = @($SpaceManagersTeamMembers | foreach-object {
+    $space.SpaceManagersTeamMembers = ConvertTo-ReferenceCollection @($SpaceManagersTeamMembers | foreach-object {
         $user = $_
         ($users | where-object { $_.Username -eq $user }).Id
     })
     $teams = $repository.Teams.FindAll() | where-object { ($null -eq $_.SpaceId) -or ($_.SpaceId -eq $space.Id) }
-    $space.SpaceManagersTeams = @($SpaceManagersTeams | foreach-object {
+    $space.SpaceManagersTeams = ConvertTo-ReferenceCollection @($SpaceManagersTeams | foreach-object {
         $team = $_
         ($teams | where-object { $_.Name -eq $team }).Id
     })
@@ -218,6 +218,11 @@ function New-Space {
 function New-SpaceResource {
     # making this mockable, so we dont have to reference Octopus.Client.dll in the tests
     return New-Object Octopus.Client.Model.SpaceResource
+}
+
+function ConvertTo-ReferenceCollection ([string[]]$list) {
+    # making this mockable, so we dont have to reference Octopus.Client.dll in the tests
+    return New-Object Octopus.Client.Model.ReferenceCollection ($list)
 }
 
 function Update-Space {

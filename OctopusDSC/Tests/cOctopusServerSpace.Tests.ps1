@@ -381,6 +381,7 @@ try
 
                 Context 'New-Space' {
                     Mock New-SpaceResource { return @{} }
+                    Mock ConvertTo-ReferenceCollection { param($list) return $list }
                     New-Space `
                         -Url 'https://octopus.example.com' `
                         -Name 'Integration Team' `
