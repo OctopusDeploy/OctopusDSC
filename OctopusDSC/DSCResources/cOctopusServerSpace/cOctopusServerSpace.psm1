@@ -195,12 +195,11 @@ function New-Space {
         -OctopusCredentials $OctopusCredentials `
         -OctopusApiKey $OctopusApiKey
 
-    $space = @{
-        Name = $Name;
-        Description = $Description;
-        SpaceManagersTeamMembers = $SpaceManagersTeamMembers;
-        SpaceManagersTeams = $SpaceManagersTeams;
-    }
+    $space = New-SpaceResource
+    $space.Name = $Name;
+    $space.Description = $Description;
+    $space.SpaceManagersTeamMembers = $SpaceManagersTeamMembers;
+    $space.SpaceManagersTeams = $SpaceManagersTeams;
 
     $users = $repository.Users.FindAll()
     $space.SpaceManagersTeamMembers = @($SpaceManagersTeamMembers | foreach-object {
@@ -214,6 +213,11 @@ function New-Space {
     })
 
     $repository.Spaces.Create($space) | Out-Null
+}
+
+function New-SpaceResource {
+    # making this mockable, so we dont have to reference Octopus.Client.dll in the tests
+    return New-Object Octopus.Client.Model.SpaceResource
 }
 
 function Update-Space {

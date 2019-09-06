@@ -380,6 +380,7 @@ try
                 }
 
                 Context 'New-Space' {
+                    Mock New-SpaceResource { return @{} }
                     New-Space `
                         -Url 'https://octopus.example.com' `
                         -Name 'Integration Team' `
