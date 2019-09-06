@@ -25,7 +25,7 @@ Describe "PSScriptAnalyzer" {
     $existingPSModulePath = $env:PSModulePath
     $path = Resolve-Path "$PSCommandPath/../../"
     if ($isLinux -or $IsMacOS) {
-        $newPath = "$($env:PSModulePath);$path"
+        $newPath = "$($env:PSModulePath):$path"
     } else {
         $newPath = "$($env:PSModulePath);$path"
     }
