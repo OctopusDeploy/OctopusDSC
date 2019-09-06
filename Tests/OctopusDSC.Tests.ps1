@@ -4,24 +4,49 @@ Describe "PSScriptAnalyzer" {
         'PSUseShouldProcessForStateChangingFunctions'
     )
 
-    $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/DSCResources"
-    Write-Output "Running PsScriptAnalyzer against $path"
-    $results = @(Invoke-ScriptAnalyzer $path -recurse -exclude $excludedRules)
-    $results | ConvertTo-Json | Out-File PsScriptAnalyzer-DSCResources.log
-
     It "Should have zero PSScriptAnalyzer issues in OctopusDSC/DSCResources" {
+        $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/DSCResources"
+        Write-Output "Running PsScriptAnalyzer against $path"
+        $results = @(Invoke-ScriptAnalyzer $path -recurse -exclude $excludedRules)
+        $results | ConvertTo-Json | Out-File PsScriptAnalyzer-DSCResources.log
+
         $results.length | Should Be 0
     }
 
-    $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/Tests"
-    Write-Output "Running PsScriptAnalyzer against $path"
-    $results = @(Invoke-ScriptAnalyzer $path -recurse -exclude $excludedRules)
-    $results | ConvertTo-Json | Out-File PsScriptAnalyzer-Tests.log
-
-    # it'd be nice to run the PsScriptAnalyzer on `./OctopusDSC/Examples`, but I couldn't get it to detect the DSCModule on mac nor on linux
     It "Should have zero PSScriptAnalyzer issues in OctopusDSC/Tests" {
+        $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/Tests"
+        Write-Output "Running PsScriptAnalyzer against $path"
+        $results = @(Invoke-ScriptAnalyzer $path -recurse -exclude $excludedRules)
+        $results | ConvertTo-Json | Out-File PsScriptAnalyzer-Tests.log
+
         $results.length | Should Be 0
     }
+
+    $existingPSModulePath = $env:PSModulePath
+    $path = Resolve-Path "$PSCommandPath/../../"
+    $env:PSModulePath = "$($env:PSModulePath);$path"
+
+    $excludedRules += 'PSAvoidUsingConvertToSecureStringWithPlainText'
+
+    It "Should have zero PSScriptAnalyzer issues in Scenarios" {
+        $path = Resolve-Path "$PSCommandPath/../../Tests/Scenarios"
+        Write-Output "Running PsScriptAnalyzer against $path"
+        $results = @(Invoke-ScriptAnalyzer $path -recurse -exclude $excludedRules)
+        $results | ConvertTo-Json | Out-File PsScriptAnalyzer-Scenarios.log
+
+        $results.length | Should Be 0
+    }
+
+    It "Should have zero PSScriptAnalyzer issues in Examples" {
+        $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/Examples"
+        Write-Output "Running PsScriptAnalyzer against $path"
+        $results = @(Invoke-ScriptAnalyzer $path -recurse -exclude $excludedRules)
+        $results | ConvertTo-Json | Out-File PsScriptAnalyzer-Examples.log
+
+        $results.length | Should Be 0
+    }
+
+    $env:PSModulePath = $existingPSModulePath
 }
 
 Describe "OctopusDSC.psd1" {

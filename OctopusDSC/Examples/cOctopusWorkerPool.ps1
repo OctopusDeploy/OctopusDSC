@@ -15,7 +15,7 @@ Configuration SampleConfig
             Url = "https://octopus.example.com"
             Ensure = 'Present'
             WorkerPoolName = 'My Ops Worker Pool'
-            WorkerPoolDescription "A worker pool for operational tasks"
+            WorkerPoolDescription = "A worker pool for operational tasks"
             SpaceID = "spaces-1"
             OctopusCredentials = $creds
         }
