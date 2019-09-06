@@ -212,7 +212,7 @@ function New-Space {
         $team = $_
         ($teams | where-object { $_.Name -eq $team }).Id
     })
-    
+
     $repository.Spaces.Create($space) | Out-Null
 }
 
