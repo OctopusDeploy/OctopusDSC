@@ -29,7 +29,7 @@ Describe "PSScriptAnalyzer" {
     } else {
         $newPath = "$($env:PSModulePath);$path"
     }
-    Write-host "Setting `$env:PSModulePath to '$newPath'"
+    Write-Output "Setting `$env:PSModulePath to '$newPath'"
     $env:PSModulePath = $newPath
 
     $excludedRules += 'PSAvoidUsingConvertToSecureStringWithPlainText'
@@ -39,7 +39,17 @@ Describe "PSScriptAnalyzer" {
         Write-Output "Running PsScriptAnalyzer against $path"
         $results = @(Invoke-ScriptAnalyzer $path -recurse -exclude $excludedRules)
         $results | ConvertTo-Json | Out-File PsScriptAnalyzer-Scenarios.log
-
+        if ($IsLinux -or $IsMacOS) {
+            $results = $results | where-object {
+                # these DSC resources are available on linux
+                ($_.Message -ne "Undefined DSC resource 'LocalConfigurationManager'. Use Import-DSCResource to import the resource.") -and
+                ($_.Message -ne "Undefined DSC resource 'Script'. Use Import-DSCResource to import the resource.") -and
+                ($_.Message -ne "Undefined DSC resource 'User'. Use Import-DSCResource to import the resource.") -and
+                ($_.Message -ne "Undefined DSC resource 'Group'. Use Import-DSCResource to import the resource.") -and
+                # it's getting confused - Group here is actually the DSC resource, not an alias.
+                ($_.Message -ne "'Group' is an alias of 'Group-Object'. Alias can introduce possible problems and make scripts hard to maintain. Please consider changing alias to its full content.")
+            }
+        }
         $results.length | Should Be 0
     }
 
