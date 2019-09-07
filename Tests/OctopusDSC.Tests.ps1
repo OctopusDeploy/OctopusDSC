@@ -26,7 +26,7 @@ Describe "PSScriptAnalyzer" {
     #keep getting:  
     # "Undefined DSC resource 'cOctopusServer'. Use Import-DSCResource to import the resource."
     #even though it works fine on ubuntu locally 
-    $isRunningUnderTeamCity = [string]::IsNullOrEmpty($env:TEAMCITY_PROJECT_NAME)
+    $isRunningUnderTeamCity = (Test-Path Env:\TEAMCITY_PROJECT_NAME)
     if (-not $isRunningUnderTeamCity) 
     {
         $existingPSModulePath = $env:PSModulePath
