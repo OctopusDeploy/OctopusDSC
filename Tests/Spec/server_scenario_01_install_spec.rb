@@ -63,7 +63,7 @@ end
 #space
 describe octopus_deploy_space(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], 'Integration Team') do
   it { should exist }
-  it { should have_description('Description') }
+  it { should have_description('Description for the Integration Team Space') }
 end
 
 #TODO: worker pool
