@@ -280,6 +280,9 @@ function Get-Space {
     $space = $repository.Spaces.FindByName($Name)
 
     if ($null -ne $space) {
+        # convert to json and back again, so we've got a HashTable rather than a SpaceResource
+        # need a HashTable instead, as we want string[] for SpaceManagersTeamMembers and SpaceManagersTeams
+        $space = ($space | ConvertTo-Json -depth 10 | ConvertFrom-Json)
         $users = $repository.Users.FindAll()
         $teams = $repository.Teams.FindAll() | where-object { ($null -eq $_.SpaceId) -or ($_.SpaceId -eq $space.Id) }
         $space.SpaceManagersTeamMembers = $space.SpaceManagersTeamMembers | foreach-object {
@@ -294,7 +297,7 @@ function Get-Space {
 
     # convert to json and back again, so we've got a HashTable rather than a SpaceResource
     # need a HashTable instead, as we want string[] for SpaceManagersTeamMembers and SpaceManagersTeams
-    return ($space | ConvertTo-Json -depth 10 | ConvertFrom-Json)
+    return $space
 }
 
 function Get-OctopusClientRepository {
