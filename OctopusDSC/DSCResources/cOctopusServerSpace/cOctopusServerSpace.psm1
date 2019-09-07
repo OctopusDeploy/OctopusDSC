@@ -289,7 +289,10 @@ function Get-Space {
             ($teams | where-object { $_.Id -eq $team }).Name
         }
     }
-    return $space
+
+    # convert to json and back again, so we've got a HashTable rather than a SpaceResource
+    # need a HashTable instead, as we want string[] for SpaceManagersTeamMembers and SpaceManagersTeams
+    return ($space | ConvertTo-Json -depth 10 | ConvertFrom-Json)
 }
 
 function Get-OctopusClientRepository {
