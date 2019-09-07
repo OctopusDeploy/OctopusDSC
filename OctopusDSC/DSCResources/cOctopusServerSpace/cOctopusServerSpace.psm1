@@ -38,12 +38,14 @@ function Get-TargetResource {
     }
 
     $result = @{
-        Url                = $Url;
-        Ensure             = $existingEnsure
-        Name               = $Name
-        Description        = $space.Description
-        OctopusCredentials = $OctopusCredentials
-        OctopusApiKey      = $OctopusApiKey
+        Url                      = $Url
+        Ensure                   = $existingEnsure
+        Name                     = $Name
+        Description              = $space.Description
+        OctopusCredentials       = $OctopusCredentials
+        OctopusApiKey            = $OctopusApiKey
+        SpaceManagersTeamMembers = $space.SpaceManagersTeamMembers
+        SpaceManagersTeams       = $space.SpaceManagersTeams
     }
 
     return $result
