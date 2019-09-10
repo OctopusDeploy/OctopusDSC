@@ -13,7 +13,7 @@ GEM
       mini_portile2 (~> 2.4.0)
     nokogiri (1.10.4-x64-mingw32)
       mini_portile2 (~> 2.4.0)
-    octopus-serverspec-extensions (0.15.5)
+    octopus-serverspec-extensions (0.17.2)
       json (~> 2.1.0)
       rspec (~> 3.0)
       serverspec (~> 2)

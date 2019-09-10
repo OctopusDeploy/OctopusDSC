@@ -16,7 +16,10 @@ Server authentication can be configured to use:
 * Username/passwords stored in Octopus with [cOctopusServerUsernamePasswordAuthentication](README-cOctopusServerUsernamePasswordAuthentication.md)
 * Read-only guest account login with [cOctopusServerGuestAuthentication](README-cOctopusServerGuestAuthentication.md)
 
-Version 3.0 of OctopusDSC supports Octopus Deploy 4.x with backwards compatibility to 3.x
+Other resources of note are:
+* [cOctopusServerSpace](README-cOctopusServerSpace.md) to manage spaces
+
+Version 3.0 of OctopusDSC supports Octopus Deploy 4.x and above with backwards compatibility to 3.x
 
 ## Installation
 

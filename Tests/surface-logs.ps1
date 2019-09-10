@@ -71,3 +71,31 @@ Get-LogPath -ConfigPaths $configPaths | ForEach-Object {
 }
 
 Write-Host "##teamcity[blockClosed name='Log Files']"
+
+Write-Host "##teamcity[blockOpened name='LCM Configuration']"
+Get-DscLocalConfigurationManager
+Write-Host "##teamcity[blockClosed name='LCM Configuration']"
+
+$ProgressPreference = "SilentlyContinue"
+
+Write-Host "##teamcity[blockOpened name='Get-DSCConfigurationStatus']"
+try { 
+    $status = Get-DSCConfigurationStatus
+    write-output "Get-DSCConfigurationStatus succeeded"
+    write-output "-----------------------"
+    write-output "DSCConfigurationStatus:"
+    write-output "-----------------------"
+    $status | format-list | write-output
+    write-output "-----------------------"
+    write-output "ResourcesInDesiredState:"
+    write-output "-----------------------"
+    $status.ResourcesInDesiredState
+    write-output "-----------------------"
+    write-output "ResourcesNotInDesiredState:"
+    write-output "-----------------------"
+    $status.ResourcesNotInDesiredState
+} catch { 
+    write-output "Get-DSCConfigurationStatus failed"
+    write-output $_
+}
+Write-Host "##teamcity[blockClosed name='Get-DSCConfigurationStatus']"

@@ -72,6 +72,18 @@ Configuration Server_Scenario_01_Install
             DependsOn = "[cOctopusServer]OctopusServer"
         }
 
+        cOctopusServerSpace "Create 'Integration Team' Space"
+        {
+            Url = "http://localhost:81"
+            Ensure = "Present"
+            OctopusCredentials = $cred
+            Name = "Integration Team"
+            SpaceManagersTeamMembers = @("admin")
+            SpaceManagersTeams = @("Everyone")
+            Description = "Description for the Integration Team Space"
+            DependsOn = "[cOctopusServer]OctopusServer"
+        }
+
         cOctopusWorkerPool "Create a second workerpool"
         {
             Url = "http://localhost:81"
