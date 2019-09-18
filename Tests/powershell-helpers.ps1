@@ -46,7 +46,7 @@ function Test-CustomVersionOfVagrantDscPluginIsInstalled() {  # does not deal we
             Sort-Object -descending |
             Select-Object -first 1 # sort and select to cope with multiple gem folders (upgraded vagrant)
 
-  if (Test-Path $path) {
+  if (($null -ne $path) -and (Test-Path $path -ErrorAction SilentlyContinue)) {
     $content = Get-Content $path -raw
     if ($content.IndexOf("return version.stdout") -gt -1) {
       return;
@@ -54,9 +54,9 @@ function Test-CustomVersionOfVagrantDscPluginIsInstalled() {  # does not deal we
   }
 
   write-host "It doesn't appear that you've got the custom Octopus version of the vagrant-dsc plugin installed" -foregroundcolor red
-  write-host "Please download it from github:"
-  write-host "  irm https://github.com/OctopusDeploy/vagrant-dsc/releases/download/v2.0.1/vagrant-dsc-2.0.2.gem -outfile vagrant-dsc-2.0.2.gem"
-  write-host "  vagrant plugin install vagrant-dsc-2.0.2.gem"
+  write-host "Please download it from github:" -foregroundcolor red
+  write-host "  irm https://github.com/OctopusDeploy/vagrant-dsc/releases/download/v2.0.2/vagrant-dsc-2.0.2.gem -outfile vagrant-dsc-2.0.2.gem" -foregroundcolor red
+  write-host "  vagrant plugin install vagrant-dsc-2.0.2.gem" -foregroundcolor red
   exit 1
 }
 
@@ -69,7 +69,7 @@ function Test-LogContainsRetriableFailure() {
   return $false
 }
 
-Function Invoke-VagrantWithRetries {
+function Invoke-VagrantWithRetries {
   param(
     [ValidateSet("aws", "azure", "hyperv", "virtualbox")]
     $provider,
@@ -106,7 +106,7 @@ Function Invoke-VagrantWithRetries {
   } while ($retryAgain)
 }
 
-Function Set-OctopusDSCEnvVars {
+function Set-OctopusDSCEnvVars {
   param(
     [switch]$offline,
     [switch]$SkipPester,
@@ -158,8 +158,7 @@ Function Set-OctopusDSCEnvVars {
   }
 }
 
-Function Set-OfflineConfig
-{
+function Set-OfflineConfig {
   # if you want to use offline, then you need a v3 and a v4 MSI installer locally in the .\Tests folder (gitignored)
 
   Write-Warning "Offline run requested, writing an offline.config file"
