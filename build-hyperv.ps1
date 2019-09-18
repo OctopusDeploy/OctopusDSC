@@ -11,7 +11,7 @@ param(
 
 . Tests/powershell-helpers.ps1
 
-Start-Transcript .\vagrant-hyperv.log -Append
+Start-Transcript .\vagrant-hyperv.log
 
 Set-OctopusDscEnvVars @PSBoundParameters
 

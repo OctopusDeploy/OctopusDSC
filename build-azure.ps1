@@ -11,6 +11,8 @@ param(
 
 . Tests/powershell-helpers.ps1
 
+Start-Transcript .\vagrant-azure.log
+
 Test-EnvVar AZURE_VM_PASSWORD
 Test-EnvVar AZURE_SUBSCRIPTION_ID
 Test-EnvVar AZURE_TENANT_ID

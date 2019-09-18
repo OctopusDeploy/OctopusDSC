@@ -11,6 +11,8 @@ param(
 
 . Tests/powershell-helpers.ps1
 
+Start-Transcript .\vagrant-aws.log
+
 Test-EnvVar AWS_ACCESS_KEY_ID
 Test-EnvVar AWS_SECRET_ACCESS_KEY
 Test-EnvVar AWS_SUBNET_ID
