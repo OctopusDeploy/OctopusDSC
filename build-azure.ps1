@@ -34,6 +34,9 @@ Write-Output "Azure CLI installed - good."
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-azure" "2.0.0.pre7"
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
+Test-PluginInstalled "vagrant-winrm-file-download"
+
+Remove-OldLogsBeforeNewRun
 
 if(-not $SkipPester) {
     Write-Output "Importing Pester module"

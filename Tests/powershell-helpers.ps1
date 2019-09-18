@@ -182,3 +182,12 @@ Function Set-OfflineConfig
   } | ConvertTo-Json | Out-File ".\Tests\offline.config"
 
 }
+
+function Remove-OldLogsBeforeNewRun {
+  Remove-Item "logs" -Force -recurse | Out-Null
+  New-Item -ItemType Directory -Name "logs" | Out-Null
+
+  Remove-Item "PSScriptAnalyzer*.log" -Force | Out-Null
+  Remove-Item "vagrant*.log" -Force -ErrorAction SilentlyContinue | Out-Null
+  Remove-Item "PesterTestResults.xml" -Force | Out-Null
+}

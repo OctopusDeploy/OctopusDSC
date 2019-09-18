@@ -63,6 +63,9 @@ else
 
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
+Test-PluginInstalled "vagrant-winrm-file-download"
+
+Remove-OldLogsBeforeNewRun
 
 if(-not $SkipPester)
 {

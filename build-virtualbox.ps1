@@ -31,6 +31,7 @@ Write-Output "VirtualBox installed - good."
 
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
+Test-PluginInstalled "vagrant-winrm-file-download"
 
 # Check to see if Chocolatey is installed
 if (!(Get-Command choco.exe -ErrorAction SilentlyContinue))
@@ -44,6 +45,7 @@ else
   Write-Output "Chocolatey installed - good."
 }
 
+Remove-OldLogsBeforeNewRun
 
 if(-not $SkipPester)
 {

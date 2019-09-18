@@ -197,3 +197,4 @@ offline.config
 
 Tests/vendor/*
 Tests/.bundle
+logs/*

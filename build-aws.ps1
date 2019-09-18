@@ -34,6 +34,9 @@ Test-PluginInstalled "vagrant-aws"
 Test-PluginInstalled "vagrant-aws-winrm"
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
+Test-PluginInstalled "vagrant-winrm-file-download"
+
+Remove-OldLogsBeforeNewRun
 
 if(-not $SkipPester) {
   Write-Output "##teamcity[blockOpened name='Pester tests']"
