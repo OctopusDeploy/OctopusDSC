@@ -27,7 +27,7 @@ def publish_logs(config, scenario, log_files)
       winrm.source = file
       winrm.destination = "logs/#{scenario}-#{dest}"
     end
-    config.vm.provision "shell", inline: "write-output \"##teamcity[publishArtifact 'logs/#{scenario}-#{dest}']\""
+    config.vm.provision "shell", inline: "write-output \"##teamcity[publishArtifact '#{Dir.pwd}/logs/#{scenario}-#{dest}']\""
   end
 end
 
