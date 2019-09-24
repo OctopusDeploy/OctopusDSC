@@ -180,14 +180,21 @@ Function Set-OfflineConfig
       v4file = (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.2019.*.msi"} | Select-Object -first 1 | Select-Object -expand Name);
       v3file = (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.3.*.msi"} | Select-Object -first 1 | Select-Object -expand Name);
   } | ConvertTo-Json | Out-File ".\Tests\offline.config"
-
 }
 
 function Remove-OldLogsBeforeNewRun {
-  Remove-Item "logs" -Force -recurse | Out-Null
+  if (Test-Path "logs") {
+    Remove-Item "logs" -Force -recurse | Out-Null
+  }
   New-Item -ItemType Directory -Name "logs" | Out-Null
 
-  Remove-Item "PSScriptAnalyzer*.log" -Force | Out-Null
-  Remove-Item "vagrant*.log" -Force -ErrorAction SilentlyContinue | Out-Null
-  Remove-Item "PesterTestResults.xml" -Force | Out-Null
+  if (Test-Path "PSScriptAnalyzer*.log") {
+    Remove-Item "PSScriptAnalyzer*.log" -Force | Out-Null
+  }
+  if (Test-Path "vagrant*.log") {
+    Remove-Item "vagrant*.log" -Force -ErrorAction SilentlyContinue | Out-Null
+  }
+  if (Test-Path "PesterTestResults.xml") {
+    Remove-Item "PesterTestResults.xml" -Force | Out-Null
+  }
 }
