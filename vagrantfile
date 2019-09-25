@@ -23,8 +23,9 @@ SCRIPT
 def publish_logs(config, scenario, log_files) 
   log_files.each do |file|
     dest = file.gsub(':', '').gsub('/', '-')
+    source = file.gsub('/', '\\')
     config.vm.provision "winrm-file-download" do |winrm|
-      winrm.source = file
+      winrm.source = source
       winrm.destination = "logs/#{scenario}-#{dest}"
     end
     config.vm.provision "shell", inline: "write-output \"##teamcity[publishArtifact '#{Dir.pwd}/logs/#{scenario}-#{dest}']\""
