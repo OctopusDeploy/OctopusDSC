@@ -33,11 +33,17 @@ function Test-AppExists($appName) {
   return $null -ne $command
 }
 
-function Test-PowershellModuleInstalled($moduleName) {
+function Test-PowershellModuleInstalled($moduleName, $version) {
   $command = Get-Module $moduleName -listavailable
   if ($null -eq $command) {
     write-host "Please install $($moduleName): Install-Module -Name $moduleName -Force" -foregroundcolor red
     exit 1
+  }
+  if ($null -ne $version) {
+    if ($command.Version -lt [System.Version]::Parse($version)) {
+      write-host "Please install $($moduleName) $version or higher (you have version $($command.Version)): Update-Module -Name $moduleName -Force" -foregroundcolor red
+      exit 1
+    }
   }
 }
 

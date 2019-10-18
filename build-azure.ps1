@@ -39,8 +39,8 @@ Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
 if(-not $SkipPester) {
     Write-Output "Importing Pester module"
-    Test-PowershellModuleInstalled "Pester"
-    Test-PowershellModuleInstalled "PSScriptAnalyzer"
+    Test-PowershellModuleInstalled "Pester" "4.9.0"
+    Test-PowershellModuleInstalled "PSScriptAnalyzer" "1.18.3"
     Import-Module Pester -verbose -force
 
     Write-Output "Running Pester Tests"
