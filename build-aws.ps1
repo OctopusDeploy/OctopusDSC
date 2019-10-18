@@ -70,8 +70,7 @@ Set-Content -Path "$keyName.pem" -Value $key
 if (Test-AppExists "chmod") {
   Write-Output "Setting permissions on pem file '$keyName.pem'"
   & chmod 400 "./$keyName.pem"
-}
-else {
+} else {
   Write-Output "chmod not found, skipping setting permissions on pem file"
 }
 
@@ -86,10 +85,10 @@ $splat = @{
   retainondestroy = $retainondestroy.IsPresent;
   debug = $debug.IsPresent;
 }
+
 Invoke-VagrantWithRetries @splat
 
-if ($LASTEXITCODE -ne 0)
-{
+if ($LASTEXITCODE -ne 0) {
   Write-Output "Vagrant up failed with exit code $LASTEXITCODE"
   Write-Output "##teamcity[buildStatus text='{build.status.text}. Vagrant failed.']"
   exit $LASTEXITCODE
