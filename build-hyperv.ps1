@@ -1,4 +1,5 @@
 #!/usr/local/bin/pwsh
+#Requires -RunAsAdministrator
 param(
   [switch]$offline,
   [switch]$SkipPester,
