@@ -60,8 +60,7 @@ function Test-CustomVersionOfVagrantDscPluginIsInstalled() {  # does not deal we
   exit 1
 }
 
-function Test-LogContainsRetriableFailure() {
-  $log = Get-Content vagrant.log -raw
+function Test-LogContainsRetriableFailure($log) {
   if ($log.Contains("[WinRM::FS::Core::FileTransporter] Upload failed (exitcode: 0), but stderr present (WinRM::FS::Core::FileTransporterFailed)")) {
       return $true
   }
@@ -96,10 +95,10 @@ function Invoke-VagrantWithRetries {
 
   do {
     Write-Output (@("Running Vagrant with arguments '", ($args -join " "), "'") -join "")
-    vagrant $args 2&>1 | Tee-Object -FilePath vagrant.log
+    Invoke-Expression "vagrant $args" -ErrorVariable stdErr 2>&1 | Tee-Object -FilePath vagrant.log
     Write-Output "'vagrant up' exited with exit code $LASTEXITCODE"
     $attempts = $attempts + 1
-    $retryAgain = ($attempts -lt $retries) -and (Test-LogContainsRetriableFailure) -and ($LASTEXITCODE -ne 0)
+    $retryAgain = ($attempts -lt $retries) -and (Test-LogContainsRetriableFailure $stdErr) -and ($LASTEXITCODE -ne 0)
     if ($retryAgain) {
       Write-Output "Running 'vagrant destroy -f' to cleanup, so we can try again."
       vagrant destroy -f
