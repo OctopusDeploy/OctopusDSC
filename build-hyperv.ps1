@@ -1,4 +1,5 @@
 #!/usr/local/bin/pwsh
+#Requires -RunAsAdministrator
 param(
   [switch]$offline,
   [switch]$SkipPester,
@@ -64,6 +65,10 @@ Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
 if(-not $SkipPester) {
+  Write-Output "Importing Pester module"
+  Test-PowershellModuleInstalled "Pester" "4.9.0"
+  Test-PowershellModuleInstalled "PSScriptAnalyzer" "1.18.3"
+  Import-Module Pester -force
   Write-Output "Running Pester Tests"
   $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
   if ($result.FailedCount -gt 0) {
