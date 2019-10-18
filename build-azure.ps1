@@ -56,8 +56,7 @@ Invoke-VagrantWithRetries -provider azure
 
 Write-Output "'vagrant up' exited with exit code $LASTEXITCODE"
 
-if ($LASTEXITCODE -ne 0)
-{
+if ($LASTEXITCODE -ne 0) {
   Write-Output "Vagrant up failed with exit code $LASTEXITCODE"
   Write-Output "##teamcity[buildStatus text='{build.status.text}. Vagrant failed.']"
   exit $LASTEXITCODE

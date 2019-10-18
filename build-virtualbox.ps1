@@ -45,8 +45,7 @@ else
 }
 
 
-if(-not $SkipPester)
-{
+if(-not $SkipPester) {
   Write-Output "Importing Pester module"
   Test-PowershellModuleInstalled "Pester"
   Test-PowershellModuleInstalled "PSScriptAnalyzer"
@@ -56,9 +55,7 @@ if(-not $SkipPester)
   if ($result.FailedCount -gt 0) {
     exit 1
   }
-}
-else
-{
+} else {
   Write-Output "-SkipPester was specified, skipping pester tests"
 }
 

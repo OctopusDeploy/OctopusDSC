@@ -16,8 +16,7 @@ Start-Transcript .\vagrant-hyperv.log
 Set-OctopusDscEnvVars @PSBoundParameters
 
 # remove psreadline as it interferes with the SMB password prompt
-if(Get-Module PSReadLine)
-{
+if(Get-Module PSReadLine) {
   Remove-Module PSReadLine
 }
 
@@ -64,16 +63,13 @@ else
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
-if(-not $SkipPester)
-{
+if(-not $SkipPester) {
   Write-Output "Running Pester Tests"
   $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
   if ($result.FailedCount -gt 0) {
     exit 1
   }
-}
-else
-{
+} else {
   Write-Output "-SkipPester was specified, skipping pester tests"
 }
 
