@@ -8,6 +8,10 @@ function Test-PluginInstalled($pluginName, $pluginVersion) {
     else {
       write-host "Vagrant plugin $pluginName not installed."
       & vagrant plugin install $pluginName
+      if ($LASTEXITCODE -ne 0) {
+        write-host "Failed to automatically install vagrant plugin $($pluginName)" -foregroundcolor red
+        exit 1
+      }
     }
   }
   else {
