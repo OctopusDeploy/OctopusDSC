@@ -32,20 +32,17 @@ Write-Output "VirtualBox installed - good."
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
-if(-not $SkipPester)
-{
+if(-not $SkipPester) {
   Write-Output "Importing Pester module"
-  Test-PowershellModuleInstalled "Pester"
-  Test-PowershellModuleInstalled "PSScriptAnalyzer"
-  Import-Module Pester -verbose -force
+  Test-PowershellModuleInstalled "Pester" "4.9.0"
+  Test-PowershellModuleInstalled "PSScriptAnalyzer" "1.18.3"
+  Import-Module Pester -force
   Write-Output "Running Pester Tests"
   $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
   if ($result.FailedCount -gt 0) {
     exit 1
   }
-}
-else
-{
+} else {
   Write-Output "-SkipPester was specified, skipping pester tests"
 }
 

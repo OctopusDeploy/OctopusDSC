@@ -1,4 +1,5 @@
 #!/usr/local/bin/pwsh
+#Requires -RunAsAdministrator
 param(
   [switch]$offline,
   [switch]$SkipPester,
@@ -16,8 +17,7 @@ Start-Transcript .\vagrant-hyperv.log
 Set-OctopusDscEnvVars @PSBoundParameters
 
 # remove psreadline as it interferes with the SMB password prompt
-if(Get-Module PSReadLine)
-{
+if(Get-Module PSReadLine) {
   Remove-Module PSReadLine
 }
 
@@ -52,16 +52,17 @@ Write-Output (@("Hyper-V virtual switch '", $env:OctopusDSCVMSwitch, "' detected
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 
-if(-not $SkipPester)
-{
+if(-not $SkipPester) {
+  Write-Output "Importing Pester module"
+  Test-PowershellModuleInstalled "Pester" "4.9.0"
+  Test-PowershellModuleInstalled "PSScriptAnalyzer" "1.18.3"
+  Import-Module Pester -force
   Write-Output "Running Pester Tests"
   $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
   if ($result.FailedCount -gt 0) {
     exit 1
   }
-}
-else
-{
+} else {
   Write-Output "-SkipPester was specified, skipping pester tests"
 }
 

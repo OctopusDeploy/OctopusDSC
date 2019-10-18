@@ -69,7 +69,7 @@ To run just the scenarios locally, follow these steps:
     - Optionally set the environment variable `OctopusDSCVMSwitch`, to use a specific Hyper-V switch by name. For example, for older Hyper-V systems, you may wish to set this to 'External Connection'
     - Run `build-hyperv.ps1`. This will run all the scenarios under the [Tests](Tests) folder.
 6. If you want to test using AWS
-    - Run `vagrant plugin install vagrant-aws`
+    - Run `vagrant plugin install vagrant-aws`. If you run into issues around libxml2, take a look at https://github.com/mitchellh/vagrant-aws/issues/539
     - Run `vagrant plugin install vagrant-aws-winrm`
     - Set an environment variable `AWS_ACCESS_KEY_ID` to a valid value
     - Set an environment variable `AWS_SECRET_ACCESS_KEY` to a valid value
