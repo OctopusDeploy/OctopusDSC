@@ -20,28 +20,26 @@ $run_test_scenario_script = <<SCRIPT
   exit $LASTEXITCODE
 SCRIPT
 
-def run_octopus_scenario(config, scenario, configuration_params = nil)
+def run_octopus_scenario(config, scenario)
   config.vm.provision "shell", inline: "write-output \"##teamcity[blockOpened name='Running Scenario #{scenario}']\""
   config.vm.provision "dsc" do |dsc|
     dsc.configuration_file  = "#{scenario}.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios/"
     dsc.abort_on_dsc_failure = true
-    dsc.configuration_params = configuration_params unless configuration_params.nil?
   end
   config.vm.provision "shell", inline: "write-output \"##teamcity[blockClosed name='Running Scenario #{scenario}']\""
   config.vm.provision "shell", path: "Tests/surface-logs.ps1"
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', scenario.downcase)
 end
 
-def run_tentacle_scenario(config, scenario, configuration_params = nil)
+def run_tentacle_scenario(config, scenario)
   config.vm.provision "shell", inline: "write-output \"##teamcity[blockOpened name='Running Scenario #{scenario}']\""
   config.vm.provision "dsc" do |dsc|
     dsc.configuration_file  = "#{scenario}.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
     dsc.manifests_path = "Tests/Scenarios/"
     dsc.abort_on_dsc_failure = true
-    dsc.configuration_params = configuration_params unless configuration_params.nil?
   end
   config.vm.provision "shell", inline: "write-output \"##teamcity[blockClosed name='Running Scenario #{scenario}']\""
   config.vm.provision "shell", path: "Tests/surface-logs.ps1"
@@ -200,37 +198,23 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     config.vm.provision "shell", path: "Tests/configure-octopus-for-tentacle-tests.ps1"
 
     # initial tentacle install
-    run_tentacle_scenario(config, 'Tentacle_Scenario_01_Install', {"-OctopusServerUrl" => "$ENV:OctopusServerUrl",
-                                                                  "-ApiKey" => "$ENV:OctopusApiKey",
-                                                                  "-Environments" => "The-Env",
-                                                                  "-Roles" => "Test-Tentacle",
-                                                                  "-ServerThumbprint" => "$ENV:OctopusServerThumbprint" })
+    run_tentacle_scenario(config, 'Tentacle_Scenario_01_Install')
     config.vm.provision "shell", inline: "& c:\\temp\\Tests\\register-polling-tentacle.ps1; exit $LASTEXITCODE"
     config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_01_install')
 
     # uninstall tentacle
-    run_tentacle_scenario(config, 'Tentacle_Scenario_02_Remove', {"-OctopusServerUrl" => "$ENV:OctopusServerUrl",
-                                                                  "-ApiKey" => "$ENV:OctopusApiKey",
-                                                                  "-Environments" => "The-Env",
-                                                                  "-Roles" => "Test-Tentacle",
-                                                                  "-ServerThumbprint" => "$ENV:OctopusServerThumbprint" })
+    run_tentacle_scenario(config, 'Tentacle_Scenario_02_Remove')
     config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_02_remove')
 
     # Install old version
-    run_tentacle_scenario(config, 'Tentacle_Scenario_03_Reinstall', {"-OctopusServerUrl" => "$ENV:OctopusServerUrl",
-                                                                    "-ApiKey" => "$ENV:OctopusApiKey",
-                                                                    "-Environments" => "The-Env",
-                                                                    "-Roles" => "Test-Tentacle" })
+    run_tentacle_scenario(config, 'Tentacle_Scenario_03_Reinstall')
     config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_03_reinstall')
 
     # Upgrade it
-    run_tentacle_scenario(config, 'Tentacle_Scenario_04_Upgrade', {"-OctopusServerUrl" => "$ENV:OctopusServerUrl",
-                                                                  "-ApiKey" => "$ENV:OctopusApiKey",
-                                                                  "-Environments" => "The-Env",
-                                                                  "-Roles" => "Test-Tentacle" })
+    run_tentacle_scenario(config, 'Tentacle_Scenario_04_Upgrade')
     config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_04_upgrade')
 
@@ -243,17 +227,11 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_06_watchdog_delete')
 
     # remove in preparation for testing comms port
-    run_tentacle_scenario(config, 'Tentacle_Scenario_07_Remove', {"-OctopusServerUrl" => "$ENV:OctopusServerUrl",
-                                                                  "-ApiKey" => "$ENV:OctopusApiKey",
-                                                                  "-Environments" => "The-Env",
-                                                                  "-Roles" => "Test-Tentacle" })
+    run_tentacle_scenario(config, 'Tentacle_Scenario_07_Remove')
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_07_remove')
 
     # tentacle comms port
-    run_tentacle_scenario(config, 'Tentacle_Scenario_08_Tentacle_Comms_Port', {"-OctopusServerUrl" => "$ENV:OctopusServerUrl",
-                                                                              "-ApiKey" => "$ENV:OctopusApiKey",
-                                                                              "-Environments" => "The-Env",
-                                                                              "-Roles" => "Test-Tentacle" })
+    run_tentacle_scenario(config, 'Tentacle_Scenario_08_Tentacle_Comms_Port')
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_08_tentacle_comms_port')
   end
 end

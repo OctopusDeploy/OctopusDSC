@@ -1,7 +1,11 @@
+$config = get-content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
+$OctopusServerUrl = $config.OctopusServerUrl
+$ApiKey = $config.OctopusApiKey
+$Environments = "The-Env"
+$Roles = Test-Tentacle
+
 Configuration Tentacle_Scenario_08_Tentacle_Comms_Port
 {
-    param ($OctopusServerUrl, $ApiKey, $Environments, $Roles)
-
     Import-DscResource -ModuleName OctopusDSC
     Import-DscResource -ModuleName PSDesiredStateConfiguration
 

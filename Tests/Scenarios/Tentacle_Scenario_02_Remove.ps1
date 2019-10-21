@@ -1,7 +1,12 @@
+$config = get-content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
+$OctopusServerUrl = $config.OctopusServerUrl
+$ApiKey = $config.OctopusApiKey
+$Environments = "The-Env"
+$Roles = Test-Tentacle
+$ServerThumbprint = $config.OctopusServerThumbprint
+
 Configuration Tentacle_Scenario_02_Remove
 {
-    param ($OctopusServerUrl, $ApiKey, $Environments, $Roles, $ServerThumbprint)
-
     Import-DscResource -ModuleName OctopusDSC
     Import-DscResource -ModuleName PSDesiredStateConfiguration
 
