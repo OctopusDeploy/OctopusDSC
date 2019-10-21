@@ -2,8 +2,10 @@
 Start-Transcript -path "C:\Octopus\Logs\trigger-and-wait-for-healthcheck.txt" -append
 
 $OFS = "`r`n"
-$OctopusURI = "http://localhost:81"
-$OctopusAPIKey=$env:OctopusApiKey
+
+$config = get-content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
+$OctopusURI = $config.OctopusServerUrl
+$OctopusAPIKey = $config.OctopusApiKey
 
 try
 {
