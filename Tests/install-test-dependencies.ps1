@@ -142,10 +142,6 @@ write-output "##teamcity[blockClosed name='Configuring SQL Server']"
 
 write-output "##teamcity[blockOpened name='Installing gem bundle']"
 
-write-output "Installing msys2"
-& choco install msys2 --yes --no-progress
-if ($LASTEXITCODE -ne 0) { exit 1 }
-
 Set-Location c:\temp\tests
 write-output "installing gem bundle"
 & C:\tools\ruby25\bin\bundle.bat _1.16.1_ install --path=vendor

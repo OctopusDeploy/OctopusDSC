@@ -1,4 +1,5 @@
 #!/usr/local/bin/pwsh
+#Requires -RunAsAdministrator
 param(
   [switch]$offline,
   [switch]$SkipPester,
@@ -11,13 +12,12 @@ param(
 
 . Tests/powershell-helpers.ps1
 
-Start-Transcript .\vagrant-hyperv.log -Append
+Start-Transcript .\vagrant-hyperv.log
 
 Set-OctopusDscEnvVars @PSBoundParameters
 
 # remove psreadline as it interferes with the SMB password prompt
-if(Get-Module PSReadLine)
-{
+if(Get-Module PSReadLine) {
   Remove-Module PSReadLine
 }
 
@@ -49,34 +49,23 @@ if (-not (Get-VMSwitch -Name $env:OctopusDSCVMSwitch -ErrorAction SilentlyContin
 }
 Write-Output (@("Hyper-V virtual switch '", $env:OctopusDSCVMSwitch, "' detected - good.") -join "")
 
-# Check to see if Chocolatey is installed
-if (!(Get-Command choco.exe -ErrorAction SilentlyContinue))
-{
-  # Display message to user
-  Write-Output 'Please install Chocolatey.'
-  exit 1
-}
-else 
-{
-  Write-Output "Chocolatey installed - good."
-}
-
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
 Test-PluginInstalled "vagrant-winrm-file-download"
 
 Remove-OldLogsBeforeNewRun
 
-if(-not $SkipPester)
-{
+if(-not $SkipPester) {
+  Write-Output "Importing Pester module"
+  Test-PowershellModuleInstalled "Pester" "4.9.0"
+  Test-PowershellModuleInstalled "PSScriptAnalyzer" "1.18.3"
+  Import-Module Pester -force
   Write-Output "Running Pester Tests"
   $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
   if ($result.FailedCount -gt 0) {
     exit 1
   }
-}
-else
-{
+} else {
   Write-Output "-SkipPester was specified, skipping pester tests"
 }
 
