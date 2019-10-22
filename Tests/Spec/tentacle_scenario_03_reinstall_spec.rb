@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'json'
 
-config = JSON.parse(File.open("c:\\temp\\octopus-configured.marker"))
+config = JSON.parse(File.read("c:\\temp\\octopus-configured.marker"))
 
 describe file('c:/Octopus') do
   it { should be_directory }
