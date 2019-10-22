@@ -1,4 +1,7 @@
 require 'spec_helper'
+require 'json'
+
+config = JSON.parse(File.open("c:\\temp\\octopus-configured.marker"))
 
 describe file('c:/Octopus') do
   it { should be_directory }
@@ -25,7 +28,7 @@ describe port(10933) do
   it { should be_listening.with('tcp') }
 end
 
-describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "Tentacle") do
+describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "Tentacle") do
   it { should exist }
   it { should be_registered_with_the_server }
   it { should be_listening_tentacle }

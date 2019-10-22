@@ -1,4 +1,7 @@
 require 'spec_helper'
+require 'json'
+
+config = JSON.parse(File.open("c:\\temp\\octopus-configured.marker"))
 
 #we deliberately dont cleanup the octopus directory, as it contains logs & config
 describe file('c:/Octopus') do
@@ -18,7 +21,7 @@ describe service('OctopusDeploy Tentacle: ListeningTentacle') do
 end
 
 # Listening Tentacle
-describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "ListeningTentacle") do
+describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "ListeningTentacle") do
   it { should_not exist }
 end
 
@@ -31,7 +34,7 @@ describe service('OctopusDeploy Tentacle: PollingTentacle') do
   it { should_not be_installed }
 end
 
-describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "PollingTentacle") do
+describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "PollingTentacle") do
   it { should_not exist }
 end
 
@@ -40,7 +43,7 @@ describe service('OctopusDeploy Tentacle: PollingTentacle') do
   it { should_not be_installed }
 end
 
-describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "PollingTentacle") do
+describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "PollingTentacle") do
   it { should_not exist }
 end
 
@@ -49,7 +52,7 @@ describe service('OctopusDeploy Tentacle: PollingTentacleWithoutAutoRegister') d
   it { should_not be_installed }
 end
 
-describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "PollingTentacleWithoutAutoRegister") do
+describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "PollingTentacleWithoutAutoRegister") do
   it { should_not exist }
 end
 
@@ -58,7 +61,7 @@ describe service('OctopusDeploy Tentacle: PollingTentacleWithThumbprintWithoutAu
   it { should_not be_installed }
 end
 
-describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "PollingTentacleWithThumbprintWithoutAutoRegister") do
+describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "PollingTentacleWithThumbprintWithoutAutoRegister") do
   it { should_not exist }
 end
 
@@ -67,7 +70,7 @@ describe service('OctopusDeploy Tentacle: WorkerTentacle') do
   it { should_not be_installed }
 end
 
-describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "WorkerTentacle") do
+describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "WorkerTentacle") do
   it { should_not exist }
 end
 
