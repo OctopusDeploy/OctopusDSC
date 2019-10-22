@@ -66,9 +66,9 @@ describe octopus_deploy_space(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], 'In
   it { should have_description('Description for the Integration Team Space') }
 end
 
-#TODO: worker pool
+#worker pool
 describe octopus_deploy_worker_pool(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "Secondary Worker Pool") do
-  it { should exist}
+  it { should exist }
 end
 
 #seq logging
