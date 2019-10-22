@@ -31,6 +31,9 @@ Write-Output "VirtualBox installed - good."
 
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
+Test-PluginInstalled "vagrant-winrm-file-download"
+
+Remove-OldLogsBeforeNewRun
 
 if(-not $SkipPester) {
   Write-Output "Importing Pester module"

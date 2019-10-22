@@ -51,6 +51,9 @@ Write-Output (@("Hyper-V virtual switch '", $env:OctopusDSCVMSwitch, "' detected
 
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
+Test-PluginInstalled "vagrant-winrm-file-download"
+
+Remove-OldLogsBeforeNewRun
 
 if(-not $SkipPester) {
   Write-Output "Importing Pester module"
