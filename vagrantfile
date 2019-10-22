@@ -32,7 +32,8 @@ def publish_logs(config, scenario, log_files)
   end
 end
 
-def run_octopus_scenario(config, scenario)  config.vm.provision "shell", inline: "write-output \"##teamcity[blockOpened name='Running Scenario #{scenario}']\""
+def run_octopus_scenario(config, scenario)
+  config.vm.provision "shell", inline: "write-output \"##teamcity[blockOpened name='Running Scenario #{scenario}']\""
   config.vm.provision "dsc" do |dsc|
     dsc.configuration_file  = "#{scenario}.ps1"
     dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
@@ -257,6 +258,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_01_install')
 
     # uninstall tentacle
+    run_tentacle_scenario(config, 
       'Tentacle_Scenario_02_Remove',
       ['C:/Octopus/Logs/configure-octopus-for-tentacle-tests.txt',
        'C:/Octopus/Logs/OctopusServer.txt',
