@@ -132,9 +132,6 @@ try
 
             Context "Parameter Validation" {
                 Context "Ensure = 'Present' and 'State' = 'Stopped'" {
-                    It "Should throw if 'Name' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -DownloadUrl "blah2" } | Should throw "Parameter 'Name' must be supplied when 'Ensure' is 'Present'."
-                    }
                     It "Should throw if 'DownloadUrl' not supplied" {
                         { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" } | Should throw "Parameter 'DownloadUrl' must be supplied when 'Ensure' is 'Present'."
                     }
@@ -178,9 +175,6 @@ try
                 }
 
                 Context "Ensure = 'Present' and 'State' = 'Started'" {
-                    It "Should throw if 'Name' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -DownloadUrl "blah2" } | Should throw "Parameter 'Name' must be supplied when 'Ensure' is 'Present'."
-                    }
                     It "Should throw if 'DownloadUrl' not supplied" {
                         { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" } | Should throw "Parameter 'DownloadUrl' must be supplied when 'Ensure' is 'Present'."
                     }
@@ -216,27 +210,24 @@ try
                 }
 
                 Context "Ensure = 'Present' and 'State' = 'Installed'" {
-                    It "Should not throw if 'Name' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" } | Should not throw
-                    }
                     It "Should throw if 'DownloadUrl' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' } | Should throw "Parameter 'DownloadUrl' must be supplied when 'Ensure' is 'Present'."
+                        { Test-ParameterSet -Name "MyServer" -Ensure 'Present' -State 'Installed' } | Should throw "Parameter 'DownloadUrl' must be supplied when 'Ensure' is 'Present'."
                     }
                     It "Should not throw if 'WebListenPrefix' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" } | Should not throw
+                        { Test-ParameterSet -Name "MyServer" -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" } | Should not throw
                     }
                     It "Should not throw if 'SqlDbConnectionString' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3"} | Should not throw
+                        { Test-ParameterSet -Name "MyServer" -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3"} | Should not throw
                     }
                     It "Should not throw if 'OctopusAdminCredential' not supplied and 'SqlDbConnectionString' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" -OctopusAdminCredential $null } | Should not throw
+                        { Test-ParameterSet -Name "MyServer" -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" -OctopusAdminCredential $null } | Should not throw
                     }
                     It "Should not throw if 'OctopusAdminCredential' is '[PSCredential]::Empty' and 'SqlDbConnectionString' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" } | Should not throw
+                        { Test-ParameterSet -Name "MyServer" -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" } | Should not throw
                     }
                     It "Should not throw if all params are supplied" {
                         $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
-                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds} | Should not throw
+                        { Test-ParameterSet -Name "MyServer" -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds} | Should not throw
                     }
                 }
 
@@ -255,9 +246,6 @@ try
                 }
 
                 Context "Ensure = 'Absent' and 'State' = 'Stopped'" {
-                    It "Should throw if 'Name' not supplied" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Stopped' } | Should throw "Parameter 'Name' must be supplied when 'Ensure' is 'Absent'."
-                    }
                     It "Should not throw if 'DownloadUrl' not supplied" {
                         { Test-ParameterSet -Ensure 'Absent' -State 'Stopped' -Name "blah1" } | Should not throw
                     }
@@ -280,9 +268,6 @@ try
                 }
 
                 Context "Ensure = 'Absent' and 'State' = 'Started'" {
-                    It "Should throw if 'Name' not supplied" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Started' } | Should throw "Invalid configuration requested. You have asked for the service to not exist, but also be running at the same time. You probably want 'State = `"Stopped`"."
-                    }
                     It "Should throw if 'DownloadUrl' not supplied" {
                         { Test-ParameterSet -Ensure 'Absent' -State 'Started' -Name "blah1"} | Should throw "Invalid configuration requested. You have asked for the service to not exist, but also be running at the same time. You probably want 'State = `"Stopped`"."
                     }
@@ -305,9 +290,6 @@ try
                 }
 
                 Context "Ensure = 'Absent' and 'State' = 'Installed'" {
-                    It "Should throw if 'Name' not supplied" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Installed' } | Should throw "Invalid configuration requested. You have asked for the service to not exist, but also be installed at the same time. You probably want 'State = `"Stopped`"."
-                    }
                     It "Should throw if 'DownloadUrl' not supplied" {
                         { Test-ParameterSet -Ensure 'Absent' -State 'Installed' -Name "blah1"} | Should throw "Invalid configuration requested. You have asked for the service to not exist, but also be installed at the same time. You probably want 'State = `"Stopped`"."
                     }

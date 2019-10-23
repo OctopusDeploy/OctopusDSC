@@ -495,7 +495,7 @@ function Test-TargetResource {
         [string]$TenantedDeploymentParticipation
     )
 
-    $currentResource = (Get-TargetResource -Name $Name)
+    $currentResource = (Get-TargetResource -Name $Name -Ensure $Ensure)
 
     $ensureMatch = $currentResource["Ensure"] -eq $Ensure
     Write-Verbose "Ensure: $($currentResource["Ensure"]) vs. $Ensure = $ensureMatch"

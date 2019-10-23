@@ -78,7 +78,7 @@ try
                 Mock Get-Service { return @{ Status = "Running" }}
 
                 It 'Returns the proper data' {
-                    $config = Get-TargetResource -Name 'Stub'
+                    $config = Get-TargetResource -Name 'Stub' -Ensure "Present"
 
                     $config.GetType()                  | Should Be ([hashtable])
                     $config['Name']                    | Should Be 'Stub'
@@ -87,9 +87,9 @@ try
                 }
 
                 It "Throws if we specify a null or invlid CustomHostName" {
-                    { Get-TargetResource -Name "Stub" -PublicHostNameConfiguration "Custom" } | Should Throw "invalid or null"
-                    { Get-TargetResource -Name "Stub" -PublicHostNameConfiguration "Custom" -CustomPublicHostName "  " } | Should Throw "invalid or null"
-                    { Get-TargetResource -Name "Stub" -PublicHostNameConfiguration "Custom" -CustomPublicHostName "mydnsname" } | Should Not Throw
+                    { Get-TargetResource -Name "Stub" -Ensure "Present" -PublicHostNameConfiguration "Custom" } | Should Throw "invalid or null"
+                    { Get-TargetResource -Name "Stub" -Ensure "Present" -PublicHostNameConfiguration "Custom" -CustomPublicHostName "  " } | Should Throw "invalid or null"
+                    { Get-TargetResource -Name "Stub" -Ensure "Present" -PublicHostNameConfiguration "Custom" -CustomPublicHostName "mydnsname" } | Should Not Throw
                 }
             }
 
