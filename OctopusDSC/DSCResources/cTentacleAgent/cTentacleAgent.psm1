@@ -860,22 +860,22 @@ function New-Tentacle {
          {
             # Register the tentacle
             Register-Tentacle -name $name `
-            -apiKey $apiKey `
-            -octopusServerUrl $octopusServerUrl `
-            -environments $environments `
-            -roles $roles `
-            -tenants $tenants `
-            -tenantTags $tenantTags `
-            -policy $policy `
-            -communicationMode $communicationMode `
-            -displayName $displayName `
-            -publicHostNameConfiguration $publicHostNameConfiguration `
-            -customPublicHostName $customPublicHostName `
-            -serverPort $serverPort `
-            -port $port `
-            -tentacleCommsPort $tentacleCommsPort `
-            -TenantedDeploymentParticipation $TenantedDeploymentParticipation `
-            -Space $Space
+                -apiKey $apiKey `
+                -octopusServerUrl $octopusServerUrl `
+                -environments $environments `
+                -roles $roles `
+                -tenants $tenants `
+                -tenantTags $tenantTags `
+                -policy $policy `
+                -communicationMode $communicationMode `
+                -displayName $displayName `
+                -publicHostNameConfiguration $publicHostNameConfiguration `
+                -customPublicHostName $customPublicHostName `
+                -serverPort $serverPort `
+                -port $port `
+                -tentacleCommsPort $tentacleCommsPort `
+                -TenantedDeploymentParticipation $TenantedDeploymentParticipation `
+                -Space $Space
          }
 
         # Check worker pools
