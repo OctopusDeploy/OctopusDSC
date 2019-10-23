@@ -77,8 +77,7 @@ function Get-MachineFromOctopusServer
     )
 
     $apiUrl = "/machines/all"
-    if (![String]::IsNullOrEmpty($SpaceId))
-    {
+    if (![String]::IsNullOrEmpty($SpaceId)) {
         $apiUrl = "/$SpaceId" + $apiUrl
     }
 
@@ -121,8 +120,7 @@ function Get-WorkerPoolMembership
     )
     $apiUrl = "/workerpools/all"
 
-    if (![String]::IsNullOrEmpty($SpaceId))
-    {
+    if (![String]::IsNullOrEmpty($SpaceId)) {
         $apiUrl = "/$SpaceId" + $apiUrl
     }
 
@@ -133,16 +131,14 @@ function Get-WorkerPoolMembership
     foreach ($octoWorkerPool in $octoWorkerPools)
     {
         $workersUrl = "/workers/all"
-        if (![String]::IsNullOrEmpty($SpaceId))
-        {
+        if (![String]::IsNullOrEmpty($SpaceId)) {
             $workersUrl = "/$SpaceId" + $workersUrl
         }
         $workersall = Get-APIResult -ServerUrl $ServerUrl -ApiKey $ApiKey -API $workersUrl
         $workers = $workersall | Where-Object { $_.WorkerPoolIds -contains $($octoWorkerPool.Id) }
         # Check to see if the thumbprint is listed
         $workerWithThumbprint = ($workers | Where-Object {$_.Thumbprint -eq $Thumbprint})
-        if ($null -ne $workerWithThumbprint)
-        {
+        if ($null -ne $workerWithThumbprint) {
             $workerPoolMembership += $octoWorkerPool
         }
     }
@@ -166,6 +162,7 @@ Function Test-ParameterSet
         throw "PublicHostNameConfiguration was set to 'Custom' but an invalid or null CustomPublicHostName was specified"
     }
 }
+
 Function Get-Space
 {
     # Define parameters
@@ -577,41 +574,31 @@ function Test-TargetResource {
         }
     }
 
-    if ($Ensure -eq "Present" -and ![string]::IsNullOrEmpty($OctopusServerUrl))
-    {
-        if (![string]::IsNullOrEmpty($Space))
-        {
+    if ($Ensure -eq "Present" -and ![string]::IsNullOrEmpty($OctopusServerUrl)) {
+        if (![string]::IsNullOrEmpty($Space)) {
             $spaceRef = Get-Space -Space $Space -ServerUrl $OctopusServerUrl -APIKey $ApiKey
 
-            if ($null -eq $spaceRef)
-            {
-                throw "Unable to find a space by the name of $Space"
+            if ($null -eq $spaceRef) {
+                throw "Unable to find a space by the name of '$Space'"
             }
         }
 
         $machine = Get-MachineFromOctopusServer -ServerUrl $OctopusServerUrl -APIKey $ApiKey -Instance $Name -SpaceId $spaceRef.Id
 
-        if ($null -ne $machine)
-        {
-            if ($Environments.Count -ne $machine.EnvironmentIds.Count)
-            {
+        if ($null -ne $machine) {
+            if ($Environments.Count -ne $machine.EnvironmentIds.Count) {
                 Write-Verbose "Environment counts do not match, not in desired state."
                 return $false
-            }
-            else
-            {
-                foreach ($environmentId in $machine.EnvironmentIds)
-                {
+            } else {
+                foreach ($environmentId in $machine.EnvironmentIds) {
                     $environmentUrl = "/environments/$environmentId"
-                    if ($null -ne $spaceRef)
-                    {
+                    if ($null -ne $spaceRef) {
                         $environmentUrl = "/$($spaceRef.Id)" + $environmentUrl
                     }
                     $environment = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API $environmentUrl
 
                     # Verify that the environment is in the list of environments
-                    if ($Environments -notcontains $environment.Name)
-                    {
+                    if ($Environments -notcontains $environment.Name) {
                         Write-Verbose "Machine currently has environment $($environment.Name), which is not listed in the passed in Environment list.  Machine is not in desired state."
                         return $false
                     }
@@ -621,38 +608,27 @@ function Test-TargetResource {
             $tentacleThumbprint = Get-TentacleThumbprint -Instance $Name
             $workerPoolMembership = Get-WorkerPoolMembership -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -Thumbprint $tentacleThumbprint -SpaceId $spaceRef.Id
 
-            if ($WorkerPools.Count -ne $workerPoolMembership.Count)
-            {
+            if ($WorkerPools.Count -ne $workerPoolMembership.Count) {
                 Write-Verbose "Worker pool counts do not match, not in desired state."
 
                 return $false
-            }
-            else
-            {
-                foreach ($workerPool in $workerPoolMembership)
-                {
-                    if ($WorkerPools -notcontains $workerPool.Name)
-                    {
+            } else {
+                foreach ($workerPool in $workerPoolMembership) {
+                    if ($WorkerPools -notcontains $workerPool.Name) {
                         Write-Verbose "Worker pool membership is not in desired state."
-
                         return $false
                     }
                 }
             }
 
             # Check role counts
-            if ($Roles.Count -ne $machine.Roles.Count)
-            {
+            if ($Roles.Count -ne $machine.Roles.Count) {
                 Write-Verbose "Role counts do not match, not in desired state."
                 return $false
-            }
-            else
-            {
+            } else {
                 $differences = Compare-Object -ReferenceObject $Roles -DifferenceObject $machine.Roles
-                if ($null -ne $differences)
-                {
+                if ($null -ne $differences) {
                     Write-Verbose "Tentacle roles do not match specified roles, not in desired state."
-
                     # return false
                     return $false
                 }
@@ -1014,36 +990,27 @@ function Remove-WorkerPoolRegistration
             "--server", $octopusServerUrl,
             "--console"
         )
-
         $argumentList = Add-SpaceIfPresent -Space $Space -ArgumentList $argumentList
-        if (![string]::IsNullOrEmpty($apiKey))
-        {
+        if (![string]::IsNullOrEmpty($apiKey)) {
             $argumentList += @(
                 "--apiKey", $apiKey
             )
-        }
-        elseif (![string]::IsNullOrEmpty($TentacleServiceCredential))
-        {
+        } elseif (![string]::IsNullOrEmpty($TentacleServiceCredential)) {
             $argumentList += @(
                 "--username", $TentacleServiceCredential.UserName,
                 "--password", $TentacleServiceCredential.GetNetworkCredential().Password
             )
-        }
-        else
-        {
+        } else {
             throw "Both APIKey and TentacleServiceCredential are null!"
         }
 
         Invoke-AndAssert { & $tentacleDir\tentacle.exe ($argumentList)}
-    }
-    else
-    {
+    } else {
         throw "Could not find Tentacle.exe"
     }
 }
 
-function Add-TentacleToWorkerPool
-{
+function Add-TentacleToWorkerPool {
     param(
         [Parameter(Mandatory = $true)]
         [String]
@@ -1079,16 +1046,12 @@ function Add-TentacleToWorkerPool
 
     switch ($communicationsMode)
     {
-        "Listen"
-        {
+        "Listen" {
             $commsStyle = "TentaclePassive"
-
             break
         }
-        "Poll"
-        {
+        "Poll" {
             $commsStyle = "TentacleActive"
-
             break
         }
     }
@@ -1109,26 +1072,20 @@ function Add-TentacleToWorkerPool
 
         $argumentList = Add-SpaceIfPresent -Space $Space -ArgumentList $argumentList
 
-        if (![string]::IsNullOrEmpty($apiKey))
-        {
+        if (![string]::IsNullOrEmpty($apiKey)) {
             $argumentList += @(
                 "--apiKey", $apiKey
             )
-        }
-        elseif (![string]::IsNullOrEmpty($TentacleServiceCredential))
-        {
+        } elseif (![string]::IsNullOrEmpty($TentacleServiceCredential)) {
             $argumentList += @(
                 "--username", $TentacleServiceCredential.UserName,
                 "--password", $TentacleServiceCredential.GetNetworkCredential().Password
             )
-        }
-        else
-        {
+        } else {
             throw "Both APIKey and TentacleServiceCredential are null!"
         }
 
-        foreach ($workerPool in $workerPools)
-        {
+        foreach ($workerPool in $workerPools) {
             Write-Verbose "Appending worker pool name $WorkerPool"
             $argumentList += @(
                 "--workerpool", $workerPool
@@ -1139,8 +1096,7 @@ function Add-TentacleToWorkerPool
     }
 }
 
-function Register-Tentacle
-{
+function Register-Tentacle {
     param (
         [string]$name,
         [string]$apiKey,
