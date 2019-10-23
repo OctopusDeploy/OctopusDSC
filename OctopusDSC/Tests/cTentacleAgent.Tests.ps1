@@ -78,7 +78,7 @@ try
                 Mock Get-Service { return @{ Status = "Running" }}
 
                 It 'Returns the proper data' {
-                    $config = Get-TargetResource -Name 'Stub'
+                    $config = Get-TargetResource -Name 'Stub' -PublicHostNameConfiguration "PublicIp"
 
                     $config.GetType()                  | Should Be ([hashtable])
                     $config['Name']                    | Should Be 'Stub'
@@ -86,8 +86,8 @@ try
                     $config['State']                   | Should Be 'Started'
                 }
 
-                It "Throws if we specify a null or invlid CustomHostName" {
-                    { Get-TargetResource -Name "Stub" -PublicHostNameConfiguration "Custom" } | Should Throw "invalid or null"
+                It "Throws if we specify a null or invalid CustomHostName" {
+                    { Get-TargetResource -Name "Stub" -PublicHostNameConfiguration "Custom" -CustomPublicHostName $null } | Should Throw "invalid or null"
                     { Get-TargetResource -Name "Stub" -PublicHostNameConfiguration "Custom" -CustomPublicHostName "  " } | Should Throw "invalid or null"
                     { Get-TargetResource -Name "Stub" -PublicHostNameConfiguration "Custom" -CustomPublicHostName "mydnsname" } | Should Not Throw
                 }
@@ -116,6 +116,7 @@ try
                         Environments = @()
                         Roles = @()
                         WorkerPools = @()
+                        Space = "Default"
                     }
                     $response['Ensure'] = 'Present'
                     $response['State'] = 'Started'

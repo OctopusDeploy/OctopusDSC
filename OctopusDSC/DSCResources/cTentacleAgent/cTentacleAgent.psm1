@@ -71,6 +71,7 @@ function Get-MachineFromOctopusServer
         $Instance,
 
         [Parameter(Mandatory=$true)]
+        [AllowNull()]
         [System.String]
         $SpaceId
     )
@@ -156,6 +157,8 @@ Function Test-ParameterSet
         [System.String]
         $publicHostNameConfiguration,
         [Parameter(Mandatory=$true)]
+        [AllowNull()]
+        [AllowEmptyString()]
         [System.String]
         $CustomPublicHostName
     )
