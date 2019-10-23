@@ -20,7 +20,7 @@ $run_test_scenario_script = <<SCRIPT
   exit $LASTEXITCODE
 SCRIPT
 
-def publish_logs(config, scenario, log_files) 
+def publish_logs(config, scenario, log_files)
   log_files.each do |file|
     dest = file.gsub(':', '').gsub('/', '-')
     source = file.gsub('/', '\\')
@@ -162,14 +162,14 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   if ENV['OctopusDSCTestMode'] != "TentacleOnly" then
     # Run DSC to install server
-    run_octopus_scenario(config, 
-      'Server_Scenario_01_Install', 
+    run_octopus_scenario(config,
+      'Server_Scenario_01_Install',
       ['C:/ChezOctopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-OctopusServer.config'])
 
     # Run DSC to install second HA node
     run_octopus_scenario(config,
-      'Server_Scenario_02_Install_Second_Node', 
+      'Server_Scenario_02_Install_Second_Node',
       ['C:/ChezOctopus/Logs/OctopusServer.txt',
        'C:/ChezOctopusSecondNode/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-HANode.config',
@@ -247,7 +247,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     config.vm.provision "shell", path: "Tests/configure-octopus-for-tentacle-tests.ps1"
 
     # initial tentacle install
-    run_tentacle_scenario(config, 
+    run_tentacle_scenario(config,
       'Tentacle_Scenario_01_Install',
       ['C:/Octopus/Logs/configure-octopus-for-tentacle-tests.txt',
        'C:/Octopus/Logs/OctopusServer.txt',
@@ -258,7 +258,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_01_install')
 
     # uninstall tentacle
-    run_tentacle_scenario(config, 
+    run_tentacle_scenario(config,
       'Tentacle_Scenario_02_Remove',
       ['C:/Octopus/Logs/configure-octopus-for-tentacle-tests.txt',
        'C:/Octopus/Logs/OctopusServer.txt',
