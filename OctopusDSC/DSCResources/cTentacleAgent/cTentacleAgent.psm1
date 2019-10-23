@@ -105,7 +105,6 @@ function Get-TentacleThumbprint
 
 function Get-WorkerPoolMembership
 {
-    # Declare parameters
     param (
         [Parameter(Mandatory=$true)]
         [System.String]
@@ -1136,7 +1135,6 @@ function Add-TentacleToWorkerPool
             )
         }
 
-        # Execute the process
         Invoke-AndAssert { & $tentacleDir\tentacle.exe ($argumentList)}
     }
 }
