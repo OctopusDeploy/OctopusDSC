@@ -1,4 +1,7 @@
 require 'spec_helper'
+require 'json'
+
+config = JSON.parse(File.read("c:\\temp\\octopus-configured.marker"))
 
 describe file('c:/Octopus') do
   it { should be_directory }
@@ -34,7 +37,7 @@ describe port(10933) do
   it { should be_listening.with('tcp') }
 end
 
-describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "ListeningTentacle") do
+describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "ListeningTentacle") do
   it { should exist }
   it { should be_registered_with_the_server }
   it { should be_online }
@@ -67,7 +70,7 @@ describe service('OctopusDeploy Tentacle: PollingTentacle') do
   it { should run_under_account('LocalSystem') }
 end
 
-describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "PollingTentacle") do
+describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "PollingTentacle") do
   it { should exist }
   it { should be_registered_with_the_server }
   it { should be_online }
@@ -101,7 +104,7 @@ describe port(10934) do
   it { should be_listening.with('tcp') }
 end
 
-describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "ListeningTentacleWithoutAutoRegister") do
+describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "ListeningTentacleWithoutAutoRegister") do
   it { should exist }
   it { should_not be_registered_with_the_server }
 end
@@ -134,7 +137,7 @@ describe port(10935) do
   it { should be_listening.with('tcp') }
 end
 
-describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "ListeningTentacleWithThumbprintWithoutAutoRegister") do
+describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "ListeningTentacleWithThumbprintWithoutAutoRegister") do
   it { should exist }
   it { should be_registered_with_the_server }
   it { should be_online }
@@ -157,7 +160,7 @@ end
 
 describe file('C:\Octopus\ListeningTentacleWithThumbprintWithoutAutoRegisterHome\ListeningTentacleWithThumbprintWithoutAutoRegister\Tentacle.config') do
   it { should be_file }
-  its(:content) { should match /Tentacle\.Communication\.TrustedOctopusServers.*#{ENV['OctopusServerThumbprint']}/}
+  its(:content) { should match /Tentacle\.Communication\.TrustedOctopusServers.*#{config['OctopusServerThumbprint']}/}
 end
 
 ### worker tentacle
@@ -173,7 +176,7 @@ describe port(10937) do
   it { should be_listening.with('tcp') }
 end
 
-describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "WorkerTentacle") do
+describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "WorkerTentacle") do
   it { should exist }
   it { should be_registered_with_the_server }
   it { should be_online }
@@ -196,7 +199,7 @@ end
 
 describe file('C:\Octopus\WorkerTentacleHome\WorkerTentacle\Tentacle.config') do
   it { should be_file }
-  its(:content) { should match /Tentacle\.Communication\.TrustedOctopusServers.*#{ENV['OctopusServerThumbprint']}/}
+  its(:content) { should match /Tentacle\.Communication\.TrustedOctopusServers.*#{config['OctopusServerThumbprint']}/}
 end
 
 ### listening tentacle with specific service account
@@ -212,7 +215,7 @@ describe port(10936) do
   it { should be_listening.with('tcp') }
 end
 
-describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "ListeningTentacleWithCustomAccount") do
+describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "ListeningTentacleWithCustomAccount") do
   it { should exist }
   it { should be_registered_with_the_server }
   it { should be_online }
@@ -235,7 +238,7 @@ end
 
 describe file('C:\Octopus\ListeningTentacleWithCustomAccountHome\ListeningTentacleWithCustomAccount\Tentacle.config') do
   it { should be_file }
-  its(:content) { should match /Tentacle\.Communication\.TrustedOctopusServers.*#{ENV['OctopusServerThumbprint']}/}
+  its(:content) { should match /Tentacle\.Communication\.TrustedOctopusServers.*#{config['OctopusServerThumbprint']}/}
 end
 
 #seq logging

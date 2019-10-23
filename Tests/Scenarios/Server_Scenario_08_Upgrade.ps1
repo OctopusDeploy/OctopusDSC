@@ -8,12 +8,6 @@ Configuration Server_Scenario_08_Upgrade
     $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
     $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
 
-    Write-Output "Using ApiKey $($ENV:OctopusApiKey)" # debugging an intermittent issue in Scenario_08 throwing exception 'Cannot bind argument to parameter 'String' because it is null'
-
-    $pass = ConvertTo-SecureString $ENV:OctopusApiKey -AsPlainText -Force
-
-    $apiCred = New-Object System.Management.Automation.PSCredential ("ignored", $pass)
-
     Node "localhost"
     {
         LocalConfigurationManager
@@ -50,7 +44,7 @@ Configuration Server_Scenario_08_Upgrade
         {
             Url = "http://localhost:81"
             Ensure = "Absent"
-            OctopusApiKey = $apiCred
+            OctopusCredentials = $cred
             EnvironmentName = "UAT 1"
             DependsOn = "[cOctopusServer]OctopusServer"
         }
