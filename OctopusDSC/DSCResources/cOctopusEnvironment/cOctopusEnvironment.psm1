@@ -120,8 +120,12 @@ function Test-TargetResource {
 
 function Remove-Environment {
     param (
-        [string]$Url,
-        [string]$EnvironmentName,
+        [Parameter(Mandatory)]
+        [string]
+        $Url,
+        [Parameter(Mandatory)]
+        [string]
+        $EnvironmentName,
         [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
         [PSCredential]$OctopusApiKey = [PSCredential]::Empty
     )
@@ -137,8 +141,12 @@ function Remove-Environment {
 
 function New-Environment {
     param (
-        [string]$Url,
-        [string]$EnvironmentName,
+        [Parameter(Mandatory)]
+        [string]
+        $Url,
+        [Parameter(Mandatory)]
+        [string]
+        $EnvironmentName,
         [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
         [PSCredential]$OctopusApiKey = [PSCredential]::Empty
     )
@@ -153,8 +161,12 @@ function New-Environment {
 
 function Get-Environment {
     param (
-        [string]$Url,
-        [string]$EnvironmentName,
+        [Parameter(Mandatory)]
+        [string]
+        $Url,
+        [Parameter(Mandatory)]
+        [string]
+        $EnvironmentName,
         [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
         [PSCredential]$OctopusApiKey = [PSCredential]::Empty
     )
@@ -171,7 +183,9 @@ function Get-Environment {
 function Get-OctopusClientRepository
 {
   param (
-    [string]$Url,
+    [Parameter(Mandatory)]
+    [string]
+    $Url,
     [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
     [PSCredential]$OctopusApiKey = [PSCredential]::Empty
   )

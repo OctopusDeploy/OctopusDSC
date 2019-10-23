@@ -129,8 +129,9 @@ Function Test-ParameterSet
 function Get-TargetResource {
     [OutputType([Hashtable])]
     param (
+        [Parameter(Mandatory)]
         [ValidateSet("Present", "Absent")]
-        [string]$Ensure = "Present",
+        [string]$Ensure,
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Name,
@@ -261,8 +262,9 @@ function Confirm-RegistrationParameter {
 
 function Confirm-RequestedState() {
     param (
+        [Parameter(Mandatory)]
         [ValidateSet("Present", "Absent")]
-        [string]$Ensure = "Present",
+        [string]$Ensure,
         [ValidateSet("Started", "Stopped")]
         [string]$State = "Started"
     )
@@ -275,8 +277,9 @@ function Confirm-RequestedState() {
 
 function Set-TargetResource {
     param (
+        [Parameter(Mandatory)]
         [ValidateSet("Present", "Absent")]
-        [string]$Ensure = "Present",
+        [string]$Ensure,
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Name,
@@ -456,8 +459,9 @@ function Set-TargetResource {
 
 function Test-TargetResource {
     param (
+        [Parameter(Mandatory)]
         [ValidateSet("Present", "Absent")]
-        [string]$Ensure = "Present",
+        [string]$Ensure,
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Name,
@@ -713,19 +717,19 @@ function Install-Tentacle {
 
 function New-Tentacle {
     param (
-        [Parameter(Mandatory = $True)]
+        [Parameter(Mandatory)]
         [string]$name,
         [string]$apiKey,
         [string]$octopusServerUrl,
-        [Parameter(Mandatory = $False)]
+        [Parameter]
         [string[]]$environments = "",
-        [Parameter(Mandatory = $False)]
+        [Parameter]
         [string[]]$roles = "",
-        [Parameter(Mandatory = $False)]
+        [Parameter]
         [string[]]$tenants = "",
-        [Parameter(Mandatory = $False)]
+        [Parameter]
         [string[]]$tenantTags = "",
-        [Parameter(Mandatory = $False)]
+        [Parameter]
         [string]$policy,
         [int]$port = 10933,
         [int]$tentacleCommsPort = 0,
@@ -741,7 +745,7 @@ function New-Tentacle {
         [string]$customPublicHostName,
         [string]$tentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
         [bool]$registerWithServer = $true,
-        [Parameter(Mandatory = $False)]
+        [Parameter]
         [string]$octopusServerThumbprint,
         [PSCredential]$TentacleServiceCredential,
         [string[]] $workerPools,
@@ -898,11 +902,11 @@ function Get-TentacleDownloadUrl {
 
 function Remove-TentacleRegistration {
     param (
-        [Parameter(Mandatory = $True)]
+        [Parameter(Mandatory)]
         [string]$name,
-        [Parameter(Mandatory = $True)]
+        [Parameter(Mandatory)]
         [string]$apiKey,
-        [Parameter(Mandatory = $True)]
+        [Parameter(Mandatory)]
         [string]$octopusServerUrl
     )
 
@@ -920,13 +924,13 @@ function Remove-TentacleRegistration {
 function Remove-WorkerPoolRegistration
 {
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [string]$octopusServerUrl,
         [Parameter()]
         [string]$apiKey,
         [Parameter()]
         [PSCredential]$TentacleServiceCredential,
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [string]$name
     )
 
@@ -982,11 +986,11 @@ function Add-TentacleToWorkerPool
 {
     # Define parameters
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [String]
         $name,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [String]
         $octopusServerUrl,
 
@@ -1061,18 +1065,20 @@ function Register-Tentacle
 {
     # Define parameters
     param (
-        [string]$name,
+        [Parameter(Mandatory)]
+        [string]
+        $name,
         [string]$apiKey,
         [string]$octopusServerUrl,
-        [Parameter(Mandatory = $False)]
+        [Parameter]
         [string[]]$environments = "",
-        [Parameter(Mandatory = $False)]
+        [Parameter]
         [string[]]$roles = "",
-        [Parameter(Mandatory = $False)]
+        [Parameter]
         [string[]]$tenants = "",
-        [Parameter(Mandatory = $False)]
+        [Parameter]
         [string[]]$tenantTags = "",
-        [Parameter(Mandatory = $False)]
+        [Parameter]
         [string]$policy,
         [ValidateSet("Listen", "Poll")]
         [string]$communicationMode = "Listen",

@@ -17,8 +17,9 @@ function Resolve-OctopusDSCError
 function Get-TargetResource {
     [OutputType([Hashtable])]
     param (
+        [Parameter(Mandatory)]
         [ValidateSet("Present", "Absent")]
-        [string]$Ensure = "Present",
+        [string]$Ensure,
         [Parameter(Mandatory)]
         [string]$Name,
         [ValidateSet("Started", "Stopped", "Installed")]
@@ -364,8 +365,9 @@ function Set-TargetResource {
     #The Write-Verbose calls are in other methods
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSDSCUseVerboseMessageInDSCResource", "")]
     param (
+        [Parameter(Mandatory)]
         [ValidateSet("Present", "Absent")]
-        [string]$Ensure = "Present",
+        [string]$Ensure,
         [Parameter(Mandatory)]
         [string]$Name,
         [ValidateSet("Started", "Stopped", "Installed")]
@@ -578,11 +580,11 @@ function Test-RequestedConfiguration($currentState, $desiredState) {
 
 function Set-OctopusDeployConfiguration {
     param (
-        [Parameter(Mandatory = $True)]
+        [Parameter(Mandatory)]
         [Hashtable]$currentState,
-        [Parameter(Mandatory = $True)]
+        [Parameter(Mandatory)]
         [string]$name,
-        [Parameter(Mandatory = $True)]
+        [Parameter(Mandatory)]
         [string]$webListenPrefix,
         [Parameter(Mandatory)]
         [bool]$allowUpgradeCheck,
@@ -1096,9 +1098,9 @@ function Get-InstallStateValue {
 
 function Get-RegistryValue {
     param (
-        [parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]$Path,
-        [parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]$Value
     )
     try {
@@ -1111,11 +1113,11 @@ function Get-RegistryValue {
 
 function Install-OctopusDeploy {
     param (
-        [Parameter(Mandatory = $True)]
+        [Parameter(Mandatory)]
         [string]$name,
-        [Parameter(Mandatory = $True)]
+        [Parameter(Mandatory)]
         [string]$webListenPrefix,
-        [Parameter(Mandatory = $True)]
+        [Parameter(Mandatory)]
         [string]$sqlDbConnectionString,
         [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty,
         [bool]$allowUpgradeCheck = $true,
@@ -1428,8 +1430,9 @@ function Install-OctopusDeploy {
 
 function Test-TargetResource {
     param (
+        [Parameter(Mandatory)]
         [ValidateSet("Present", "Absent")]
-        [string]$Ensure = "Present",
+        [string]$Ensure,
         [Parameter(Mandatory)]
         [string]$Name,
         [ValidateSet("Started", "Stopped", "Installed")]
@@ -1574,8 +1577,12 @@ function Test-PSCredentialChanged ($currentValue, $requestedValue) {
 
 function Test-ParameterSet {
     param (
-        [string]$Ensure,
-        [string]$Name,
+        [Parameter(Mandatory)]
+        [string]
+        $Ensure,
+        [Parameter(Mandatory)]
+        [string]
+        $Name,
         [string]$State,
         [string]$DownloadUrl,
         [string]$WebListenPrefix,

@@ -1,7 +1,7 @@
 [ClassVersion("1.0.0"), FriendlyName("cOctopusEnvironment")]
 class cOctopusEnvironment : OMI_BaseResource
 {
-  [Required, ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
+  [Write, Required, ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
   [Key] string EnvironmentName;
   [Write, Required] string Url;
   [Write, EmbeddedInstance("MSFT_Credential")] string OctopusCredentials;

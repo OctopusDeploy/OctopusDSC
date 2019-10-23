@@ -1,7 +1,7 @@
 [ClassVersion("1.0.0"), FriendlyName("cOctopusServerSpace")]
 class cOctopusServerSpace : OMI_BaseResource
 {
-  [Required, ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
+  [Write, Required, ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
   [Key] string Name;
   [Write] string Description;
   [Write, Required] string Url;

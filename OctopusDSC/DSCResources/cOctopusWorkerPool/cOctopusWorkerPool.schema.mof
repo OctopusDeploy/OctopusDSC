@@ -1,7 +1,7 @@
 [ClassVersion("1.0.0"), FriendlyName("cOctopusWorkerPool")]
 class cOctopusWorkerPool : OMI_BaseResource
 {
-  [Required, ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
+  [Write, Required, ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
   [Key] string WorkerPoolName;
   [Write] string WorkerPoolDescription;
   [Write] string SpaceID;

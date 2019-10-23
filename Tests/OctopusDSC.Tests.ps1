@@ -152,6 +152,72 @@ Describe "Mandatory Parameters" {
     }
 }
 
+Describe "Internal functions should have mandatory parameters" {
+    $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/DSCResources"
+    $schemaMofFiles = Get-ChildItem $path -Recurse -Filter *.mof
+    foreach ($schemaMofFile in $schemaMofFiles) {
+        $schemaMofFileContent = Get-Content $schemaMofFile.FullName
+        $moduleFile = Get-Item ($schemaMofFile.FullName -replace ".schema.mof", ".psm1")
+
+        function Get-ParameterFromFunction($functionName, $astMembers, $propertyName) {
+            $foundMatchingParameter = $false
+            foreach($param in $astMembers) {
+                if ($null -ne $param.name -and $param.Name.ToString() -eq "`$$propertyName") {
+                    $function = $param.Parent.Parent.Parent
+                    if ($function -is [System.Management.Automation.Language.FunctionDefinitionAst]) {
+                        $funcName = ([System.Management.Automation.Language.FunctionDefinitionAst]$function).Name
+                        if ($funcName -eq $functionName) {
+                            return $param.Attributes.Extent.Text
+                        }
+                    }
+                }
+            }
+        }
+
+        function Test-ParameterIsMandatory($functionName, $astMembers, $propertyName, $moduleFile, $propertyType) {
+            $param = Get-ParameterFromFunction -functionName $functionName -astMembers $astMembers -propertyName $propertyName
+            if ($null -ne $param) {
+                It "Parameter '$propertyName' in function '$functionName' should be marked with [Parameter(Mandatory)] in $($moduleFile.Name) as its a $propertyType property" {
+                    $param -contains "[Parameter(Mandatory)]" | should be $true
+                }
+                It "Parameter '$propertyName' in function '$functionName' should not be marked with [AllowNull()] in $($moduleFile.Name) as its a $propertyType property" {
+                    $param -contains "[AllowNull()]" | should be $false
+                }
+            }
+        }
+
+
+        Describe "Module $($moduleFile.Name)" {
+            $tokens = $null;
+            $parseErrors = $null;
+            $ast = [System.Management.Automation.Language.Parser]::ParseFile($moduleFile.FullName, [ref] $tokens, [ref] $parseErrors);
+            $filter = { $true }
+            $astMembers = $ast.FindAll($filter, $true);
+
+            $requiredParameters = @()
+            foreach($line in $schemaMofFileContent) {
+                if ($line -match "\s*(\[.*\b(Required|Key)\b.*\])\s*(.*) (.*);") {
+                    $requiredParameters += @{ "PropertyType" = $matches[2]; "PropertyName" = $matches[4].Replace("[]", "")}
+                }
+            }
+
+            foreach ($member in $astMembers) {
+                if ($member -is [System.Management.Automation.Language.FunctionDefinitionAst]) {
+                    if (($member.Name -ne "Test-TargetResource") -and
+                        ($member.Name -ne "Get-TargetResource") -and
+                        ($member.Name -ne "Set-TargetResource")) {
+                        $requiredParameters | foreach-object {
+                            Test-ParameterIsMandatory -functionName $member.Name `
+                                                      -astMembers $astMembers `
+                                                      -propertyName $_.PropertyName `
+                                                      -moduleFile $moduleFile `
+                                                      -propertyType $_.PropertyType }
+                }
+            }
+        }
+    }
+}
+
 Describe "Test/Get/Set-TargetResource all implement the same properties" {
     $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/DSCResources"
     $schemaMofFiles = Get-ChildItem $path -Recurse -Filter *.schema.mof
