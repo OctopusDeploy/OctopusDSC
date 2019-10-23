@@ -1,4 +1,7 @@
 require 'spec_helper'
+require 'json'
+
+config = JSON.parse(File.read("c:\\temp\\octopus-configured.marker"))
 
 describe file('c:/Octopus') do
   it { should be_directory }
@@ -25,7 +28,7 @@ describe port(10933) do
   it { should be_listening.with('tcp') }
 end
 
-describe octopus_deploy_tentacle(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "Tentacle") do
+describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "Tentacle") do
   it { should exist }
   it { should be_registered_with_the_server }
   it { should be_listening_tentacle }
@@ -46,6 +49,16 @@ describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\Tent
   it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config') }
 end
 =end
+
+describe file('C:/ProgramData/Octopus/Tentacle/Instances/Tentacle.config') do
+  it { should be_file }
+end
+
+config_file = File.read('C:/ProgramData/Octopus/Tentacle/Instances/Tentacle.config')
+config_json = JSON.parse(config_file)
+describe config_json['ConfigurationFilePath'] do
+  it { should eq('C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config') }
+end
 
 describe windows_dsc do
   it { should be_able_to_get_dsc_configuration }

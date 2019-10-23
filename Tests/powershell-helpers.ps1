@@ -8,6 +8,10 @@ function Test-PluginInstalled($pluginName, $pluginVersion) {
     else {
       write-host "Vagrant plugin $pluginName not installed."
       & vagrant plugin install $pluginName
+      if ($LASTEXITCODE -ne 0) {
+        write-host "Failed to automatically install vagrant plugin $($pluginName)" -foregroundcolor red
+        exit 1
+      }
     }
   }
   else {
@@ -33,11 +37,17 @@ function Test-AppExists($appName) {
   return $null -ne $command
 }
 
-function Test-PowershellModuleInstalled($moduleName) {
+function Test-PowershellModuleInstalled($moduleName, $version) {
   $command = Get-Module $moduleName -listavailable
   if ($null -eq $command) {
     write-host "Please install $($moduleName): Install-Module -Name $moduleName -Force" -foregroundcolor red
     exit 1
+  }
+  if ($null -ne $version) {
+    if ($command.Version -lt [System.Version]::Parse($version)) {
+      write-host "Please install $($moduleName) $version or higher (you have version $($command.Version)): Update-Module -Name $moduleName -Force" -foregroundcolor red
+      exit 1
+    }
   }
 }
 
@@ -46,7 +56,7 @@ function Test-CustomVersionOfVagrantDscPluginIsInstalled() {  # does not deal we
             Sort-Object -descending |
             Select-Object -first 1 # sort and select to cope with multiple gem folders (upgraded vagrant)
 
-  if (Test-Path $path) {
+  if (($null -ne $path) -and (Test-Path $path -ErrorAction SilentlyContinue)) {
     $content = Get-Content $path -raw
     if ($content.IndexOf("return version.stdout") -gt -1) {
       return;
@@ -54,22 +64,22 @@ function Test-CustomVersionOfVagrantDscPluginIsInstalled() {  # does not deal we
   }
 
   write-host "It doesn't appear that you've got the custom Octopus version of the vagrant-dsc plugin installed" -foregroundcolor red
-  write-host "Please download it from github:"
-  write-host "  irm https://github.com/OctopusDeploy/vagrant-dsc/releases/download/v2.0.1/vagrant-dsc-2.0.2.gem -outfile vagrant-dsc-2.0.2.gem"
-  write-host "  vagrant plugin install vagrant-dsc-2.0.2.gem"
+  write-host "Please download it from github:" -foregroundcolor red
+  write-host "  irm https://github.com/OctopusDeploy/vagrant-dsc/releases/download/v2.0.2/vagrant-dsc-2.0.2.gem -outfile vagrant-dsc-2.0.2.gem" -foregroundcolor red
+  write-host "  vagrant plugin install vagrant-dsc-2.0.2.gem" -foregroundcolor red
   exit 1
 }
 
-function Test-LogContainsRetriableFailure() {
-  $log = Get-Content vagrant.log -raw
+function Test-LogContainsRetriableFailure($log) {
   if ($log.Contains("[WinRM::FS::Core::FileTransporter] Upload failed (exitcode: 0), but stderr present (WinRM::FS::Core::FileTransporterFailed)")) {
       return $true
   }
+
   Write-Warning "Attempted retry, but no retriable failures found"
   return $false
 }
 
-Function Invoke-VagrantWithRetries {
+function Invoke-VagrantWithRetries {
   param(
     [ValidateSet("aws", "azure", "hyperv", "virtualbox")]
     $provider,
@@ -95,10 +105,10 @@ Function Invoke-VagrantWithRetries {
 
   do {
     Write-Output (@("Running Vagrant with arguments '", ($args -join " "), "'") -join "")
-    vagrant $args  | Tee-Object -FilePath vagrant.log
+    Invoke-Expression "vagrant $args" -ErrorVariable stdErr 2>&1 | Tee-Object -FilePath vagrant.log
     Write-Output "'vagrant up' exited with exit code $LASTEXITCODE"
     $attempts = $attempts + 1
-    $retryAgain = ($attempts -lt $retries) -and (Test-LogContainsRetriableFailure) -and ($LASTEXITCODE -ne 0)
+    $retryAgain = ($attempts -lt $retries) -and (Test-LogContainsRetriableFailure $stdErr) -and ($LASTEXITCODE -ne 0)
     if ($retryAgain) {
       Write-Output "Running 'vagrant destroy -f' to cleanup, so we can try again."
       vagrant destroy -f
@@ -106,7 +116,7 @@ Function Invoke-VagrantWithRetries {
   } while ($retryAgain)
 }
 
-Function Set-OctopusDSCEnvVars {
+function Set-OctopusDSCEnvVars {
   param(
     [switch]$offline,
     [switch]$SkipPester,
@@ -158,8 +168,7 @@ Function Set-OctopusDSCEnvVars {
   }
 }
 
-Function Set-OfflineConfig
-{
+function Set-OfflineConfig {
   # if you want to use offline, then you need a v3 and a v4 MSI installer locally in the .\Tests folder (gitignored)
 
   Write-Warning "Offline run requested, writing an offline.config file"
@@ -180,5 +189,21 @@ Function Set-OfflineConfig
       v4file = (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.2019.*.msi"} | Select-Object -first 1 | Select-Object -expand Name);
       v3file = (Get-ChildItem .\Tests | Where-Object {$_.Name -like "Octopus.3.*.msi"} | Select-Object -first 1 | Select-Object -expand Name);
   } | ConvertTo-Json | Out-File ".\Tests\offline.config"
+}
 
+function Remove-OldLogsBeforeNewRun {
+  if (Test-Path "logs") {
+    Remove-Item "logs" -Force -recurse | Out-Null
+  }
+  New-Item -ItemType Directory -Name "logs" | Out-Null
+
+  if (Test-Path "PSScriptAnalyzer*.log") {
+    Remove-Item "PSScriptAnalyzer*.log" -Force | Out-Null
+  }
+  if (Test-Path "vagrant*.log") {
+    Remove-Item "vagrant*.log" -Force -ErrorAction SilentlyContinue | Out-Null
+  }
+  if (Test-Path "PesterTestResults.xml") {
+    Remove-Item "PesterTestResults.xml" -Force | Out-Null
+  }
 }

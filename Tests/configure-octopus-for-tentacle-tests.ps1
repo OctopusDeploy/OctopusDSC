@@ -27,17 +27,6 @@ try
     $user = $repository.Users.GetCurrent()
     $createApiKeyResult = $repository.Users.CreateApiKey($user, "Octopus DSC Testing")
 
-    #save it to enviornment variables for tests to use
-    [environment]::SetEnvironmentVariable("OctopusServerUrl", $OctopusURI, "User")
-    [environment]::SetEnvironmentVariable("OctopusServerUrl", $OctopusURI, "Machine")
-    [environment]::SetEnvironmentVariable("OctopusApiKey", $createApiKeyResult.ApiKey, "User")
-    [environment]::SetEnvironmentVariable("OctopusApiKey", $createApiKeyResult.ApiKey, "Machine")
-
-    #store the thumbprint of the server so wec an access it in tests
-    $certificate = Invoke-RestMethod "$OctopusURI/api/configuration/certificates/certificate-global?apikey=$($createApiKeyResult.ApiKey)"
-    [environment]::SetEnvironmentVariable("OctopusServerThumbprint", $certificate.Thumbprint, "User")
-    [environment]::SetEnvironmentVariable("OctopusServerThumbprint", $certificate.Thumbprint, "Machine")
-
     #create an environment for the tentacles to go into
     $environment = New-Object Octopus.Client.Model.EnvironmentResource
     $environment.Name = "The-Env"
@@ -91,7 +80,13 @@ try
     $policyResource.Description = "Test Machine Policy"
     $repository.MachinePolicies.Create($policyResource) | Out-Null
 
-    set-content "c:\temp\octopus-configured.marker" ""
+    $certificate = Invoke-RestMethod "$OctopusURI/api/configuration/certificates/certificate-global?apikey=$($createApiKeyResult.ApiKey)"
+    $content = @{
+        "OctopusServerUrl" = $OctopusURI;
+        "OctopusApiKey" = $createApiKeyResult.ApiKey;
+        "OctopusServerThumbprint" = $certificate.Thumbprint;
+    }
+    set-content "c:\temp\octopus-configured.marker" ($content | ConvertTo-Json)
     Stop-Transcript
   }
 }

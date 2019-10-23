@@ -11,6 +11,8 @@ param(
 
 . Tests/powershell-helpers.ps1
 
+Start-Transcript .\vagrant-azure.log
+
 Test-EnvVar AZURE_VM_PASSWORD
 Test-EnvVar AZURE_SUBSCRIPTION_ID
 Test-EnvVar AZURE_TENANT_ID
@@ -34,11 +36,14 @@ Write-Output "Azure CLI installed - good."
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-azure" "2.0.0.pre7"
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
+Test-PluginInstalled "vagrant-winrm-file-download"
+
+Remove-OldLogsBeforeNewRun
 
 if(-not $SkipPester) {
     Write-Output "Importing Pester module"
-    Test-PowershellModuleInstalled "Pester"
-    Test-PowershellModuleInstalled "PSScriptAnalyzer"
+    Test-PowershellModuleInstalled "Pester" "4.9.0"
+    Test-PowershellModuleInstalled "PSScriptAnalyzer" "1.18.3"
     Import-Module Pester -verbose -force
 
     Write-Output "Running Pester Tests"
@@ -54,8 +59,7 @@ Invoke-VagrantWithRetries -provider azure
 
 Write-Output "'vagrant up' exited with exit code $LASTEXITCODE"
 
-if ($LASTEXITCODE -ne 0)
-{
+if ($LASTEXITCODE -ne 0) {
   Write-Output "Vagrant up failed with exit code $LASTEXITCODE"
   Write-Output "##teamcity[buildStatus text='{build.status.text}. Vagrant failed.']"
   exit $LASTEXITCODE

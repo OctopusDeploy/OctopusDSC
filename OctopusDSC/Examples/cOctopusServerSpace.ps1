@@ -1,4 +1,4 @@
-# Creates a Worker Pool in an Octopus Server instance
+# Creates an environment in an Octopus Server instance
 
 # deserialize a password from disk
 $password = Get-Content .\ExamplePassword.txt | ConvertTo-SecureString
@@ -10,13 +10,14 @@ Configuration SampleConfig
 
     Node "localhost"
     {
-        cOctopusWorkerPool "Create 'Development' Environment"
+        cOctopusServerSpace "Ensure Integration Team Space exists"
         {
+            Ensure = "Present"
+            Name = "Integration Team"
+            Description = "The top secret work of the Integration Team"
+            SpaceManagersTeamMembers = @('admin')
+            SpaceManagersTeams = @('Everyone')
             Url = "https://octopus.example.com"
-            Ensure = 'Present'
-            WorkerPoolName = 'My Ops Worker Pool'
-            WorkerPoolDescription = "A worker pool for operational tasks"
-            SpaceID = "spaces-1"
             OctopusCredentials = $creds
         }
     }

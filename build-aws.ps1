@@ -11,6 +11,8 @@ param(
 
 . Tests/powershell-helpers.ps1
 
+Start-Transcript .\vagrant-aws.log
+
 Test-EnvVar AWS_ACCESS_KEY_ID
 Test-EnvVar AWS_SECRET_ACCESS_KEY
 Test-EnvVar AWS_SUBNET_ID
@@ -34,20 +36,24 @@ Test-PluginInstalled "vagrant-aws"
 Test-PluginInstalled "vagrant-aws-winrm"
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
+Test-PluginInstalled "vagrant-winrm-file-download"
+
+Remove-OldLogsBeforeNewRun
 
 if(-not $SkipPester) {
   Write-Output "##teamcity[blockOpened name='Pester tests']"
   Write-Output "Importing Pester module"
-  Test-PowershellModuleInstalled "Pester"
-  Test-PowershellModuleInstalled "PSScriptAnalyzer"
-  Import-Module Pester -verbose -force
-
+  Test-PowershellModuleInstalled "Pester" "4.9.0"
+  Test-PowershellModuleInstalled "PSScriptAnalyzer" "1.18.3"
+  Import-Module Pester -force
   Write-Output "Running Pester Tests"
   $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
   if ($result.FailedCount -gt 0) {
     exit 1
   }
   Write-Output "##teamcity[blockClosed name='Pester tests']"
+} else {
+  Write-Output "-SkipPester was specified, skipping pester tests"
 }
 
 $randomGuid=[guid]::NewGuid()
@@ -67,8 +73,7 @@ Set-Content -Path "$keyName.pem" -Value $key
 if (Test-AppExists "chmod") {
   Write-Output "Setting permissions on pem file '$keyName.pem'"
   & chmod 400 "./$keyName.pem"
-}
-else {
+} else {
   Write-Output "chmod not found, skipping setting permissions on pem file"
 }
 
@@ -83,10 +88,10 @@ $splat = @{
   retainondestroy = $retainondestroy.IsPresent;
   debug = $debug.IsPresent;
 }
+
 Invoke-VagrantWithRetries @splat
 
-if ($LASTEXITCODE -ne 0)
-{
+if ($LASTEXITCODE -ne 0) {
   Write-Output "Vagrant up failed with exit code $LASTEXITCODE"
   Write-Output "##teamcity[buildStatus text='{build.status.text}. Vagrant failed.']"
   exit $LASTEXITCODE

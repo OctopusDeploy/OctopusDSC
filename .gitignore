@@ -5,6 +5,7 @@
 *.suo
 *.user
 *.sln.docstates
+.vs/
 
 # Build results
 [Dd]ebug/
@@ -196,3 +197,4 @@ offline.config
 
 Tests/vendor/*
 Tests/.bundle
+logs/*
