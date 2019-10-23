@@ -212,6 +212,7 @@ Describe "Internal functions should have mandatory parameters" {
                                                       -propertyName $_.PropertyName `
                                                       -moduleFile $moduleFile `
                                                       -propertyType $_.PropertyType }
+                    }
                 }
             }
         }
