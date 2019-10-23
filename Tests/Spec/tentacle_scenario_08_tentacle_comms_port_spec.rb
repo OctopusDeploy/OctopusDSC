@@ -38,7 +38,6 @@ describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiK
   it { should have_endpoint("https://#{ENV['COMPUTERNAME']}:10900/") }
 end
 
-=begin
 describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle') do
   it { should exist }
   it { should have_property_value('InstallLocation', :type_string, "C:\\Program Files\\Octopus Deploy\\Tentacle\\") }
@@ -48,7 +47,6 @@ describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\Tent
   it { should exist }
   it { should have_property_value('ConfigurationFilePath', :type_string, 'C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config') }
 end
-=end
 
 describe file('C:/ProgramData/Octopus/Tentacle/Instances/Tentacle.config') do
   it { should be_file }
