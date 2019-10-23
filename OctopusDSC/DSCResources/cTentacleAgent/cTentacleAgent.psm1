@@ -609,7 +609,6 @@ function Test-TargetResource {
 
             if ($WorkerPools.Count -ne $workerPoolMembership.Count) {
                 Write-Verbose "Worker pool counts do not match, not in desired state."
-
                 return $false
             } else {
                 foreach ($workerPool in $workerPoolMembership) {
