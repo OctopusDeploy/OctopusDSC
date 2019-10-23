@@ -5,7 +5,7 @@ class cOctopusWorkerPool : OMI_BaseResource
   [Key] string WorkerPoolName;
   [Write] string WorkerPoolDescription;
   [Write] string SpaceID;
-  [Write] string Url;
+  [Write, Required] string Url;
   [Write, EmbeddedInstance("MSFT_Credential")] string OctopusCredentials;
   [Write, EmbeddedInstance("MSFT_Credential")] string OctopusApiKey;
 };

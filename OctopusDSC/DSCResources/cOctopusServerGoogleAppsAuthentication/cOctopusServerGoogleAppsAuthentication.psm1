@@ -12,9 +12,7 @@ function Get-TargetResource {
         [string]$InstanceName,
         [Parameter(Mandatory)]
         [boolean]$Enabled,
-        [Parameter(Mandatory)]
         [string]$ClientID,
-        [Parameter(Mandatory)]
         [string]$HostedDomain
     )
     # check octopus installed
@@ -46,9 +44,7 @@ function Set-TargetResource {
         [string]$InstanceName,
         [Parameter(Mandatory)]
         [boolean]$Enabled,
-        [Parameter(Mandatory)]
         [string]$ClientID,
-        [Parameter(Mandatory)]
         [string]$HostedDomain
     )
     $args = @(
@@ -70,9 +66,7 @@ function Test-TargetResource {
         [string]$InstanceName,
         [Parameter(Mandatory)]
         [boolean]$Enabled,
-        [Parameter(Mandatory)]
         [string]$ClientID,
-        [Parameter(Mandatory)]
         [string]$HostedDomain
     )
     $currentResource = (Get-TargetResource -InstanceName $InstanceName `
