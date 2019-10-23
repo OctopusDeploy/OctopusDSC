@@ -66,11 +66,11 @@ function Get-MachineFromOctopusServer
         [System.String]
         $APIKey,
 
-        [Parameter()]
+        [Parameter(Mandatory=$true)]
         [System.String]
         $Instance,
 
-        [Parameter()]
+        [Parameter(Mandatory=$true)]
         [System.String]
         $SpaceId
     )
@@ -91,6 +91,8 @@ function Get-MachineFromOctopusServer
 function Get-TentacleThumbprint
 {
     param (
+        [Parameter(Mandatory=$true)]
+        [System.String]
         $Instance
     )
 
@@ -104,9 +106,17 @@ function Get-WorkerPoolMembership
 {
     # Declare parameters
     param (
+        [Parameter(Mandatory=$true)]
+        [System.String]
         $ServerUrl,
+        [Parameter(Mandatory=$true)]
+        [System.String]
         $Thumbprint,
+        [Parameter(Mandatory=$true)]
+        [System.String]
         $ApiKey,
+        [Parameter(Mandatory=$true)]
+        [System.String]
         $SpaceId
     )
     $apiUrl = "/workerpools/all"
@@ -142,8 +152,12 @@ function Get-WorkerPoolMembership
 Function Test-ParameterSet
 {
     param(
-        [string]$publicHostNameConfiguration,
-        [string]$CustomPublicHostName
+        [Parameter(Mandatory=$true)]
+        [System.String]
+        $publicHostNameConfiguration,
+        [Parameter(Mandatory=$true)]
+        [System.String]
+        $CustomPublicHostName
     )
 
     if($publicHostNameConfiguration -eq "Custom" -and [String]::IsNullOrWhiteSpace($CustomPublicHostName)) {
@@ -154,8 +168,14 @@ Function Get-Space
 {
     # Define parameters
     param(
+        [Parameter(Mandatory=$true)]
+        [System.String]
         $Space,
+        [Parameter(Mandatory=$true)]
+        [System.String]
         $ServerUrl,
+        [Parameter(Mandatory=$true)]
+        [System.String]
         $APIKey
     )
     $spaces = Get-APIResult -ServerUrl $ServerUrl -APIKey $APIKey -API "/spaces/all"
@@ -939,7 +959,7 @@ function Remove-TentacleRegistration {
         [string]$apiKey,
         [Parameter(Mandatory = $True)]
         [string]$octopusServerUrl,
-        [Parameter()]
+        [Parameter(Mandatory = $True)]
         [string]$Space
     )
 
@@ -967,14 +987,18 @@ function Remove-WorkerPoolRegistration
 {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$octopusServerUrl,
-        [Parameter()]
-        [string]$apiKey,
-        [Parameter()]
-        [PSCredential]$TentacleServiceCredential,
+        [string]
+        $octopusServerUrl,
         [Parameter(Mandatory = $true)]
-        [string]$name,
-        [Parameter()]
+        [string]
+        $apiKey,
+        [Parameter(Mandatory = $true)]
+        [PSCredential]
+        $TentacleServiceCredential,
+        [Parameter(Mandatory = $true)]
+        [string]
+        $name,
+        [Parameter(Mandatory = $true)]
         [string]
         $Space
     )
@@ -1027,23 +1051,23 @@ function Add-TentacleToWorkerPool
         [String]
         $octopusServerUrl,
 
-        [Parameter()]
+        [Parameter(Mandatory = $true)]
         [string]
         $apiKey,
 
-        [Parameter()]
+        [Parameter(Mandatory = $true)]
         [PSCredential]
         $TentacleServiceCredential,
 
-        [Parameter()]
+        [Parameter(Mandatory = $true)]
         [String[]]
         $workerPools,
 
-        [Parameter()]
+        [Parameter(Mandatory = $true)]
         [String]
         $Space,
 
-        [Parameter()]
+        [Parameter(Mandatory = $true)]
         [String]
         [ValidateSet("Listen", "Poll")]
         $CommunicationsMode = "Listen"
