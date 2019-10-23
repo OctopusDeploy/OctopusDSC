@@ -597,7 +597,6 @@ function Test-TargetResource {
                     }
                     $environment = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API $environmentUrl
 
-                    # Verify that the environment is in the list of environments
                     if ($Environments -notcontains $environment.Name) {
                         Write-Verbose "Machine currently has environment $($environment.Name), which is not listed in the passed in Environment list.  Machine is not in desired state."
                         return $false
@@ -621,7 +620,6 @@ function Test-TargetResource {
                 }
             }
 
-            # Check role counts
             if ($Roles.Count -ne $machine.Roles.Count) {
                 Write-Verbose "Role counts do not match, not in desired state."
                 return $false
@@ -629,7 +627,6 @@ function Test-TargetResource {
                 $differences = Compare-Object -ReferenceObject $Roles -DifferenceObject $machine.Roles
                 if ($null -ne $differences) {
                     Write-Verbose "Tentacle roles do not match specified roles, not in desired state."
-                    # return false
                     return $false
                 }
             }
