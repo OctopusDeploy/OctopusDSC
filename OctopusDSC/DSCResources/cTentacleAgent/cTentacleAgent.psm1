@@ -1070,7 +1070,7 @@ function Add-TentacleToWorkerPool
         [Parameter(Mandatory = $true)]
         [String]
         [ValidateSet("Listen", "Poll")]
-        $CommunicationsMode = "Listen"
+        $CommunicationsMode
     )
 
     $commsStyle = ""
