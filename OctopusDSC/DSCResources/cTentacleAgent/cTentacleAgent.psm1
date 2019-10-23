@@ -629,11 +629,9 @@ function Test-TargetResource {
                     return $false
                 }
             }
+        } else {
+            Write-Verbose "Machine '$Name' is not registered in Space '$Space'"
         }
-    }
-    else
-    {
-        Write-Verbose "Space $Space does not have a registration for $Name"
     }
 
     return $true
