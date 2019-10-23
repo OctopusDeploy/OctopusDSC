@@ -7,15 +7,15 @@ $defaultTentacleDownloadUrl64 = "https://octopus.com/downloads/latest/OctopusTen
 function Get-APIResult
 {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory)]
         [System.String]
         $ServerUrl,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory)]
         [System.String]
         $API,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory)]
         [System.String]
         $APIKey
     )
@@ -41,15 +41,15 @@ function Get-MachineFromOctopusServer
 {
     # Define parameters
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory)]
         [String]
         $ServerUrl,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory)]
         [System.String]
         $APIKey,
 
-        [Parameter()]
+        [Parameter]
         [System.String]
         $Instance
     )
@@ -926,9 +926,9 @@ function Remove-WorkerPoolRegistration
     param(
         [Parameter(Mandatory)]
         [string]$octopusServerUrl,
-        [Parameter()]
+        [Parameter]
         [string]$apiKey,
-        [Parameter()]
+        [Parameter]
         [PSCredential]$TentacleServiceCredential,
         [Parameter(Mandatory)]
         [string]$name
@@ -994,15 +994,15 @@ function Add-TentacleToWorkerPool
         [String]
         $octopusServerUrl,
 
-        [Parameter()]
+        [Parameter]
         [string]
         $apiKey,
 
-        [Parameter()]
+        [Parameter]
         [PSCredential]
         $TentacleServiceCredential,
 
-        [Parameter()]
+        [Parameter]
         [String[]]
         $workerPools
     )
