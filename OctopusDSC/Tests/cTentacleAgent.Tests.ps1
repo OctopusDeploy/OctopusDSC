@@ -235,6 +235,7 @@ try
                 Mock Invoke-AndAssert {}
                 Mock Start-Service {}
                 Mock Get-PublicHostName { return "mytestserver.local"; }
+                Mock New-Item {}
 
                 $params = Get-RequestedConfiguration "NewInstance"
                 Set-TargetResource @params
@@ -259,6 +260,7 @@ try
                 Mock Update-InstallState {}
                 Mock Invoke-AndAssert {}
                 Mock Start-Service {}
+                Mock New-Item {}
 
                 $params = Get-RequestedConfiguration "InstallOnly"
                 Set-TargetResource @params
@@ -312,6 +314,7 @@ try
                 Mock Invoke-AndAssert {}
                 Mock Start-Service {}
                 Mock Stop-Service {}
+                Mock New-Item {}
 
                 $params = Get-RequestedConfiguration "UpgradeExistingInstance"
                 Set-TargetResource @params

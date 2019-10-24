@@ -6,4 +6,6 @@ return @{
     State = "Stopped";
     Name = "Tentacle";
     RegisterWithServer = $false;
+    TentacleHomeDirectory = "C:\Octopus"
+    DefaultApplicationDirectory = "C:\Applications"
 }
