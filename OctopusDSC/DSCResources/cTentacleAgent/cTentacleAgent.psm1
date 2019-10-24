@@ -730,7 +730,7 @@ function Update-InstallState {
 function Invoke-MsiExec ($logDirectory, $msiPath) {
     Write-Verbose "Installing MSI..."
     $msiLog = "$logDirectory\Tentacle.msi.log"
-    $write-verbose "Executing 'msiexec.exe /i $msiPath /quiet /l*v $msiLog'"
+    write-verbose "Executing 'msiexec.exe /i $msiPath /quiet /l*v $msiLog'"
     $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $msiPath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
     Write-Verbose "MSI installer returned exit code $msiExitCode"
     if ($msiExitCode -ne 0) {
