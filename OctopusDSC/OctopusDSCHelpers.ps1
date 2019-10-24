@@ -174,6 +174,7 @@ Function Get-MaskedOutput
 }
 
 function Invoke-OctopusServerCommand ($arguments) {
+    # todo: fix this up
     if ((($arguments -match "masterkey|password|license|pwd=").Count -eq 0)) {
         Write-Verbose "Executing command '$octopusServerExePath $($arguments -join ' ')'"
     } else {
@@ -193,7 +194,13 @@ function Invoke-OctopusServerCommand ($arguments) {
     Write-Verbose "done."
 }
 
+function Test-TentacleExecutableExists {
+    $tentacleDir = "${env:ProgramFiles}\Octopus Deploy\Tentacle"
+    return ((test-path $tentacleDir) -and (test-path "$tentacleDir\tentacle.exe"))
+}
+
 function Invoke-TentacleCommand ($arguments) {
+    # todo: fix this up
     if ((($arguments -match "masterkey|password|license|pwd=").Count -eq 0)) {
         Write-Verbose "Executing command '$tentacleExePath $($arguments -join ' ')'"
     } else {

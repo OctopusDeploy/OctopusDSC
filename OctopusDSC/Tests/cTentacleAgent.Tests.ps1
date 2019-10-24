@@ -287,6 +287,7 @@ try
                 Mock Invoke-AndAssert {}
                 Mock Start-Service {}
                 Mock Get-CimInstance { return @() } # no other instances on the box
+                Mock Test-TentacleExecutableExists { return $true }
 
                 $params = Get-RequestedConfiguration "UninstallingRunningInstance"
                 Set-TargetResource @params

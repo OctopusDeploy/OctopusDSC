@@ -936,13 +936,10 @@ function Remove-TentacleRegistration {
         [string]$octopusServerUrl
     )
 
-    $tentacleDir = "${env:ProgramFiles}\Octopus Deploy\Tentacle"
-    if ((test-path $tentacleDir) -and (test-path "$tentacleDir\tentacle.exe")) {
+    if (Test-TentacleExecutableExists) {
         Write-Host "Beginning Tentacle deregistration"
-        Write-Host "Tentacle commands complete"
         Invoke-TentacleCommand @("deregister-from", "--instance", "$name", "--server", $octopusServerUrl, "--apiKey", $apiKey, "--console")
-    }
-    else {
+    } else {
         Write-Host "Could not find Tentacle.exe"
     }
 }
