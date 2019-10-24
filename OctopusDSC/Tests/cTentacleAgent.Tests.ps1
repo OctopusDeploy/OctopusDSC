@@ -296,7 +296,7 @@ try
             }
 
             Context "Upgrade existing instance" {
-                Mock Invoke-TentacleCommand { write-host "`"$($args[1] -join ' ')`"," }
+                Mock Invoke-TentacleCommand #{ write-host "`"$($args[1] -join ' ')`"," }
                 Mock Get-TargetResource { return Get-CurrentConfiguration "UpgradeExistingInstance" }
                 Mock Invoke-MsiExec {}
                 Mock Request-File {}

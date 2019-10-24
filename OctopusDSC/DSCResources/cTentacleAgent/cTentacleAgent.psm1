@@ -683,7 +683,6 @@ function Install-Tentacle {
         Write-Verbose "Configured temp folder does not currently exist, creating..."
         New-Item $env:TEMP -ItemType Directory -force | Out-Null # an edge case when the env var exists but the folder does not
     }
-    $msiLog = "$TentacleHomeDirectory\logs\Tentacle.msi.log"
     Invoke-MsiExec $logDirectory $msiPath
 
     if (-not (Test-Path "$($env:SystemDrive)\Octopus")) {
@@ -1192,10 +1191,7 @@ function Register-Tentacle
     if ($TenantedDeploymentParticipation -ne "") {
         $registerArguments += @("--tenanted-deployment-participation", $TenantedDeploymentParticipation)
     }
-    # Set the location
-    $tentacleDir = "${env:ProgramFiles}\Octopus Deploy\Tentacle"
 
     Write-Verbose "Registering with arguments: $registerArguments"
     Invoke-TentacleCommand $registerArguments
-
 }
