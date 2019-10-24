@@ -253,7 +253,7 @@ try
             }
 
             Context "Install only" {
-                Mock Invoke-TentacleCommand { write-host "`"$($args[1] -join ' ')`"," }
+                Mock Invoke-TentacleCommand #{ write-host "`"$($args[1] -join ' ')`"," }
                 Mock Get-TargetResource { return Get-CurrentConfiguration "InstallOnly" }
                 Mock Invoke-MsiExec {}
                 Mock Request-File {}
@@ -286,6 +286,7 @@ try
                 Mock Update-InstallState {}
                 Mock Invoke-AndAssert {}
                 Mock Start-Service {}
+                Mock Get-CimInstance { return @() } # no other instances on the box
 
                 $params = Get-RequestedConfiguration "UninstallingRunningInstance"
                 Set-TargetResource @params
