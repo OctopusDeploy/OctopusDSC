@@ -49,7 +49,7 @@ function Get-MachineFromOctopusServer
         [System.String]
         $APIKey,
 
-        [Parameter]
+        [Parameter()]
         [System.String]
         $Instance
     )
@@ -721,15 +721,15 @@ function New-Tentacle {
         [string]$name,
         [string]$apiKey,
         [string]$octopusServerUrl,
-        [Parameter]
+        [Parameter()]
         [string[]]$environments = "",
-        [Parameter]
+        [Parameter()]
         [string[]]$roles = "",
-        [Parameter]
+        [Parameter()]
         [string[]]$tenants = "",
-        [Parameter]
+        [Parameter()]
         [string[]]$tenantTags = "",
-        [Parameter]
+        [Parameter()]
         [string]$policy,
         [int]$port = 10933,
         [int]$tentacleCommsPort = 0,
@@ -745,7 +745,7 @@ function New-Tentacle {
         [string]$customPublicHostName,
         [string]$tentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
         [bool]$registerWithServer = $true,
-        [Parameter]
+        [Parameter()]
         [string]$octopusServerThumbprint,
         [PSCredential]$TentacleServiceCredential,
         [string[]] $workerPools,
@@ -926,9 +926,9 @@ function Remove-WorkerPoolRegistration
     param(
         [Parameter(Mandatory)]
         [string]$octopusServerUrl,
-        [Parameter]
+        [Parameter()]
         [string]$apiKey,
-        [Parameter]
+        [Parameter()]
         [PSCredential]$TentacleServiceCredential,
         [Parameter(Mandatory)]
         [string]$name
@@ -994,15 +994,15 @@ function Add-TentacleToWorkerPool
         [String]
         $octopusServerUrl,
 
-        [Parameter]
+        [Parameter()]
         [string]
         $apiKey,
 
-        [Parameter]
+        [Parameter()]
         [PSCredential]
         $TentacleServiceCredential,
 
-        [Parameter]
+        [Parameter()]
         [String[]]
         $workerPools
     )
@@ -1070,15 +1070,15 @@ function Register-Tentacle
         $name,
         [string]$apiKey,
         [string]$octopusServerUrl,
-        [Parameter]
+        [Parameter()]
         [string[]]$environments = "",
-        [Parameter]
+        [Parameter()]
         [string[]]$roles = "",
-        [Parameter]
+        [Parameter()]
         [string[]]$tenants = "",
-        [Parameter]
+        [Parameter()]
         [string[]]$tenantTags = "",
-        [Parameter]
+        [Parameter()]
         [string]$policy,
         [ValidateSet("Listen", "Poll")]
         [string]$communicationMode = "Listen",
