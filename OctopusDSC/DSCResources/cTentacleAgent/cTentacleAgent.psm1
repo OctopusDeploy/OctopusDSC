@@ -167,30 +167,30 @@ function Get-TargetResource {
     Test-ParameterSet   -publicHostNameConfiguration $PublicHostNameConfiguration `
                         -customPublicHostName $CustomPublicHostName
 
-    Write-Host "Checking if Tentacle is installed"
+    Write-Verbose "Checking if Tentacle is installed"
     $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\Tentacle" -ErrorAction SilentlyContinue).InstallLocation
     $present = ($null -ne $installLocation)
-    Write-Host "Tentacle present: $present"
+    Write-Verbose "Tentacle present: $present"
 
     $currentEnsure = if ($present) { "Present" } else { "Absent" }
 
     $serviceName = (Get-TentacleServiceName $Name)
-    Write-Host "Checking for Windows Service: $serviceName"
+    Write-Verbose "Checking for Windows Service: $serviceName"
     $serviceInstance = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
     $currentState = "Stopped"
     if ($null -ne $serviceInstance) {
-        Write-Host "Windows service: $($serviceInstance.Status)"
+        Write-Verbose "Windows service: $($serviceInstance.Status)"
         if ($serviceInstance.Status -eq "Running") {
             $currentState = "Started"
         }
 
         if ($currentEnsure -eq "Absent") {
-            Write-Host "Since the Windows Service is still installed, the service is present"
+            Write-Verbose "Since the Windows Service is still installed, the service is present"
             $currentEnsure = "Present"
         }
     }
     else {
-        Write-Host "Windows service: Not installed"
+        Write-Verbose "Windows service: Not installed"
         $currentEnsure = "Absent"
     }
 
@@ -331,10 +331,10 @@ function Set-TargetResource {
 
     $currentResource = (Get-TargetResource -Name $Name -Ensure $Ensure)
 
-    Write-Host "Configuring Tentacle..."
+    Write-Verbose "Configuring Tentacle..."
     if ($State -eq "Stopped" -and $currentResource["State"] -eq "Started") {
         $serviceName = (Get-TentacleServiceName $Name)
-        Write-Host "Stopping $serviceName"
+        Write-Verbose "Stopping $serviceName"
         Stop-Service -Name $serviceName -Force
     }
 
@@ -344,7 +344,7 @@ function Set-TargetResource {
         }
 
         $serviceName = (Get-TentacleServiceName $Name)
-        Write-Host "Deleting service $serviceName..."
+        Write-Verbose "Deleting service $serviceName..."
         Invoke-AndAssert { & sc.exe delete $serviceName }
 
         $otherServices = @(Get-CimInstance win32_service | Where-Object {$_.PathName -like "`"$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe*"})
@@ -354,14 +354,14 @@ function Set-TargetResource {
             Invoke-MsiUninstall
         }
         else {
-            Write-Host "Skipping uninstall, as other tentacles still exist:"
+            Write-Verbose "Skipping uninstall, as other tentacles still exist:"
             foreach ($otherService in $otherServices) {
-                Write-Host " - $($otherService.Name)"
+                Write-Verbose " - $($otherService.Name)"
             }
         }
     }
     elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Absent") {
-        Write-Host "Installing Tentacle..."
+        Write-Verbose "Installing Tentacle..."
         New-Tentacle -name $Name `
             -apiKey $ApiKey `
             -octopusServerUrl $OctopusServerUrl `
@@ -387,10 +387,10 @@ function Set-TargetResource {
             -WorkerPools $WorkerPools `
             -TenantedDeploymentParticipation $TenantedDeploymentParticipation
 
-        Write-Host "Tentacle installed!"
+        Write-Verbose "Tentacle installed!"
     }
     elseif ($Ensure -eq "Present" -and $currentResource["TentacleDownloadUrl"] -ne (Get-TentacleDownloadUrl $tentacleDownloadUrl $tentacleDownloadUrl64)) {
-        Write-Host "Upgrading Tentacle..."
+        Write-Verbose "Upgrading Tentacle..."
         $serviceName = (Get-TentacleServiceName $Name)
         Stop-Service -Name $serviceName
         Install-Tentacle    -tentacleDownloadUrl $tentacleDownloadUrl `
@@ -399,7 +399,7 @@ function Set-TargetResource {
         if ($State -eq "Started") {
             Start-Service $serviceName
         }
-        Write-Host "Tentacle upgraded!"
+        Write-Verbose "Tentacle upgraded!"
     }
     elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Present")
     {
@@ -430,7 +430,7 @@ function Set-TargetResource {
         if (($null -ne $WorkerPools) -and ($WorkerPools.Count -gt 0))
         {
             # Add worker pools
-            Write-Host "Adding $Name to worker pools $($workerPools -join ", ")."
+            Write-Verbose "Adding $Name to worker pools $($workerPools -join ", ")."
 
             # Add the tentacle to specified worker pools
             Add-TentacleToWorkerPool -name $Name -octopusServerUrl $OctopusServerUrl -apiKey $ApiKey -workerPools $WorkerPools
@@ -439,11 +439,11 @@ function Set-TargetResource {
 
     if ($State -eq "Started" -and $currentResource["State"] -eq "Stopped") {
         $serviceName = (Get-TentacleServiceName $Name)
-        Write-Host "Starting $serviceName"
+        Write-Verbose "Starting $serviceName"
         Start-Service -Name $serviceName
     }
 
-    Write-Host "Finished"
+    Write-Verbose "Finished"
 }
 
 function Test-TargetResource {
@@ -486,13 +486,13 @@ function Test-TargetResource {
     $currentResource = (Get-TargetResource -Name $Name)
 
     $ensureMatch = $currentResource["Ensure"] -eq $Ensure
-    Write-Host "Ensure: $($currentResource["Ensure"]) vs. $Ensure = $ensureMatch"
+    Write-Verbose "Ensure: $($currentResource["Ensure"]) vs. $Ensure = $ensureMatch"
     if (!$ensureMatch) {
         return $false
     }
 
     $stateMatch = $currentResource["State"] -eq $State
-    Write-Host "State: $($currentResource["State"]) vs. $State = $stateMatch"
+    Write-Verbose "State: $($currentResource["State"]) vs. $State = $stateMatch"
     if (!$stateMatch) {
         return $false
     }
@@ -500,7 +500,7 @@ function Test-TargetResource {
     if ($null -ne $currentResource["TentacleDownloadUrl"]) {
         $requestedDownloadUrl = Get-TentacleDownloadUrl $tentacleDownloadUrl $tentacleDownloadUrl64
         $downloadUrlsMatch = $requestedDownloadUrl -eq $currentResource["TentacleDownloadUrl"]
-        Write-Host "Download Url: $($currentResource["TentacleDownloadUrl"]) vs. $requestedDownloadUrl = $downloadUrlsMatch"
+        Write-Verbose "Download Url: $($currentResource["TentacleDownloadUrl"]) vs. $requestedDownloadUrl = $downloadUrlsMatch"
         if (!$downloadUrlsMatch) {
             return $false
         }
@@ -519,7 +519,7 @@ function Test-TargetResource {
             if ($Environments.Count -ne $machine.EnvironmentIds.Count)
             {
                 # Display message
-                Write-Host "Environment counts do not match, not in desired state."
+                Write-Verbose "Environment counts do not match, not in desired state."
 
                 # Not in desired state
                 return $false
@@ -536,7 +536,7 @@ function Test-TargetResource {
                     if ($Environments -notcontains $environment.Name)
                     {
                         # Display message
-                        Write-Host "Machine currently has environment $($environment.Name), which is not listed in the passed in Environment list.  Machine is not in desired state."
+                        Write-Verbose "Machine currently has environment $($environment.Name), which is not listed in the passed in Environment list.  Machine is not in desired state."
 
                         # Not in desired state
                         return $false
@@ -554,7 +554,7 @@ function Test-TargetResource {
             if ($WorkerPools.Count -ne $workerPoolMembership.Count)
             {
                 # Worker pool counts do not match
-                Write-Host "Worker pool counts do not match, not in desired state."
+                Write-Verbose "Worker pool counts do not match, not in desired state."
 
                 return $false
             }
@@ -567,7 +567,7 @@ function Test-TargetResource {
                     if ($WorkerPools -notcontains $workerPool.Name)
                     {
                         # Not in desired state
-                        Write-Host "Worker pool membership is not in desired state."
+                        Write-Verbose "Worker pool membership is not in desired state."
 
                         return $false
                     }
@@ -578,7 +578,7 @@ function Test-TargetResource {
             if ($Roles.Count -ne $machine.Roles.Count)
             {
                 # Display message
-                Write-Host "Role counts do not match, not in desired state."
+                Write-Verbose "Role counts do not match, not in desired state."
 
                 # return false
                 return $false
@@ -592,7 +592,7 @@ function Test-TargetResource {
                 if ($null -ne $differences)
                 {
                     # Display message
-                    Write-Host "Tentacle roles do not match specified roles, not in desired state."
+                    Write-Verbose "Tentacle roles do not match specified roles, not in desired state."
 
                     # return false
                     return $false
@@ -621,7 +621,7 @@ Function Get-MyPublicIPAddress {
     [CmdletBinding()]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "")]
     param()
-    Write-Host "Getting public IP address"
+    Write-Verbose "Getting public IP address"
 
     [Net.ServicePointManager]::SecurityProtocol = @(
         [Net.SecurityProtocolType]::Tls12,
@@ -637,7 +637,7 @@ Function Get-MyPublicIPAddress {
             $ip = Invoke-RestMethod -Uri $target
         }
         catch {
-            Write-Host "Failed to find a public IP via $target. Reason: $_ "
+            Write-Verbose "Failed to find a public IP via $target. Reason: $_ "
         }
     }
 
@@ -664,29 +664,29 @@ function Install-Tentacle {
         [string]$tentacleDownloadUrl64,
         [string]$tentacleHomeDirectory
     )
-    Write-Host "Beginning Tentacle installation"
+    Write-Verbose "Beginning Tentacle installation"
 
     $actualTentacleDownloadUrl = Get-TentacleDownloadUrl $tentacleDownloadUrl $tentacleDownloadUrl64
 
     if (-not (Test-Path $tentacleHomeDirectory)) {
-        Write-Host "Tentacle Home directory does not exist. Creating..."
+        Write-Verbose "Tentacle Home directory does not exist. Creating..."
         New-Item -Path "$tentacleHomeDirectory" -ItemType Directory | Out-Null
     }
     $tentaclePath = "$tentacleHomeDirectory\Tentacle.msi"
     if ((Test-Path $tentaclePath) -eq $true) {
         Remove-Item $tentaclePath -force
     }
-    Write-Host "Downloading Octopus Tentacle MSI from $actualTentacleDownloadUrl to $tentaclePath"
+    Write-Verbose "Downloading Octopus Tentacle MSI from $actualTentacleDownloadUrl to $tentaclePath"
     Request-File $actualTentacleDownloadUrl $tentaclePath
 
     if (-not (Test-Path $env:TEMP)) {
-        Write-Host "Configured temp folder does not currently exist, creating..."
+        Write-Verbose "Configured temp folder does not currently exist, creating..."
         New-Item $env:TEMP -ItemType Directory -force | Out-Null # an edge case when the env var exists but the folder does not
     }
     Invoke-MsiExec $logDirectory $msiPath
 
     if (-not (Test-Path "$($env:SystemDrive)\Octopus")) {
-        Write-Host "$($env:SystemDrive)\Octopus not found. Creating..."
+        Write-Verbose "$($env:SystemDrive)\Octopus not found. Creating..."
         New-Item -type Directory "$($env:SystemDrive)\Octopus" -Force | Out-Null
     }
     Update-InstallState "TentacleDownloadUrl" $actualTentacleDownloadUrl -global
@@ -720,11 +720,11 @@ function Update-InstallState {
 }
 
 function Invoke-MsiExec ($logDirectory, $msiPath) {
-    Write-Host "Installing MSI..."
+    Write-Verbose "Installing MSI..."
     if (-not (Test-Path "$TentacleHomeDirectory\logs")) { New-Item -type Directory "$TentacleHomeDirectory\logs" }
     $msiLog = "$logDirectory\Tentacle.msi.log"
     $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $msiPath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
-    Write-Host "MSI installer returned exit code $msiExitCode"
+    Write-Verbose "MSI installer returned exit code $msiExitCode"
     if ($msiExitCode -ne 0) {
         throw "Installation of the MSI failed; MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
     }
@@ -732,16 +732,16 @@ function Invoke-MsiExec ($logDirectory, $msiPath) {
 
 function Invoke-MsiUninstall
 {
-    Write-Host "Uninstalling Tentacle..."
+    Write-Verbose "Uninstalling Tentacle..."
     if (-not (Test-Path "$TentacleHomeDirectory\logs")) {
-        Write-Host "Log directory does not exist. Creating..."
+        Write-Verbose "Log directory does not exist. Creating..."
         New-Item -type Directory "$TentacleHomeDirectory\logs" | Out-Null
     }
     $tentaclePath = "$TentacleHomeDirectory\Tentacle.msi"
     $msiLog = "$TentacleHomeDirectory\logs\Tentacle.msi.uninstall.log"
     if (test-path $tentaclePath) {
         $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/x `"$tentaclePath`" /quiet /l*v `"$msiLog`"" -Wait -Passthru).ExitCode
-        Write-Host "Tentacle MSI installer returned exit code $msiExitCode"
+        Write-Verbose "Tentacle MSI installer returned exit code $msiExitCode"
         if ($msiExitCode -ne 0) {
             throw "Removal of Tentacle failed, MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
         }
@@ -800,23 +800,23 @@ function New-Tentacle {
 
             if ($rules -eq "No rules match the specified criteria.")
 			{
-				Write-Host "Open port $port on Windows Firewall"
+				Write-Verbose "Open port $port on Windows Firewall"
 				Invoke-AndAssert { & netsh.exe advfirewall firewall add rule protocol=TCP dir=in localport=$port action=allow name="Octopus Tentacle: $Name" }
 			}
             else
             {
-                Write-Host "Tentacle firewall rule already exists, skipping firewall rule addition"
+                Write-Verbose "Tentacle firewall rule already exists, skipping firewall rule addition"
             }
         }
         else {
-            Write-Host "Windows Firewall Service is not running... skipping firewall rule addition"
+            Write-Verbose "Windows Firewall Service is not running... skipping firewall rule addition"
         }
     }
-    Write-Host "Configuring and registering Tentacle"
+    Write-Verbose "Configuring and registering Tentacle"
 
     $tentacleAppDirectory = $DefaultApplicationDirectory
     $tentacleConfigFile = "$tentacleHomeDirectory\$Name\Tentacle.config"
-    Write-Host "Tentacle configuration set as $tentacleConfigFile"
+    Write-Verbose "Tentacle configuration set as $tentacleConfigFile"
     Invoke-TentacleCommand $("create-instance", "--instance", "$name", "--config", "$tentacleConfigFile", "--console")
     Invoke-TentacleCommand @("configure", "--instance", "$name", "--home", "$tentacleHomeDirectory", "--console")
     Invoke-TentacleCommand @("configure", "--instance", "$name", "--app", "$tentacleAppDirectory", "--console")
@@ -841,7 +841,7 @@ function New-Tentacle {
     )
 
     if ($TentacleServiceCredential) {
-        Write-Host "Adding Service identity to installation command"
+        Write-Verbose "Adding Service identity to installation command"
 
         $serviceArgs += @(
             '--username', $TentacleServiceCredential.UserName
@@ -886,10 +886,10 @@ function New-Tentacle {
         }
     }
     else {
-        Write-Host "Skipping registration with server as 'RegisterWithServer' is set to '$registerWithServer'"
+        Write-Verbose "Skipping registration with server as 'RegisterWithServer' is set to '$registerWithServer'"
     }
 
-    Write-Host "Tentacle commands complete"
+    Write-Verbose "Tentacle commands complete"
 }
 
 function Get-PublicHostName {
@@ -937,10 +937,10 @@ function Remove-TentacleRegistration {
     )
 
     if (Test-TentacleExecutableExists) {
-        Write-Host "Beginning Tentacle deregistration"
+        Write-Verbose "Beginning Tentacle deregistration"
         Invoke-TentacleCommand @("deregister-from", "--instance", "$name", "--server", $octopusServerUrl, "--apiKey", $apiKey, "--console")
     } else {
-        Write-Host "Could not find Tentacle.exe"
+        Write-Verbose "Could not find Tentacle.exe"
     }
 }
 
@@ -964,7 +964,7 @@ function Remove-WorkerPoolRegistration
     if ((Test-Path -Path $tentacleDir) -and (Test-Path -Path "$tentacleDir\tentacle.exe"))
     {
         # Display message
-        Write-Host "Deregistering $($env:ComputerName) from worker pools"
+        Write-Verbose "Deregistering $($env:ComputerName) from worker pools"
 
         # Declare argument list
         $argumentList = @(
@@ -1037,7 +1037,7 @@ function Add-TentacleToWorkerPool
     if ((Test-Path -Path $tentacleDir) -and (Test-Path -Path "$tentacleDir\tentacle.exe"))
     {
         # Display message
-        Write-Host "Adding $($env:COMPUTERNAME) to pool(s) $([System.String]::Join(", ", $workerPools))"
+        Write-Verbose "Adding $($env:COMPUTERNAME) to pool(s) $([System.String]::Join(", ", $workerPools))"
 
         # Create argument list
         $argumentList = @(
@@ -1073,7 +1073,7 @@ function Add-TentacleToWorkerPool
         foreach ($workerPool in $workerPools)
         {
             # Add pool to the arguments
-            Write-Host "Appending worker pool name $WorkerPool"
+            Write-Verbose "Appending worker pool name $WorkerPool"
             $argumentList += @(
                 "--workerpool", $workerPool
             )
@@ -1134,7 +1134,7 @@ function Register-Tentacle
     }
     if ($CommunicationMode -eq "Listen") {
         $publicHostName = Get-PublicHostName $publicHostNameConfiguration $customPublicHostName
-        Write-Host "Public host name: $publicHostName"
+        Write-Verbose "Public host name: $publicHostName"
         $registerArguments += @(
             "--comms-style", "TentaclePassive",
             "--publicHostName", $publicHostName
@@ -1189,6 +1189,6 @@ function Register-Tentacle
         $registerArguments += @("--tenanted-deployment-participation", $TenantedDeploymentParticipation)
     }
 
-    Write-Host "Registering with arguments: $registerArguments"
+    Write-Verbose "Registering with arguments: $registerArguments"
     Invoke-TentacleCommand $registerArguments
 }
