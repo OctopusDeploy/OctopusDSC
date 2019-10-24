@@ -182,12 +182,13 @@ function Invoke-OctopusServerCommand ($arguments) {
         $maskedarguments = Get-MaskedOutput $copiedarguments
         Write-Verbose "Executing command '$octopusServerExePath $($maskedarguments -join ' ')'"
     }
-    $output = .$octopusServerExePath $arguments 2>&1
+    $LASTEXITCODE = 0
+    $output = & $octopusServerExePath $arguments 2>&1
 
     Write-CommandOutput $output
     if (($null -ne $LASTEXITCODE) -and ($LASTEXITCODE -ne 0)) {
         Write-Error "Command returned exit code $LASTEXITCODE. Aborting."
-        exit 1
+        throw "Command returned exit code $LASTEXITCODE. Aborting."
     }
     Write-Verbose "done."
 }
@@ -201,12 +202,13 @@ function Invoke-TentacleCommand ($arguments) {
         $maskedarguments = Get-MaskedOutput $copiedarguments
         Write-Verbose "Executing command '$tentacleExePath $($maskedarguments -join ' ')'"
     }
-    $output = .$tentacleExePath $arguments 2>&1
+    $LASTEXITCODE = 0
+    $output = & $tentacleExePath $arguments 2>&1
 
     Write-CommandOutput $output
     if (($null -ne $LASTEXITCODE) -and ($LASTEXITCODE -ne 0)) {
         Write-Error "Command returned exit code $LASTEXITCODE. Aborting."
-        exit 1
+        throw "Command returned exit code $LASTEXITCODE. Aborting."
     }
     Write-Verbose "done."
 }
