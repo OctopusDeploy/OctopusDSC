@@ -683,13 +683,21 @@ function Install-Tentacle {
         Write-Verbose "Configured temp folder does not currently exist, creating..."
         New-Item $env:TEMP -ItemType Directory -force | Out-Null # an edge case when the env var exists but the folder does not
     }
-    Invoke-MsiExec $logDirectory $msiPath
+
+    $logDirectory = Get-LogDirectory
+    Invoke-MsiExec $logDirectory $tentaclePath
 
     if (-not (Test-Path "$($env:SystemDrive)\Octopus")) {
         Write-Verbose "$($env:SystemDrive)\Octopus not found. Creating..."
         New-Item -type Directory "$($env:SystemDrive)\Octopus" -Force | Out-Null
     }
     Update-InstallState "TentacleDownloadUrl" $actualTentacleDownloadUrl -global
+}
+
+function Get-LogDirectory {
+    $logDirectory = "$($env:SystemDrive)\Octopus\logs"
+    if (-not (Test-Path $logDirectory)) { New-Item -type Directory $logDirectory | out-null }
+    return $logDirectory
 }
 
 function Update-InstallState {
@@ -721,8 +729,8 @@ function Update-InstallState {
 
 function Invoke-MsiExec ($logDirectory, $msiPath) {
     Write-Verbose "Installing MSI..."
-    if (-not (Test-Path "$TentacleHomeDirectory\logs")) { New-Item -type Directory "$TentacleHomeDirectory\logs" }
     $msiLog = "$logDirectory\Tentacle.msi.log"
+    $write-verbose "Executing 'msiexec.exe /i $msiPath /quiet /l*v $msiLog'"
     $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $msiPath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
     Write-Verbose "MSI installer returned exit code $msiExitCode"
     if ($msiExitCode -ne 0) {
