@@ -221,6 +221,8 @@ try
             # Start-Service doesn't exist on linux/mac, so pester complains that it cant mock it
             if (-not $isWindows) {
                 function Start-Service {}
+                function Sstop-Service {}
+                function Get-CimInstance {}
             }
 
             Context "New instance" {
