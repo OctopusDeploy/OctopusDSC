@@ -218,10 +218,11 @@ try
                 }
             }
 
-            # Start-Service doesn't exist on linux/mac, so pester complains that it cant mock it
+            # create stubs for these cmdlets on linux/mac as they dont natively exist
+            # leading to pester complaining that it cant mock it...
             if (-not $isWindows) {
                 function Start-Service {}
-                function Sstop-Service {}
+                function Stop-Service {}
                 function Get-CimInstance {}
             }
 
