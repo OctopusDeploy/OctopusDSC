@@ -218,6 +218,11 @@ try
                 }
             }
 
+            # Start-Service doesn't exist on linux/mac, so pester complains that it cant mock it
+            if (-not $isWindows) {
+                function Start-Service {}
+            }
+
             Context "New instance" {
                 Mock Invoke-TentacleCommand #{ write-host "`"$($args[1] -join ' ')`"," }
                 Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstance" }
