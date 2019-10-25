@@ -364,7 +364,7 @@ function Set-TargetResource {
         New-Tentacle -name $Name `
             -apiKey $ApiKey `
             -octopusServerUrl $OctopusServerUrl `
-            -port $ListenPort `
+            -listenPort $ListenPort `
             -tentacleCommsPort $TentacleCommsPort `
             -displayName $DisplayName `
             -environments $Environments `
@@ -420,7 +420,7 @@ function Set-TargetResource {
              -displayName $DisplayName `
              -publicHostNameConfiguration $PublicHostNameConfiguration `
              -customPublicHostName $CustomPublicHostName `
-             -port $ListenPort `
+             -ListenPort $ListenPort `
              -serverPort $ServerPort `
              -tentacleCommsPort $TentacleCommsPort `
              -TenantedDeploymentParticipation $TenantedDeploymentParticipation
@@ -776,7 +776,7 @@ function New-Tentacle {
         [string[]]$tenantTags = "",
         [Parameter(Mandatory = $False)]
         [string]$policy,
-        [int]$port = 10933,
+        [int]$listenPort = 10933,
         [int]$tentacleCommsPort = 0,
         [string]$displayName,
         [string]$defaultApplicationDirectory,
@@ -810,8 +810,8 @@ function New-Tentacle {
 
             if ($rules -eq "No rules match the specified criteria.")
 			{
-				Write-Verbose "Open port $port on Windows Firewall"
-				Invoke-AndAssert { & netsh.exe advfirewall firewall add rule protocol=TCP dir=in localport=$port action=allow name="Octopus Tentacle: $Name" }
+				Write-Verbose "Open port $listenPort on Windows Firewall"
+				Invoke-AndAssert { & netsh.exe advfirewall firewall add rule protocol=TCP dir=in localport=$listenPort action=allow name="Octopus Tentacle: $Name" }
 			}
             else
             {
@@ -836,10 +836,10 @@ function New-Tentacle {
     }
 
     if ($CommunicationMode -eq "Listen") {
-        Invoke-TentacleCommand @("configure", "--instance", "$name", "--port", "$port", "--console")
+        Invoke-TentacleCommand @("configure", "--instance", "$name", "--port", "$listenPort", "--console")
     }
     else {
-        Invoke-TentacleCommand @("configure", "--instance", "$name", "--port", "$port", "--noListen", "True", "--console")
+        Invoke-TentacleCommand @("configure", "--instance", "$name", "--port", "$listenPort", "--noListen", "True", "--console")
     }
 
     $serviceArgs = @(
@@ -883,7 +883,7 @@ function New-Tentacle {
             -publicHostNameConfiguration $publicHostNameConfiguration `
             -customPublicHostName $customPublicHostName `
             -serverPort $serverPort `
-            -port $port `
+            -listenPort $listenPort `
             -tentacleCommsPort $tentacleCommsPort `
             -TenantedDeploymentParticipation $TenantedDeploymentParticipation
         }
@@ -1084,15 +1084,15 @@ function Register-Tentacle
         [string]$publicHostNameConfiguration = "PublicIp",
         [string]$customPublicHostName,
         [int]$serverPort = 10943,
-        [int]$port = 10933,
+        [int]$listenPort = 10933,
         [int]$tentacleCommsPort = 0,
         [string]$TenantedDeploymentParticipation
     )
-    if ($port -eq 0) {
-        $port = 10933
+    if ($listenPort -eq 0) {
+        $listenPort = 10933
     }
     if ($tentacleCommsPort -eq 0) {
-        $tentacleCommsPort = $port
+        $tentacleCommsPort = $listenPort
     }
 
     # Define working variables
@@ -1116,7 +1116,7 @@ function Register-Tentacle
             "--comms-style", "TentaclePassive",
             "--publicHostName", $publicHostName
         )
-        if ($tentacleCommsPort -ne $port) {
+        if ($tentacleCommsPort -ne $listenPort) {
             $registerArguments += @("--tentacle-comms-port", $tentacleCommsPort)
         }
     }
