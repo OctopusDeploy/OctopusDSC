@@ -828,7 +828,7 @@ function New-Tentacle {
     $tentacleAppDirectory = $DefaultApplicationDirectory
     $tentacleConfigFile = "$tentacleHomeDirectory\$Name\Tentacle.config"
     Write-Verbose "Tentacle configuration set as $tentacleConfigFile"
-    Invoke-TentacleCommand $("create-instance", "--instance", "$name", "--config", "$tentacleConfigFile", "--console")
+    Invoke-TentacleCommand @("create-instance", "--instance", "$name", "--config", "$tentacleConfigFile", "--console")
     Invoke-TentacleCommand @("configure", "--instance", "$name", "--home", "$tentacleHomeDirectory", "--console")
     Invoke-TentacleCommand @("configure", "--instance", "$name", "--app", "$tentacleAppDirectory", "--console")
     Invoke-TentacleCommand @("new-certificate", "--instance", "$name", "--console")
