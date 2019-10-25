@@ -262,6 +262,7 @@ try
                 Mock Start-Service {}
                 Mock Get-PublicHostName { return "mytestserver.local"; }
                 Mock New-Item {}
+                Mock Test-TentacleExecutableExists { return $true }
 
                 $params = Get-RequestedConfiguration "NewWorker"
                 Set-TargetResource @params
