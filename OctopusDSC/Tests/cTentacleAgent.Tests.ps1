@@ -252,6 +252,33 @@ try
                 }
             }
 
+            Context "New Worker" {
+                Mock Invoke-TentacleCommand # { write-host "`"$($args[1] -join ' ')`"," }
+                Mock Get-TargetResource { return Get-CurrentConfiguration "NewWorker" }
+                Mock Invoke-MsiExec {}
+                Mock Request-File {}
+                Mock Update-InstallState {}
+                Mock Invoke-AndAssert {}
+                Mock Start-Service {}
+                Mock Get-PublicHostName { return "mytestserver.local"; }
+                Mock New-Item {}
+                Mock Test-TentacleExecutableExists { return $true }
+
+                $params = Get-RequestedConfiguration "NewWorker"
+                Set-TargetResource @params
+
+                Assert-ExpectedResult "NewWorker"
+                it "Should download the MSI" {
+                    Assert-MockCalled Request-File
+                }
+                it "Should install the MSI" {
+                    Assert-MockCalled Invoke-MsiExec
+                }
+                it "Should start the service" {
+                    Assert-MockCalled Start-Service
+                }
+            }
+
             Context "Install only" {
                 Mock Invoke-TentacleCommand #{ write-host "`"$($args[1] -join ' ')`"," }
                 Mock Get-TargetResource { return Get-CurrentConfiguration "InstallOnly" }
