@@ -364,7 +364,7 @@ function Set-TargetResource {
         New-Tentacle -name $Name `
             -apiKey $ApiKey `
             -octopusServerUrl $OctopusServerUrl `
-            -port $ListenPort `
+            -listenPort $ListenPort `
             -tentacleCommsPort $TentacleCommsPort `
             -displayName $DisplayName `
             -environments $Environments `
