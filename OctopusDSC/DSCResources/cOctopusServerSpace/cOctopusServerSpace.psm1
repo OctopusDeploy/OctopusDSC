@@ -15,7 +15,6 @@ function Get-TargetResource {
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Name,
-        [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Description,
         [string[]]$SpaceManagersTeamMembers,
@@ -64,7 +63,6 @@ function Set-TargetResource {
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Name,
-        [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Description,
         [string[]]$SpaceManagersTeamMembers,
@@ -120,7 +118,6 @@ function Test-TargetResource {
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Name,
-        [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [string]$Description,
         [string[]]$SpaceManagersTeamMembers,
