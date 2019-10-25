@@ -393,9 +393,10 @@ function Set-TargetResource {
         Write-Verbose "Upgrading Tentacle..."
         $serviceName = (Get-TentacleServiceName $Name)
         Stop-Service -Name $serviceName
-        Install-Tentacle    -tentacleDownloadUrl $tentacleDownloadUrl `
-                            -tentacleDownloadUrl64 $tentacleDownloadUrl64 `
-                            -tentacleHomeDirectory $TentacleHomeDirectory
+        Install-Tentacle -name $name `
+                         -tentacleDownloadUrl $tentacleDownloadUrl `
+                         -tentacleDownloadUrl64 $tentacleDownloadUrl64 `
+                         -tentacleHomeDirectory $TentacleHomeDirectory
         if ($State -eq "Started") {
             Start-Service $serviceName
         }
@@ -660,6 +661,7 @@ Function Get-MyPublicIPAddress {
 
 function Install-Tentacle {
     param (
+        [string]$name,
         [string]$tentacleDownloadUrl,
         [string]$tentacleDownloadUrl64,
         [string]$tentacleHomeDirectory
@@ -685,7 +687,7 @@ function Install-Tentacle {
     }
 
     $logDirectory = Get-LogDirectory
-    Invoke-MsiExec $logDirectory $tentaclePath
+    Invoke-MsiExec -name $name -logDirectory $logDirectory -msiPath $tentaclePath
 
     if (-not (Test-Path "$($env:SystemDrive)\Octopus")) {
         Write-Verbose "$($env:SystemDrive)\Octopus not found. Creating..."
@@ -727,11 +729,11 @@ function Update-InstallState {
     $currentInstallState | ConvertTo-Json | set-content $installStateFile
 }
 
-function Invoke-MsiExec ($logDirectory, $msiPath) {
+function Invoke-MsiExec ($name, $logDirectory, $msiPath) {
     Write-Verbose "Installing MSI..."
-    $msiLog = "$logDirectory\Tentacle.msi.log"
+    $msiLog = "$logDirectory\Tentacle.$name.msi.log"
     write-verbose "Executing 'msiexec.exe /i $msiPath /quiet /l*v $msiLog'"
-    $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $msiPath /quiet /l*v $msiLog" -Wait -Passthru).ExitCode
+    $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList @("/i", "`"$msiPath`"", "/quiet", "/l*v", $msiLog) -Wait -Passthru).ExitCode
     Write-Verbose "MSI installer returned exit code $msiExitCode"
     if ($msiExitCode -ne 0) {
         throw "Installation of the MSI failed; MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
@@ -796,9 +798,10 @@ function New-Tentacle {
         [string]$TenantedDeploymentParticipation
     )
 
-    Install-Tentacle    -tentacleDownloadUrl $tentacleDownloadUrl `
-                        -tentacleDownloadUrl64 $tentacleDownloadUrl64 `
-                        -tentacleHomeDirectory $tentacleHomeDirectory
+    Install-Tentacle -Name $name `
+                     -tentacleDownloadUrl $tentacleDownloadUrl `
+                     -tentacleDownloadUrl64 $tentacleDownloadUrl64 `
+                     -tentacleHomeDirectory $tentacleHomeDirectory
     if ($communicationMode -eq "Listen") {
         $windowsFirewall = Get-Service -Name MpsSvc
         if ($windowsFirewall.Status -eq "Running") {
