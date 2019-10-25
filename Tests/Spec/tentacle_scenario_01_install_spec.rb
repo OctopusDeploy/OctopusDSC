@@ -180,7 +180,7 @@ describe octopus_deploy_worker(config['OctopusServerUrl'], config['OctopusApiKey
   it { should exist }
   it { should be_registered_with_the_server }
   it { should be_online }
-  it { should listening_worker }
+  it { should be_listening_worker }
   it { should have_display_name("My Worker Tentacle")}
   # TODO check pool membership
 end
