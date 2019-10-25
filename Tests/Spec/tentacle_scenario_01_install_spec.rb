@@ -176,13 +176,11 @@ describe port(10937) do
   it { should be_listening.with('tcp') }
 end
 
-describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "WorkerTentacle") do
+describe octopus_deploy_worker(config['OctopusServerUrl'], config['OctopusApiKey'], "WorkerTentacle") do
   it { should exist }
   it { should be_registered_with_the_server }
   it { should be_online }
-  it { should be_listening_tentacle }
-  it { should be_in_environment('The-Env') }
-  it { should have_role('Test-Tentacle') }
+  it { should listening_worker }
   it { should have_display_name("My Worker Tentacle")}
   # TODO check pool membership
 end
