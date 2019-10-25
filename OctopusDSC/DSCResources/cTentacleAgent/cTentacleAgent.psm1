@@ -69,7 +69,6 @@ function Get-MachineFromOctopusServer
 
 function Get-TentacleThumbprint
 {
-    # Define parameters
     param (
         $Instance
     )
@@ -861,7 +860,6 @@ function New-Tentacle {
     }
     Invoke-TentacleCommand $serviceArgs
 
-    # Reset location
     Pop-Location
 
     if ($registerWithServer) {
@@ -968,34 +966,25 @@ function Remove-WorkerPoolRegistration
         [string]$name
     )
 
-    # Set tentacle location
     $tentacleDir = "${env:ProgramFiles}\Octopus Deploy\Tentacle"
 
-    # Check to make sure the folder and the file exist
     if ((Test-Path -Path $tentacleDir) -and (Test-Path -Path "$tentacleDir\tentacle.exe"))
     {
-        # Display message
         Write-Verbose "Deregistering $($env:ComputerName) from worker pools"
-
-        # Declare argument list
         $argumentList = @(
             "deregister-worker",
             "--instance", $name,
             "--server", $octopusServerUrl,
             "--console"
         )
-
-        # Determine which authentication mechanism ot use
         if (![string]::IsNullOrEmpty($apiKey))
         {
-            # Add api key to argument list
             $argumentList += @(
                 "--apiKey", $apiKey
             )
         }
         elseif (![string]::IsNullOrEmpty($TentacleServiceCredential))
         {
-            # Add username and password to argument list
             $argumentList += @(
                 "--username", $TentacleServiceCredential.UserName,
                 "--password", $TentacleServiceCredential.GetNetworkCredential().Password
@@ -1003,11 +992,8 @@ function Remove-WorkerPoolRegistration
         }
         else
         {
-            # Throw an error
             throw "Both APIKey and TentacleServiceCredential are null!"
         }
-
-        # Execute teh process
         Invoke-TentacleCommand $argumentList
     }
     else
@@ -1018,57 +1004,43 @@ function Remove-WorkerPoolRegistration
 
 function Add-TentacleToWorkerPool
 {
-    # Define parameters
     param(
         [Parameter(Mandatory = $true)]
         [String]
         $name,
-
         [Parameter(Mandatory = $true)]
         [String]
         $octopusServerUrl,
-
         [Parameter()]
         [string]
         $apiKey,
-
         [Parameter()]
         [PSCredential]
         $TentacleServiceCredential,
-
         [Parameter()]
         [String[]]
         $workerPools
     )
 
-    # Set tentacle location
     $tentacleDir = "${env:ProgramFiles}\Octopus Deploy\Tentacle"
 
-    # Check to make sure the folder and the file exist
     if ((Test-Path -Path $tentacleDir) -and (Test-Path -Path "$tentacleDir\tentacle.exe"))
     {
-        # Display message
         Write-Verbose "Adding $($env:COMPUTERNAME) to pool(s) $([System.String]::Join(", ", $workerPools))"
-
-        # Create argument list
         $argumentList = @(
             "register-worker",
             "--instance", $name,
             "--server", $octopusServerUrl,
             "--force"
         )
-
-        # Check to see which authentication mechanism to use
         if (![string]::IsNullOrEmpty($apiKey))
         {
-            # Add to argument list
             $argumentList += @(
                 "--apiKey", $apiKey
             )
         }
         elseif (![string]::IsNullOrEmpty($TentacleServiceCredential))
         {
-            # Add to argument list
             $argumentList += @(
                 "--username", $TentacleServiceCredential.UserName,
                 "--password", $TentacleServiceCredential.GetNetworkCredential().Password
@@ -1076,28 +1048,22 @@ function Add-TentacleToWorkerPool
         }
         else
         {
-            # Throw an error
             throw "Both APIKey and TentacleServiceCredential are null!"
         }
 
-        # Loop through work pools
         foreach ($workerPool in $workerPools)
         {
-            # Add pool to the arguments
             Write-Verbose "Appending worker pool name $WorkerPool"
             $argumentList += @(
                 "--workerpool", $workerPool
             )
         }
-
-        # Execute the process
         Invoke-TentacleCommand $argumentList
     }
 }
 
 function Register-Tentacle
 {
-    # Define parameters
     param (
         [string]$name,
         [string]$apiKey,
