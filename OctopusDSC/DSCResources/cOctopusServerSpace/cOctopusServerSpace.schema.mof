@@ -4,7 +4,7 @@ class cOctopusServerSpace : OMI_BaseResource
   [Required, ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
   [Key] string Name;
   [Write] string Description;
-  [Write] string Url;
+  [Write, Required] string Url;
   [Write] string SpaceManagersTeamMembers[];
   [Write] string SpaceManagersTeams[];
   [Write, EmbeddedInstance("MSFT_Credential")] string OctopusCredentials;

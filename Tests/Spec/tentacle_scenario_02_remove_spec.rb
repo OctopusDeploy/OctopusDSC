@@ -70,7 +70,7 @@ describe service('OctopusDeploy Tentacle: WorkerTentacle') do
   it { should_not be_installed }
 end
 
-describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "WorkerTentacle") do
+describe octopus_deploy_worker(config['OctopusServerUrl'], config['OctopusApiKey'], "WorkerTentacle") do
   it { should_not exist }
 end
 

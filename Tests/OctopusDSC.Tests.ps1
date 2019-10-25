@@ -23,11 +23,11 @@ Describe "PSScriptAnalyzer" {
     }
 
     #unfortunately, cant get the following tests to run on our CentOS buildagent
-    #keep getting:  
+    #keep getting:
     # "Undefined DSC resource 'cOctopusServer'. Use Import-DSCResource to import the resource."
-    #even though it works fine on ubuntu locally 
+    #even though it works fine on ubuntu locally
     $isRunningUnderTeamCity = (Test-Path Env:\TEAMCITY_PROJECT_NAME)
-    if (-not $isRunningUnderTeamCity) 
+    if (-not $isRunningUnderTeamCity)
     {
         $existingPSModulePath = $env:PSModulePath
         $path = Resolve-Path "$PSCommandPath/../../"
@@ -92,12 +92,9 @@ Describe "Mandatory Parameters" {
         $schemaMofFileContent = Get-Content $schemaMofFile.FullName
         $moduleFile = Get-Item ($schemaMofFile.FullName -replace ".schema.mof", ".psm1")
 
-        function Get-ParameterFromFunction($functionName, $ast, $propertyName) {
-            $filter = { $true }
-            $result = $ast.FindAll($filter, $true);
-
+        function Get-ParameterFromFunction($functionName, $astMembers, $propertyName) {
             $foundMatchingParameter = $false
-            foreach($param in $result) {
+            foreach($param in $astMembers) {
                 if ($null -ne $param.name -and $param.Name.ToString() -eq "`$$propertyName") {
                     $function = $param.Parent.Parent.Parent
                     if ($function -is [System.Management.Automation.Language.FunctionDefinitionAst]) {
@@ -110,10 +107,17 @@ Describe "Mandatory Parameters" {
             }
         }
 
-        function Test-Parameter($functionName, $ast, $propertyName, $moduleFile, $propertyType) {
-            $param = Get-ParameterFromFunction -functionName $functionName -ast $ast -propertyName $propertyName
+        function Test-ParameterIsMandatory($functionName, $astMembers, $propertyName, $moduleFile, $propertyType) {
+            $param = Get-ParameterFromFunction -functionName $functionName -astMembers $astMembers -propertyName $propertyName
             It "Parameter '$propertyName' in function '$functionName' should be marked with [Parameter(Mandatory)] in $($moduleFile.Name) as its a $propertyType property" {
                 $param -contains "[Parameter(Mandatory)]" | should be $true
+            }
+        }
+
+        function Test-ParameterIsNotMandatory($functionName, $astMembers, $propertyName, $moduleFile, $propertyType) {
+            $param = Get-ParameterFromFunction -functionName $functionName -astMembers $astMembers -propertyName $propertyName
+            It "Parameter '$propertyName' in function '$functionName' should not be marked with [Parameter(Mandatory)] in $($moduleFile.Name) as its not mandatory in the mof" {
+                $param -contains "[Parameter(Mandatory)]" | should be $false
             }
         }
 
@@ -121,24 +125,27 @@ Describe "Mandatory Parameters" {
             $tokens = $null;
             $parseErrors = $null;
             $ast = [System.Management.Automation.Language.Parser]::ParseFile($moduleFile.FullName, [ref] $tokens, [ref] $parseErrors);
+            $filter = { $true }
+            $astMembers = $ast.FindAll($filter, $true);
 
             It "The module $($moduleFile.Name) should have no parse errors" {
                 $parseErrors | should be $null
             }
 
             foreach($line in $schemaMofFileContent) {
-                if ($line -match "\s*(\[\b(Required|Key)\b.*\])\s*(.*) (.*);") {
+                if ($line -match "\s*(\[.*\b(Required|Key)\b.*\])\s*(.*) (.*);") {
                     $propertyType = $matches[2]
                     $propertyName = $matches[4].Replace("[]", "");
 
-                    $filter = { $true }
-                    $result = $ast.FindAll($filter, $true);
-
-                    $foundMatchingParameter = $false
-
-                    Test-Parameter -functionName "Get-TargetResource" -ast $ast -propertyName $propertyName -moduleFile $moduleFile -propertyType $propertyType
-                    Test-Parameter -functionName "Set-TargetResource" -ast $ast -propertyName $propertyName -moduleFile $moduleFile -propertyType $propertyType
-                    Test-Parameter -functionName "Test-TargetResource" -ast $ast -propertyName $propertyName -moduleFile $moduleFile -propertyType $propertyType
+                    Test-ParameterIsMandatory -functionName "Get-TargetResource" -astMembers $astMembers -propertyName $propertyName -moduleFile $moduleFile -propertyType $propertyType
+                    Test-ParameterIsMandatory -functionName "Set-TargetResource" -astMembers $astMembers -propertyName $propertyName -moduleFile $moduleFile -propertyType $propertyType
+                    Test-ParameterIsMandatory -functionName "Test-TargetResource" -astMembers $astMembers -propertyName $propertyName -moduleFile $moduleFile -propertyType $propertyType
+                } elseif ($line -match "\s*(\[.*\])\s*(.*) (.*);") {
+                    $propertyType = $matches[1]
+                    $propertyName = $matches[3].Replace("[]", "");
+                    Test-ParameterIsNotMandatory -functionName "Get-TargetResource" -astMembers $astMembers -propertyName $propertyName -moduleFile $moduleFile -propertyType $propertyType
+                    Test-ParameterIsNotMandatory -functionName "Set-TargetResource" -astMembers $astMembers -propertyName $propertyName -moduleFile $moduleFile -propertyType $propertyType
+                    Test-ParameterIsNotMandatory -functionName "Test-TargetResource" -astMembers $astMembers -propertyName $propertyName -moduleFile $moduleFile -propertyType $propertyType
                 }
             }
         }
@@ -152,12 +159,8 @@ Describe "Test/Get/Set-TargetResource all implement the same properties" {
         $schemaMofFileContent = Get-Content $schemaMofFile.FullName
         $moduleFile = Get-Item ($schemaMofFile.FullName -replace ".schema.mof", ".psm1")
 
-        function Get-ParameterFromFunction($functionName, $ast, $propertyName) {
-            $filter = { $true }
-            $result = $ast.FindAll($filter, $true);
-
-            $foundMatchingParameter = $false
-            foreach($param in $result) {
+        function Get-ParameterFromFunction($functionName, $astMembers, $propertyName) {
+            foreach($param in $astMembers) {
                 if ($null -ne $param.name -and $param.Name.ToString() -eq "`$$propertyName") {
                     $function = $param.Parent.Parent.Parent
                     if ($function -is [System.Management.Automation.Language.FunctionDefinitionAst]) {
@@ -170,8 +173,8 @@ Describe "Test/Get/Set-TargetResource all implement the same properties" {
             }
         }
 
-        function Test-Parameter($functionName, $ast, $propertyName, $moduleFile, $propertyType) {
-            $param = Get-ParameterFromFunction -functionName $functionName -ast $ast -propertyName $propertyName
+        function Test-Parameter($functionName, $astMembers, $propertyName, $moduleFile, $propertyType) {
+            $param = Get-ParameterFromFunction -functionName $functionName -astMembers $astMembers -propertyName $propertyName
             It "Function '$functionName' should have parameter '$propertyName' in $($moduleFile.Name) as its a defined in the .schema.mof file" {
                 $param | should not be $null
             }
@@ -181,24 +184,17 @@ Describe "Test/Get/Set-TargetResource all implement the same properties" {
             $tokens = $null;
             $parseErrors = $null;
             $ast = [System.Management.Automation.Language.Parser]::ParseFile($moduleFile.FullName, [ref] $tokens, [ref] $parseErrors);
-
-            It "The module $($moduleFile.Name) should have no parse errors" {
-                $parseErrors | should be $null
-            }
+            $filter = { $true }
+            $astMembers = $ast.FindAll($filter, $true);
 
             foreach($line in $schemaMofFileContent) {
                 if ($line -match "\s*(\[.*\])\s*(.*) (.*);") {
                     $propertyType = $matches[1]
                     $propertyName = $matches[3].Replace("[]", "");
 
-                    $filter = { $true }
-                    $result = $ast.FindAll($filter, $true);
-
-                    $foundMatchingParameter = $false
-
-                    Test-Parameter -functionName "Get-TargetResource" -ast $ast -propertyName $propertyName -moduleFile $moduleFile -propertyType $propertyType
-                    Test-Parameter -functionName "Set-TargetResource" -ast $ast -propertyName $propertyName -moduleFile $moduleFile -propertyType $propertyType
-                    Test-Parameter -functionName "Test-TargetResource" -ast $ast -propertyName $propertyName -moduleFile $moduleFile -propertyType $propertyType
+                    Test-Parameter -functionName "Get-TargetResource" -astMembers $astMembers -propertyName $propertyName -moduleFile $moduleFile -propertyType $propertyType
+                    Test-Parameter -functionName "Set-TargetResource" -astMembers $astMembers -propertyName $propertyName -moduleFile $moduleFile -propertyType $propertyType
+                    Test-Parameter -functionName "Test-TargetResource" -astMembers $astMembers -propertyName $propertyName -moduleFile $moduleFile -propertyType $propertyType
                 }
             }
         }
