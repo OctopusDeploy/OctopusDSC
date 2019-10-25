@@ -402,29 +402,36 @@ function Set-TargetResource {
     }
     elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Present")
     {
-        if (($null -ne $WorkerPools) -and ($WorkerPools.Count -gt 0))
-         {
+        Write-Verbose "Upgrading/modifying Tentacle..."
+        if (($null -ne $WorkerPools) -and ($WorkerPools.Count -gt 0))          {
             Write-Verbose "Registering $Name as a worker in worker pools $($workerPools -join ", ")."
-            Add-TentacleToWorkerPool -name $Name -octopusServerUrl $OctopusServerUrl -apiKey $ApiKey -workerPools $WorkerPools
-        } else {
-             if (![string]::IsNullOrEmpty($Environments) -and ![string]::IsNullOrEmpty($Roles)) {
-                 Register-Tentacle -name $Name `
-                     -apiKey $ApiKey `
-                     -octopusServerUrl $OctopusServerUrl `
-                     -environments $Environments `
-                     -roles $Roles `
-                     -tenants $Tenants `
-                     -tenantTags $TenantTags `
-                     -policy $Policy `
-                     -communicationMode $CommunicationMode `
-                     -displayName $DisplayName `
-                     -publicHostNameConfiguration $PublicHostNameConfiguration `
-                     -customPublicHostName $CustomPublicHostName `
-                     -listenPort $ListenPort `
-                     -serverPort $ServerPort `
-                     -tentacleCommsPort $TentacleCommsPort `
-                     -TenantedDeploymentParticipation $TenantedDeploymentParticipation
-             }
+            Add-TentacleToWorkerPool -name $name `
+                -octopusServerUrl $octopusServerUrl `
+                -apiKey $apiKey `
+                -workerPools $workerPools `
+                -communicationMode $communicationMode `
+                -displayName $displayName `
+                -publicHostNameConfiguration $publicHostNameConfiguration `
+                -customPublicHostName $customPublicHostName `
+                -listenPort $listenPort `
+                -tentacleCommsPort $tentacleCommsPort
+        } elseif (![string]::IsNullOrEmpty($Environments) -and ![string]::IsNullOrEmpty($Roles)) {
+             Register-Tentacle -name $Name `
+                 -apiKey $ApiKey `
+                 -octopusServerUrl $OctopusServerUrl `
+                 -environments $Environments `
+                 -roles $Roles `
+                 -tenants $Tenants `
+                 -tenantTags $TenantTags `
+                 -policy $Policy `
+                 -communicationMode $CommunicationMode `
+                 -displayName $DisplayName `
+                 -publicHostNameConfiguration $PublicHostNameConfiguration `
+                 -customPublicHostName $CustomPublicHostName `
+                 -listenPort $ListenPort `
+                 -serverPort $ServerPort `
+                 -tentacleCommsPort $TentacleCommsPort `
+                 -TenantedDeploymentParticipation $TenantedDeploymentParticipation
          }
     }
 
@@ -865,32 +872,30 @@ function New-Tentacle {
                 -workerPools $workerPools `
                 -communicationMode $communicationMode `
                 -displayName $displayName `
+                -customPublicHostName $customPublicHostName `
                 -publicHostNameConfiguration $publicHostNameConfiguration `
-                -customPublicHostName $customPublicHostName
-        } else {
-         if (![string]::IsNullOrEmpty($Environments) -and ![string]::IsNullOrEmpty($Roles))
-         {
-                Write-Verbose "Registering Tentacle"
+                -listenPort $listenPort `
+                -tentacleCommsPort $tentacleCommsPort
+        } elseif (![string]::IsNullOrEmpty($Environments) -and ![string]::IsNullOrEmpty($Roles)) {
+            Write-Verbose "Registering Tentacle"
             Register-Tentacle -name $name `
-            -apiKey $apiKey `
-            -octopusServerUrl $octopusServerUrl `
-            -environments $environments `
-            -roles $roles `
-            -tenants $tenants `
-            -tenantTags $tenantTags `
-            -policy $policy `
-            -communicationMode $communicationMode `
-            -displayName $displayName `
-            -publicHostNameConfiguration $publicHostNameConfiguration `
-            -customPublicHostName $customPublicHostName `
-            -serverPort $serverPort `
-            -listenPort $listenPort `
-            -tentacleCommsPort $tentacleCommsPort `
-            -TenantedDeploymentParticipation $TenantedDeploymentParticipation
+                -apiKey $apiKey `
+                -octopusServerUrl $octopusServerUrl `
+                -environments $environments `
+                -roles $roles `
+                -tenants $tenants `
+                -tenantTags $tenantTags `
+                -policy $policy `
+                -communicationMode $communicationMode `
+                -displayName $displayName `
+                -publicHostNameConfiguration $publicHostNameConfiguration `
+                -customPublicHostName $customPublicHostName `
+                -serverPort $serverPort `
+                -listenPort $listenPort `
+                -tentacleCommsPort $tentacleCommsPort `
+                -TenantedDeploymentParticipation $TenantedDeploymentParticipation
         }
-        }
-    }
-    else {
+    } else {
         Write-Verbose "Skipping registration with server as 'RegisterWithServer' is set to '$registerWithServer'"
     }
 
@@ -995,8 +1000,7 @@ function Remove-WorkerPoolRegistration
     }
 }
 
-function Add-TentacleToWorkerPool
-{
+function Add-TentacleToWorkerPool{
     param(
         [Parameter(Mandatory = $true)]
         [String]
@@ -1017,7 +1021,8 @@ function Add-TentacleToWorkerPool
         [string]$displayName,
         [string]$publicHostNameConfiguration = "PublicIp",
         [string]$customPublicHostName,
-        [int]$tentacleCommsPort = 0
+        [int]$tentacleCommsPort = 0,
+        [int]$listenPort = 0
     )
     if ($listenPort -eq 0) {
         $listenPort = 10933
@@ -1027,7 +1032,7 @@ function Add-TentacleToWorkerPool
     }
 
     if (Test-TentacleExecutableExists) {
-        Write-Verbose "Adding $($env:COMPUTERNAME) to pool(s) $([System.String]::Join(", ", $workerPools))"
+        Write-Verbose "Adding $($env:COMPUTERNAME) to pool(s) $($workerPools -join ', ')"
         $argumentList = @(
             "register-worker",
             "--instance", $name,

@@ -253,7 +253,7 @@ try
             }
 
             Context "New Worker" {
-                Mock Invoke-TentacleCommand { write-host "`"$($args[1] -join ' ')`"," }
+                Mock Invoke-TentacleCommand # { write-host "`"$($args[1] -join ' ')`"," }
                 Mock Get-TargetResource { return Get-CurrentConfiguration "NewWorker" }
                 Mock Invoke-MsiExec {}
                 Mock Request-File {}
