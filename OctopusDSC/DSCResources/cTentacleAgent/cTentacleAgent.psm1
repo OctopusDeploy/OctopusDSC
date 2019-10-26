@@ -160,7 +160,6 @@ Function Test-ParameterSet
 
 Function Get-Space
 {
-    # Define parameters
     param(
         [Parameter(Mandatory=$true)]
         [System.String]
@@ -1071,20 +1070,6 @@ function Add-TentacleToWorkerPool {
         $tentacleCommsPort = $listenPort
     }
 
-    $commsStyle = ""
-
-    switch ($communicationMode)
-    {
-        "Listen" {
-            $commsStyle = "TentaclePassive"
-            break
-        }
-        "Poll" {
-            $commsStyle = "TentacleActive"
-            break
-        }
-    }
-
     if (Test-TentacleExecutableExists) {
         Write-Verbose "Adding $($env:COMPUTERNAME) to pool(s) $($workerPools -join ', ')"
         $argumentList = @(
@@ -1092,8 +1077,7 @@ function Add-TentacleToWorkerPool {
             "--instance", $name,
             "--server", $octopusServerUrl,
             "--name", $displayName,
-            "--force",
-            "--comms-style", $commsStyle
+            "--force"
         )
         $argumentList = Add-SpaceIfPresent -Space $Space -ArgumentList $argumentList
         if (![string]::IsNullOrEmpty($apiKey)) {
