@@ -42,8 +42,8 @@ Remove-OldLogsBeforeNewRun
 
 if(-not $SkipPester) {
     Write-Output "Importing Pester module"
-    Test-PowershellModuleInstalled "Pester" "4.9.0"
-    Test-PowershellModuleInstalled "PSScriptAnalyzer" "1.18.3"
+    Import-PowerShellModule -Name "Pester" -MinimumVersion "4.9.0"
+    Import-PowerShellModule -Name "PSScriptAnalyzer" -MinimumVersion "1.18.3"
     
 
     Write-Output "Running Pester Tests"
