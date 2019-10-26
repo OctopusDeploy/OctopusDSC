@@ -45,7 +45,6 @@ function Add-SpaceIfPresent
         [string[]]
         $argumentList
      )
-
     if(![String]::IsNullOrEmpty($Space))
     {
         $argumentList += @("--space", $Space)
@@ -976,8 +975,9 @@ function Remove-TentacleRegistration {
 
     if (Test-TentacleExecutableExists) {
         Write-Verbose "Beginning Tentacle deregistration"
-        #todo: need to pass space
-        Invoke-TentacleCommand @("deregister-from", "--instance", "$name", "--server", $octopusServerUrl, "--apiKey", $apiKey, "--console")
+        $argumentList = @("deregister-from", "--instance", "$name", "--server", $octopusServerUrl, "--apiKey", $apiKey, "--console")
+        $argumentList = Add-SpaceIfPresent -argumentList $argumentList -space $space
+        Invoke-TentacleCommand $argumentList
     } else {
         Write-Verbose "Could not find Tentacle.exe"
     }
@@ -1163,7 +1163,7 @@ function Register-Tentacle {
         "--console"
     )
 
-    $argumentList = Add-SpaceIfPresent -Space $Space -ArgumentList $argumentList
+    $registerArguments = Add-SpaceIfPresent -Space $Space -ArgumentList $registerArguments
 
     if (($null -ne $policy) -and ($policy -ne "")) {
         $registerArguments += @("--policy", $policy)
