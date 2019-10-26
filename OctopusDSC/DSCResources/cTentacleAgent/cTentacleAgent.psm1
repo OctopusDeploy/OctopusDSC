@@ -1116,7 +1116,7 @@ function Add-TentacleToWorkerPool {
             )
         }
 
-        Invoke-AndAssert { & $tentacleDir\tentacle.exe ($argumentList)}
+        Invoke-TentacleCommand $argumentList
     }
 }
 
