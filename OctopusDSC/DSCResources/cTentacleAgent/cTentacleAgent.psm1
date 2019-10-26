@@ -61,11 +61,9 @@ function Get-MachineFromOctopusServer
         [Parameter(Mandatory=$true)]
         [String]
         $ServerUrl,
-
         [Parameter(Mandatory=$true)]
         [System.String]
         $APIKey,
-
         [Parameter(Mandatory=$true)]
         [System.String]
         $Instance,
@@ -75,7 +73,6 @@ function Get-MachineFromOctopusServer
         [System.String]
         $SpaceId
     )
-
     $apiUrl = "/machines/all"
     if (![String]::IsNullOrEmpty($SpaceId)) {
         $apiUrl = "/$SpaceId" + $apiUrl
@@ -587,7 +584,6 @@ function Test-TargetResource {
                         $environmentUrl = "/$($spaceRef.Id)" + $environmentUrl
                     }
                     $environment = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API $environmentUrl
-
                     if ($Environments -notcontains $environment.Name) {
                         Write-Verbose "Machine currently has environment $($environment.Name), which is not listed in the passed in Environment list.  Machine is not in desired state."
                         return $false
@@ -1054,11 +1050,6 @@ function Add-TentacleToWorkerPool {
         [String[]]
         $workerPools,
         [Parameter(Mandatory = $true)]
-        [AllowNull()]
-        [AllowEmptyString()]
-        [String]
-        $Space,
-        [Parameter(Mandatory = $true)]
         [String]
         [ValidateSet("Listen", "Poll")]
         $communicationMode,
@@ -1066,7 +1057,12 @@ function Add-TentacleToWorkerPool {
         [string]$publicHostNameConfiguration = "PublicIp",
         [string]$customPublicHostName,
         [int]$tentacleCommsPort = 0,
-        [int]$listenPort = 0
+        [int]$listenPort = 0,
+        [Parameter(Mandatory = $true)]
+        [AllowNull()]
+        [AllowEmptyString()]
+        [String]
+        $Space
     )
     if ($listenPort -eq 0) {
         $listenPort = 10933
@@ -1099,7 +1095,6 @@ function Add-TentacleToWorkerPool {
             "--force",
             "--comms-style", $commsStyle
         )
-
         $argumentList = Add-SpaceIfPresent -Space $Space -ArgumentList $argumentList
         if (![string]::IsNullOrEmpty($apiKey)) {
             $argumentList += @(
