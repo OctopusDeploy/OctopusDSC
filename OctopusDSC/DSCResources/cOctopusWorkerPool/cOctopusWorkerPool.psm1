@@ -135,8 +135,12 @@ function Test-TargetResource {
 
 function Remove-WorkerPool {
     param (
-        [string]$Url,
-        [string]$WorkerPoolName,
+        [Parameter(Mandatory)]
+        [string]
+        $Url,
+        [Parameter(Mandatory)]
+        [string]
+        $WorkerPoolName,
         [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
         [PSCredential]$OctopusApiKey = [PSCredential]::Empty
     )
@@ -152,8 +156,12 @@ function Remove-WorkerPool {
 
 function New-WorkerPool {
     param (
-        [string]$Url,
-        [string]$WorkerPoolName,
+        [Parameter(Mandatory)]
+        [string]
+        $Url,
+        [Parameter(Mandatory)]
+        [string]
+        $WorkerPoolName,
         [string]$WorkerPoolDescription,
         [string]$SpaceId,
         [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
@@ -172,8 +180,12 @@ function New-WorkerPool {
 
 function Get-WorkerPool {
     param (
-        [string]$Url,
-        [string]$WorkerPoolName,
+        [Parameter(Mandatory)]
+        [string]
+        $Url,
+        [Parameter(Mandatory)]
+        [string]
+        $WorkerPoolName,
         [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
         [PSCredential]$OctopusApiKey = [PSCredential]::Empty
     )
@@ -190,7 +202,9 @@ function Get-WorkerPool {
 function Get-OctopusClientRepository
 {
   param (
-    [string]$Url,
+    [Parameter(Mandatory)]
+    [string]
+    $Url,
     [PSCredential]$OctopusCredentials = [PSCredential]::Empty,
     [PSCredential]$OctopusApiKey = [PSCredential]::Empty
   )
