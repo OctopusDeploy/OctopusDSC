@@ -69,6 +69,7 @@ function Get-MachineFromOctopusServer
 
         [Parameter(Mandatory=$true)]
         [AllowNull()]
+        [AllowEmptyString()]
         [System.String]
         $SpaceId
     )
@@ -109,6 +110,8 @@ function Get-WorkerPoolMembership
         [System.String]
         $ApiKey,
         [Parameter(Mandatory=$true)]
+        [AllowNull()]
+        [AllowEmptyString()]
         [System.String]
         $SpaceId
     )
