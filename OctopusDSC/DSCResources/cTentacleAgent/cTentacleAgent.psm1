@@ -598,6 +598,7 @@ Function Get-MyPublicIPAddress {
 
 function Install-Tentacle {
     param (
+        [Parameter(Mandatory)]
         [string]$name,
         [string]$tentacleDownloadUrl,
         [string]$tentacleDownloadUrl64,
