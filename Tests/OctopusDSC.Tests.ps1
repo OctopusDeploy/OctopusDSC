@@ -23,11 +23,11 @@ Describe "PSScriptAnalyzer" {
     }
 
     #unfortunately, cant get the following tests to run on our CentOS buildagent
-    #keep getting:  
+    #keep getting:
     # "Undefined DSC resource 'cOctopusServer'. Use Import-DSCResource to import the resource."
-    #even though it works fine on ubuntu locally 
+    #even though it works fine on ubuntu locally
     $isRunningUnderTeamCity = (Test-Path Env:\TEAMCITY_PROJECT_NAME)
-    if (-not $isRunningUnderTeamCity) 
+    if (-not $isRunningUnderTeamCity)
     {
         $existingPSModulePath = $env:PSModulePath
         $path = Resolve-Path "$PSCommandPath/../../"
@@ -227,7 +227,6 @@ Describe "Test/Get/Set-TargetResource all implement the same properties" {
         $moduleFile = Get-Item ($schemaMofFile.FullName -replace ".schema.mof", ".psm1")
 
         function Get-ParameterFromFunction($functionName, $astMembers, $propertyName) {
-            $foundMatchingParameter = $false
             foreach($param in $astMembers) {
                 if ($null -ne $param.name -and $param.Name.ToString() -eq "`$$propertyName") {
                     $function = $param.Parent.Parent.Parent
