@@ -1001,7 +1001,7 @@ function Get-ServiceName {
     }
 }
 
-function Invoke-MsiExec ($logDirectory) {
+function Invoke-MsiExec ($logDirectory, $msiPath) {
     Write-Verbose "Installing MSI..."
     if (-not (Test-Path "$($env:SystemDrive)\Octopus\logs")) { New-Item -type Directory "$($env:SystemDrive)\Octopus\logs" }
     $msiLog = "$logDirectory\Octopus-x64.msi.log"
@@ -1026,7 +1026,7 @@ function Install-MSI {
     if ($stopService) {
         Stop-OctopusDeployService -name $name
     }
-    Invoke-MsiExec $logDirectory
+    Invoke-MsiExec $logDirectory $msiPath
 
     Update-InstallState "DownloadUrl" $downloadUrl -global
 }

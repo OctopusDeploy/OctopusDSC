@@ -38,15 +38,14 @@ function Test-AppExists($appName) {
 }
 
 function Import-PowerShellModule ($Name, $MinimumVersion) {
-  Write-Output "Checking version for $moduleName..."
+  
   $command = Get-Module $Name -listavailable
   if ($null -eq $command) {
     write-host "Please install $($Name): Install-Module -Name $Name -Force" -foregroundcolor red
     exit 1
   }
 
-  if ($command.Count -gt 1)
-  {
+  if ($command.Count -gt 1) {
     $command = $command | Sort-Object -Property Version -Descending | Select-Object -First 1
   }
 
@@ -117,6 +116,7 @@ function Invoke-VagrantWithRetries {
   do {
     Write-Output (@("Running Vagrant with arguments '", ($args -join " "), "'") -join "")
     Invoke-Expression "vagrant $args" -ErrorVariable stdErr 2>&1 | Tee-Object -FilePath vagrant.log
+    Write-Output $stdErr
     Write-Output "'vagrant up' exited with exit code $LASTEXITCODE"
     $attempts = $attempts + 1
     $retryAgain = ($attempts -lt $retries) -and (Test-LogContainsRetriableFailure $stdErr) -and ($LASTEXITCODE -ne 0)

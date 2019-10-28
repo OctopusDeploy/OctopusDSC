@@ -1,6 +1,8 @@
 # Module contains shared code for OctopusDSC
 
 $octopusServerExePath = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
+$tentacleExePath = "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe"
+
 function Get-ODSCParameter($parameters) {
     # unfortunately $PSBoundParameters doesn't contain parameters that weren't supplied (because the default value was okay)
     # credit to https://www.briantist.com/how-to/splatting-psboundparameters-default-values-optional-parameters/
@@ -153,7 +155,7 @@ Function Get-MaskedOutput
     {
         for($x=0;$x -lt $arguments.count; $x++)
         {
-            if(($arguments[$x] -match "--masterkey|--password|--license"))
+            if(($arguments[$x] -match "--masterkey|--password|--license|--trust|--remove-trust|--apikey|--password|--pw|--pfx-password|--proxyPassword"))
             {
                 $arguments[$x+1] = $arguments[$x+1] -replace ".", "*"
             }
@@ -172,26 +174,48 @@ Function Get-MaskedOutput
 }
 
 function Invoke-OctopusServerCommand ($arguments) {
-    if
-    (
-        (($arguments -match "masterkey|password|license|pwd=").Count -eq 0)
-    )
-    {
+    # todo: fix this up
+    if ((($arguments -match "masterkey|password|license|pwd=").Count -eq 0)) {
         Write-Verbose "Executing command '$octopusServerExePath $($arguments -join ' ')'"
-    }
-    else
-    {
+    } else {
         $copiedarguments = @() # hack to pass a copy of the array, not a reference
         $copiedarguments += $arguments
         $maskedarguments = Get-MaskedOutput $copiedarguments
         Write-Verbose "Executing command '$octopusServerExePath $($maskedarguments -join ' ')'"
     }
-    $output = .$octopusServerExePath $arguments 2>&1
+    $LASTEXITCODE = 0
+    $output = & $octopusServerExePath $arguments 2>&1
 
     Write-CommandOutput $output
     if (($null -ne $LASTEXITCODE) -and ($LASTEXITCODE -ne 0)) {
         Write-Error "Command returned exit code $LASTEXITCODE. Aborting."
-        exit 1
+        throw "Command returned exit code $LASTEXITCODE. Aborting."
+    }
+    Write-Verbose "done."
+}
+
+function Test-TentacleExecutableExists {
+    $tentacleDir = "${env:ProgramFiles}\Octopus Deploy\Tentacle"
+    return ((test-path $tentacleDir) -and (test-path "$tentacleDir\tentacle.exe"))
+}
+
+function Invoke-TentacleCommand ($arguments) {
+    # todo: fix this up
+    if ((($arguments -match "masterkey|password|license|pwd=").Count -eq 0)) {
+        Write-Verbose "Executing command '$tentacleExePath $($arguments -join ' ')'"
+    } else {
+        $copiedarguments = @() # hack to pass a copy of the array, not a reference
+        $copiedarguments += $arguments
+        $maskedarguments = Get-MaskedOutput $copiedarguments
+        Write-Verbose "Executing command '$tentacleExePath $($maskedarguments -join ' ')'"
+    }
+    $LASTEXITCODE = 0
+    $output = & $tentacleExePath $arguments 2>&1
+
+    Write-CommandOutput $output
+    if (($null -ne $LASTEXITCODE) -and ($LASTEXITCODE -ne 0)) {
+        Write-Error "Command returned exit code $LASTEXITCODE. Aborting."
+        throw "Command returned exit code $LASTEXITCODE. Aborting."
     }
     Write-Verbose "done."
 }

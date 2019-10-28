@@ -160,7 +160,6 @@ Describe "Test/Get/Set-TargetResource all implement the same properties" {
         $moduleFile = Get-Item ($schemaMofFile.FullName -replace ".schema.mof", ".psm1")
 
         function Get-ParameterFromFunction($functionName, $astMembers, $propertyName) {
-            $foundMatchingParameter = $false
             foreach($param in $astMembers) {
                 if ($null -ne $param.name -and $param.Name.ToString() -eq "`$$propertyName") {
                     $function = $param.Parent.Parent.Parent
