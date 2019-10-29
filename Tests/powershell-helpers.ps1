@@ -38,7 +38,6 @@ function Test-AppExists($appName) {
 }
 
 function Import-PowerShellModule ($Name, $MinimumVersion) {
-  
   $command = Get-Module $Name -listavailable
   if ($null -eq $command) {
     write-host "Please install $($Name): Install-Module -Name $Name -Force" -foregroundcolor red
