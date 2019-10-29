@@ -9,9 +9,7 @@ param(
   [switch]$debug
 )
 
-$path = Join-Path -Path $PSScriptRoot -ChildPath "powershell-helpers.ps1"
-. $path
-
+. Tests/powershell-helpers.ps1
 
 Start-Transcript .\vagrant-azure.log
 

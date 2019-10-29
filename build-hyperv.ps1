@@ -10,9 +10,7 @@ param(
   [switch]$debug
 )
 
-$path = Join-Path -Path $PSScriptRoot -ChildPath "powershell-helpers.ps1"
-. $path
-
+. Tests/powershell-helpers.ps1
 
 Start-Transcript .\vagrant-hyperv.log
 
@@ -58,7 +56,6 @@ Test-PluginInstalled "vagrant-winrm-file-download"
 Remove-OldLogsBeforeNewRun
 
 if(-not $SkipPester) {
-  #Write-Output "Importing Pester module"
   Import-PowerShellModule -Name "Pester" -MinimumVersion "4.9.0"
   
   Write-Output "Running Pester Tests"
