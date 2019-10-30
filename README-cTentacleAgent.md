@@ -7,7 +7,7 @@ First, ensure the OctopusDSC module is on your `$env:PSModulePath`. Then you can
 ```PowerShell
 Configuration SampleConfig
 {
-    param ($ApiKey, $OctopusServerUrl, $Environments, $Roles, $ListenPort)
+    param ($ApiKey, $OctopusServerUrl, $Environments, $Roles, $ListenPort, $Space)
 
     Import-DscResource -Module OctopusDSC
 
@@ -33,6 +33,7 @@ Configuration SampleConfig
             OctopusServerUrl = $OctopusServerUrl
             Environments = $Environments
             Roles = $Roles
+            Space = $Space # This is for versions 2019.1 and above.  If null or not specified, it uses the space designated as Default
         }
     }
 }
@@ -92,6 +93,7 @@ When `State` is `Started`, the resource will ensure that the Tentacle windows se
 | `TentacleServiceCredential`   | `PSCredential`                                             |                                                               | Credentials of the account used to run the Tentacle Service
 | `WorkerPools`                 | `string[]`                                                 |                                                               | Worker Pool Name(s) in which this tentacle participates as a worker.
 | `TenantedDeploymentParticipation` | `string` - `Untenanted` ,`TenantedOrUntenanted` or `Tenanted`    | `Untenanted`                                        | Determines the Tenancy mode of this tentacle
+|  `Space`                      | `string`                                                   |                                                               | The name of the Space in which the tentacle works with
 
 ## Drift
 
