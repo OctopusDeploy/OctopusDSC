@@ -56,10 +56,9 @@ Test-PluginInstalled "vagrant-winrm-file-download"
 Remove-OldLogsBeforeNewRun
 
 if(-not $SkipPester) {
-  Write-Output "Importing Pester module"
-  Test-PowershellModuleInstalled "Pester" "4.9.0"
-  Test-PowershellModuleInstalled "PSScriptAnalyzer" "1.18.3"
+  Import-PowerShellModule -Name "Pester" -MinimumVersion "4.9.0"
   Write-Output "Running Pester Tests"
+
   $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
   if ($result.FailedCount -gt 0) {
     exit 1

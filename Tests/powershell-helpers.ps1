@@ -37,29 +37,27 @@ function Test-AppExists($appName) {
   return $null -ne $command
 }
 
-function Test-PowershellModuleInstalled($moduleName, $version) {
-  Write-Output "Checking version for $moduleName..."
-  $command = Get-Module $moduleName -listavailable
+function Import-PowerShellModule ($Name, $MinimumVersion) {
+  $command = Get-Module $Name -listavailable
   if ($null -eq $command) {
-    write-host "Please install $($moduleName): Install-Module -Name $moduleName -Force" -foregroundcolor red
+    write-host "Please install $($Name): Install-Module -Name $Name -Force" -foregroundcolor red
     exit 1
   }
 
-  if ($command.Count -gt 1)
-  {
+  if ($command.Count -gt 1) {
     $command = $command | Sort-Object -Property Version -Descending | Select-Object -First 1
   }
 
 
-  if ($null -ne $version) {
-    if ($command.Version -lt [System.Version]::Parse($version)) {
-      write-host "Please install $($moduleName) $version or higher (you have version $($command.Version)): Update-Module -Name $moduleName -Force" -foregroundcolor red
+  if ($null -ne $MinimumVersion) {
+    if ($command.Version -lt [System.Version]::Parse($MinimumVersion)) {
+      write-host "Please install $($Name) $MinimumVersion or higher (you have version $($command.Version)): Update-Module -Name $Name -Force" -foregroundcolor red
       exit 1
     }
   }
 
-  Write-Output "Importing module $moduleName with version $($command.Version)..."
-  Import-Module -Name $moduleName -Version $command.Version
+  Write-Output "Importing module $Name with version $($command.Version)..."
+  Import-Module -Name $Name -Version $command.Version
 }
 
 function Test-CustomVersionOfVagrantDscPluginIsInstalled() {  # does not deal well with machines that have two versioned folders under /gems/
