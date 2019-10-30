@@ -1,5 +1,8 @@
+$path = Join-Path -Path $PSScriptRoot -ChildPath "powershell-helpers.ps1"
+. $path
+
 Describe "PSScriptAnalyzer" {
-    Import-Module PSScriptAnalyzer
+    Import-PowerShellModule -Name PSScriptAnalyzer -MinimumVersion "1.18.3"
     $excludedRules = @(
         'PSUseShouldProcessForStateChangingFunctions'
     )

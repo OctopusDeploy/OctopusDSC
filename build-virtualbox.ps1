@@ -10,12 +10,9 @@ param(
 )
 
 . Tests/powershell-helpers.ps1
-
 Start-Transcript .\vagrant-virtualbox.log
 
 Set-OctopusDscEnvVars @PSBoundParameters
-
-. Tests/powershell-helpers.ps1
 
 if (-not (Test-AppExists "vagrant")) {
   Write-Output "Please install vagrant from vagrantup.com."
@@ -37,9 +34,8 @@ Remove-OldLogsBeforeNewRun
 
 if(-not $SkipPester) {
   Write-Output "Importing Pester module"
-  Test-PowershellModuleInstalled "Pester" "4.9.0"
-  Test-PowershellModuleInstalled "PSScriptAnalyzer" "1.18.3"
-  Import-Module Pester -force
+  Import-PowerShellModule -Name "Pester" -MinimumVersion "4.9.0"
+  
   Write-Output "Running Pester Tests"
   $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
   if ($result.FailedCount -gt 0) {
