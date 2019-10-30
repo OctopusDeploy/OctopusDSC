@@ -3,7 +3,7 @@
 
 Configuration SampleConfig
 {
-    param ($ApiKey, $OctopusServerUrl, $Environments, $Roles, $ServerPort)
+    param ([string]$ApiKey, [string]$OctopusServerUrl, [string[]]$Environments, [string[]]$Roles, [int]$ServerPort)
 
     Import-DscResource -Module OctopusDSC
 

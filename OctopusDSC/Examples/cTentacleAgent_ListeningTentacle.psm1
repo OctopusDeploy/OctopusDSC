@@ -7,7 +7,7 @@ $ServiceCred = New-Object PSCredential "ServiceUser", $password
 
 Configuration SampleConfig
 {
-    param ($ApiKey, $OctopusServerUrl, $Environments, $Roles, $ListenPort)
+    param ([string]$ApiKey, [string]$OctopusServerUrl, [string[]]$Environments, [string[]]$Roles, [int]$ListenPort)
 
     Import-DscResource -Module OctopusDSC
 
