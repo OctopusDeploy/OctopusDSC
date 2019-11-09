@@ -850,19 +850,25 @@ function New-Tentacle {
     $tentacleConfigFile = "$tentacleHomeDirectory\$Name\Tentacle.config"
     Write-Verbose "Tentacle configuration set as $tentacleConfigFile"
     Invoke-TentacleCommand @("create-instance", "--instance", "$name", "--config", "$tentacleConfigFile", "--console")
-    Invoke-TentacleCommand @("configure", "--instance", "$name", "--home", "$tentacleHomeDirectory", "--console")
-    Invoke-TentacleCommand @("configure", "--instance", "$name", "--app", "$tentacleAppDirectory", "--console")
     Invoke-TentacleCommand @("new-certificate", "--instance", "$name", "--console")
+
+    $configureArgs = @(
+        'configure',
+        '--instance', $name,
+        '--home', $tentacleHomeDirectory,
+        '--app', $tentacleAppDirectory,
+        '--console')
     if (($null -ne $octopusServerThumbprint) -and ($octopusServerThumbprint -ne "")) {
-        Invoke-TentacleCommand @("configure", "--instance", "$name", "--trust", "$octopusServerThumbprint", "--console")
+        $configureArgs += @('--trust', $octopusServerThumbprint)
     }
 
     if ($CommunicationMode -eq "Listen") {
-        Invoke-TentacleCommand @("configure", "--instance", "$name", "--port", "$listenPort", "--console")
+        $configureArgs += @('--port', $listenPort)
     }
     else {
-        Invoke-TentacleCommand @("configure", "--instance", "$name", "--port", "$listenPort", "--noListen", "True", "--console")
+        $configureArgs += @('--noListen', 'True')
     }
+    Invoke-TentacleCommand $configureArgs
 
     $serviceArgs = @(
         'service',
@@ -885,9 +891,6 @@ function New-Tentacle {
     Pop-Location
 
     if ($registerWithServer) {
-        if (($null -ne $octopusServerThumbprint) -and ($octopusServerThumbprint -ne "")) {
-            Invoke-TentacleCommand @("configure", "--instance", "$name", "--trust", $octopusServerThumbprint, "--console")
-        }
         if (($null -ne $workerPools) -and ($workerPools.Count -gt 0)) {
             Write-Verbose "Adding Tentacle to worker pool"
             Add-TentacleToWorkerPool -name $name `
