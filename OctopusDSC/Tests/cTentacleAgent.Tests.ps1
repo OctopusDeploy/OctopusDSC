@@ -318,6 +318,32 @@ try
                 }
             }
 
+            Context "New polling tentacle" {
+                Mock Invoke-TentacleCommand #{ write-host "`"$($args[1] -join ' ')`"," }
+                Mock Get-TargetResource { return Get-CurrentConfiguration "NewPollingTentacle" }
+                Mock Invoke-MsiExec {}
+                Mock Request-File {}
+                Mock Update-InstallState {}
+                Mock Invoke-AndAssert {}
+                Mock Start-Service {}
+                Mock Get-PublicHostName { return "mytestserver.local"; }
+                Mock New-Item {}
+
+                $params = Get-RequestedConfiguration "NewPollingTentacle"
+                Set-TargetResource @params
+
+                Assert-ExpectedResult "NewPollingTentacle"
+                it "Should download the MSI" {
+                    Assert-MockCalled Request-File
+                }
+                it "Should install the MSI" {
+                    Assert-MockCalled Invoke-MsiExec
+                }
+                it "Should start the service" {
+                    Assert-MockCalled Start-Service
+                }
+            }
+
             Context "New instance in space" {
                 Mock Invoke-TentacleCommand #{ write-host "`"$($args[1] -join ' ')`"," }
                 Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstanceInSpace" }
