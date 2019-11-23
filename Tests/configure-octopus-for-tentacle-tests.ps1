@@ -30,7 +30,10 @@ try
     #create an environment for the tentacles to go into
     $environment = New-Object Octopus.Client.Model.EnvironmentResource
     $environment.Name = "The-Env"
-    $repository.Environments.Create($environment) | Out-Null
+    $repository.Environments.CreateOrModify($environment) | Out-Null
+    $environment = New-Object Octopus.Client.Model.EnvironmentResource
+    $environment.Name = "Env2"
+    $repository.Environments.CreateOrModify($environment) | Out-Null
 
     #create a project
     $projectGroup = $repository.ProjectGroups.Get("ProjectGroups-1")
@@ -79,6 +82,13 @@ try
     $policyResource.IsDefault = $false
     $policyResource.Description = "Test Machine Policy"
     $repository.MachinePolicies.Create($policyResource) | Out-Null
+
+    #ensure we have a worker pool
+    $workerpool = New-Object Octopus.Client.Model.WorkerPoolResource
+    $workerpool.Name = "Secondary Worker Pool"
+    $workerpool.Description = $WorkerPoolDescription
+    $workerpool.SpaceId = $SpaceId
+    $repository.WorkerPools.CreateOrModify($workerpool) | Out-Null
 
     $certificate = Invoke-RestMethod "$OctopusURI/api/configuration/certificates/certificate-global?apikey=$($createApiKeyResult.ApiKey)"
     $content = @{
