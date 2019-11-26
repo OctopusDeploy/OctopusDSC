@@ -80,8 +80,8 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     v.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
     v.customize ["modifyvm", :id, "--usb", "off"]
     v.customize ["modifyvm", :id, "--vram", "32"]
-    override.vm.box = "OctopusDeploy/dsc-test-server-windows-server-1803"
-    override.vm.box_url = "https://s3-ap-southeast-2.amazonaws.com/octopus-vagrant-boxes/vagrant/json/OctopusDeploy/virtualbox/dsc-test-server-windows-server-1803.json"
+    override.vm.box = "OctopusDeploy/dsc-test-server-windows-server-1909"
+    override.vm.box_url = "https://s3-ap-southeast-2.amazonaws.com/octopus-vagrant-boxes/vagrant/json/OctopusDeploy/virtualbox/dsc-test-server-windows-server-1909.json"
     override.vm.network :forwarded_port, guest: 5985, host: 5985, id: "winrm", auto_correct: true
     override.vm.network :forwarded_port, guest: 80,   host: 8000, id: "web"
     override.vm.network :forwarded_port, guest: 443, host: 8443,  id: "ssl"
@@ -90,8 +90,8 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   if Vagrant::Util::Platform.windows? then
     config.vm.provider "hyperv" do |v, override|
-      override.vm.box = "OctopusDeploy/dsc-test-server-windows-server-1803"
-      override.vm.box_url = "https://s3-ap-southeast-2.amazonaws.com/octopus-vagrant-boxes/vagrant/json/OctopusDeploy/hyperv/dsc-test-server-windows-server-1803.json"
+      override.vm.box = "OctopusDeploy/dsc-test-server-windows-server-1909"
+      override.vm.box_url = "https://s3-ap-southeast-2.amazonaws.com/octopus-vagrant-boxes/vagrant/json/OctopusDeploy/hyperv/dsc-test-server-windows-server-1909.json"
       config.vm.network "public_network", bridge: ENV['OctopusDSCVMSwitch']
       v.memory = 4096
       v.maxmemory = 4096
