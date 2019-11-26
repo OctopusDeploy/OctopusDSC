@@ -138,7 +138,7 @@ Configuration Tentacle_Scenario_02_Remove
             PublicHostNameConfiguration = "ComputerName"
             TentacleHomeDirectory = "C:\Octopus\WorkerTentacleHome"
 
-            WorkerPools = @("Secondary Worker Pool"l)
+            WorkerPools = @("Secondary Worker Pool")
         }
 
 
