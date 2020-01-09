@@ -28,7 +28,7 @@ try
     $createApiKeyResult = $repository.Users.CreateApiKey($user, "Octopus DSC Testing")
 
     #create an environment for the tentacles to go into
-    $environment = $repository.Environments.CreateOrModify("The-Env") | Out-Null
+    $environment = $repository.Environments.CreateOrModify("The-Env")
     $repository.Environments.CreateOrModify("Env2") | Out-Null
 
     #create a project
