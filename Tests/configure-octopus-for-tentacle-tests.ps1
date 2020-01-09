@@ -28,7 +28,8 @@ try
     $createApiKeyResult = $repository.Users.CreateApiKey($user, "Octopus DSC Testing")
 
     #create an environment for the tentacles to go into
-    $environment = $repository.Environments.CreateOrModify("The-Env")
+    $environmentEditor = $repository.Environments.CreateOrModify("The-Env")
+    $environment = $environmentEditor.Instance
     $repository.Environments.CreateOrModify("Env2") | Out-Null
 
     #create a project
@@ -42,7 +43,8 @@ try
       throw "Lifecycle 'Default Lifecycle' not found during configuration"
     }
 
-    $project = $repository.Projects.CreateOrModify("Multi tenant project", $projectGroup, $lifecycle)
+    $projectEditor = $repository.Projects.CreateOrModify("Multi tenant project", $projectGroup, $lifecycle)
+    $project = $projectEditor.Instance
 
     # setup tag set
     $tagSetEditor = $repository.TagSets.CreateOrModify("Hosting")
