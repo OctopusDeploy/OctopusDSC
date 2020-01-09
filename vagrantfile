@@ -117,7 +117,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     aws.subnet_id = aws_subnet_id
     aws.associate_public_ip = true
     aws.user_data = File.read("Tests/aws_user_data.ps1")
-    override.vm.box = "OctopusDeploy/dsc-test-server-windows-server-1803" #box added via launcher script
+    override.vm.box = "OctopusDeploy/dsc-test-server-windows-server-1909" #box added via launcher script
     override.ssh.private_key_path = "./#{aws_key_name}.pem"
     override.winrm.username = "Administrator"
     override.winrm.timeout = 180
