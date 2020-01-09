@@ -218,6 +218,7 @@ function Invoke-TentacleCommand ($arguments) {
         throw "Command returned exit code $LASTEXITCODE. Aborting."
     }
     Write-Verbose "done."
+    return $output
 }
 
 function Write-CommandOutput {
