@@ -28,6 +28,9 @@ Configuration Server_Scenario_06_Remove_Custom_Instance
 
             SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario2;Trusted_Connection=True;"
 
+            # temp for testing https://github.com/OctopusDeploy/OctopusClients/pull/506
+            DownloadUrl = "https://s3-ap-southeast-1.amazonaws.com/octopus-testing/server/Octopus.2019.13.5-octopusclientcom0056-x64.msi"
+
             # The admin user to create
             OctopusAdminCredential = $cred
 
