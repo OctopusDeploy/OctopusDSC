@@ -66,9 +66,7 @@ try
     #ensure we have a worker pool
     $workerpool = New-Object Octopus.Client.Model.WorkerPoolResource
     $workerpool.Name = "Secondary Worker Pool"
-    $workerpool.Description = $WorkerPoolDescription
-    $workerpool.SpaceId = $SpaceId
-    $repository.WorkerPools.CreateOrModify($workerpool) | Out-Null
+    $repository.WorkerPools.CreateOrModify($workerpool) #| Out-Null
 
     $certificate = Invoke-RestMethod "$OctopusURI/api/configuration/certificates/certificate-global?apikey=$($createApiKeyResult.ApiKey)"
     $content = @{
