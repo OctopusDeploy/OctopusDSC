@@ -50,6 +50,7 @@ try
     $tagSetEditor = $repository.TagSets.CreateOrModify("Hosting")
     $tagSetEditor.AddOrUpdateTag("On premises", "Hosted on site", [Octopus.Client.Model.TagResource+StandardColor]::DarkGreen) | Out-Null
     $tagSetEditor.AddOrUpdateTag("Cloud", "Hosted in the cloud", [Octopus.Client.Model.TagResource+StandardColor]::LightBlue) | Out-Null
+    $tagSetEditor.Save() | Out-Null
     $tagSet = $tagSetEditor.Instance
 
     $tenantEditor = $repository.Tenants.CreateOrModify("John")
@@ -64,9 +65,7 @@ try
     $repository.MachinePolicies.Create($policyResource) | Out-Null
 
     #ensure we have a worker pool
-    $workerpool = New-Object Octopus.Client.Model.WorkerPoolResource
-    $workerpool.Name = "Secondary Worker Pool"
-    $repository.WorkerPools.CreateOrModify($workerpool) #| Out-Null
+    $repository.WorkerPools.CreateOrModify("Secondary Worker Pool") #| Out-Null
 
     $certificate = Invoke-RestMethod "$OctopusURI/api/configuration/certificates/certificate-global?apikey=$($createApiKeyResult.ApiKey)"
     $content = @{
