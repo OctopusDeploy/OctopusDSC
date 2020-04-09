@@ -23,9 +23,6 @@ Configuration Server_Scenario_15_Configure_Preinstalled_Instance
             SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario15;Trusted_Connection=True;"
             OctopusAdminCredential = $cred
 
-            # temp for testing https://github.com/OctopusDeploy/OctopusClients/pull/506
-            DownloadUrl = "https://s3-ap-southeast-1.amazonaws.com/octopus-testing/server/Octopus.2019.13.5-octopusclientcom0056-x64.msi"
-
             AllowCollectionOfUsageStatistics = $false
         }
 

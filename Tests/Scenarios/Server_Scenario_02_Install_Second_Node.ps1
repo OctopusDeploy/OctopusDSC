@@ -32,9 +32,6 @@ Configuration Server_Scenario_02_Install_Second_Node
 
             SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario1;Trusted_Connection=True;"
 
-            # temp for testing https://github.com/OctopusDeploy/OctopusClients/pull/506
-            DownloadUrl = "https://s3-ap-southeast-1.amazonaws.com/octopus-testing/server/Octopus.2019.13.5-octopusclientcom0056-x64.msi"
-
             OctopusMasterKey = $MasterKeyCred
 
             # The admin user to create
