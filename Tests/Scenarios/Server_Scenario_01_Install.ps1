@@ -46,15 +46,15 @@ Configuration Server_Scenario_01_Install
             LogRequestMetrics = $false
         }
 
-        cOctopusSeqLogger "Enable logging to seq"
-        {
-            InstanceType = "OctopusServer"
-            Ensure = "Present"
-            SeqServer = "http://localhost/seq"
-            SeqApiKey = $seqApiKey
-            Properties = @{ Application = "Octopus"; Server = "MyServer" }
-            DependsOn = "[cOctopusServer]OctopusServer"
-        }
+        # cOctopusSeqLogger "Enable logging to seq"
+        # {
+        #     InstanceType = "OctopusServer"
+        #     Ensure = "Present"
+        #     SeqServer = "http://localhost/seq"
+        #     SeqApiKey = $seqApiKey
+        #     Properties = @{ Application = "Octopus"; Server = "MyServer" }
+        #     DependsOn = "[cOctopusServer]OctopusServer"
+        # }
 
         cOctopusServerUsernamePasswordAuthentication "Enable Username/Password Auth"
         {

@@ -18,11 +18,11 @@ Configuration Tentacle_Scenario_02_Remove
             ConfigurationMode = 'ApplyOnly'
         }
 
-        cOctopusSeqLogger "Disable logging to seq"
-        {
-            InstanceType = 'Tentacle'
-            Ensure = 'Absent'
-        }
+        # cOctopusSeqLogger "Disable logging to seq"
+        # {
+        #     InstanceType = 'Tentacle'
+        #     Ensure = 'Absent'
+        # }
 
         cTentacleAgent ListeningTentacle
         {
