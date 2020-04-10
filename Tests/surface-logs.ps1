@@ -32,8 +32,8 @@ try {
         write-output "---------------------------"
     } else {
         $status.ResourcesNotInDesiredState | foreach-object {
-            $_ | write-output
             write-output "---------------------------"
+            $_ | write-warning
         }
     }
 } catch { 
