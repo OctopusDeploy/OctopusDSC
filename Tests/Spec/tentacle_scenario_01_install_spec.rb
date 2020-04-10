@@ -240,19 +240,19 @@ describe file('C:\Octopus\ListeningTentacleWithCustomAccountHome\ListeningTentac
 end
 
 #seq logging
-describe file('C:/Program Files/Octopus Deploy/Tentacle/Seq.Client.NLog.dll') do
-  it { should be_file }
-end
+# describe file('C:/Program Files/Octopus Deploy/Tentacle/Seq.Client.NLog.dll') do
+#   it { should be_file }
+# end
 
-describe file('C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe.nlog') do
-  it { should be_file }
-  its(:content) { should match /<add assembly="Seq.Client.NLog" \/>/ }
-  its(:content) { should match /<logger name="\*" minlevel="Info" writeTo="seqbufferingwrapper" \/>/ }
-  its(:content) { should match /<target name=\"seqbufferingwrapper\" xsi:type=\"BufferingWrapper\" bufferSize=\"1000\" flushTimeout=\"2000\">/}
-  its(:content) { should match /<target name="seq" xsi:type="Seq" serverUrl="http:\/\/localhost\/seq" apiKey="MyMagicSeqApiKey">/ }
-  its(:content) { should match /<property name="Application" value="Octopus" \/>/ }
-  its(:content) { should match /<property name="Server" value="MyServer" \/>/ }
-end
+# describe file('C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe.nlog') do
+#   it { should be_file }
+#   its(:content) { should match /<add assembly="Seq.Client.NLog" \/>/ }
+#   its(:content) { should match /<logger name="\*" minlevel="Info" writeTo="seqbufferingwrapper" \/>/ }
+#   its(:content) { should match /<target name=\"seqbufferingwrapper\" xsi:type=\"BufferingWrapper\" bufferSize=\"1000\" flushTimeout=\"2000\">/}
+#   its(:content) { should match /<target name="seq" xsi:type="Seq" serverUrl="http:\/\/localhost\/seq" apiKey="MyMagicSeqApiKey">/ }
+#   its(:content) { should match /<property name="Application" value="Octopus" \/>/ }
+#   its(:content) { should match /<property name="Server" value="MyServer" \/>/ }
+# end
 
 ### DSC success
 describe windows_dsc do
