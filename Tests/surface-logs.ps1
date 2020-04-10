@@ -8,32 +8,32 @@ Write-Host "##teamcity[blockOpened name='Get-DSCConfigurationStatus']"
 try { 
     $status = Get-DSCConfigurationStatus
     write-output "Get-DSCConfigurationStatus succeeded"
-    write-output "-----------------------"
+    write-output "--------------------------------------------------"
     write-output "DSCConfigurationStatus:"
-    write-output "-----------------------"
+    write-output "--------------------------------------------------"
     $status | format-list | write-output
-    write-output "------------------------"
+    write-output "--------------------------------------------------"
     write-output "ResourcesInDesiredState:"
-    write-output "------------------------"
+    write-output "--------------------------------------------------"
     if ($status.ResourcesInDesiredState.length -eq 0) {
         write-output "No resources in desired state"
-        write-output "---------------------------"
+        write-output "--------------------------------------------------"
     } else {
         $status.ResourcesInDesiredState | foreach-object {
             $_ | write-output
-            write-output "------------------------"
+            write-output "--------------------------------------------------"
         }
     }
-    write-output "---------------------------"
+    write-output "--------------------------------------------------"
     write-output "ResourcesNotInDesiredState:"
-    write-output "---------------------------"
+    write-output "--------------------------------------------------"
     if ($status.ResourcesNotInDesiredState.length -eq 0) {
         write-output "No resources not in desired state"
-        write-output "---------------------------"
+        write-output "--------------------------------------------------"
     } else {
         $status.ResourcesNotInDesiredState | foreach-object {
-            write-output "---------------------------"
             $_ | write-warning
+            write-output "--------------------------------------------------"
         }
     }
 } catch { 
