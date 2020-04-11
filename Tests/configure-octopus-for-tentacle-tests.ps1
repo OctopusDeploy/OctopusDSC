@@ -67,6 +67,10 @@ try
     #ensure we have a worker pool
     $repository.WorkerPools.CreateOrModify("Secondary Worker Pool") #| Out-Null
 
+    #ensure we have a cloud region (ie, something without a thumbprint, to catch null thumbprint errors)
+    $cloudRegionEndpoint = New-Object Octopus.Client.Model.Endpoints.CloudRegionEndpointResource
+    $repository.Machines.CreateOrModify("My Cloud Region", $cloudRegionEndpoint, @($environment), @("cloud-region")) | Out-Null
+
     $certificate = Invoke-RestMethod "$OctopusURI/api/configuration/certificates/certificate-global?apikey=$($createApiKeyResult.ApiKey)"
     $content = @{
         "OctopusServerUrl" = $OctopusURI;
