@@ -1,5 +1,5 @@
-$seqPlainTextApiKey = ConvertTo-SecureString "MyMagicSeqApiKey" -AsPlainText -Force
-$seqApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $seqPlainTextApiKey)
+# $seqPlainTextApiKey = ConvertTo-SecureString "MyMagicSeqApiKey" -AsPlainText -Force
+# $seqApiKey = New-Object System.Management.Automation.PSCredential ("ignored", $seqPlainTextApiKey)
 
 $config = get-content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
 $OctopusServerUrl = $config.OctopusServerUrl
