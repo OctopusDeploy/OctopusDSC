@@ -18,12 +18,6 @@ Configuration Tentacle_Scenario_02_Remove
             ConfigurationMode = 'ApplyOnly'
         }
 
-        cOctopusSeqLogger "Disable logging to seq"
-        {
-            InstanceType = 'Tentacle'
-            Ensure = 'Absent'
-        }
-
         cTentacleAgent ListeningTentacle
         {
             Ensure = "Absent";
@@ -43,7 +37,6 @@ Configuration Tentacle_Scenario_02_Remove
             ListenPort = 10933;
             DefaultApplicationDirectory = "C:\Applications"
             TentacleHomeDirectory = "C:\Octopus\ListeningTentacleHome"
-            DependsOn = "[cOctopusSeqLogger]Disable logging to seq"
         }
 
         cTentacleAgent PollingTentacle
@@ -66,7 +59,6 @@ Configuration Tentacle_Scenario_02_Remove
             DefaultApplicationDirectory = "C:\Applications"
             CommunicationMode = "Poll"
             TentacleHomeDirectory = "C:\Octopus\PollingTentacleHome"
-            DependsOn = "[cOctopusSeqLogger]Disable logging to seq"
         }
 
         cTentacleAgent ListeningTentacleWithoutAutoRegister
@@ -89,7 +81,6 @@ Configuration Tentacle_Scenario_02_Remove
             TentacleHomeDirectory = "C:\Octopus\ListeningTentacleWithoutAutoRegisterHome"
 
             RegisterWithServer = $false
-            DependsOn = "[cOctopusSeqLogger]Disable logging to seq"
         }
 
         cTentacleAgent ListeningTentacleWithThumbprintWithoutAutoRegister
@@ -113,7 +104,6 @@ Configuration Tentacle_Scenario_02_Remove
 
             RegisterWithServer = $false
             OctopusServerThumbprint = $ServerThumbprint
-            DependsOn = "[cOctopusSeqLogger]Disable logging to seq"
         }
 
         cTentacleAgent WorkerTentacle
@@ -165,7 +155,6 @@ Configuration Tentacle_Scenario_02_Remove
             TentacleHomeDirectory = "C:\Octopus\ListeningTentacleWithCustomAccountHome"
 
             TentacleServiceCredential = $serviceusercredential
-            DependsOn = "[cOctopusSeqLogger]Disable logging to seq"
         }
     }
 }
