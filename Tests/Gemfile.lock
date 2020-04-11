@@ -18,7 +18,7 @@ GEM
       rspec (~> 3.0)
       serverspec (~> 2)
       specinfra (~> 2)
-    rake (12.3.0)
+    rake (12.3.3)
     rspec (3.7.0)
       rspec-core (~> 3.7.0)
       rspec-expectations (~> 3.7.0)
@@ -55,7 +55,7 @@ PLATFORMS
 
 DEPENDENCIES
   nokogiri
-  octopus-serverspec-extensions (~> 0.15.0)
+  octopus-serverspec-extensions (~> 0.17.2)
   rake
   rspec-teamcity (~> 0.0.1)
   serverspec
