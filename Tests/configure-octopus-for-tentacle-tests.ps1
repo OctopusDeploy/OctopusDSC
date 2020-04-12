@@ -30,6 +30,7 @@ try
     #create an environment for the tentacles to go into
     $environmentEditor = $repository.Environments.CreateOrModify("The-Env")
     $environment = $environmentEditor.Instance
+    $repository.Environments.CreateOrModify("Env2") | Out-Null
 
     #create a project
     $projectGroup = $repository.ProjectGroups.Get("ProjectGroups-1")
@@ -62,6 +63,13 @@ try
     $policyResource.IsDefault = $false
     $policyResource.Description = "Test Machine Policy"
     $repository.MachinePolicies.Create($policyResource) | Out-Null
+
+    #ensure we have a worker pool
+    $repository.WorkerPools.CreateOrModify("Secondary Worker Pool") #| Out-Null
+
+    #ensure we have a cloud region (ie, something without a thumbprint, to catch null thumbprint errors)
+    $cloudRegionEndpoint = New-Object Octopus.Client.Model.Endpoints.CloudRegionEndpointResource
+    $repository.Machines.CreateOrModify("My Cloud Region", $cloudRegionEndpoint, @($environment), @("cloud-region")) | Out-Null
 
     $certificate = Invoke-RestMethod "$OctopusURI/api/configuration/certificates/certificate-global?apikey=$($createApiKeyResult.ApiKey)"
     $content = @{

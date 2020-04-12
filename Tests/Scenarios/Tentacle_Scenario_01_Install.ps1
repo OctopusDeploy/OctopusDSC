@@ -61,7 +61,7 @@ Configuration Tentacle_Scenario_01_Install
             # Registration - all parameters required
             ApiKey = $ApiKey;
             OctopusServerUrl = $OctopusServerUrl;
-            Environments = $Environments;
+            Environments = "Env2";
             Roles = $Roles;
 
             # Optional settings
@@ -130,7 +130,7 @@ Configuration Tentacle_Scenario_01_Install
             PublicHostNameConfiguration = "ComputerName"
             TentacleHomeDirectory = "C:\Octopus\WorkerTentacleHome"
 
-            WorkerPools = @("Default Worker Pool")
+            WorkerPools = @("Secondary Worker Pool")
         }
 
         # load the credential for said user

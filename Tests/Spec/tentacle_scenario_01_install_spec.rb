@@ -75,7 +75,7 @@ describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiK
   it { should be_registered_with_the_server }
   it { should be_online }
   it { should be_polling_tentacle }
-  it { should be_in_environment('The-Env') }
+  it { should be_in_environment('Env2') }
   it { should have_role('Test-Tentacle') }
   it { should have_display_name("#{ENV['COMPUTERNAME']}_PollingTentacle") }
   it { should have_policy('Default Machine Policy') }
