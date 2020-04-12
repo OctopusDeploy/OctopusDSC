@@ -122,7 +122,6 @@ Configuration Tentacle_Scenario_01_Install
             # Registration - all parameters required
             ApiKey = $ApiKey;
             OctopusServerUrl = $OctopusServerUrl;
-            Environments = $Environments;
             Roles = $Roles;
 
             # Optional settings

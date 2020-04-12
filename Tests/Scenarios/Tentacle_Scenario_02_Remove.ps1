@@ -51,7 +51,6 @@ Configuration Tentacle_Scenario_02_Remove
             # Registration - all parameters required
             ApiKey = $ApiKey;
             OctopusServerUrl = $OctopusServerUrl;
-            Environments = $Environments;
             Roles = $Roles;
 
             # Optional settings
@@ -120,7 +119,6 @@ Configuration Tentacle_Scenario_02_Remove
             # Registration - all parameters required
             ApiKey = $ApiKey;
             OctopusServerUrl = $OctopusServerUrl;
-            Environments = $Environments;
             Roles = $Roles;
 
             # Optional settings
