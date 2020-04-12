@@ -5,7 +5,7 @@ Write-Host "##teamcity[blockClosed name='LCM Configuration']"
 $ProgressPreference = "SilentlyContinue"
 
 Write-Host "##teamcity[blockOpened name='Get-DSCConfigurationStatus']"
-try { 
+try {
     $status = Get-DSCConfigurationStatus
     write-output "Get-DSCConfigurationStatus succeeded"
     write-output "--------------------------------------------------"
@@ -36,7 +36,7 @@ try {
             write-output "--------------------------------------------------"
         }
     }
-} catch { 
+} catch {
     write-output "Get-DSCConfigurationStatus failed"
     write-output $_
 }
