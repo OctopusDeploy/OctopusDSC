@@ -28,35 +28,22 @@ try
     $createApiKeyResult = $repository.Users.CreateApiKey($user, "Octopus DSC Testing")
 
     #create an environment for the tentacles to go into
-    $environment = New-Object Octopus.Client.Model.EnvironmentResource
-    $environment.Name = "The-Env"
-    $repository.Environments.Create($environment) | Out-Null
+    $environmentEditor = $repository.Environments.CreateOrModify("The-Env")
+    $environment = $environmentEditor.Instance
 
     #create a project
     $projectGroup = $repository.ProjectGroups.Get("ProjectGroups-1")
-    if($null -eq $projectGroup)
-    {
+    if($null -eq $projectGroup) {
       throw "Default Project group not found during configuration"
     }
 
     $lifecycle = $repository.Lifecycles.FindByName("Default Lifecycle")
-    if($null -eq $lifecycle)
-    {
+    if($null -eq $lifecycle) {
       throw "Lifecycle 'Default Lifecycle' not found during configuration"
     }
 
-    $project = $repository.Projects.CreateOrModify("Multi tenant project", $projectGroup, $lifecycle)
-    $project.Save() | Out-Null
-
-    #enable Tenants feature  # as of 2019 versions, this is permanently on.
-    #$featureConfig = $repository.FeaturesConfiguration.GetFeaturesConfiguration()
-    #$featureConfig.IsMultiTenancyEnabled = $true
-    #$repository.FeaturesConfiguration.ModifyFeaturesConfiguration($featureConfig) | Out-Null
-
-    #reconnect after changing the feature config as the OctopusRepository caches some stuff
-    $endpoint = new-object Octopus.Client.OctopusServerEndpoint $OctopusURI
-    $repository = new-object Octopus.Client.OctopusRepository $endpoint
-    $repository.Users.SignIn($credentials)
+    $projectEditor = $repository.Projects.CreateOrModify("Multi tenant project", $projectGroup, $lifecycle)
+    $project = $projectEditor.Instance
 
     # setup tag set
     $tagSetEditor = $repository.TagSets.CreateOrModify("Hosting")
@@ -65,13 +52,9 @@ try
     $tagSetEditor.Save() | Out-Null
     $tagSet = $tagSetEditor.Instance
 
-    $project = $repository.Projects.FindByName("Multi tenant project")
-    $environment = $repository.Environments.FindByName("The-Env")
-
     $tenantEditor = $repository.Tenants.CreateOrModify("John")
     $tenantEditor.WithTag($tagSet.Tags[0]) | Out-Null
     $tenantEditor.ConnectToProjectAndEnvironments($project, $environment) | Out-Null
-    $tenantEditor.Save() | Out-Null
 
     # create a non-default Test Machine Policy w/ defaults
     $policyResource = $repository.MachinePolicies.GetTemplate()
