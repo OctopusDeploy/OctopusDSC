@@ -13,7 +13,7 @@ describe file('c:/ChezOctopus/Artifacts') do
 end
 
 describe file('c:/ChezOctopusSecondNode/Artifacts') do
-  it { should_not be_directory } # they should be pointed at c:/ChezOctopus/ 
+  it { should_not be_directory } # they should be pointed at c:/ChezOctopus/
 end
 
 describe file('c:/ChezOctopusSecondNode/Logs') do # node logs go in the local instance folder
@@ -25,7 +25,7 @@ describe file('c:/ChezOctopus/TaskLogs') do
 end
 
 describe file('c:/ChezOctopusSecondNode/TaskLogs') do
-  it { should_not be_directory } # they should be pointed at c:/ChezOctopus/TaskLogs 
+  it { should_not be_directory } # they should be pointed at c:/ChezOctopus/TaskLogs
 end
 
 # unfortunately, cant test the packages folder at this point - its non determinate when it gets created
@@ -35,7 +35,7 @@ end
 # end
 
 # describe file('c:/ChezOctopusSecondNode/Packages') do
-#   it { should_not be_directory } # they should be pointed at c:/ChezOctopus/Packages 
+#   it { should_not be_directory } # they should be pointed at c:/ChezOctopus/Packages
 # end
 
 describe file('C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe') do
@@ -73,21 +73,6 @@ end
 describe octopus_deploy_environment(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "Production") do
   it { should exist }
 end
-
-#seq logging
-# describe file('C:/Program Files/Octopus Deploy/Octopus/Seq.Client.NLog.dll') do
-#   it { should be_file }
-# end
-
-# describe file('C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe.nlog') do
-#   it { should be_file }
-#   its(:content) { should match /<add assembly="Seq.Client.NLog" \/>/ }
-#   its(:content) { should match /<logger name="\*" minlevel="Info" writeTo="seqbufferingwrapper" \/>/ }
-#   its(:content) { should match /<target name=\"seqbufferingwrapper\" xsi:type=\"BufferingWrapper\" bufferSize=\"1000\" flushTimeout=\"2000\">/}
-#   its(:content) { should match /<target name="seq" xsi:type="Seq" serverUrl="http:\/\/localhost\/seq" apiKey="MyMagicSeqApiKey">/ }
-#   its(:content) { should match /<property name="Application" value="Octopus" \/>/ }
-#   its(:content) { should match /<property name="Server" value="MyServer" \/>/ }
-# end
 
 #dsc overall status
 describe windows_dsc do

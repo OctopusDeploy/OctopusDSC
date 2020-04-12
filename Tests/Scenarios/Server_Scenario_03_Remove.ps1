@@ -14,12 +14,6 @@ Configuration Server_Scenario_03_Remove
             ConfigurationMode = 'ApplyOnly'
         }
 
-        # cOctopusSeqLogger "Disable logging to seq"
-        # {
-        #     InstanceType = 'OctopusServer'
-        #     Ensure = 'Absent'
-        # }
-
         cOctopusServer OctopusServer
         {
             Ensure = "Absent"
@@ -39,7 +33,6 @@ Configuration Server_Scenario_03_Remove
 
             # dont mess with stats
             AllowCollectionOfUsageStatistics = $false
-            # DependsOn = "[cOctopusSeqLogger]Disable logging to seq"
         }
     }
 }
