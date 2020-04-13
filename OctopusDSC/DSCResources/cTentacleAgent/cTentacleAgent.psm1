@@ -115,13 +115,13 @@ function Get-WorkerPoolMembership {
     $octoWorkerPools = Get-APIResult -ServerUrl $ServerUrl -ApiKey $ApiKey -API $apiUrl
 
     $workerPoolMembership = @()
+    $workersUrl = "/workers/all"
+    if (![String]::IsNullOrEmpty($SpaceId)) {
+        $workersUrl = "/$SpaceId" + $workersUrl
+    }
+    $workersall = Get-APIResult -ServerUrl $ServerUrl -ApiKey $ApiKey -API $workersUrl
 
     foreach ($octoWorkerPool in $octoWorkerPools) {
-        $workersUrl = "/workers/all"
-        if (![String]::IsNullOrEmpty($SpaceId)) {
-            $workersUrl = "/$SpaceId" + $workersUrl
-        }
-        $workersall = Get-APIResult -ServerUrl $ServerUrl -ApiKey $ApiKey -API $workersUrl
         $workers = $workersall | Where-Object { $_.WorkerPoolIds -contains $($octoWorkerPool.Id) }
         # Check to see if the thumbprint is listed
         $workerWithThumbprint = ($workers | Where-Object {$_.Thumbprint -eq $Thumbprint})
