@@ -15,8 +15,8 @@ end
 
 describe windows_dsc do
   it { should be_able_to_get_dsc_configuration }
-  it { should have_applied_dsc_configuration_successfully }
-  it { should have_test_dsc_configuration_return_success }
+  it { should have_test_dsc_configuration_return_true }
+  it { should have_dsc_configuration_status_of_success }
 end
 
 #todo: add a new type/matcher to the `octopus-serverspec-extensions` project
