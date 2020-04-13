@@ -239,8 +239,8 @@ describe file('C:\Octopus\ListeningTentacleWithCustomAccountHome\ListeningTentac
   its(:content) { should match /Tentacle\.Communication\.TrustedOctopusServers.*#{config['OctopusServerThumbprint']}/}
 end
 
-### DSC success
 describe windows_dsc do
   it { should be_able_to_get_dsc_configuration }
   it { should have_applied_dsc_configuration_successfully }
+  it { should have_test_dsc_configuration_return_success }
 end

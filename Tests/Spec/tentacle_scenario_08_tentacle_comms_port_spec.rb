@@ -61,4 +61,5 @@ end
 describe windows_dsc do
   it { should be_able_to_get_dsc_configuration }
   it { should have_applied_dsc_configuration_successfully }
+  it { should have_test_dsc_configuration_return_success }
 end
