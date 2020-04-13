@@ -4,8 +4,7 @@ $defaultTentacleDownloadUrl64 = "https://octopus.com/downloads/latest/OctopusTen
 # dot-source the helper file (cannot load as a module due to scope considerations)
 . (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1')
 
-function Get-APIResult
-{
+function Get-APIResult {
     param (
         [Parameter(Mandatory=$true)]
         [System.String]
@@ -21,8 +20,7 @@ function Get-APIResult
     )
 
     # Check to see if the server url ends with a /
-    if (!$ServerUrl.EndsWith("/"))
-    {
+    if (!$ServerUrl.EndsWith("/")) {
         # Add trailing slash
         $ServerUrl = "$ServerUrl/"
     }
@@ -37,25 +35,21 @@ function Get-APIResult
     return ConvertFrom-Json -InputObject $results
 }
 
-function Add-SpaceIfPresent
-{
+function Add-SpaceIfPresent {
     param (
         [string]
         $Space,
         [string[]]
         $argumentList
      )
-    if(![String]::IsNullOrEmpty($Space))
-    {
+    if(![String]::IsNullOrEmpty($Space)) {
         $argumentList += @("--space", $Space)
     }
 
     return $argumentList
 }
 
-function Get-MachineFromOctopusServer
-{
-    # Define parameters
+function Get-MachineFromOctopusServer {
     param (
         [Parameter(Mandatory=$true)]
         [String]
@@ -66,7 +60,6 @@ function Get-MachineFromOctopusServer
         [Parameter(Mandatory=$true)]
         [System.String]
         $Instance,
-
         [Parameter(Mandatory=$true)]
         [AllowNull()]
         [AllowEmptyString()]
@@ -85,8 +78,7 @@ function Get-MachineFromOctopusServer
     return $machine
 }
 
-function Get-TentacleThumbprint
-{
+function Get-TentacleThumbprint {
     param (
         [Parameter(Mandatory=$true)]
         [string]
@@ -97,8 +89,7 @@ function Get-TentacleThumbprint
     return $thumbprint
 }
 
-function Get-WorkerPoolMembership
-{
+function Get-WorkerPoolMembership {
     param (
         [Parameter(Mandatory=$true)]
         [System.String]
@@ -125,8 +116,7 @@ function Get-WorkerPoolMembership
 
     $workerPoolMembership = @()
 
-    foreach ($octoWorkerPool in $octoWorkerPools)
-    {
+    foreach ($octoWorkerPool in $octoWorkerPools) {
         $workersUrl = "/workers/all"
         if (![String]::IsNullOrEmpty($SpaceId)) {
             $workersUrl = "/$SpaceId" + $workersUrl
@@ -142,8 +132,7 @@ function Get-WorkerPoolMembership
     return $workerPoolMembership
 }
 
-Function Test-ParameterSet
-{
+function Test-ParameterSet {
     param(
         [Parameter(Mandatory=$true)]
         [System.String]
@@ -160,8 +149,7 @@ Function Test-ParameterSet
     }
 }
 
-Function Get-Space
-{
+function Get-Space {
     param(
         [Parameter(Mandatory=$true)]
         [System.String]
@@ -240,8 +228,7 @@ function Get-TargetResource {
             Write-Verbose "Since the Windows Service is still installed, the service is present"
             $currentEnsure = "Present"
         }
-    }
-    else {
+    } else {
         Write-Verbose "Windows service: Not installed"
         $currentEnsure = "Absent"
     }
@@ -456,10 +443,9 @@ function Set-TargetResource {
         }
         Write-Verbose "Tentacle upgraded!"
     }
-    elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Present")
-    {
+    elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Present") {
         Write-Verbose "Upgrading/modifying Tentacle..."
-        if (($null -ne $WorkerPools) -and ($WorkerPools.Count -gt 0))          {
+        if (($null -ne $WorkerPools) -and ($WorkerPools.Count -gt 0)) {
             Write-Verbose "Registering $Name as a worker in worker pools $($workerPools -join ", ")."
             Add-TentacleToWorkerPool -name $name `
                 -octopusServerUrl $octopusServerUrl `
@@ -638,7 +624,7 @@ function Get-TentacleServiceName {
 
 # After the Tentacle is registered with Octopus, Tentacle listens on a TCP port, and Octopus connects to it. The Octopus server
 # needs to know the public IP address to use to connect to this Tentacle instance.
-Function Get-MyPublicIPAddress {
+function Get-MyPublicIPAddress {
     [CmdletBinding()]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "")]
     param()
@@ -666,12 +652,9 @@ Function Get-MyPublicIPAddress {
         throw "Unable to determine your Public IP address. Please supply a hostname or IP address via the PublicHostName parameter."
     }
 
-    try
-    {
+    try {
         [Ipaddress]$ip | Out-Null
-    }
-    catch
-    {
+    } catch {
         throw "Detected Public IP address '$ip', but we we couldn't parse it as an IPv4 address."
     }
 
@@ -729,12 +712,9 @@ function Update-InstallState {
         [switch]$global = $false
     )
 
-    if ((Test-Path "$($env:SystemDrive)\Octopus\Octopus.DSC.installstate") -or $global) # do we already have a legacy installstate file, or are we writing global settings?
-    {
+    if ((Test-Path "$($env:SystemDrive)\Octopus\Octopus.DSC.installstate") -or $global) { # do we already have a legacy installstate file, or are we writing global settings?
         $installStateFile = "$($env:SystemDrive)\Octopus\Octopus.DSC.installstate"
-    }
-    else
-    {
+    } else {
         $installStateFile = "$($env:SystemDrive)\Octopus\Octopus.DSC.$script:instancecontext.installstate"
     }
 
@@ -775,8 +755,7 @@ function Invoke-MsiUninstall
         if ($msiExitCode -ne 0) {
             throw "Removal of Tentacle failed, MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
         }
-    }
-    else {
+    } else {
         throw "Tentacle cannot be removed, because the MSI could not be found."
     }
 }
@@ -830,17 +809,13 @@ function New-Tentacle {
             # Check to see if the firewall rule already exists
             $rules = Invoke-Command {& netsh.exe advfirewall firewall show rule name="Octopus Tentacle: $Name"} | Write-Output
 
-            if ($rules -eq "No rules match the specified criteria.")
-			{
-				Write-Verbose "Open port $listenPort on Windows Firewall"
-				Invoke-AndAssert { & netsh.exe advfirewall firewall add rule protocol=TCP dir=in localport=$listenPort action=allow name="Octopus Tentacle: $Name" }
-			}
-            else
-            {
+            if ($rules -eq "No rules match the specified criteria.") {
+                Write-Verbose "Open port $listenPort on Windows Firewall"
+                Invoke-AndAssert { & netsh.exe advfirewall firewall add rule protocol=TCP dir=in localport=$listenPort action=allow name="Octopus Tentacle: $Name" }
+            } else {
                 Write-Verbose "Tentacle firewall rule already exists, skipping firewall rule addition"
             }
-        }
-        else {
+        } else {
             Write-Verbose "Windows Firewall Service is not running... skipping firewall rule addition"
         }
     }
@@ -864,8 +839,7 @@ function New-Tentacle {
 
     if ($CommunicationMode -eq "Listen") {
         $configureArgs += @('--port', $listenPort)
-    }
-    else {
+    } else {
         $configureArgs += @('--noListen', 'True')
     }
     Invoke-TentacleCommand $configureArgs
@@ -939,14 +913,11 @@ function Get-PublicHostName {
     )
     if ($publicHostNameConfiguration -eq "Custom") {
         $publicHostName = $customPublicHostName
-    }
-    elseif ($publicHostNameConfiguration -eq "FQDN") {
+    } elseif ($publicHostNameConfiguration -eq "FQDN") {
         $publicHostName = [System.Net.Dns]::GetHostByName($env:computerName).HostName
-    }
-    elseif ($publicHostNameConfiguration -eq "ComputerName") {
+    } elseif ($publicHostNameConfiguration -eq "ComputerName") {
         $publicHostName = $env:COMPUTERNAME
-    }
-    else {
+    } else {
         $publicHostName = Get-MyPublicIPAddress
     }
     $publicHostName = $publicHostName.Trim()
@@ -989,8 +960,7 @@ function Remove-TentacleRegistration {
     }
 }
 
-function Remove-WorkerPoolRegistration
-{
+function Remove-WorkerPoolRegistration {
     param(
         [Parameter(Mandatory = $true)]
         [string]
@@ -1030,9 +1000,7 @@ function Remove-WorkerPoolRegistration
             throw "Both APIKey and TentacleServiceCredential are null!"
         }
         Invoke-TentacleCommand $argumentList
-    }
-    else
-    {
+    } else {
         throw "Could not find Tentacle.exe"
     }
 }
@@ -1108,8 +1076,7 @@ function Add-TentacleToWorkerPool {
             if ($tentacleCommsPort -ne $listenPort) {
                 $argumentList += @("--tentacle-comms-port", $tentacleCommsPort)
             }
-        }
-        else {
+        } else {
             $argumentList += @(
                 "--comms-style", "TentacleActive",
                 "--server-comms-port", $serverPort
@@ -1184,8 +1151,7 @@ function Register-Tentacle {
         if ($tentacleCommsPort -ne $listenPort) {
             $registerArguments += @("--tentacle-comms-port", $tentacleCommsPort)
         }
-    }
-    else {
+    } else {
         $registerArguments += @(
             "--comms-style", "TentacleActive",
             "--server-comms-port", $serverPort
