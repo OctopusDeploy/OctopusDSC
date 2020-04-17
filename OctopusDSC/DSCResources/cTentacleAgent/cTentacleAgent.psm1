@@ -562,7 +562,7 @@ function Test-TargetResource {
 
         if ($null -ne $machine) {
             if ($Environments.Count -ne $machine.EnvironmentIds.Count) {
-                Write-Verbose "Environment counts do not match, not in desired state."
+                Write-Verbose "Environments: [$Environments] vs [$machine.EnvironmentIds]: $false"
                 return $false
             } else {
                 foreach ($environmentId in $machine.EnvironmentIds) {
@@ -572,7 +572,7 @@ function Test-TargetResource {
                     }
                     $environment = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API $environmentUrl
                     if ($Environments -notcontains $environment.Name) {
-                        Write-Verbose "Machine currently has environment $($environment.Name), which is not listed in the passed in Environment list.  Machine is not in desired state."
+                        Write-Verbose "Environments: Machine currently has environment $($environment.Name), which is not listed in the passed in list [$Environments].  Machine is not in desired state."
                         return $false
                     }
                 }
@@ -582,32 +582,37 @@ function Test-TargetResource {
             $workerPoolMembership = Get-WorkerPoolMembership -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -Thumbprint $tentacleThumbprint -SpaceId $spaceRef.Id
 
             if ($WorkerPools.Count -ne $workerPoolMembership.Count) {
-                Write-Verbose "Worker pool counts do not match, not in desired state."
+                Write-Verbose "Worker pools [$WorkerPools] vs [$workerPoolMembership] = $false"
                 return $false
             } else {
                 foreach ($workerPool in $workerPoolMembership) {
                     if ($WorkerPools -notcontains $workerPool.Name) {
-                        Write-Verbose "Worker pool membership is not in desired state."
+                        Write-Verbose "Worker pools: [$WorkerPools] vs [$workerPoolMembership] = $false"
                         return $false
                     }
                 }
             }
 
             if ($Roles.Count -ne $machine.Roles.Count) {
-                Write-Verbose "Role counts do not match, not in desired state."
+                Write-Verbose "Roles: [$Roles] vs [$($machine.Roles)]: $false"
                 return $false
             } else {
                 $differences = Compare-Object -ReferenceObject $Roles -DifferenceObject $machine.Roles
                 if ($null -ne $differences) {
-                    Write-Verbose "Tentacle roles do not match specified roles, not in desired state."
+                    Write-Verbose "Roles: [$Roles] vs [$($machine.Roles)]: $false"
                     return $false
                 }
             }
         } else {
-            Write-Verbose "Machine '$Name' is not registered in Space '$Space'"
+            if ([string]::IsNullOrEmpty($Space)) {
+                Write-Verbose "Machine '$Name' is not registered"
+            } else {
+                Write-Verbose "Machine '$Name' is not registered in Space '$Space'"
+            }
         }
     }
 
+    Write-Verbose "Everything looks to be in working order"
     return $true
 }
 
