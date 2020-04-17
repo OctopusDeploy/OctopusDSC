@@ -120,7 +120,7 @@ function Invoke-VagrantWithRetries {
   do {
     Write-Output (@("Running Vagrant with arguments '", ($args -join " "), "'") -join "")
     Invoke-Expression "vagrant $args" -ErrorVariable stdErr 2>&1 | Tee-Object -FilePath vagrant.log
-    if (-not ([string]::IsNullOrEmpty($stdErr)) {
+    if (-not ([string]::IsNullOrEmpty($stdErr))) {
       Write-Warning "StdErr:"
       Write-Warning $stdErr
     }
