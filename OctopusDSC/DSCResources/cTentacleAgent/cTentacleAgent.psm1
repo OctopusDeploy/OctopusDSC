@@ -78,6 +78,36 @@ function Get-MachineFromOctopusServer {
     return $machine
 }
 
+function Get-WorkerFromOctopusServer
+{
+    param (
+        [Parameter(Mandatory=$true)]
+        [String]
+        $ServerUrl,
+        [Parameter(Mandatory=$true)]
+        [System.String]
+        $APIKey,
+        [Parameter(Mandatory=$true)]
+        [System.String]
+        $Instance,
+        [Parameter(Mandatory=$true)]
+        [AllowNull()]
+        [AllowEmptyString()]
+        [System.String]
+        $SpaceId
+    )
+    $apiUrl = "/workers/all"
+    if (![String]::IsNullOrEmpty($SpaceId)) {
+        $apiUrl = "/$SpaceId" + $apiUrl
+    }
+
+    $workers = Get-APIResult -ServerUrl $ServerUrl -APIKey $APIKey -API $apiUrl
+    $thumbprint = Get-TentacleThumbprint -Instance $Instance
+    $worker = $workers | Where-Object {$_.Thumbprint -eq $thumbprint}
+
+    return $worker
+}
+
 function Get-TentacleThumbprint {
     param (
         [Parameter(Mandatory=$true)]
@@ -90,6 +120,7 @@ function Get-TentacleThumbprint {
 }
 
 function Get-WorkerPoolMembership {
+    [OutputType([object[]])]
     param (
         [Parameter(Mandatory=$true)]
         [System.String]
@@ -129,7 +160,7 @@ function Get-WorkerPoolMembership {
             $workerPoolMembership += $octoWorkerPool
         }
     }
-    return $workerPoolMembership
+    return ,$workerPoolMembership
 }
 
 function Test-ParameterSet {
@@ -558,56 +589,74 @@ function Test-TargetResource {
             }
         }
 
-        $machine = Get-MachineFromOctopusServer -ServerUrl $OctopusServerUrl -APIKey $ApiKey -Instance $Name -SpaceId $spaceRef.Id
+        if ($null -ne $WorkerPools -and $WorkerPools.Length -gt 0) {
+            $worker = Get-WorkerFromOctopusServer -ServerUrl $OctopusServerUrl -APIKey $ApiKey -Instance $Name -SpaceId $spaceRef.Id
 
-        if ($null -ne $machine) {
-            if ($Environments.Count -ne $machine.EnvironmentIds.Count) {
-                Write-Verbose "Environment counts do not match, not in desired state."
-                return $false
-            } else {
-                foreach ($environmentId in $machine.EnvironmentIds) {
-                    $environmentUrl = "/environments/$environmentId"
-                    if ($null -ne $spaceRef) {
-                        $environmentUrl = "/$($spaceRef.Id)" + $environmentUrl
-                    }
-                    $environment = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API $environmentUrl
-                    if ($Environments -notcontains $environment.Name) {
-                        Write-Verbose "Machine currently has environment $($environment.Name), which is not listed in the passed in Environment list.  Machine is not in desired state."
-                        return $false
-                    }
-                }
-            }
+            if ($null -ne $worker) {
+                $workerPoolMembership = Get-WorkerPoolMembership -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -Thumbprint $worker.Endpoint.Thumbprint -SpaceId $spaceRef.Id
 
-            $tentacleThumbprint = Get-TentacleThumbprint -Instance $Name
-            $workerPoolMembership = Get-WorkerPoolMembership -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -Thumbprint $tentacleThumbprint -SpaceId $spaceRef.Id
-
-            if ($WorkerPools.Count -ne $workerPoolMembership.Count) {
-                Write-Verbose "Worker pool counts do not match, not in desired state."
-                return $false
-            } else {
-                foreach ($workerPool in $workerPoolMembership) {
-                    if ($WorkerPools -notcontains $workerPool.Name) {
-                        Write-Verbose "Worker pool membership is not in desired state."
-                        return $false
-                    }
-                }
-            }
-
-            if ($Roles.Count -ne $machine.Roles.Count) {
-                Write-Verbose "Role counts do not match, not in desired state."
-                return $false
-            } else {
-                $differences = Compare-Object -ReferenceObject $Roles -DifferenceObject $machine.Roles
-                if ($null -ne $differences) {
-                    Write-Verbose "Tentacle roles do not match specified roles, not in desired state."
+                if ($WorkerPools.Count -ne $workerPoolMembership.Count) {
+                    Write-Verbose "Worker pools [$WorkerPools] vs [$workerPoolMembership] = $false"
                     return $false
+                } else {
+                    foreach ($workerPool in $workerPoolMembership) {
+                        if ($WorkerPools -notcontains $workerPool.Name) {
+                            Write-Verbose "Worker pools: [$WorkerPools] vs [$workerPoolMembership] = $false"
+                            return $false
+                        }
+                    }
                 }
+            } else {
+                if ([string]::IsNullOrEmpty($Space)) {
+                    Write-Verbose "Worker '$Name' is not registered in Space '$Space'"
+                } else {
+                    Write-Verbose "Worker '$Name' is not registered"
+                }
+                return $false
             }
         } else {
-            Write-Verbose "Machine '$Name' is not registered in Space '$Space'"
+            $machine = Get-MachineFromOctopusServer -ServerUrl $OctopusServerUrl -APIKey $ApiKey -Instance $Name -SpaceId $spaceRef.Id
+
+            if ($null -ne $machine) {
+                if ($Environments.Count -ne $machine.EnvironmentIds.Count) {
+                    Write-Verbose "Environments: [$Environments] vs [$machine.EnvironmentIds]: $false"
+                    return $false
+                } else {
+                    foreach ($environmentId in $machine.EnvironmentIds) {
+                        $environmentUrl = "/environments/$environmentId"
+                        if ($null -ne $spaceRef) {
+                            $environmentUrl = "/$($spaceRef.Id)" + $environmentUrl
+                        }
+                        $environment = Get-APIResult -ServerUrl $OctopusServerUrl -ApiKey $ApiKey -API $environmentUrl
+                        if ($Environments -notcontains $environment.Name) {
+                            Write-Verbose "Environments: Machine currently has environment $($environment.Name), which is not listed in the passed in list [$Environments].  Machine is not in desired state."
+                            return $false
+                        }
+                    }
+                }
+
+                if ($Roles.Count -ne $machine.Roles.Count) {
+                    Write-Verbose "Roles: [$Roles] vs [$($machine.Roles)]: $false"
+                    return $false
+                } else {
+                    $differences = Compare-Object -ReferenceObject $Roles -DifferenceObject $machine.Roles
+                    if ($null -ne $differences) {
+                        Write-Verbose "Roles: [$Roles] vs [$($machine.Roles)]: $false"
+                        return $false
+                    }
+                }
+            } else {
+                if ([string]::IsNullOrEmpty($Space)) {
+                    Write-Verbose "Machine '$Name' is not registered"
+                } else {
+                    Write-Verbose "Machine '$Name' is not registered in Space '$Space'"
+                }
+                return $false
+            }
         }
     }
 
+    Write-Verbose "Everything looks to be in working order"
     return $true
 }
 

@@ -79,6 +79,27 @@ try
                 }
             }
 
+            Context 'Get-WorkerPoolMembership' {
+                It 'always returns an array, even if only one item returned' {
+                    Mock Get-APIResult { return @( [pscustomobject] @{ Name = "Pool1"; Id = "WorkerPools-1" } )} -ParameterFilter {$api -eq "/workerpools/all"}
+                    Mock Get-APIResult { return @( [pscustomobject] @{ Name = "Worker1"; WorkerPoolIds = @("WorkerPools-1"); Thumbprint = "12345678"} )} -ParameterFilter {$api -eq "/workers/all"}
+                    $result = Get-WorkerPoolMembership -ServerUrl "https://example.com" -Thumbprint "12345678" -ApiKey "API-1234" -SpaceId $null
+
+                    $result.Count | Should -Not -Be $null
+                }
+            }
+
+            Context 'Get-WorkerPoolMembership' {
+                It 'always returns an array, even if only one item returned' {
+                    Mock Get-APIResult { return @( [pscustomobject] @{ Name = "Pool1"; Id = "WorkerPools-1" } )} -ParameterFilter {$api -eq "/workerpools/all"}
+                    Mock Get-APIResult { return @( [pscustomobject] @{ Name = "Worker1"; WorkerPoolIds = @("WorkerPools-1"); Thumbprint = "12345678"} )} -ParameterFilter {$api -eq "/workers/all"}
+                    $result = Get-WorkerPoolMembership -ServerUrl "http://localhost:8065" -Thumbprint "D80D5A3DF457E1EFB355451109588DBE26F59368" -ApiKey "API-JM91EXRDGJTCTT7SEEVMJ7E73R4" -SpaceId $null
+
+                    $result.GetType() | Should -Be "System.Object[]"
+                    $result.Count | Should -Not -Be $null
+                }
+            }
+
             Context 'Get-TargetResource' {
                 Mock Get-ItemProperty { return @{ InstallLocation = "c:\Octopus\Tentacle\Stub" }}
                 Mock Get-Service { return @{ Status = "Running" }}
