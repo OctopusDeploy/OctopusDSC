@@ -83,8 +83,13 @@ function Test-LogContainsRetriableFailure($log) {
   if ($log.Contains("[WinRM::FS::Core::FileTransporter] Upload failed (exitcode: 0), but stderr present (WinRM::FS::Core::FileTransporterFailed)")) {
       return $true
   }
-
-  Write-Warning "Attempted retry, but no retriable failures found"
+  if ($log.Contains("The box is not able to report an address for WinRM to connect to yet.")) {
+      return $true
+  }
+  if ($log.Contains("Shared folders not properly configured. This is generally resolved by a 'vagrant halt && vagrant up'")) {
+      return $true
+  }
+  Write-Host "Attempted retry, but no retriable failures found"
   return $false
 }
 
