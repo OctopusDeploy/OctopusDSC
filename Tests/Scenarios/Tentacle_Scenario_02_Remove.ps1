@@ -120,7 +120,6 @@ Configuration Tentacle_Scenario_02_Remove
             # Registration - all parameters required
             ApiKey = $ApiKey;
             OctopusServerUrl = $OctopusServerUrl;
-            Roles = $Roles;
 
             # Optional settings
             ListenPort = 10937;
