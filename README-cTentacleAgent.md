@@ -97,10 +97,14 @@ When `State` is `Started`, the resource will ensure that the Tentacle windows se
 
 ## Drift
 
-Currently the resource only considers the `Ensure`, `State` and `TentacleDownloadUrl`/`TentacleDownloadUrl64` properties when testing for drift.
+Currently the resource only considers the following properties when testing for drift:
+* `Ensure`
+* `State`
+* `TentacleDownloadUrl`/`TentacleDownloadUrl64`
+* `WorkerPools`
+* `Environments`
+* `Roles`
 
-This means that if you set `Ensure` to `Present` to install Tentacle, then later set it to `Absent`, testing the configuration will return `$false`. Likewise if you set the `State` to `Stopped` and the service is running.
-
-If the tentacleDownloadUrl / tentacleDownloadUrl64 properties change, it will detect the configuration drift and upgrade/downgrade the Tentacle as appropriate. However, if you leave it as default (ie 'install latest'), it will not upgrade when a new version is released - it only actions on change of the property.
+If the `tentacleDownloadUrl` / `tentacleDownloadUrl64` properties change, it will detect the configuration drift and upgrade/downgrade the Tentacle as appropriate. However, if you leave it as default (ie 'install latest'), it will not upgrade when a new version is released - it only acts on change of the property.
 
 However, if you were to set the `ListenPort` to a new port, the drift detection isn't smart enough to check the old configuration, nor update the registered machine. You'll need to uninstall and reinstall for these other settings to take effect.
