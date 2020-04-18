@@ -28,6 +28,24 @@ try
                 }
             }
 
+            Context 'Test-ParameterSet' {
+                It 'Throws if PublicHostNameConfiguration is Custom but CustomPublicHostName not set' {
+                    { Test-ParameterSet -publicHostNameConfiguration "Custom" -CustomPublicHostName $null -WorkerPools @() -Environments @('My Env') -Roles @() -Tenants @() -TenantTags @()} | Should Throw "Invalid configuration requested"
+                }
+                It 'Throws if WorkerPools are provided and Environments are provided' {
+                    { Test-ParameterSet -publicHostNameConfiguration "PublicIp" -CustomPublicHostName $null -WorkerPools @('My Worker Pool') -Environments @('My Env') -Roles @() -Tenants @() -TenantTags @() } | Should Throw "Invalid configuration requested"
+                }
+                It 'Throws if WorkerPools are provided and Roles are provided' {
+                    { Test-ParameterSet -publicHostNameConfiguration "PublicIp" -CustomPublicHostName $null -WorkerPools @('My Worker Pool') -Environments @() -Roles @('My Roles') -Tenants @() -TenantTags @() } | Should Throw "Invalid configuration requested"
+                }
+                It 'Throws if WorkerPools are provided and Tenants are provided' {
+                    { Test-ParameterSet -publicHostNameConfiguration "PublicIp" -CustomPublicHostName $null -WorkerPools @('My Worker Pool') -Environments @() -Roles @() -Tenants @('Jim-Bob') -TenantTags @() } | Should Throw "Invalid configuration requested"
+                }
+                It 'Throws if WorkerPools are provided and Tenant Tags are provided' {
+                    { Test-ParameterSet -publicHostNameConfiguration "PublicIp" -CustomPublicHostName $null -WorkerPools @('My Worker Pool') -Environments @() -Roles @() -Tenants @() -TenantTags @('CustomerType/VIP') } | Should Throw "Invalid configuration requested"
+                }
+            }
+
             Context 'Confirm-RegistrationParameter' {
                 It 'Throws if RegisterWithServer is false but environment provided' {
                     { Confirm-RegistrationParameter -Ensure "Present" -RegisterWithServer $False -Environments @('My Env') } | Should Throw "Invalid configuration requested"

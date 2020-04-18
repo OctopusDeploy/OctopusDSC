@@ -141,11 +141,38 @@ function Test-ParameterSet {
         [AllowNull()]
         [AllowEmptyString()]
         [System.String]
-        $CustomPublicHostName
+        $CustomPublicHostName,
+        [System.String[]]
+        $Environments = "",
+        [System.String[]]
+        $Roles = "",
+        [System.String[]]
+        $WorkerPools,
+        [System.String[]]
+        $Tenants,
+        [System.String[]]
+        $TenantTags
     )
 
     if($publicHostNameConfiguration -eq "Custom" -and [String]::IsNullOrWhiteSpace($CustomPublicHostName)) {
-        throw "PublicHostNameConfiguration was set to 'Custom' but an invalid or null CustomPublicHostName was specified"
+        throw "Invalid configuration requested. " + `
+            "PublicHostNameConfiguration was set to 'Custom' but an invalid or null CustomPublicHostName was specified."
+    } elseif ((Test-Value($Environments)) -and (Test-Value($WorkerPools))) {
+        throw "Invalid configuration requested. " + `
+            "You have asked for the Tentacle to be registered as a worker, but still provided the 'Environments' configuration argument. " + `
+            "Please remove the 'Environments' configuration argument."
+    } elseif ((Test-Value($Roles)) -and (Test-Value($WorkerPools))) {
+        throw "Invalid configuration requested. " + `
+            "You have asked for the Tentacle to be registered as a worker, but still provided the 'Roles' configuration argument. " + `
+            "Please remove the 'Roles' configuration argument."
+    } elseif ((Test-Value($Tenants)) -and (Test-Value($WorkerPools))) {
+        throw "Invalid configuration requested. " + `
+            "You have asked for the Tentacle to be registered as a worker, but still provided the 'Tenants' configuration argument. " + `
+            "Please remove the 'Tenants' configuration argument."
+    } elseif ((Test-Value($TenantTags)) -and (Test-Value($WorkerPools))) {
+        throw "Invalid configuration requested. " + `
+            "You have asked for the Tentacle to be registered as a worker, but still provided the 'TenantTags' configuration argument. " + `
+            "Please remove the 'TenantTags' configuration argument."
     }
 }
 
@@ -205,7 +232,12 @@ function Get-TargetResource {
     )
 
     Test-ParameterSet   -publicHostNameConfiguration $PublicHostNameConfiguration `
-                        -customPublicHostName $CustomPublicHostName
+                        -customPublicHostName $CustomPublicHostName `
+                        -Environments $Environments `
+                        -Roles $Roles `
+                        -WorkerPools $WorkerPools `
+                        -Tenants $Tenants `
+                        -TenantTags $TenantTags
 
     Write-Verbose "Checking if Tentacle is installed"
     $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\Tentacle" -ErrorAction SilentlyContinue).InstallLocation
@@ -279,23 +311,23 @@ function Confirm-RegistrationParameter {
         }
     } elseif ((Test-Value($Roles)) -and (-not ($RegisterWithServer))) {
         throw "Invalid configuration requested. " + `
-            "You have asked for the Tentacle not to be registered with the server, but still provided a the 'Roles' configuration argument. " + `
+            "You have asked for the Tentacle not to be registered with the server, but still provided the 'Roles' configuration argument. " + `
             "Please remove the 'Roles' configuration argument or set 'RegisterWithServer = `$True'."
     } elseif ((Test-Value($Environments)) -and (-not ($RegisterWithServer))) {
         throw "Invalid configuration requested. " + `
-            "You have asked for the Tentacle not to be registered with the server, but still provided a the 'Environments' configuration argument. " + `
+            "You have asked for the Tentacle not to be registered with the server, but still provided the 'Environments' configuration argument. " + `
             "Please remove the 'Environments' configuration argument or set 'RegisterWithServer = `$True'."
     } elseif ((Test-Value($Tenants)) -and (-not ($RegisterWithServer))) {
         throw "Invalid configuration requested. " + `
-            "You have asked for the Tentacle not to be registered with the server, but still provided a the 'Tenants' configuration argument. " + `
+            "You have asked for the Tentacle not to be registered with the server, but still provided the 'Tenants' configuration argument. " + `
             "Please remove the 'Tenants' configuration argument or set 'RegisterWithServer = `$True'."
     } elseif ((Test-Value($TenantTags)) -and (-not ($RegisterWithServer))) {
         throw "Invalid configuration requested. " + `
-            "You have asked for the Tentacle not to be registered with the server, but still provided a the 'TenantTags' configuration argument. " + `
+            "You have asked for the Tentacle not to be registered with the server, but still provided the 'TenantTags' configuration argument. " + `
             "Please remove the 'TenantTags' configuration argument or set 'RegisterWithServer = `$True'."
     } elseif ((Test-Value($Policy)) -and (-not ($RegisterWithServer))) {
         throw "Invalid configuration requested. " + `
-            "You have asked for the Tentacle not to be registered with the server, but still provided a the 'Policy' configuration argument. " + `
+            "You have asked for the Tentacle not to be registered with the server, but still provided the 'Policy' configuration argument. " + `
             "Please remove the 'Policy' configuration argument or set 'RegisterWithServer = `$True'."
     } elseif ((-not (Test-Value($OctopusServerUrl))) -and (($RegisterWithServer))) {
         throw "Invalid configuration requested. " + `
