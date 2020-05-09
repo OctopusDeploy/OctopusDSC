@@ -442,8 +442,10 @@ function Set-TargetResource {
     }
 
     if ($Ensure -eq "Absent" -and $currentResource["Ensure"] -eq "Present") {
+        Write-Verbose "Removing..."
         if ($RegisterWithServer) {
             Remove-TentacleRegistration -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl -Space $Space
+            Remove-WorkerPoolRegistration -name $Name -apiKey $ApiKey -octopusServerUrl $OctopusServerUrl -Space $Space
         }
 
         $serviceName = (Get-TentacleServiceName $Name)
@@ -506,10 +508,10 @@ function Set-TargetResource {
         }
         Write-Verbose "Tentacle upgraded!"
     }
-    elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Present") {
+    elseif ($Ensure -eq "Present" -and $currentResource["Ensure"] -eq "Present" -and $RegisterWithServer) {
         Write-Verbose "Upgrading/modifying Tentacle..."
         if (($null -ne $WorkerPools) -and ($WorkerPools.Count -gt 0)) {
-            Write-Verbose "Registering $Name as a worker in worker pools $($workerPools -join ", ")."
+            Write-Verbose "Ensuring $Name is registered as a worker in worker pools $($workerPools -join ", ")."
             Add-TentacleToWorkerPool -name $name `
                 -octopusServerUrl $octopusServerUrl `
                 -apiKey $apiKey `
@@ -522,6 +524,7 @@ function Set-TargetResource {
                 -tentacleCommsPort $tentacleCommsPort `
                 -space $space
         } elseif (![string]::IsNullOrEmpty($Environments) -and ![string]::IsNullOrEmpty($Roles)) {
+            Write-Verbose "Ensuring $Name is registered as a tentacle in roles [$($Roles -join ", ")] and environments [$($Environments -join ", ")]."
              Register-Tentacle -name $Name `
                  -apiKey $ApiKey `
                  -octopusServerUrl $OctopusServerUrl `
@@ -1065,21 +1068,10 @@ function Remove-WorkerPoolRegistration {
             "deregister-worker",
             "--instance", $name,
             "--server", $octopusServerUrl,
+            "--apiKey", $apiKey,
             "--console"
         )
         $argumentList = Add-SpaceIfPresent -Space $Space -ArgumentList $argumentList
-        if (![string]::IsNullOrEmpty($apiKey)) {
-            $argumentList += @(
-                "--apiKey", $apiKey
-            )
-        } elseif (![string]::IsNullOrEmpty($TentacleServiceCredential)) {
-            $argumentList += @(
-                "--username", $TentacleServiceCredential.UserName,
-                "--password", $TentacleServiceCredential.GetNetworkCredential().Password
-            )
-        } else {
-            throw "Both APIKey and TentacleServiceCredential are null!"
-        }
         Invoke-TentacleCommand $argumentList
     } else {
         throw "Could not find Tentacle.exe"
@@ -1097,9 +1089,6 @@ function Add-TentacleToWorkerPool {
         [Parameter(Mandatory = $true)]
         [string]
         $apiKey,
-        [Parameter(Mandatory = $false)]
-        [PSCredential]
-        $TentacleServiceCredential,
         [Parameter(Mandatory = $true)]
         [String[]]
         $workerPools,
@@ -1131,22 +1120,11 @@ function Add-TentacleToWorkerPool {
             "register-worker",
             "--instance", $name,
             "--server", $octopusServerUrl,
+            "--apiKey", $apiKey,
             "--name", $displayName,
             "--force"
         )
         $argumentList = Add-SpaceIfPresent -Space $Space -ArgumentList $argumentList
-        if (![string]::IsNullOrEmpty($apiKey)) {
-            $argumentList += @(
-                "--apiKey", $apiKey
-            )
-        } elseif (![string]::IsNullOrEmpty($TentacleServiceCredential)) {
-            $argumentList += @(
-                "--username", $TentacleServiceCredential.UserName,
-                "--password", $TentacleServiceCredential.GetNetworkCredential().Password
-            )
-        } else {
-            throw "Both APIKey and TentacleServiceCredential are null!"
-        }
         if ($CommunicationMode -eq "Listen") {
             $publicHostName = Get-PublicHostName $publicHostNameConfiguration $customPublicHostName
             Write-Verbose "Public host name: $publicHostName"
