@@ -1047,20 +1047,15 @@ function Remove-TentacleRegistration {
 function Remove-WorkerPoolRegistration {
     param(
         [Parameter(Mandatory = $true)]
-        [string]
-        $octopusServerUrl,
+        [string]$octopusServerUrl,
         [Parameter(Mandatory = $true)]
-        [string]
-        $apiKey,
+        [string]$apiKey,
         [Parameter(Mandatory = $true)]
-        [PSCredential]
-        $TentacleServiceCredential,
-        [Parameter(Mandatory = $true)]
-        [string]
-        $name,
-        [Parameter(Mandatory = $true)]
-        [string]
-        $Space
+        [string]$name,
+        [Parameter(Mandatory = $True)]
+        [AllowNull()]
+        [AllowEmptyString()]
+        [string]$Space
     )
     if (Test-TentacleExecutableExists) {
         Write-Verbose "Deregistering $($env:ComputerName) from worker pools"
