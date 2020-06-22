@@ -257,7 +257,7 @@ function Get-ServerConfiguration($instanceName) {
     } -MaxRetries 3 -IntervalInMilliseconds 100
 
     $masterkey = & $octopusServerExePath show-master-key --noconsolelogging --console --instance $instanceName
-    $config.OctopusMasterKey = $masterkey
+    $config | Add-Member -NotePropertyName "OctopusMasterKey" -NotePropertyValue $masterkey
 
     return $config
 }
