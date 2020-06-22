@@ -149,6 +149,7 @@ function Get-TargetResource {
                 $existingLogTaskMetrics = $existingConfig.OctopusTasksRecordTaskMetrics
                 $existingLogRequestMetrics = $existingConfig.OctopusWebPortalRequestMetricLoggingEnabled
                 $existingTaskCap = $existingConfig.OctopusNodeTaskCap
+                $existingOctopusMasterKey = $existingConfig.OctopusMasterKey
 
                 #note: this can get out of sync with reality. Ideally we'd read from `show-configuration`,
                 #      but the catch is there can be multple admins. We'd probably need to add support for
@@ -198,14 +199,16 @@ function Get-TargetResource {
             OctopusServiceCredential                  = $existingOctopusServiceCredential;
             HomeDirectory                             = $existingHomeDirectory;
             LicenseKey                                = $existingLicenseKey;
-            GrantDatabasePermissions                  = $GrantDatabasePermissions;
             OctopusBuiltInWorkerCredential            = $existingOctopusBuiltInWorkerCredential;
             PackagesDirectory                         = $existingPackagesDirectory;
             ArtifactsDirectory                        = $existingArtifactsDirectory;
             TaskLogsDirectory                         = $existingTaskLogsDirectory;
             LogTaskMetrics                            = $existingLogTaskMetrics;
             LogRequestMetrics                         = $existingLogRequestMetrics;
-            TaskCap                                   = $existingTaskCap
+            TaskCap                                   = $existingTaskCap;
+            OctopusMasterKey                          = $existingOctopusMasterKey;
+            GrantDatabasePermissions                  = $GrantDatabasePermissions;
+            SkipLicenseCheck                          = $SkipLicenseCheck;
         }
 
         return $currentResource
@@ -265,6 +268,7 @@ function Import-ServerConfig {
             OctopusTasksRecordTaskMetrics                  = [System.Convert]::ToBoolean($config.Octopus.Tasks.RecordTaskMetrics)
             OctopusWebPortalRequestMetricLoggingEnabled    = [System.Convert]::ToBoolean($config.Octopus.WebPortal.RequestMetricLoggingEnabled)
             OctopusNodeTaskCap                             = $config.Octopus.Server.TaskCap
+            OctopusMasterKey                               = $config.OctopusMasterKey
         }
     }
     else {
