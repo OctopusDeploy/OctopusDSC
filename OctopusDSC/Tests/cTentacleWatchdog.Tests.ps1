@@ -40,34 +40,36 @@ try
                     }
 
                     $config = Get-TargetResource @desiredConfiguration
-                    $config.InstanceName    | Should Be 'Tentacle'
-                    $config.Enabled         | Should Be $true
-                    $config.Interval        | Should Be 5
-                    $config.Instances       | Should Be "master"
+                    $config.InstanceName    | Should -Be 'Tentacle'
+                    $config.Enabled         | Should -Be $true
+                    $config.Interval        | Should -Be 5
+                    $config.Instances       | Should -Be "master"
                 }
 
                 It 'Throws an exception if Octopus is not installed' {
                     Mock Test-Path { return $false } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe" }
                     Mock Test-TentacleSupportsShowConfiguration { return $true }
-                    { Get-TargetResource @desiredConfiguration } | Should Throw "Unable to find Tentacle (checked for existence of file '$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe')."
+                    { Get-TargetResource @desiredConfiguration } | Should -throw "Unable to find Tentacle (checked for existence of file '$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe')."
                 }
 
                 It 'Throws an exception if its an old version of Tentacle' {
                     Mock Test-Path { return $true } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe" }
                     Mock Test-TentacleSupportsShowConfiguration { return $false }
-                    { Get-TargetResource @desiredConfiguration } | Should Throw "This resource only supports Tentacle 3.15.8+."
+                    { Get-TargetResource @desiredConfiguration } | Should -throw "This resource only supports Tentacle 3.15.8+."
                 }
             }
 
             Context 'Test-TargetResource' {
-                $response = @{ InstanceName="Tentacle"; Enabled=$true }
-                Mock Get-TargetResource { return $response }
+                BeforeAll {
+                    $response = @{ InstanceName="Tentacle"; Enabled=$true }
+                    Mock Get-TargetResource { return $response }
+                }
 
                 It 'Returns True when values the same' {
                     $response['Enabled'] = $true
                     $response['Interval'] = 5
                     $response['Instances'] = "*"
-                    Test-TargetResource @desiredConfiguration | Should Be $true
+                    Test-TargetResource @desiredConfiguration | Should -Be $true
                 }
 
                 It 'Returns false when its currently disabled' {
@@ -75,7 +77,7 @@ try
                     $response['Interval'] = 5
                     $response['Instances'] = "*"
 
-                    Test-TargetResource @desiredConfiguration | Should Be $false
+                    Test-TargetResource @desiredConfiguration | Should -Be $false
                 }
 
                 It 'Returns false when interval is currently different' {
@@ -83,14 +85,14 @@ try
                     $response['Interval'] = 10
                     $response['Instances'] = "*"
 
-                    Test-TargetResource @desiredConfiguration | Should Be $false
+                    Test-TargetResource @desiredConfiguration | Should -Be $false
                 }
 
                 It 'Returns false when the Instances is currently different' {
                     $response['Enabled'] = $true
                     $response['Interval'] = 5
                     $response['Instances'] = "master"
-                    Test-TargetResource @desiredConfiguration | Should Be $false
+                    Test-TargetResource @desiredConfiguration | Should -Be $false
                 }
 
                 It 'Calls Get-TargetResource (and therefore inherits its checks)' {
@@ -100,6 +102,9 @@ try
             }
 
             Context 'Set-TargetResource' {
+                BeforeAll {
+                    . $dscHelpersPath
+                }
                 It 'Calls Invoke-TentacleCommand with the correct arguments to enable' {
                     Mock Invoke-TentacleCommand
 
@@ -107,7 +112,7 @@ try
                                        -Enabled $true `
                                        -Interval 5 `
                                        -Instances "*"
-                    Assert-MockCalled Invoke-TentacleCommand -ParameterFilter { ($arguments -join ' ') -eq 'watchdog --create --interval 5 --instances "*"'}
+                    Assert-MockCalled Invoke-TentacleCommand -ParameterFilter { ($cmdArgs -join ' ') -eq 'watchdog --create --interval 5 --instances "*"'}
                 }
 
                 It 'Calls Invoke-TentacleCommand with the correct arguments to disable' {
@@ -117,7 +122,7 @@ try
                                        -Enabled $false `
                                        -Interval 5 `
                                        -Instances "*"
-                    Assert-MockCalled Invoke-TentacleCommand -ParameterFilter { ($arguments -join ' ') -eq 'watchdog --delete'}
+                    Assert-MockCalled Invoke-TentacleCommand -ParameterFilter { ($cmdArgs -join ' ') -eq 'watchdog --delete'}
                 }
             }
         }
