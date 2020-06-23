@@ -14,12 +14,6 @@ try
 
     InModuleScope $module.Name {
 
-        # Get-Service is not available on mac/unix systems - fake it
-        $getServiceCommand = Get-Command "Get-Service" -ErrorAction SilentlyContinue
-        if ($null -eq $getServiceCommand) {
-            function Get-Service {}
-        }
-
         Describe 'cOctopusServer' {
             BeforeAll {
                 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
@@ -29,22 +23,28 @@ try
                 }
                 Mock Import-ServerConfig { return $mockConfig }
 
-            function Get-DesiredConfiguration {
-                $pass = ConvertTo-SecureString "S3cur3P4ssphraseHere!" -AsPlainText -Force
-                $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
-
-                [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
-                $desiredConfiguration = @{
-                    Name                   = 'Stub'
-                    Ensure                 = 'Present'
-                    State                  = 'Started'
-                    WebListenPrefix        = "http://localhost:80"
-                    SqlDbConnectionString  = "conn-string"
-                    OctopusAdminCredential = $cred
+                # Get-Service is not available on mac/unix systems - fake it
+                $getServiceCommand = Get-Command "Get-Service" -ErrorAction SilentlyContinue
+                if ($null -eq $getServiceCommand) {
+                    function Get-Service {}
                 }
-                return $desiredConfiguration
+
+                function Get-DesiredConfiguration {
+                    $pass = ConvertTo-SecureString "S3cur3P4ssphraseHere!" -AsPlainText -Force
+                    $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
+
+                    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
+                    $desiredConfiguration = @{
+                        Name                   = 'Stub'
+                        Ensure                 = 'Present'
+                        State                  = 'Started'
+                        WebListenPrefix        = "http://localhost:80"
+                        SqlDbConnectionString  = "conn-string"
+                        OctopusAdminCredential = $cred
+                    }
+                    return $desiredConfiguration
+                }
             }
-        }
 
             Context 'Get-TargetResource' {
                 Context 'When reg key exists and service exists and service started' {
