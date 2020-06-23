@@ -26,7 +26,10 @@ try
                 # Get-Service is not available on mac/unix systems - fake it
                 $getServiceCommand = Get-Command "Get-Service" -ErrorAction SilentlyContinue
                 if ($null -eq $getServiceCommand) {
-                    function Get-Service {}
+                    function Get-Service {
+                        [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification='Get-Service is not available on mac/unix systems, so without faking it, our builds fail')]
+                        param()
+                    }
                 }
 
                 function Get-DesiredConfiguration {
@@ -441,10 +444,10 @@ try
                     it "Should call octopus.server.exe $($invocations.count) times" {
                         Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times $invocations.Count -Exactly
                     }
-                    if ($cases.length -gt 0)
-                    {
+                    if ($cases.length -gt 0) {
                         it "Should call octopus.server.exe with args '<line>'" -TestCases $cases {
                             param($line)
+                            write-verbose "Checking line $line" # workaround ReviewUnusedParameter does not capture parameter usage within a scriptblock.  See https://github.com/PowerShell/PSScriptAnalyzer/issues/1472
                             Set-TargetResource @params
                             Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($cmdArgs -join ' ') -eq $line }
                         }

@@ -8,7 +8,10 @@ Describe "PSScriptAnalyzer" {
     It "Should have zero PSScriptAnalyzer issues in OctopusDSC/DSCResources" {
         $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/DSCResources"
         Write-Output "Running PsScriptAnalyzer against $path"
-        $results = @(Invoke-ScriptAnalyzer $path -recurse -exclude @('PSUseShouldProcessForStateChangingFunctions'))
+        $results = @(Invoke-ScriptAnalyzer $path -recurse -exclude @(
+            'PSUseShouldProcessForStateChangingFunctions'
+            'PSReviewUnusedParameter' # too many false positives from https://github.com/PowerShell/PSScriptAnalyzer/issues/1472
+            ))
         $results | ConvertTo-Json | Out-File PsScriptAnalyzer-DSCResources.log
 
         $results.length | Should -Be 0

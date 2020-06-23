@@ -610,7 +610,7 @@ function Set-OctopusDeployConfiguration {
     )
 
     Write-Log "Configuring Octopus Deploy instance ..."
-    $args = @(
+    $cmdArgs = @(
         'configure',
         '--console',
         '--instance', $name,
@@ -621,12 +621,12 @@ function Set-OctopusDeployConfiguration {
         '--commsListenPort', $listenPort
     )
     if (($homeDirectory -ne "") -and ($null -ne $homeDirectory)) {
-        $args += @('--home', $homeDirectory)
+        $cmdArgs += @('--home', $homeDirectory)
     }
 
     if ($null -ne $autoLoginEnabled) {
         if (Test-OctopusVersionSupportsAutoLoginEnabled) {
-            $args += @('--autoLoginEnabled', $autoLoginEnabled)
+            $cmdArgs += @('--autoLoginEnabled', $autoLoginEnabled)
         }
         else {
             throw "AutoLoginEnabled is only supported from Octopus 3.5.0. Please pass `$null for versions older than this."
@@ -634,7 +634,7 @@ function Set-OctopusDeployConfiguration {
     }
 
     if (Test-OctopusVersionSupportsHsts) {
-        $args += @(
+        $cmdArgs += @(
             '--hstsEnabled', $hstsEnabled,
             '--hstsMaxAge', $hstsMaxAge
         )
@@ -653,31 +653,31 @@ function Set-OctopusDeployConfiguration {
         if ($legacyWebAuthenticationMode -eq 'Ignore') {
             throw "LegacyWebAuthenticationMode = 'ignore' is only supported from Octopus 3.5.0."
         }
-        $args += @('--webAuthenticationMode', $legacyWebAuthenticationMode)
+        $cmdArgs += @('--webAuthenticationMode', $legacyWebAuthenticationMode)
     }
 
-    Invoke-OctopusServerCommand $args
+    Invoke-OctopusServerCommand $cmdArgs
 
     if (
             (($null -ne $packagesDirectory) -and ($currentState['PackagesDirectory'] -ne $packagesDirectory)) -or
             (($null -ne $artifactsDirectory) -and ($currentState['ArtifactsDirectory'] -ne $artifactsDirectory)) -or
             (($null -ne $taskLogsDirectory) -and ($currentState['TaskLogsDirectory'] -ne $taskLogsDirectory))
         ) {
-        $args = $(
+        $cmdArgs = $(
             'path',
             '--console',
             '--instance', $name
         )
         if (($null -ne $packagesDirectory) -and ($currentState['PackagesDirectory'] -ne $packagesDirectory)) {
-            $args += @('--nugetRepository', $packagesDirectory)
+            $cmdArgs += @('--nugetRepository', $packagesDirectory)
         }
         if (($null -ne $artifactsDirectory) -and ($currentState['ArtifactsDirectory'] -ne $artifactsDirectory)) {
-            $args += @('--artifacts', $artifactsDirectory)
+            $cmdArgs += @('--artifacts', $artifactsDirectory)
         }
         if (($null -ne $taskLogsDirectory) -and ($currentState['TaskLogsDirectory'] -ne $taskLogsDirectory)) {
-            $args += @('--taskLogs', $taskLogsDirectory)
+            $cmdArgs += @('--taskLogs', $taskLogsDirectory)
         }
-        Invoke-OctopusServerCommand $args
+        Invoke-OctopusServerCommand $cmdArgs
     }
 
     if ((-not (Test-OctopusVersionSupportsTaskMetricsLogging)) -and $logTaskMetrics) {
@@ -688,32 +688,32 @@ function Set-OctopusDeployConfiguration {
             (($null -ne $logTaskMetrics) -and ($currentState['LogTaskMetrics'] -ne $logTaskMetrics)) -or
             (($null -ne $logRequestMetrics) -and ($currentState['LogRequestMetrics'] -ne $logRequestMetrics))
         ) {
-        $args = $(
+        $cmdArgs = $(
             'metrics',
             '--console',
             '--instance', $name
         )
         if (($null -ne $logTaskMetrics) -and ($currentState['LogTaskMetrics'] -ne $logTaskMetrics)) {
-            $args += @('--tasks', $logTaskMetrics)
+            $cmdArgs += @('--tasks', $logTaskMetrics)
         }
         if (($null -ne $logRequestMetrics) -and ($currentState['LogRequestMetrics'] -ne $logRequestMetrics)) {
-            $args += @('--webapi', $logRequestMetrics)
+            $cmdArgs += @('--webapi', $logRequestMetrics)
         }
-        Invoke-OctopusServerCommand $args
+        Invoke-OctopusServerCommand $cmdArgs
     }
 
     if ((Test-OctopusVersionSupportsTaskCap) -and ($taskCap -ne 0) -and ($currentState['TaskCap'] -ne $taskCap)) {
-        $args = $(
+        $cmdArgs = $(
             'node',
             '--console',
             '--instance', $name,
             '--taskCap', $taskCap
         )
-        Invoke-OctopusServerCommand $args
+        Invoke-OctopusServerCommand $cmdArgs
     }
 
     if (Test-PSCredentialChanged $currentState['OctopusServiceCredential'] $OctopusServiceCredential) {
-        $args = @(
+        $cmdArgs = @(
             'service',
             '--console',
             '--instance', $name,
@@ -724,7 +724,7 @@ function Set-OctopusDeployConfiguration {
 
         if (-not (Test-PSCredentialIsNullOrEmpty $octopusServiceCredential)) {
             Write-Log "Reconfiguring Octopus Deploy service to use run as $($octopusServiceCredential.UserName) ..."
-            $args += @(
+            $cmdArgs += @(
                 '--username', $octopusServiceCredential.UserName,
                 '--password', $octopusServiceCredential.GetNetworkCredential().Password
             )
@@ -737,7 +737,7 @@ function Set-OctopusDeployConfiguration {
             Update-InstallState "OctopusServiceUsername" $null
             Update-InstallState "OctopusServicePassword" $null
         }
-        Invoke-OctopusServerCommand $args
+        Invoke-OctopusServerCommand $cmdArgs
     }
 
     if (Test-PSCredentialChanged $currentState['OctopusAdminCredential'] $OctopusAdminCredential) {
@@ -745,7 +745,7 @@ function Set-OctopusDeployConfiguration {
             throw "'OctopusAdminCredential' must be supplied when creating a new instance"
         } elseif(-not (Test-PSCredentialIsNullOrEmpty $OctopusAdminCredential)) {
             Write-Log "Updating Octopus Deploy admin user to $($OctopusAdminCredential.UserName) ..."
-            $args = @(
+            $cmdArgs = @(
                 'admin',
                 '--console'
                 '--instance', $name,
@@ -755,28 +755,28 @@ function Set-OctopusDeployConfiguration {
 
             Update-InstallState "OctopusAdminUsername" $OctopusAdminCredential.UserName
             Update-InstallState "OctopusAdminPassword" ($OctopusAdminCredential.Password | ConvertFrom-SecureString)
-            Invoke-OctopusServerCommand $args
+            Invoke-OctopusServerCommand $cmdArgs
         }
     }
 
     if ($currentState['LicenseKey'] -ne $licenseKey) {
-        $args = @(
+        $cmdArgs = @(
             'license',
             '--console',
             '--instance', $name
         )
         if (($null -eq $licenseKey) -or ($licenseKey -eq "")) {
             Write-Log "Configuring Octopus Deploy instance to use free license ..."
-            $args += @('--free')
+            $cmdArgs += @('--free')
         } else {
             Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
-            $args += @('--licenseBase64', $licenseKey)
+            $cmdArgs += @('--licenseBase64', $licenseKey)
 
             if ($skipLicenseCheck -and (Test-OctopusVersionSupportsSkipLicenseCheck)) {
-                $args += @('--skipLicenseCheck')
+                $cmdArgs += @('--skipLicenseCheck')
             }
         }
-        Invoke-OctopusServerCommand $args
+        Invoke-OctopusServerCommand $cmdArgs
     }
 
     if (Test-PSCredentialChanged $currentState['OctopusBuiltInWorkerCredential'] $octopusBuiltInWorkerCredential) {
@@ -784,7 +784,7 @@ function Set-OctopusDeployConfiguration {
             if (-not (Test-PSCredentialIsNullOrEmpty $octopusBuiltInWorkerCredential)) {
                 Write-Log "Configuring Octopus Deploy to execute run-on-server scripts as $($octopusBuiltInWorkerCredential.UserName) ..."
 
-                $args = @(
+                $cmdArgs = @(
                     'builtin-worker',
                     '--instance', $name,
                     '--username', $octopusBuiltInWorkerCredential.UserName
@@ -794,7 +794,7 @@ function Set-OctopusDeployConfiguration {
                 Update-InstallState "OctopusRunAsPassword" ($octopusBuiltInWorkerCredential.Password | ConvertFrom-SecureString)
             } else {
                 Write-Log "Configuring Octopus Deploy to execute run-on-server scripts under the same account as the octopus.server.exe process..."
-                $args = @(
+                $cmdArgs = @(
                     'builtin-worker',
                     '--instance', $name,
                     '--reset'
@@ -802,7 +802,7 @@ function Set-OctopusDeployConfiguration {
                 Update-InstallState "OctopusRunAsUsername" $null
                 Update-InstallState "OctopusRunAsPassword" $null
             }
-            Invoke-OctopusServerCommand $args
+            Invoke-OctopusServerCommand $cmdArgs
         } else {
             throw "'OctopusBuiltInWorkerCredential' is only supported from Octopus 2018.1.0 and newer."
         }
@@ -852,22 +852,22 @@ function Test-ReconfigurationRequiresServiceRestart($currentState, $desiredState
 function Uninstall-OctopusDeploy($name, $currentState) {
     if ($currentState -eq "Started" -or $currentState -eq "Stopped") {
         Write-Log "Uninstalling Octopus Deploy service ..."
-        $args = @(
+        $cmdArgs = @(
             'service',
             '--stop',
             '--uninstall',
             '--console',
             '--instance', $name
         )
-        Invoke-OctopusServerCommand $args
+        Invoke-OctopusServerCommand $cmdArgs
 
         Write-Log "Deleting Octopus Deploy instance ..."
-        $args = @(
+        $cmdArgs = @(
             'delete-instance',
             '--console',
             '--instance', $name
         )
-        Invoke-OctopusServerCommand $args
+        Invoke-OctopusServerCommand $cmdArgs
     }
 
     $otherServices = Get-ExistingOctopusService
@@ -919,17 +919,17 @@ function Update-OctopusDeploy($name, $downloadUrl, $state, $webListenPrefix, $cu
 function Update-OctopusDatabase($name, $skipLicenseCheck) {
     if (Test-OctopusVersionSupportsDatabaseUpgrade) {
         Write-Log "Upgrading Octopus Database ..."
-        $args = @(
+        $cmdArgs = @(
             'database',
             '--upgrade',
             '--instance', $name
         )
 
         if ($skipLicenseCheck -and (Test-OctopusVersionSupportsSkipLicenseCheck)) {
-            $args += @('--skipLicenseCheck')
+            $cmdArgs += @('--skipLicenseCheck')
         }
 
-        Invoke-OctopusServerCommand $args
+        Invoke-OctopusServerCommand $cmdArgs
     }
 }
 
@@ -938,13 +938,13 @@ function Start-OctopusDeployService($name, $webListenPrefix) {
     get-service (Get-ServiceName $name)  -ErrorAction SilentlyContinue | write-verbose
 
     Write-Log "Starting Octopus Deploy instance ..."
-    $args = @(
+    $cmdArgs = @(
         'service',
         '--start',
         '--console',
         '--instance', $name
     )
-    Invoke-OctopusServerCommand $args
+    Invoke-OctopusServerCommand $cmdArgs
 
     # split on semi colons for backwards compat
     $url = ($webListenPrefix -split ';')[0]
@@ -981,13 +981,13 @@ function Stop-OctopusDeployService($name) {
     get-service (Get-ServiceName $name)  -ErrorAction SilentlyContinue | write-verbose
 
     Write-Log "Stopping Octopus Deploy instance ..."
-    $args = @(
+    $cmdArgs = @(
         'service',
         '--stop',
         '--console',
         '--instance', $name
     )
-    Invoke-OctopusServerCommand $args
+    Invoke-OctopusServerCommand $cmdArgs
 }
 
 function Get-ServiceName {
@@ -1162,7 +1162,7 @@ function Install-OctopusDeploy {
     $isMasterKeyProvided = ($OctopusMasterKey -ne [PSCredential]::Empty)
 
     Write-Log "Creating Octopus Deploy instance ..."
-    $args = @(
+    $cmdArgs = @(
         'create-instance',
         '--console',
         '--instance', $name,
@@ -1170,17 +1170,17 @@ function Install-OctopusDeploy {
     )
     if (Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance) {
         if (($homeDirectory -ne "") -and ($null -ne $homeDirectory)) {
-            $args += @('--home', $homeDirectory)
+            $cmdArgs += @('--home', $homeDirectory)
         }
         else {
-            $args += @('--home', "$($env:SystemDrive)\Octopus")
+            $cmdArgs += @('--home', "$($env:SystemDrive)\Octopus")
         }
     }
-    Invoke-OctopusServerCommand $args
+    Invoke-OctopusServerCommand $cmdArgs
 
     Write-Log "Configuring Octopus Deploy instance ..."
 
-    $args = @(
+    $cmdArgs = @(
         'configure',
         '--console',
         '--instance', $name,
@@ -1218,25 +1218,25 @@ function Install-OctopusDeploy {
         Invoke-OctopusServerCommand $dbargs
     }
     else {
-        $args += @("--StorageConnectionString", $sqlDbConnectionString)
+        $cmdArgs += @("--StorageConnectionString", $sqlDbConnectionString)
 
         if ($isMasterKeyProvided) {
-            $args += @("--masterKey", $OctopusMasterKey.GetNetworkCredential().Password)
+            $cmdArgs += @("--masterKey", $OctopusMasterKey.GetNetworkCredential().Password)
         }
     }
 
     if (-not (Test-OctopusVersionSupportsHomeDirectoryDuringCreateInstance)) {
         if (($homeDirectory -ne "") -and ($null -ne $homeDirectory)) {
-            $args += @('--home', $homeDirectory)
+            $cmdArgs += @('--home', $homeDirectory)
         }
         else {
-            $args += @('--home', "$($env:SystemDrive)\Octopus")
+            $cmdArgs += @('--home', "$($env:SystemDrive)\Octopus")
         }
     }
 
     if ($null -ne $autoLoginEnabled) {
         if (Test-OctopusVersionSupportsAutoLoginEnabled) {
-            $args += @('--autoLoginEnabled', $autoLoginEnabled)
+            $cmdArgs += @('--autoLoginEnabled', $autoLoginEnabled)
         }
         else {
             throw "AutoLoginEnabled is only supported from Octopus 3.5.0. Please pass `$null for versions older than this."
@@ -1244,7 +1244,7 @@ function Install-OctopusDeploy {
     }
 
     if (Test-OctopusVersionSupportsHsts) {
-        $args += @(
+        $cmdArgs += @(
             '--hstsEnabled', $hstsEnabled,
             '--hstsMaxAge', $hstsMaxAge
         )
@@ -1263,14 +1263,14 @@ function Install-OctopusDeploy {
         if ($legacyWebAuthenticationMode -eq 'Ignore') {
             throw "LegacyWebAuthenticationMode = 'ignore' is only supported from Octopus 3.5.0."
         }
-        $args += @('--webAuthenticationMode', $legacyWebAuthenticationMode)
+        $cmdArgs += @('--webAuthenticationMode', $legacyWebAuthenticationMode)
     }
 
-    Invoke-OctopusServerCommand $args
+    Invoke-OctopusServerCommand $cmdArgs
 
     if (-not (Test-OctopusVersionNewerThan (New-Object System.Version 4, 0, 0))) {
         Write-Log "Creating Octopus Deploy database for v3..."
-        $args = @(
+        $cmdArgs = @(
             'database',
             '--console',
             '--instance', $name,
@@ -1278,7 +1278,7 @@ function Install-OctopusDeploy {
         )
 
         if ($isMasterKeyProvided) {
-            $args += @("--masterKey", $OctopusMasterKey.GetNetworkCredential().Password)
+            $cmdArgs += @("--masterKey", $OctopusMasterKey.GetNetworkCredential().Password)
         }
 
         if ($GrantDatabasePermissions) {
@@ -1289,10 +1289,10 @@ function Install-OctopusDeploy {
                 $databaseusername = "NT AUTHORITY\SYSTEM"
             }
             Write-Log "Granting database permissions to account $databaseusername"
-            $args += @('--grant', $databaseusername)
+            $cmdArgs += @('--grant', $databaseusername)
         }
 
-        Invoke-OctopusServerCommand $args
+        Invoke-OctopusServerCommand $cmdArgs
     }
 
     Stop-OctopusDeployService -name $name
@@ -1301,7 +1301,7 @@ function Install-OctopusDeploy {
         Write-Log "Creating Admin User for Octopus Deploy instance ..."
         $extractedUserName = $OctopusAdminCredential.GetNetworkCredential().UserName
         $extractedPassword = $OctopusAdminCredential.GetNetworkCredential().Password
-        $args = @(
+        $cmdArgs = @(
             'admin',
             '--console',
             '--instance', $name,
@@ -1309,45 +1309,45 @@ function Install-OctopusDeploy {
             '--password', $extractedPassword
         )
 
-        Invoke-OctopusServerCommand $args
+        Invoke-OctopusServerCommand $cmdArgs
         Update-InstallState "OctopusAdminUsername" $extractedUsername
         Update-InstallState "OctopusAdminPassword" ($OctopusAdminCredential.Password | ConvertFrom-SecureString)
     }
 
-    $args = @(
+    $cmdArgs = @(
         'license',
         '--console',
         '--instance', $name
     )
     if (($null -eq $licenseKey) -or ($licenseKey -eq "")) {
         Write-Log "Configuring Octopus Deploy instance to use free license ..."
-        $args += @('--free')
+        $cmdArgs += @('--free')
     } else {
         Write-Log "Configuring Octopus Deploy instance to use supplied license ..."
-        $args += @('--licenseBase64', $licenseKey)
+        $cmdArgs += @('--licenseBase64', $licenseKey)
 
         if ($skipLicenseCheck -and (Test-OctopusVersionSupportsSkipLicenseCheck)) {
-            $args += @('--skipLicenseCheck')
+            $cmdArgs += @('--skipLicenseCheck')
         }
     }
-    Invoke-OctopusServerCommand $args
+    Invoke-OctopusServerCommand $cmdArgs
 
     if (($null -ne $packagesDirectory) -or ($null -ne $artifactsDirectory) -or ($null -ne $taskLogsDirectory)) {
-        $args = $(
+        $cmdArgs = $(
             'path',
             '--console',
             '--instance', $name
         )
         if ($null -ne $packagesDirectory) {
-            $args += @('--nugetRepository', $packagesDirectory)
+            $cmdArgs += @('--nugetRepository', $packagesDirectory)
         }
         if ($null -ne $artifactsDirectory) {
-            $args += @('--artifacts', $artifactsDirectory)
+            $cmdArgs += @('--artifacts', $artifactsDirectory)
         }
         if ($null -ne $taskLogsDirectory) {
-            $args += @('--taskLogs', $taskLogsDirectory)
+            $cmdArgs += @('--taskLogs', $taskLogsDirectory)
         }
-        Invoke-OctopusServerCommand $args
+        Invoke-OctopusServerCommand $cmdArgs
     }
 
     if ((-not (Test-OctopusVersionSupportsTaskMetricsLogging)) -and $logTaskMetrics) {
@@ -1355,33 +1355,33 @@ function Install-OctopusDeploy {
     }
 
     if ($logTaskMetrics -or $logRequestMetrics) {
-        $args = $(
+        $cmdArgs = $(
             'metrics',
             '--console',
             '--instance', $name
         )
 
         if ($logTaskMetrics) {
-            $args += @('--tasks', $logTaskMetrics)
+            $cmdArgs += @('--tasks', $logTaskMetrics)
         }
         if ($logRequestMetrics) {
-            $args += @('--webapi', $logRequestMetrics)
+            $cmdArgs += @('--webapi', $logRequestMetrics)
         }
-        Invoke-OctopusServerCommand $args
+        Invoke-OctopusServerCommand $cmdArgs
     }
 
     if ((Test-OctopusVersionSupportsTaskCap) -and ($taskCap -ne 0)) {
-        $args = $(
+        $cmdArgs = $(
             'node',
             '--console',
             '--instance', $name,
             '--taskCap', $taskCap
         )
-        Invoke-OctopusServerCommand $args
+        Invoke-OctopusServerCommand $cmdArgs
     }
 
     Write-Log "Install Octopus Deploy service ..."
-    $args = @(
+    $cmdArgs = @(
         'service',
         '--console',
         '--instance', $name,
@@ -1392,7 +1392,7 @@ function Install-OctopusDeploy {
 
     if ($octopusServiceCredential) {
         Write-Log "Configuring service to run as $($octopusServiceCredential.UserName)"
-        $args += @(
+        $cmdArgs += @(
             "--username", $octopusServiceCredential.UserName,
             "--password", $octopusServiceCredential.GetNetworkCredential().Password
         )
@@ -1404,12 +1404,12 @@ function Install-OctopusDeploy {
         Update-InstallState "OctopusServiceUsername" $null
         Update-InstallState "OctopusServicePassword" $null
     }
-    Invoke-OctopusServerCommand $args
+    Invoke-OctopusServerCommand $cmdArgs
 
     if (($null -ne $octopusBuiltInWorkerCredential) -and ($octopusBuiltInWorkerCredential -ne [PSCredential]::Empty)) {
         if (Test-OctopusVersionSupportsRunAsCredential) {
             Write-Log "Configuring Octopus Deploy to execute run-on-server scripts as $($octopusBuiltInWorkerCredential.UserName) ..."
-            $args = @(
+            $cmdArgs = @(
                 'builtin-worker',
                 '--instance', $name,
                 '--username', $octopusBuiltInWorkerCredential.UserName,

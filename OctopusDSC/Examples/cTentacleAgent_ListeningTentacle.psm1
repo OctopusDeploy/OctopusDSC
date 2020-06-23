@@ -7,6 +7,7 @@ $ServiceCred = New-Object PSCredential "ServiceUser", $password
 
 Configuration SampleConfig
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "", Justification="ReviewUnusedParameter does not capture parameter usage within a scriptblock.  See https://github.com/PowerShell/PSScriptAnalyzer/issues/1472")]
     param ([string]$ApiKey, [string]$OctopusServerUrl, [string[]]$Environments, [string[]]$Roles, [int]$ListenPort, [string]$Space)
 
     Import-DscResource -Module OctopusDSC

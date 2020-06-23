@@ -16,7 +16,10 @@ try
             # Get-Service is not available on mac/unix systems - fake it
             $getServiceCommand = Get-Command "Get-Service" -ErrorAction SilentlyContinue
             if ($null -eq $getServiceCommand) {
-                function Get-Service {}
+                function Get-Service {
+                    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification='Get-Service is not available on mac/unix systems, so without faking it, our builds fail')]
+                    param()
+                }
             }
         }
 
@@ -330,9 +333,19 @@ try
                 # create stubs for these cmdlets on linux/mac as they dont natively exist
                 # leading to pester complaining that it cant mock it...
                 if (-not $isWindows) {
-                    function Start-Service {}
-                    function Stop-Service {}
-                    function Get-CimInstance {}
+                    function Start-Service {
+                        [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification='not available on mac/unix systems, so without faking it, our builds fail')]
+                        param()
+                    }
+                    function Stop-Service {
+                        [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification='not available on mac/unix systems, so without faking it, our builds fail')]
+                        param()
+
+                    }
+                    function Get-CimInstance {
+                        [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification='not available on mac/unix systems, so without faking it, our builds fail')]
+                        param()
+                    }
                 }
             }
 
@@ -367,6 +380,7 @@ try
                 {
                     it "Should call tentacle.exe with args '<line>'" -TestCases $cases {
                         param($line)
+                        write-verbose "Checking line $line" # workaround ReviewUnusedParameter does not capture parameter usage within a scriptblock.  See https://github.com/PowerShell/PSScriptAnalyzer/issues/1472
                         Set-TargetResource @params
                         Assert-MockCalled -CommandName 'Invoke-TentacleCommand' -Times 1 -Exactly -ParameterFilter { ($cmdArgs -join ' ') -eq $line }
                     }

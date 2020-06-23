@@ -26,8 +26,6 @@ Describe "Request-File" {
         BeforeAll {
             . $script:modulePath
             Mock Invoke-WebRequest {
-                param($uri, $saveAs, [switch]$UseBasicParsing, $Method)
-
                 return [pscustomobject]@{
                     Headers = @{'x-amz-meta-sha256' = "abcdef1234567890"};
                 }
@@ -48,8 +46,6 @@ Describe "Request-File" {
         BeforeAll {
             . $script:modulePath
             Mock Invoke-WebRequest {
-                param($uri, $saveAs, [switch]$UseBasicParsing, $Method)
-
                 return [pscustomobject]@{
                     Headers = @{'x-amz-meta-sha256' = "abcdef1234567891"};
                 }
