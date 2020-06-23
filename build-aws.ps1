@@ -50,7 +50,8 @@ if(-not $SkipPester) {
   $configuration.TestResult.OutputPath = 'PesterTestResults.xml'
   $configuration.TestResult.OutputFormat = 'NUnitXml'
   $configuration.Run.PassThru = $true
-  $configuration.Output = 'Detailed'
+  $configuration.Run.Exit = $true
+  $configuration.Output.Verbosity = 'Detailed'
   $result = Invoke-Pester -configuration $configuration
   if ($result.FailedCount -gt 0) {
     exit 1

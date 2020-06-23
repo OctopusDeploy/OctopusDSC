@@ -4,7 +4,6 @@ param()
 
 $moduleName = Split-Path ($PSCommandPath -replace '\.Tests\.ps1$', '') -Leaf
 $modulePath = Resolve-Path "$PSCommandPath/../../DSCResources/$moduleName/$moduleName.psm1"
-$global:powershellHelpersPath = Resolve-Path "$PSCommandPath/../../../tests/powershell-helpers.ps1"
 $module = $null
 
 try
@@ -399,8 +398,6 @@ try
 
             Context "Octopus server command line" {
                 BeforeAll {
-                    . $global:dscHelpersPath
-
                     function Get-CurrentConfiguration ([string] $testName) {
                         & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName/CurrentState.ps1")
                     }
@@ -418,8 +415,25 @@ try
                     }
                 }
 
+                function ConvertTo-Hashtable
+                {
+                    param (
+                        [Parameter(ValueFromPipeline = $true)]
+                        [Object[]] $InputObject
+                    )
+
+                    process {
+                        foreach ($object in $InputObject) {
+                            $hash = @{}
+                            foreach ($property in $object.PSObject.Properties) {
+                                $hash[$property.Name] = $property.Value
+                            }
+                            $hash
+                        }
+                    }
+                }
+
                 function Assert-ExpectedResult ([string] $testName) {
-                . $global:powershellHelpersPath
                     # todo: test order of execution here
                     $invocations = & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName/ExpectedResult.ps1")
                     $name = @{label="line";expression={$_}};
@@ -477,7 +491,7 @@ try
                         Mock Test-OctopusDeployServerResponding { return $true }
                         Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
                         Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
-
+                        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification = "It is actually used, but pester's scoping is weird")]
                         $params = Get-RequestedConfiguration "NewInstanceWithMetrics"
                     }
                     Assert-ExpectedResult "NewInstanceWithMetrics"
@@ -503,6 +517,7 @@ try
                         Mock Test-OctopusDeployServerResponding { return $true }
                         Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
                         Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+                        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification = "It is actually used, but pester's scoping is weird")]
                         $params = Get-RequestedConfiguration "MasterKeySupplied"
                     }
                     Assert-ExpectedResult "MasterKeySupplied"
@@ -527,6 +542,7 @@ try
                         Mock Get-LogDirectory { return Get-TempFolder }
                         Mock Test-Path -ParameterFilter { $path -eq "$($env:SystemDrive)\Octopus\Octopus-x64.msi" } { return $true }
                         Mock Start-Process { return @{ ExitCode = 0} }
+                        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification = "It is actually used, but pester's scoping is weird")]
                         $params = Get-RequestedConfiguration "UninstallingRunningInstance"
                     }
                     Assert-ExpectedResult "UninstallingRunningInstance"
@@ -557,6 +573,7 @@ try
                         Mock Test-OctopusVersionNewerThan { return $true }
                         Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
 
+                        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification = "It is actually used, but pester's scoping is weird")]
                         $params = Get-RequestedConfiguration "NewInstallWithBuiltInWorker"
                     }
                     Assert-ExpectedResult "NewInstallWithBuiltInWorker"
@@ -583,6 +600,7 @@ try
                         Mock Test-OctopusVersionNewerThan { return $true }
                         Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
 
+                        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification = "It is actually used, but pester's scoping is weird")]
                         $params = Get-RequestedConfiguration "EnableBuiltInWorkerOnExistingInstance"
                     }
                     Assert-ExpectedResult "EnableBuiltInWorkerOnExistingInstance"
@@ -609,6 +627,7 @@ try
                         Mock Test-OctopusVersionNewerThan { return $true }
                         Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
 
+                        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification = "It is actually used, but pester's scoping is weird")]
                         $params = Get-RequestedConfiguration "UpgradeExistingInstance"
                     }
                     Assert-ExpectedResult "UpgradeExistingInstance"
@@ -635,6 +654,7 @@ try
                         Mock Test-OctopusVersionNewerThan { return $true }
                         Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
 
+                        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification = "It is actually used, but pester's scoping is weird")]
                         $params = Get-RequestedConfiguration "ChangeWebListenPrefix"
                     }
                     Assert-ExpectedResult "ChangeWebListenPrefix"

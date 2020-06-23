@@ -1,16 +1,14 @@
 #requires -Version 4.0
 
 $moduleName = Split-Path ($PSCommandPath -replace '\.Tests\.ps1$', '') -Leaf
-$global:modulePath = Split-Path $PSCommandPath -Parent
-$global:modulePath = Resolve-Path "$PSCommandPath/../../DSCResources/$moduleName/$moduleName.psm1"
-$global:dscHelpersPath = Resolve-Path "$PSCommandPath/../../OctopusDSCHelpers.ps1"
-$global:powershellHelpersPath = Resolve-Path "$PSCommandPath/../../../tests/powershell-helpers.ps1"
+$modulePath = Split-Path $PSCommandPath -Parent
+$modulePath = Resolve-Path "$PSCommandPath/../../DSCResources/$moduleName/$moduleName.psm1"
 $module = $null
 
 try
 {
     $prefix = [guid]::NewGuid().Guid -replace '-'
-    $module = Import-Module $global:modulePath -Prefix $prefix -PassThru -ErrorAction Stop
+    $module = Import-Module $modulePath -Prefix $prefix -PassThru -ErrorAction Stop
 
     InModuleScope $module.Name {
 
@@ -313,8 +311,6 @@ try
 
         Context "Tentacle command line" {
             BeforeAll {
-                . $global:dscHelpersPath
-
                 function Get-CurrentConfiguration ([string] $testName) {
                     & (Resolve-Path "$PSCommandPath/../../Tests/TentacleExeInvocationFiles/$testName/CurrentState.ps1")
                 }
@@ -340,9 +336,25 @@ try
                 }
             }
 
-            function Assert-ExpectedResult ([string] $testName) {
-                . $global:powershellHelpersPath
+            function ConvertTo-Hashtable
+            {
+                param (
+                    [Parameter(ValueFromPipeline = $true)]
+                    [Object[]] $InputObject
+                )
 
+                process {
+                    foreach ($object in $InputObject) {
+                        $hash = @{}
+                        foreach ($property in $object.PSObject.Properties) {
+                            $hash[$property.Name] = $property.Value
+                        }
+                        $hash
+                    }
+                }
+            }
+
+            function Assert-ExpectedResult ([string] $testName) {
                 # todo: test order of execution here as well
                 $invocations = & (Resolve-Path "$PSCommandPath/../../Tests/TentacleExeInvocationFiles/$testName/ExpectedResult.ps1")
                 $name = @{label="line";expression={$_}};
