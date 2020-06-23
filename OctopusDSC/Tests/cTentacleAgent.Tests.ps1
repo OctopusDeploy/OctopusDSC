@@ -340,7 +340,6 @@ try
                     function Stop-Service {
                         [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification='not available on mac/unix systems, so without faking it, our builds fail')]
                         param()
-
                     }
                     function Get-CimInstance {
                         [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification='not available on mac/unix systems, so without faking it, our builds fail')]
@@ -349,8 +348,7 @@ try
                 }
             }
 
-            function ConvertTo-Hashtable
-            {
+            function ConvertTo-Hashtable {
                 param (
                     [Parameter(ValueFromPipeline = $true)]
                     [Object[]] $InputObject
@@ -389,7 +387,7 @@ try
 
             Context "New instance" {
                 BeforeAll {
-                    Mock Invoke-TentacleCommand {} -Verifiable #{ write-host "`"$($args[1] -join ' ')`"," } -Verifiable
+                    Mock Invoke-TentacleCommand {} -Verifiable #{ write-host "`"$($cmdArgs -join ' ')`"," } -Verifiable
                     Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstance" }
                     Mock Invoke-MsiExec {} -Verifiable
                     Mock Request-File {} -Verifiable
@@ -419,7 +417,7 @@ try
 
             Context "New polling tentacle" {
                 BeforeAll {
-                    Mock Invoke-TentacleCommand {} #{ write-host "`"$($args[1] -join ' ')`"," }
+                    Mock Invoke-TentacleCommand {} #{ write-host "`"$($cmdArgs -join ' ')`"," }
                     Mock Get-TargetResource { return Get-CurrentConfiguration "NewPollingTentacle" }
                     Mock Invoke-MsiExec { }
                     Mock Request-File {}
@@ -448,7 +446,7 @@ try
 
             Context "New instance in space" {
                 BeforeAll {
-                    Mock Invoke-TentacleCommand #{ write-host "`"$($args[1] -join ' ')`"," }
+                    Mock Invoke-TentacleCommand #{ write-host "`"$(cmdArgs -join ' ')`"," }
                     Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstanceInSpace" }
                     Mock Invoke-MsiExec {}
                     Mock Request-File {}
@@ -477,7 +475,7 @@ try
 
             Context "New Worker" {
                 BeforeAll {
-                    Mock Invoke-TentacleCommand # { write-host "`"$($args[1] -join ' ')`"," }
+                    Mock Invoke-TentacleCommand # { write-host "`"$($cmdArgs -join ' ')`"," }
                     Mock Get-TargetResource { return Get-CurrentConfiguration "NewWorker" }
                     Mock Invoke-MsiExec {}
                     Mock Request-File {}
@@ -508,7 +506,7 @@ try
 
             Context "New Worker in space" {
                 BeforeAll {
-                    Mock Invoke-TentacleCommand #{ write-host "`"$($args[1] -join ' ')`"," }
+                    Mock Invoke-TentacleCommand #{ write-host "`"$($cmdArgs -join ' ')`"," }
                     Mock Get-TargetResource { return Get-CurrentConfiguration "NewWorkerInSpace" }
                     Mock Invoke-MsiExec {}
                     Mock Request-File {}
@@ -538,7 +536,7 @@ try
 
             Context "Install only" {
                 BeforeAll {
-                    Mock Invoke-TentacleCommand #{ write-host "`"$($args[1] -join ' ')`"," }
+                    Mock Invoke-TentacleCommand #{ write-host "`"$($cmdArgs -join ' ')`"," }
                     Mock Get-TargetResource { return Get-CurrentConfiguration "InstallOnly" }
                     Mock Invoke-MsiExec {}
                     Mock Request-File {}
@@ -566,7 +564,7 @@ try
 
             Context "Uninstall running instance" {
                 BeforeAll {
-                    Mock Invoke-TentacleCommand # { write-host "`"$($args[1] -join ' ')`"," }
+                    Mock Invoke-TentacleCommand # { write-host "`"$($cmdArgs -join ' ')`"," }
                     Mock Get-TargetResource { return Get-CurrentConfiguration "UninstallingRunningInstance" }
                     Mock Invoke-MsiExec {}
                     Mock Invoke-MsiUninstall {}
@@ -600,7 +598,7 @@ try
 
             Context "Uninstall running instance (with space)" {
                 BeforeAll {
-                    Mock Invoke-TentacleCommand #{ write-host "`"$($args[1] -join ' ')`"," }
+                    Mock Invoke-TentacleCommand #{ write-host "`"$($cmdArgs -join ' ')`"," }
                     Mock Get-TargetResource { return Get-CurrentConfiguration "UninstallingRunningInstanceInSpace" }
                     Mock Invoke-MsiExec {}
                     Mock Invoke-MsiUninstall {}
@@ -634,7 +632,7 @@ try
 
             Context "Upgrade existing instance" {
                 BeforeAll {
-                    Mock Invoke-TentacleCommand {} #{ write-host "`"$($args[1] -join ' ')`"," }
+                    Mock Invoke-TentacleCommand {} #{ write-host "`"$($cmdArgs -join ' ')`"," }
                     Mock Get-TargetResource { return Get-CurrentConfiguration "UpgradeExistingInstance" }
                     Mock Invoke-MsiExec {}
                     Mock Request-File {}
@@ -667,7 +665,7 @@ try
 
             Context "Upgrade existing instance in space" {
                 BeforeAll {
-                    Mock Invoke-TentacleCommand #{ write-host "`"$($args[1] -join ' ')`"," }
+                    Mock Invoke-TentacleCommand #{ write-host "`"$($cmdArgs -join ' ')`"," }
                     Mock Get-TargetResource { return Get-CurrentConfiguration "UpgradeExistingInstanceInSpace" }
                     Mock Invoke-MsiExec {}
                     Mock Request-File {}

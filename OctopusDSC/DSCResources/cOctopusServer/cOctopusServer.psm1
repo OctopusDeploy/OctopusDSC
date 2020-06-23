@@ -1417,7 +1417,7 @@ function Install-OctopusDeploy {
             )
             Update-InstallState "OctopusRunAsUsername" $octopusBuiltInWorkerCredential.UserName
             Update-InstallState "OctopusRunAsPassword" ($octopusBuiltInWorkerCredential.Password | ConvertFrom-SecureString)
-            Invoke-OctopusServerCommand $args
+            Invoke-OctopusServerCommand $cmdArgs
         } else {
             throw "'OctopusBuiltInWorkerCredential' is only supported from Octopus 4.2 and newer."
         }
