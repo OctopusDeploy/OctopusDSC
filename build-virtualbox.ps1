@@ -39,6 +39,7 @@ if(-not $SkipPester) {
 
   Write-Output "Running Pester Tests"
   $configuration = [PesterConfiguration]::Default
+  $configuration.TestResult.Enabled = $true
   $configuration.TestResult.OutputPath = 'PesterTestResults.xml'
   $configuration.TestResult.OutputFormat = 'NUnitXml'
   $configuration.Run.PassThru = $true
