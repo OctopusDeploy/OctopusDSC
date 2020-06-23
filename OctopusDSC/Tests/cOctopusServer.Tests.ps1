@@ -619,7 +619,7 @@ try
 
                 Context "Upgrade" {
                     BeforeAll {
-                        Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
+                        Mock Invoke-OctopusServerCommand #{ param ($cmdArgs) write-host $cmdArgs}
                         Mock Get-TargetResource { return Get-CurrentConfiguration "UpgradeExistingInstance" }
                         Mock Get-RegistryValue { return "478389" } # checking .net 4.5
                         Mock Invoke-MsiExec {}
