@@ -102,12 +102,8 @@ try
             }
 
             Context 'Set-TargetResource' {
-                BeforeAll {
-                    . $dscHelpersPath
-                }
                 It 'Calls Invoke-TentacleCommand with the correct arguments to enable' {
                     Mock Invoke-TentacleCommand
-
                     Set-TargetResource -InstanceName 'SuperTentacle' `
                                        -Enabled $true `
                                        -Interval 5 `
@@ -117,12 +113,11 @@ try
 
                 It 'Calls Invoke-TentacleCommand with the correct arguments to disable' {
                     Mock Invoke-TentacleCommand
-
                     Set-TargetResource -InstanceName 'SuperTentacle' `
                                        -Enabled $false `
                                        -Interval 5 `
                                        -Instances "*"
-                    Assert-MockCalled Invoke-TentacleCommand -ParameterFilter { ($cmdArgs -join ' ') -eq 'watchdog --delete'}
+                    Assert-MockCalled Invoke-TentacleCommand -ParameterFilter { ($cmdArgs -join ' ') -eq 'watchdog --delete' }
                 }
             }
         }

@@ -456,7 +456,7 @@ try
 
                 Context "New instance" {
                     BeforeAll {
-                        Mock Invoke-OctopusServerCommand {} #{write-host $args}
+                        Mock Invoke-OctopusServerCommand {} #{write-host $cmdArgs}
                         Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstance" }
                         Mock Get-RegistryValue { return "478389" } # checking .net 4.5
                         Mock Invoke-MsiExec {}
@@ -484,7 +484,7 @@ try
 
                 Context "New instance with metrics" {
                     BeforeAll {
-                        Mock Invoke-OctopusServerCommand #{write-host $args}
+                        Mock Invoke-OctopusServerCommand #{write-host $cmdArgs}
                         Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstanceWithMetrics" }
                         Mock Get-RegistryValue { return "478389" } # checking .net 4.5
                         Mock Invoke-MsiExec {}
@@ -510,7 +510,7 @@ try
 
                 Context "When MasterKey is supplied on new instance" {
                     BeforeAll {
-                        Mock Invoke-OctopusServerCommand #{write-host $args}
+                        Mock Invoke-OctopusServerCommand #{write-host $cmdArgs}
                         Mock Get-TargetResource { return Get-CurrentConfiguration "MasterKeySupplied" }
                         Mock Get-RegistryValue { return "478389" } # checking .net 4.5
                         Mock Invoke-MsiExec {}
@@ -536,7 +536,7 @@ try
 
                 Context "When uninstalling running instance" {
                     BeforeAll {
-                        Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
+                        Mock Invoke-OctopusServerCommand #{ param ($cmdArgs) write-host $cmdArgs}
                         Mock Get-TargetResource { return Get-CurrentConfiguration "UninstallingRunningInstance" }
                         Mock Invoke-MsiExec {}
                         Mock Get-LogDirectory {}
@@ -565,7 +565,7 @@ try
 
                 Context "Run-on-server user - new install" {
                     BeforeAll {
-                        Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
+                        Mock Invoke-OctopusServerCommand #{ param ($cmdArgs) write-host $cmdArgs}
                         Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstallWithBuiltInWorker" }
                         Mock Get-RegistryValue { return "478389" } # checking .net 4.5
                         Mock Invoke-MsiExec {}
@@ -592,7 +592,7 @@ try
 
                 Context "Run-on-server user - existing install" {
                     BeforeAll {
-                        Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
+                        Mock Invoke-OctopusServerCommand #{ param ($cmdArgs) write-host $cmdArgs}
                         Mock Get-TargetResource { return Get-CurrentConfiguration "EnableBuiltInWorkerOnExistingInstance" }
                         Mock Get-RegistryValue { return "478389" } # checking .net 4.5
                         Mock Invoke-MsiExec {}
@@ -646,7 +646,7 @@ try
 
                 Context "Change WebListenPrefix" {
                     BeforeAll {
-                        Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
+                        Mock Invoke-OctopusServerCommand #{ param ($cmdArgs) write-host $cmdArgs}
                         Mock Get-TargetResource { return Get-CurrentConfiguration "ChangeWebListenPrefix" }
                         Mock Get-RegistryValue { return "478389" } # checking .net 4.5
                         Mock Invoke-MsiExec {}
