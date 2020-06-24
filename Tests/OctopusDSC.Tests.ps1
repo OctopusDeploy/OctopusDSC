@@ -175,6 +175,17 @@ Describe "Mandatory Parameters" {
 }
 
 Describe "Test/Get/Set-TargetResource all implement the same properties" {
+    function Get-TestCase($functionName, $astMembers, $propertyName, $moduleFileName, $propertyType) {
+        $param = Get-ParameterFromFunction -functionName $functionName -astMembers $astMembers -propertyName $propertyName
+        $paramExists = $null -ne $param
+        return @{
+            functionName = $functionName;
+            propertyName = $propertyName;
+            moduleFileName = $moduleFile.Name;
+            paramExists = $paramExists
+        }
+    }
+
     $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/DSCResources"
     $schemaMofFiles = Get-ChildItem $path -Recurse -Filter *.schema.mof
     $cases = @()
@@ -190,9 +201,9 @@ Describe "Test/Get/Set-TargetResource all implement the same properties" {
         foreach($line in $schemaMofFileContent) {
             if ($line -match "\s*(\[.*\])\s*(.*) (.*);") {
                 $propertyName = $matches[3].Replace("[]", "");
-                $cases += @{ functionName = "Get-TargetResource"; astMembers = $astMembers; propertyName = $propertyName; moduleFileName = $moduleFile.Name; }
-                $cases += @{ functionName = "Set-TargetResource"; astMembers = $astMembers; propertyName = $propertyName; moduleFileName = $moduleFile.Name; }
-                $cases += @{ functionName = "Test-TargetResource"; astMembers = $astMembers; propertyName = $propertyName; moduleFileName = $moduleFile.Name; }
+                $cases += Get-TestCase "Get-TargetResource" $astMembers $propertyName $moduleFile.Name
+                $cases += Get-TestCase "Set-TargetResource" $astMembers $propertyName $moduleFile.Name
+                $cases += Get-TestCase "Test-TargetResource" $astMembers $propertyName $moduleFile.Name
             }
         }
     }
@@ -202,9 +213,8 @@ Describe "Test/Get/Set-TargetResource all implement the same properties" {
     }
 
     It "Function <functionName> should have parameter <propertyName> in <moduleFileName> as its a defined in the .schema.mof file" -TestCases $cases {
-        param($functionName, $astMembers, $propertyName, $moduleFileName)
-        $param = Get-ParameterFromFunction -functionName $functionName -astMembers $astMembers -propertyName $propertyName
-        $param | Should -not -be $null
+        param($functionName, $propertyName, $moduleFileName, $paramExists)
+        $paramExists | Should -be $true
     }
 }
 
