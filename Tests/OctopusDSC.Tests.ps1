@@ -121,22 +121,35 @@ Describe "Mandatory Parameters" {
         $filter = { $true }
         $astMembers = $ast.FindAll($filter, $true);
 
-        $parseErrorTestCases += @{ moduleFileName = $moduleFile.Name; parseErrors = $parseErrors }
+        $parseErrorTestCases += @{ moduleFileName = $moduleFile.Name; parseErrorCount = $parseErrors.length }
+
+        function Get-TestCase($functionName, $astMembers, $propertyName, $moduleFileName, $propertyType)
+        {
+            $param = Get-ParameterFromFunction -functionName $functionName -astMembers $astMembers -propertyName $propertyName
+            $paramisMandatory = $param -contains "[Parameter(Mandatory)]"
+            return @{
+                functionName = $functionName;
+                propertyName = $propertyName;
+                moduleFileName = $moduleFile.Name;
+                propertyType = $propertyType;
+                paramisMandatory = $paramisMandatory
+            }
+        }
 
         foreach($line in $schemaMofFileContent) {
             if ($line -match "\s*(\[.*\b(Required|Key)\b.*\])\s*(.*) (.*);") {
                 $propertyType = $matches[2]
                 $propertyName = $matches[4].Replace("[]", "");
-                $mandatoryParamTestCases += @{ functionName = "Get-TargetResource"; astMembers = $astMembers; propertyName = $propertyName; moduleFileName = $moduleFile.Name; propertyType = $propertyType }
-                $mandatoryParamTestCases += @{ functionName = "Set-TargetResource"; astMembers = $astMembers; propertyName = $propertyName; moduleFileName = $moduleFile.Name; propertyType = $propertyType }
-                $mandatoryParamTestCases += @{ functionName = "Test-TargetResource"; astMembers = $astMembers; propertyName = $propertyName; moduleFileName = $moduleFile.Name; propertyType = $propertyType }
+                $mandatoryParamTestCases += Get-TestCase "Get-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
+                $mandatoryParamTestCases += Get-TestCase "Set-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
+                $mandatoryParamTestCases += Get-TestCase "Test-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
             } elseif ($line -match "\s*(\[.*\])\s*(.*) (.*);") {
                 $propertyType = $matches[1]
                 $propertyName = $matches[3].Replace("[]", "");
 
-                $nonMandatoryParamTestCases += @{ functionName = "Get-TargetResource"; astMembers = $astMembers; propertyName = $propertyName; moduleFileName = $moduleFile.Name; propertyType = $propertyType }
-                $nonMandatoryParamTestCases += @{ functionName = "Set-TargetResource"; astMembers = $astMembers; propertyName = $propertyName; moduleFileName = $moduleFile.Name; propertyType = $propertyType }
-                $nonMandatoryParamTestCases += @{ functionName = "Test-TargetResource"; astMembers = $astMembers; propertyName = $propertyName; moduleFileName = $moduleFile.Name; propertyType = $propertyType }
+                $nonMandatoryParamTestCases += Get-TestCase "Get-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
+                $nonMandatoryParamTestCases += Get-TestCase "Set-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
+                $nonMandatoryParamTestCases += Get-TestCase "Test-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
             }
         }
     }
@@ -146,20 +159,18 @@ Describe "Mandatory Parameters" {
     }
 
     It "The module <moduleFileName> should have no parse errors" -TestCases $parseErrorTestCases {
-        param($moduleFileName, $parseErrors)
-        $parseErrors | should -be $null
+        param($moduleFileName, $parseErrorCount)
+        $parseErrorCount | should -be 0
     }
 
     It "Parameter '<propertyName>' in function '<functionName>' should Be marked with [Parameter(Mandatory)] in <moduleFileName> as its a <propertyType> property" -TestCases $mandatoryParamTestCases {
-        param($functionName, $astMembers, $propertyName, $moduleFileName, $propertyType)
-        $param = Get-ParameterFromFunction -functionName $functionName -astMembers $astMembers -propertyName $propertyName
-        $param -contains "[Parameter(Mandatory)]" | Should -Be $true
+        param($functionName, $propertyName, $moduleFileName, $propertyType, $paramisMandatory)
+        $paramisMandatory | Should -Be $true
     }
 
     It "Parameter <propertyName> in function <functionName> should not be marked with [Parameter(Mandatory)] in <moduleFileName? as its not mandatory in the mof" -TestCases $nonMandatoryParamTestCases {
-        param($functionName, $astMembers, $propertyName, $moduleFileName, $propertyType)
-        $param = Get-ParameterFromFunction -functionName $functionName -astMembers $astMembers -propertyName $propertyName
-        $param -contains "[Parameter(Mandatory)]" | Should -Be $false
+        param($functionName, $propertyName, $moduleFileName, $propertyType, $paramisMandatory)
+        $paramisMandatory | Should -Be $false
     }
 }
 
