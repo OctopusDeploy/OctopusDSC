@@ -168,7 +168,7 @@ Describe "Mandatory Parameters" {
         $paramisMandatory | Should -Be $true
     }
 
-    It "Parameter <propertyName> in function <functionName> should not be marked with [Parameter(Mandatory)] in <moduleFileName? as its not mandatory in the mof" -TestCases $nonMandatoryParamTestCases {
+    It "Parameter <propertyName> in function <functionName> should not be marked with [Parameter(Mandatory)] in <moduleFileName> as its not mandatory in the mof" -TestCases $nonMandatoryParamTestCases {
         param($functionName, $propertyName, $moduleFileName, $propertyType, $paramisMandatory)
         $paramisMandatory | Should -Be $false
     }
