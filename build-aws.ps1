@@ -54,6 +54,7 @@ if(-not $SkipPester) {
   $configuration.Run.PassThru = $true
   $configuration.Run.Exit = $true
   $result = Invoke-Pester -configuration $configuration
+  write-output "##teamcity[publishArtifacts 'PesterTestResults.xml']"
   if ($result.FailedCount -gt 0) {
     exit 1
   }
