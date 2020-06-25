@@ -47,7 +47,7 @@ function Set-TargetResource {
         [string]$Issuer,
         [string]$ClientId
     )
-    $args = @(
+    $cmdArgs = @(
         'configure',
         '--console',
         '--instance', $InstanceName,
@@ -55,7 +55,7 @@ function Set-TargetResource {
         '--oktaIssuer', $Issuer,
         '--oktaClientId', $ClientId
     )
-    Invoke-OctopusServerCommand $args
+    Invoke-OctopusServerCommand $cmdArgs
 }
 
 function Test-TargetResource {

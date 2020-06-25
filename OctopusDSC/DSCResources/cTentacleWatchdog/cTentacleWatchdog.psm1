@@ -51,7 +51,7 @@ function Set-TargetResource
     [string]$Instances = "*"
   )
   if ($Enabled) {
-    $args = @(
+    $cmdArgs = @(
       'watchdog',
       '--create',
       '--interval', $Interval,
@@ -59,12 +59,12 @@ function Set-TargetResource
     )
   }
   else {
-    $args = @(
+    $cmdArgs = @(
       'watchdog',
       '--delete'
     )
   }
-  Invoke-TentacleCommand $args
+  Invoke-TentacleCommand $cmdArgs
 }
 
 function Test-TargetResource
@@ -105,18 +105,6 @@ function Test-TargetResource
   return $currentConfigurationMatchesRequestedConfiguration
 }
 
-function Invoke-TentacleCommand ($arguments)
-{
-  Write-Verbose "Executing command '$tentacleExePath $($arguments -join ' ')'"
-  $output = .$tentacleExePath $arguments
-
-  Write-CommandOutput $output
-  if (($null -ne $LASTEXITCODE) -and ($LASTEXITCODE -ne 0)) {
-    Write-Error "Command returned exit code $LASTEXITCODE. Aborting."
-    exit 1
-  }
-  Write-Verbose "done."
-}
 function Test-TentacleSupportsShowConfiguration
 {
   if (-not (Test-Path -LiteralPath $tentacleExePath))

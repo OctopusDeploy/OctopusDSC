@@ -38,13 +38,13 @@ try
                                                  -Ensure 'Present' `
                                                  -EnvironmentName 'Production' `
                                                  -OctopusCredentials $creds `
-                                                 -OctopusApiKey $creds } | should throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey', not both."
+                                                 -OctopusApiKey $creds } | Should -throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey', not both."
                 }
 
                 It 'Throws when neither OctopusCredentials and OctopusApiKey are provided' {
                     {Get-TargetResource -Url 'https://octopus.example.com' `
                                                  -Ensure 'Present' `
-                                                 -EnvironmentName 'Production'} | should throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey'."
+                                                 -EnvironmentName 'Production'} | Should -throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey'."
                 }
             }
 
@@ -55,7 +55,7 @@ try
                                                  -Ensure 'Present' `
                                                  -EnvironmentName 'Production' `
                                                  -OctopusCredentials $creds
-                    $result.Ensure | should be 'Present'
+                    $result.Ensure | Should -Be 'Present'
                 }
             }
 
@@ -66,13 +66,15 @@ try
                                                  -Ensure 'Present' `
                                                  -EnvironmentName 'Production' `
                                                  -OctopusCredentials $creds
-                    $result.Ensure | should be 'Absent'
+                    $result.Ensure | Should -Be 'Absent'
                 }
             }
 
             Context 'Test-TargetResource' {
-                $response = @{  }
-                Mock Get-TargetResource { return $response }
+                BeforeAll {
+                    $response = @{  }
+                    Mock Get-TargetResource { return $response }
+                }
 
                 It 'Returns false if environment does not exist' {
                     $password = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
@@ -88,7 +90,7 @@ try
                     $response['EnvironmentName'] = $null
                     $response['OctopusCredentials'] = $creds
 
-                    Test-TargetResource @desiredConfiguration | Should Be $false
+                    Test-TargetResource @desiredConfiguration | Should -Be $false
                 }
 
                 It 'Returns true if environment does exist' {
@@ -105,7 +107,7 @@ try
                     $response['EnvironmentName'] = 'Production'
                     $response['OctopusCredentials'] = $creds
 
-                    Test-TargetResource @desiredConfiguration | Should Be $true
+                    Test-TargetResource @desiredConfiguration | Should -Be $true
                 }
 
                 It 'Calls Get-TargetResource (and therefore inherits its checks)' {

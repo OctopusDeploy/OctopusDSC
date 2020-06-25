@@ -47,7 +47,7 @@ function Set-TargetResource {
         [boolean]$AllowFormsAuthenticationForDomainUsers = $false,
         [string]$ActiveDirectoryContainer
     )
-    $args = @(
+    $cmdArgs = @(
         'configure',
         '--console',
         '--instance', $InstanceName,
@@ -55,7 +55,7 @@ function Set-TargetResource {
         '--allowFormsAuthenticationForDomainUsers', $AllowFormsAuthenticationForDomainUsers,
         '--activeDirectoryContainer', $ActiveDirectoryContainer
     )
-    Invoke-OctopusServerCommand $args
+    Invoke-OctopusServerCommand $cmdArgs
 }
 
 function Test-TargetResource {

@@ -47,7 +47,7 @@ function Set-TargetResource {
         [string]$ClientID,
         [string]$HostedDomain
     )
-    $args = @(
+    $cmdArgs = @(
         'configure',
         '--console',
         '--instance', $InstanceName,
@@ -55,7 +55,7 @@ function Set-TargetResource {
         '--googleAppsClientId', $ClientID,
         '--googleAppsHostedDomain', $HostedDomain
     )
-    Invoke-OctopusServerCommand $args
+    Invoke-OctopusServerCommand $cmdArgs
 }
 
 function Test-TargetResource {

@@ -122,7 +122,7 @@ function Invoke-VagrantWithRetries {
     Invoke-Expression "vagrant $args" -ErrorVariable stdErr 2>&1 | Tee-Object -FilePath vagrant.log
     if (-not ([string]::IsNullOrEmpty($stdErr))) {
       Write-Warning "StdErr:"
-      Write-Warning $stdErr
+      $stdErr | Write-Warning
     }
     Write-Output "'vagrant up' exited with exit code $LASTEXITCODE"
     $attempts = $attempts + 1
@@ -223,5 +223,37 @@ function Remove-OldLogsBeforeNewRun {
   }
   if (Test-Path "PesterTestResults.xml") {
     Remove-Item "PesterTestResults.xml" -Force | Out-Null
+  }
+}
+
+function ConvertTo-Hashtable
+{
+    param (
+        [Parameter(ValueFromPipeline = $true)]
+        [Object[]] $InputObject
+    )
+
+    process {
+        foreach ($object in $InputObject) {
+            $hash = @{}
+            foreach ($property in $object.PSObject.Properties) {
+                $hash[$property.Name] = $property.Value
+            }
+            $hash
+        }
+    }
+}
+
+function Get-ParameterFromFunction($functionName, $astMembers, $propertyName) {
+  foreach($param in $astMembers) {
+      if ($null -ne $param.name -and $param.Name.ToString() -eq "`$$propertyName") {
+          $function = $param.Parent.Parent.Parent
+          if ($function -is [System.Management.Automation.Language.FunctionDefinitionAst]) {
+              $funcName = ([System.Management.Automation.Language.FunctionDefinitionAst]$function).Name
+              if ($funcName -eq $functionName) {
+                  return $param.Attributes.Extent.Text
+              }
+          }
+      }
   }
 }

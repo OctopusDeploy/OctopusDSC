@@ -13,8 +13,10 @@ try
     $module = Import-Module $modulePath -Prefix $prefix -PassThru -ErrorAction Stop
 
     InModuleScope $module.Name {
-        $sampleConfigPath = Split-Path $PSCommandPath -Parent
-        $sampleConfigPath = Join-Path $sampleConfigPath "SampleConfigs"
+        BeforeAll {
+            $sampleConfigPath = Split-Path $PSCommandPath -Parent
+            $sampleConfigPath = Join-Path $sampleConfigPath "SampleConfigs"
+        }
 
         Describe 'cOctopusSeqLogger' {
             BeforeEach {
@@ -40,13 +42,13 @@ try
                     Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml")) }
 
                     $config = Get-TargetResourceInternal @desiredConfiguration
-                    $config.ConfigVersion                             | Should Be 2
-                    $config.InstanceType                              | Should Be 'OctopusServer'
-                    $config.Ensure                                    | Should Be 'Present'
-                    $config.SeqServer                                 | Should Be 'https://seq.example.com'
-                    $config.SeqApiKey.GetNetworkCredential().Password | Should Be '1a2b3c4d5e6f'
-                    $config.Properties['Application']                 | Should Be $desiredConfiguration.Properties['Application']
-                    $config.Properties['Server']                      | Should Be $desiredConfiguration.Properties['Server']
+                    $config.ConfigVersion                             | Should -Be 2
+                    $config.InstanceType                              | Should -Be 'OctopusServer'
+                    $config.Ensure                                    | Should -Be 'Present'
+                    $config.SeqServer                                 | Should -Be 'https://seq.example.com'
+                    $config.SeqApiKey.GetNetworkCredential().Password | Should -Be '1a2b3c4d5e6f'
+                    $config.Properties['Application']                 | Should -Be $desiredConfiguration.Properties['Application']
+                    $config.Properties['Server']                      | Should -Be $desiredConfiguration.Properties['Server']
                 }
 
                 It 'Returns expected data for old sync config' {
@@ -56,13 +58,13 @@ try
                     Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-old-sync-configuration-with-api-key.xml")) }
 
                     $config = Get-TargetResourceInternal @desiredConfiguration
-                    $config.ConfigVersion                             | Should Be 1
-                    $config.InstanceType                              | Should Be 'OctopusServer'
-                    $config.Ensure                                    | Should Be 'Present'
-                    $config.SeqServer                                 | Should Be 'https://seq.example.com'
-                    $config.SeqApiKey.GetNetworkCredential().Password | Should Be '1a2b3c4d5e6f'
-                    $config.Properties['Application']                 | Should Be $desiredConfiguration.Properties['Application']
-                    $config.Properties['Server']                      | Should Be $desiredConfiguration.Properties['Server']
+                    $config.ConfigVersion                             | Should -Be 1
+                    $config.InstanceType                              | Should -Be 'OctopusServer'
+                    $config.Ensure                                    | Should -Be 'Present'
+                    $config.SeqServer                                 | Should -Be 'https://seq.example.com'
+                    $config.SeqApiKey.GetNetworkCredential().Password | Should -Be '1a2b3c4d5e6f'
+                    $config.Properties['Application']                 | Should -Be $desiredConfiguration.Properties['Application']
+                    $config.Properties['Server']                      | Should -Be $desiredConfiguration.Properties['Server']
                 }
 
                 It 'Returns expected data when config not set' {
@@ -72,11 +74,11 @@ try
                     Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-when-not-configured.xml")) }
 
                     $config = Get-TargetResourceInternal @desiredConfiguration
-                    $config.InstanceType     | Should Be 'OctopusServer'
-                    $config.Ensure           | Should Be 'Absent'
-                    $config.SeqServer        | Should Be $null
-                    $config.SeqApiKey        | Should Be $null
-                    $config.Properties.Count | Should Be 0
+                    $config.InstanceType     | Should -Be 'OctopusServer'
+                    $config.Ensure           | Should -Be 'Absent'
+                    $config.SeqServer        | Should -Be $null
+                    $config.SeqApiKey        | Should -Be $null
+                    $config.Properties.Count | Should -Be 0
                 }
 
                 It 'Returns expected data when dll does not exist' {
@@ -86,12 +88,12 @@ try
                     Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml")) }
 
                     $config = Get-TargetResourceInternal @desiredConfiguration
-                    $config.InstanceType                              | Should Be 'OctopusServer'
-                    $config.Ensure                                    | Should Be 'Absent'
-                    $config.SeqServer                                 | Should Be 'https://seq.example.com'
-                    $config.SeqApiKey.GetNetworkCredential().Password | Should Be '1a2b3c4d5e6f'
-                    $config.Properties['Application']                 | Should Be $desiredConfiguration.Properties['Application']
-                    $config.Properties['Server']                      | Should Be $desiredConfiguration.Properties['Server']
+                    $config.InstanceType                              | Should -Be 'OctopusServer'
+                    $config.Ensure                                    | Should -Be 'Absent'
+                    $config.SeqServer                                 | Should -Be 'https://seq.example.com'
+                    $config.SeqApiKey.GetNetworkCredential().Password | Should -Be '1a2b3c4d5e6f'
+                    $config.Properties['Application']                 | Should -Be $desiredConfiguration.Properties['Application']
+                    $config.Properties['Server']                      | Should -Be $desiredConfiguration.Properties['Server']
                 }
 
                 It 'Throws an exception if Octopus is not installed and ensure is set to present' {
@@ -99,7 +101,7 @@ try
                     Mock Test-Path { return $false } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe.nlog" }
                     Mock Test-NLogDll { return $true }
                     Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml")) }
-                    { Get-TargetResourceInternal @desiredConfiguration } | Should Throw "Unable to find Octopus (checked for existence of file '$octopusServerExePath')."
+                    { Get-TargetResourceInternal @desiredConfiguration } | Should -throw "Unable to find Octopus (checked for existence of file '$octopusServerExePath')."
                 }
 
                 It 'Does not throw an exception if Octopus is not installed and ensure is set to absent' {
@@ -108,13 +110,15 @@ try
                     Mock Test-NLogDll { return $true }
                     Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml")) }
                     $desiredConfiguration.Ensure = 'Absent'
-                    { Get-TargetResourceInternal @desiredConfiguration } | Should Not Throw "Unable to find Octopus (checked for existence of file '$octopusServerExePath')."
+                    { Get-TargetResourceInternal @desiredConfiguration } | Should -not -throw "Unable to find Octopus (checked for existence of file '$octopusServerExePath')."
                 }
             }
 
             Context 'Test-TargetResource' {
-                $response = @{ InstanceType="OctopusServer"; Ensure='Present' }
-                Mock Get-TargetResourceInternal { return $response }
+                BeforeAll {
+                    $response = @{ InstanceType="OctopusServer"; Ensure='Present' }
+                    Mock Get-TargetResourceInternal { return $response }
+                }
 
                 It 'Returns True when its got the expected values' {
                     $desiredPassword = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
@@ -135,7 +139,7 @@ try
                     $response['SeqApiKey'] = $actualApiKey
                     $response['Properties'] = @{ Application = "Octopus"; Server = "MyServer" }
 
-                    Test-TargetResourceInternal @desiredConfiguration | Should Be $true
+                    Test-TargetResourceInternal @desiredConfiguration | Should -Be $true
                 }
 
                 It 'Returns false when there are a different number of properties' {
@@ -157,7 +161,7 @@ try
                     $response['SeqApiKey'] = $actualApiKey
                     $response['Properties'] = @{ Application = "Octopus"; Server = "MyServer"; AnotherProperty = "PropertyValue" }
 
-                    Test-TargetResourceInternal @desiredConfiguration | Should Be $false
+                    Test-TargetResourceInternal @desiredConfiguration | Should -Be $false
                 }
 
                 It 'Returns false when there the properties have different names' {
@@ -179,7 +183,7 @@ try
                     $response['SeqApiKey'] = $actualApiKey
                     $response['Properties'] = @{ Application = "Octopus"; AnotherProperty = "MyServer" }
 
-                    Test-TargetResourceInternal @desiredConfiguration | Should Be $false
+                    Test-TargetResourceInternal @desiredConfiguration | Should -Be $false
                 }
 
                 It 'Returns false when there the properties have different values' {
@@ -201,7 +205,7 @@ try
                     $response['SeqApiKey'] = $actualApiKey
                     $response['Properties'] = @{ Application = "Octopus"; Server = "MyDifferemtServer" }
 
-                    Test-TargetResourceInternal @desiredConfiguration | Should Be $false
+                    Test-TargetResourceInternal @desiredConfiguration | Should -Be $false
                 }
 
                 It 'Returns false when the api key is different' {
@@ -223,7 +227,7 @@ try
                     $response['SeqApiKey'] = $actualApiKey
                     $response['Properties'] = @{ Application = "Octopus"; Server = "MyServer" }
 
-                    Test-TargetResourceInternal @desiredConfiguration | Should Be $false
+                    Test-TargetResourceInternal @desiredConfiguration | Should -Be $false
                 }
 
                 It 'Returns false when the server is different' {
@@ -245,7 +249,7 @@ try
                     $response['SeqApiKey'] = $actualApiKey
                     $response['Properties'] = @{ Application = "Octopus"; Server = "MyServer" }
 
-                    Test-TargetResourceInternal @desiredConfiguration | Should Be $false
+                    Test-TargetResourceInternal @desiredConfiguration | Should -Be $false
                 }
 
                It 'Returns false when its currently disabled and installation requested' {
@@ -264,7 +268,7 @@ try
                     $response['SeqApiKey'] = $null
                     $response['Properties'] = @{ }
 
-                    Test-TargetResourceInternal @desiredConfiguration | Should Be $false
+                    Test-TargetResourceInternal @desiredConfiguration | Should -Be $false
                 }
 
                It 'Returns false when its currently enabled and removal requested' {
@@ -283,7 +287,7 @@ try
                     $response['SeqApiKey'] = $actualApiKey
                     $response['Properties'] = @{ Application = "Octopus"; Server = "MyServer" }
 
-                    Test-TargetResourceInternal @desiredConfiguration | Should Be $false
+                    Test-TargetResourceInternal @desiredConfiguration | Should -Be $false
                 }
 
                 It 'Calls Get-TargetResource (and therefore inherits its checks)' {
@@ -311,7 +315,7 @@ try
                     $response['Properties'] = @{ Application = "Octopus"; Server = "MyServer" }
                     $response['ConfifVersion'] = 1
 
-                    Test-TargetResourceInternal @desiredConfiguration | Should Be $false
+                    Test-TargetResourceInternal @desiredConfiguration | Should -Be $false
                 }
             }
 
@@ -345,7 +349,7 @@ try
                     Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml")) }
                     $expected = [xml](Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-when-not-configured.xml"))
 
-                    Mock Save-NlogConfig { $nlogConfig.OuterXml | Should be $expected.OuterXml }
+                    Mock Save-NlogConfig { $nlogConfig.OuterXml | Should -Be $expected.OuterXml }
 
                     #call the internal one, as we cant figure out how to mock the ciminstance
                     Set-TargetResourceInternal -InstanceType 'OctopusServer' -Ensure 'Absent'
@@ -363,7 +367,7 @@ try
                     Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-old-sync-configuration-with-api-key.xml")) }
                     $expected = [xml](Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-when-not-configured.xml"))
 
-                    Mock Save-NlogConfig { $nlogConfig.OuterXml | Should be $expected.OuterXml }
+                    Mock Save-NlogConfig { $nlogConfig.OuterXml | Should -Be $expected.OuterXml }
 
                     #call the internal one, as we cant figure out how to mock the ciminstance
                     Set-TargetResourceInternal -InstanceType 'OctopusServer' -Ensure 'Absent'
@@ -394,7 +398,7 @@ try
                     Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-when-not-configured.xml")) }
                     $expected = [xml](Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration.xml"))
 
-                    Mock Save-NlogConfig { $nlogConfig.OuterXml | Should be $expected.OuterXml }
+                    Mock Save-NlogConfig { $nlogConfig.OuterXml | Should -Be $expected.OuterXml }
 
                     #call the internal one, as we cant figure out how to mock the ciminstance
                     Set-TargetResourceInternal -InstanceType 'OctopusServer' `
@@ -413,7 +417,7 @@ try
                     Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-when-not-configured.xml")) }
                     $expected = [xml](Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml"))
 
-                    Mock Save-NlogConfig { $nlogConfig.OuterXml | Should be $expected.OuterXml }
+                    Mock Save-NlogConfig { $nlogConfig.OuterXml | Should -Be $expected.OuterXml }
                     $password = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
                     $apiKey = New-Object System.Management.Automation.PSCredential ("ignored", $password)
 
@@ -435,7 +439,7 @@ try
                     Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-old-sync-configuration-with-api-key.xml")) }
                     $expected = [xml](Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml"))
 
-                    Mock Save-NlogConfig { $nlogConfig.OuterXml | Should be $expected.OuterXml }
+                    Mock Save-NlogConfig { $nlogConfig.OuterXml | Should -Be $expected.OuterXml }
                     $password = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
                     $apiKey = New-Object System.Management.Automation.PSCredential ("ignored", $password)
 
@@ -457,7 +461,7 @@ try
                     Mock Save-NlogConfig
 
                     #call the internal one, as we cant figure out how to mock the ciminstance
-                    { Set-TargetResourceInternal -InstanceType 'OctopusServer' -Ensure 'Present' } | Should Throw "Property 'SeqServer' should be supplied if 'Ensure' is set to 'Present'"
+                    { Set-TargetResourceInternal -InstanceType 'OctopusServer' -Ensure 'Present' } | Should -throw "Property 'SeqServer' should be supplied if 'Ensure' is set to 'Present'"
                 }
             }
         }

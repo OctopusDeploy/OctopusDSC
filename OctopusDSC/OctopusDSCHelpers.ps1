@@ -18,6 +18,16 @@ function Get-ODSCParameter($parameters) {
     return $params
 }
 
+function Test-GetODSCParameter {
+    param(
+        $Name,
+        $Ensure,
+        $DefaultValue = 'default'
+    )
+   return (Get-ODSCParameter $MyInvocation.MyCommand.Parameters)
+}
+
+
 function Invoke-WebClient($url, $OutFile) {
     $downloader = new-object System.Net.WebClient
     $downloader.DownloadFile($url, $OutFile)
@@ -173,18 +183,18 @@ Function Get-MaskedOutput
     return $out
 }
 
-function Invoke-OctopusServerCommand ($arguments) {
+function Invoke-OctopusServerCommand ($cmdArgs) {
     # todo: fix this up
-    if ((($arguments -match "masterkey|password|license|pwd=").Count -eq 0)) {
-        Write-Verbose "Executing command '$octopusServerExePath $($arguments -join ' ')'"
+    if ((($cmdArgs -match "masterkey|password|license|pwd=").Count -eq 0)) {
+        Write-Verbose "Executing command '$octopusServerExePath $($cmdArgs -join ' ')'"
     } else {
         $copiedarguments = @() # hack to pass a copy of the array, not a reference
-        $copiedarguments += $arguments
+        $copiedarguments += $cmdArgs
         $maskedarguments = Get-MaskedOutput $copiedarguments
         Write-Verbose "Executing command '$octopusServerExePath $($maskedarguments -join ' ')'"
     }
     $LASTEXITCODE = 0
-    $output = & $octopusServerExePath $arguments 2>&1
+    $output = & $octopusServerExePath $cmdArgs 2>&1
 
     Write-CommandOutput $output
     if (($null -ne $LASTEXITCODE) -and ($LASTEXITCODE -ne 0)) {
@@ -199,18 +209,18 @@ function Test-TentacleExecutableExists {
     return ((test-path $tentacleDir) -and (test-path "$tentacleDir\tentacle.exe"))
 }
 
-function Invoke-TentacleCommand ($arguments) {
+function Invoke-TentacleCommand ($cmdArgs) {
     # todo: fix this up
-    if ((($arguments -match "masterkey|password|license|pwd=").Count -eq 0)) {
-        Write-Verbose "Executing command '$tentacleExePath $($arguments -join ' ')'"
+    if ((($cmdArgs -match "masterkey|password|license|pwd=").Count -eq 0)) {
+        Write-Verbose "Executing command '$tentacleExePath $($cmdArgs -join ' ')'"
     } else {
         $copiedarguments = @() # hack to pass a copy of the array, not a reference
-        $copiedarguments += $arguments
+        $copiedarguments += $cmdArgs
         $maskedarguments = Get-MaskedOutput $copiedarguments
         Write-Verbose "Executing command '$tentacleExePath $($maskedarguments -join ' ')'"
     }
     $LASTEXITCODE = 0
-    $output = & $tentacleExePath $arguments 2>&1
+    $output = & $tentacleExePath $cmdArgs 2>&1
 
     Write-CommandOutput $output
     if (($null -ne $LASTEXITCODE) -and ($LASTEXITCODE -ne 0)) {
