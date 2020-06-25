@@ -159,6 +159,7 @@ try
 
                     it "should return a hashtable with an entry for <propertyName>" -TestCases $testCases {
                         param($propertyName, $propertyReturned)
+                        write-verbose "Property $propertyName should exist" # to keep psscriptanalyzer from complaining about PSReviewUnusedParameter
                         $propertyReturned | Should -Be $true
                     }
 
