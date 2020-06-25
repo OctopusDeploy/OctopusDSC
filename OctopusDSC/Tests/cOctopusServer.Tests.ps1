@@ -142,6 +142,47 @@ try
                         }
                     }
                 }
+
+                function Get-PropertiesFromMof() {
+                    $moduleName = Split-Path ($PSCommandPath -replace '\.Tests\.ps1$', '') -Leaf
+                    $modulePath = Resolve-Path "$PSCommandPath/../../DSCResources/$moduleName/$moduleName.psm1"
+                    $mofFile = Get-Item ($modulePath -replace ".psm1", ".schema.mof")
+                    $schemaMofFileContent = Get-Content $mofFile
+
+                    $properties = @()
+                    foreach($line in $schemaMofFileContent) {
+                        if ($line -match "\s*(\[.*\])\s*(.*) (.*);") {
+                            $properties += $matches[3].Replace("[]", "");
+                        }
+                    }
+                    return $properties
+                }
+
+                Context "Should return a hash table that lists all the resource properties as keys and the actual values" {
+                    . $global:powershellHelpersPath
+
+                    $expectedProperties = Get-PropertiesFromMof | select-object @{ name="expectedProperty";expression={ $_ }} | ConvertTo-Hashtable;
+
+                    BeforeAll {
+                        $pass = ConvertTo-SecureString "S3cur3P4ssphraseHere!" -AsPlainText -Force
+                        $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
+
+                        $desiredConfiguration = @{
+                            Name                   = 'Stub'
+                            Ensure                 = 'Present'
+                            State                  = 'Started'
+                            WebListenPrefix        = "http://localhost:80"
+                            SqlDbConnectionString  = "conn-string"
+                            OctopusAdminCredential = $cred
+                        }
+                        $currentState = Get-TargetResource @desiredConfiguration
+                    }
+
+                    it "should return a hashtable with an entry for <expectedProperty>" -TestCases $expectedProperties {
+                        param($expectedProperty)
+                        $currentState.ContainsKey($expectedProperty) | Should -Be $true
+                    }
+                }
             }
 
             Context "Parameter Validation" {
@@ -699,25 +740,27 @@ try
                 }
 
                 Context "When nothing changes" {
-                    Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
-                    Mock Get-TargetResource { return Get-CurrentConfiguration "WhenNothingChanges" }
-                    Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-                    Mock Invoke-MsiExec {}
-                    Mock Get-LogDirectory {}
-                    Mock Request-File {}
-                    Mock Update-InstallState {}
-                    Mock Test-OctopusDeployServerResponding { return $true }
-                    Mock Test-OctopusVersionNewerThan { return $true }
-                    Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
-                    Mock Stop-OctopusDeployService
+                    BeforeAll {
+                        Mock Invoke-OctopusServerCommand #{ param ($cmdArgs) write-host $cmdArgs}
+                        Mock Get-TargetResource { return Get-CurrentConfiguration "WhenNothingChanges" }
+                        Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                        Mock Invoke-MsiExec {}
+                        Mock Get-LogDirectory {}
+                        Mock Request-File {}
+                        Mock Update-InstallState {}
+                        Mock Test-OctopusDeployServerResponding { return $true }
+                        Mock Test-OctopusVersionNewerThan { return $true }
+                        Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+                        Mock Stop-OctopusDeployService
 
-                    $params = Get-RequestedConfiguration "WhenNothingChanges"
-                    Set-TargetResource @params
-
-                    it "Should not restart the service" {
-                        Assert-MockCalled Stop-OctopusDeployService -Times 0 -Exactly
+                        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification = "It is actually used, but pester's scoping is weird")]
+                        $params = Get-RequestedConfiguration "WhenNothingChanges"
                     }
                     Assert-ExpectedResult "WhenNothingChanges"
+                    it "Should not restart the service" {
+                        Set-TargetResource @params
+                        Assert-MockCalled Stop-OctopusDeployService -Times 0 -Exactly
+                    }
                 }
             }
         }
