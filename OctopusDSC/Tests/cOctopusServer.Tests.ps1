@@ -14,118 +14,105 @@ try
 
     InModuleScope $module.Name {
 
-        # Get-Service is not available on mac/unix systems - fake it
-        $getServiceCommand = Get-Command "Get-Service" -ErrorAction SilentlyContinue
-        if ($null -eq $getServiceCommand) {
-            function Get-Service {}
-        }
-
         Describe 'cOctopusServer' {
-            [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
-            $mockConfig = [pscustomobject] @{
-                OctopusStorageExternalDatabaseConnectionString         = 'StubConnectionString'
-                OctopusWebPortalListenPrefixes                         = "https://octopus.example.com,http://localhost"
-            }
-            Mock Import-ServerConfig { return $mockConfig }
-
-            function Get-DesiredConfiguration {
-                $pass = ConvertTo-SecureString "S3cur3P4ssphraseHere!" -AsPlainText -Force
-                $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
-
+            BeforeAll {
                 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
-                $desiredConfiguration = @{
-                     Name                   = 'Stub'
-                     Ensure                 = 'Present'
-                     State                  = 'Started'
-                     WebListenPrefix        = "http://localhost:80"
-                     SqlDbConnectionString  = "conn-string"
-                     OctopusAdminCredential = $cred
+                $mockConfig = [pscustomobject] @{
+                    OctopusStorageExternalDatabaseConnectionString         = 'StubConnectionString'
+                    OctopusWebPortalListenPrefixes                         = "https://octopus.example.com,http://localhost"
                 }
-                return $desiredConfiguration
+                Mock Import-ServerConfig { return $mockConfig }
+
+                # Get-Service is not available on mac/unix systems - fake it
+                $getServiceCommand = Get-Command "Get-Service" -ErrorAction SilentlyContinue
+                if ($null -eq $getServiceCommand) {
+                    function Get-Service {
+                        [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification='Get-Service is not available on mac/unix systems, so without faking it, our builds fail')]
+                        param()
+                    }
+                }
+
+                function Get-DesiredConfiguration {
+                    $pass = ConvertTo-SecureString "S3cur3P4ssphraseHere!" -AsPlainText -Force
+                    $cred = New-Object System.Management.Automation.PSCredential ("Admin", $pass)
+
+                    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
+                    $desiredConfiguration = @{
+                        Name                   = 'Stub'
+                        Ensure                 = 'Present'
+                        State                  = 'Started'
+                        WebListenPrefix        = "http://localhost:80"
+                        SqlDbConnectionString  = "conn-string"
+                        OctopusAdminCredential = $cred
+                    }
+                    return $desiredConfiguration
+                }
             }
 
             Context 'Get-TargetResource' {
                 Context 'When reg key exists and service exists and service started' {
-                    Mock Get-ItemProperty { return @{ InstallLocation = "c:\Octopus\Octopus" }}
-                    Mock Get-Service { return @{ Status = "Running" }}
-                    $desiredConfiguration = Get-DesiredConfiguration
-                    $config = Get-TargetResource @desiredConfiguration
-
-                    It 'Should have Ensure=Present' {
-                        $config['Ensure']                  | Should Be 'Present'
-                    }
-                    It 'Should have State=Started' {
-                        $config['State']                   | Should Be 'Started'
+                    It 'Should have Ensure=Present and State=Started' {
+                        Mock Get-ItemProperty { return @{ InstallLocation = "c:\Octopus\Octopus" }}
+                        Mock Get-Service { return @{ Status = "Running" }}
+                        $desiredConfiguration = Get-DesiredConfiguration
+                        $config = Get-TargetResource @desiredConfiguration
+                        $config['Ensure']                  | Should -Be 'Present'
+                        $config['State']                   | Should -Be 'Started'
                     }
                 }
 
                 Context 'When reg key exists and service exists and service stopped' {
-                    Mock Get-ItemProperty { return @{ InstallLocation = "c:\Octopus\Octopus" }}
-                    Mock Get-Service { return @{ Status = "Stopped" }}
-                    $desiredConfiguration = Get-DesiredConfiguration
-                    $config = Get-TargetResource @desiredConfiguration
-
-                    It 'Should have Ensure=Present' {
-                        $config['Ensure']                  | Should Be 'Present'
-                    }
-                    It 'Should have State=Stopped' {
-                        $config['State']                   | Should Be 'Stopped'
+                    It 'Should have Ensure=Present and State=Stopped' {
+                        Mock Get-ItemProperty { return @{ InstallLocation = "c:\Octopus\Octopus" }}
+                        Mock Get-Service { return @{ Status = "Stopped" }}
+                        $desiredConfiguration = Get-DesiredConfiguration
+                        $config = Get-TargetResource @desiredConfiguration
+                        $config['Ensure']                  | Should -Be 'Present'
+                        $config['State']                   | Should -Be 'Stopped'
                     }
                 }
 
                 Context 'When reg key exists and service does not exist' {
-                    Mock Get-ItemProperty { return @{ InstallLocation = "c:\Octopus\Octopus" }}
-                    Mock Get-Service { return $null }
-                    $desiredConfiguration = Get-DesiredConfiguration
-                    $config = Get-TargetResource @desiredConfiguration
-
-                    It 'Should have Ensure=Present' {
-                        $config['Ensure']                  | Should Be 'Present'
-                    }
-                    It 'Should have State=Installed' {
-                        $config['State']                   | Should Be 'Installed'
+                    It 'Should have Ensure=Present and State=Installed' {
+                        Mock Get-ItemProperty { return @{ InstallLocation = "c:\Octopus\Octopus" }}
+                        Mock Get-Service { return $null }
+                        $desiredConfiguration = Get-DesiredConfiguration
+                        $config = Get-TargetResource @desiredConfiguration
+                        $config['Ensure']                  | Should -Be 'Present'
+                        $config['State']                   | Should -Be 'Installed'
                     }
                 }
 
                 Context 'When reg key does not exist and service does not exist' {
-                    Mock Get-ItemProperty { return $null }
-                    Mock Get-Service { return $null }
-                    $desiredConfiguration = Get-DesiredConfiguration
-                    $config = Get-TargetResource @desiredConfiguration
-
-                    It 'Should have Ensure=Absent' {
-                        $config['Ensure']                  | Should Be 'Absent'
-                    }
-                    It 'Should have State=Stopped' {
-                        $config['State']                   | Should Be 'Stopped'
+                    It 'Should have Ensure=Absent and State=Stopped' {
+                        Mock Get-ItemProperty { return $null }
+                        Mock Get-Service { return $null }
+                        $desiredConfiguration = Get-DesiredConfiguration
+                        $config = Get-TargetResource @desiredConfiguration
+                        $config['Ensure']                  | Should -Be 'Absent'
+                        $config['State']                   | Should -Be 'Stopped'
                     }
                 }
 
                 Context 'When reg key does not exist and service started' {
-                    Mock Get-ItemProperty { return $null }
-                    Mock Get-Service { return @{ Status = "Running" } }
-                    $desiredConfiguration = Get-DesiredConfiguration
-                    $config = Get-TargetResource @desiredConfiguration
-
-                    It 'Should have Ensure=Present' {
-                        $config['Ensure']                  | Should Be 'Present'
-                    }
-                    It 'Should have State=Started' {
-                        $config['State']                   | Should Be 'Started'
+                    It 'Should have Ensure=Present and State=Started' {
+                        Mock Get-ItemProperty { return $null }
+                        Mock Get-Service { return @{ Status = "Running" } }
+                        $desiredConfiguration = Get-DesiredConfiguration
+                        $config = Get-TargetResource @desiredConfiguration
+                        $config['Ensure']                  | Should -Be 'Present'
+                        $config['State']                   | Should -Be 'Started'
                     }
                 }
 
                 Context 'When reg key does not exist and service stopped' {
-                    Mock Get-ItemProperty { return $null }
-                    Mock Get-Service { return @{ Status = "Stopped" } }
-                    $desiredConfiguration = Get-DesiredConfiguration
-                    $config = Get-TargetResource @desiredConfiguration
-
-                    It 'Should have Ensure=Present' {
-                        $config['Ensure']                  | Should Be 'Present'
-                    }
-                    It 'Should have State=Stopped' {
-                        $config['State']                   | Should Be 'Stopped'
+                    It 'Should have Ensure=Present and State=Stopped' {
+                        Mock Get-ItemProperty { return $null }
+                        Mock Get-Service { return @{ Status = "Stopped" } }
+                        $desiredConfiguration = Get-DesiredConfiguration
+                        $config = Get-TargetResource @desiredConfiguration
+                        $config['Ensure']                  | Should -Be 'Present'
+                        $config['State']                   | Should -Be 'Stopped'
                     }
                 }
             }
@@ -133,206 +120,217 @@ try
             Context "Parameter Validation" {
                 Context "Ensure = 'Present' and 'State' = 'Stopped'" {
                     It "Should throw if 'Name' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -DownloadUrl "blah2" } | Should throw "Parameter 'Name' must be supplied when 'Ensure' is 'Present'."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -DownloadUrl "blah2" } `
+                            | Should -throw "Parameter 'Name' must be supplied when 'Ensure' is 'Present'."
                     }
                     It "Should throw if 'DownloadUrl' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" } | Should throw "Parameter 'DownloadUrl' must be supplied when 'Ensure' is 'Present'."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" } `
+                            | Should -throw "Parameter 'DownloadUrl' must be supplied when 'Ensure' is 'Present'."
                     }
                     It "Should throw if 'WebListenPrefix' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" } | Should throw "Parameter 'WebListenPrefix' must be supplied when 'Ensure' is 'Present'."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" } `
+                            | Should -throw "Parameter 'WebListenPrefix' must be supplied when 'Ensure' is 'Present'."
                     }
                     It "Should throw if 'SqlDbConnectionString' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3"} | Should throw "Parameter 'SqlDbConnectionString' must be supplied when 'Ensure' is 'Present'."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3"} `
+                            | Should -throw "Parameter 'SqlDbConnectionString' must be supplied when 'Ensure' is 'Present'."
                     }
                     It "Should throw if 'TaskCap' is less than 1" {
                         $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
-                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds -TaskCap -1} | Should throw "Parameter 'TaskCap' must be greater than 0 when 'Ensure' is 'Present'."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds -TaskCap -1} `
+                            | Should -throw "Parameter 'TaskCap' must be greater than 0 when 'Ensure' is 'Present'."
                     }
                     It "Should throw if 'TaskCap' is greater than 50" {
                         $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
-                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds -TaskCap 51} | Should throw "Parameter 'TaskCap' must be less than 50 when 'Ensure' is 'Present'."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds -TaskCap 51} `
+                            | Should -throw "Parameter 'TaskCap' must be less than 50 when 'Ensure' is 'Present'."
                     }
                     It "Should not throw if 'OctopusAdminCredential' not supplied but 'OctopusMasterKey' is supplied" {
                         $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
-                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $creds} | Should not throw
+                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $creds} | Should -not -throw
                     }
                     It "Should not throw if 'OctopusAdminCredential' is '[PSCredential]::Empty' but 'OctopusMasterKey' is supplied" {
                         $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
-                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusMasterKey $creds} | Should not throw
+                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusMasterKey $creds} | Should -not -throw
                     }
                     It "Should throw if 'OctopusAdminCredential' not supplied and 'OctopusMasterKey' is not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" } `
+                            | Should -throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
                     }
                     It "Should throw if 'OctopusAdminCredential' is null and 'OctopusMasterKey' is null" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $null } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $null } `
+                            | Should -throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
                     }
                     It "Should throw if 'OctopusAdminCredential' is '[PSCredential]::Empty' and 'OctopusMasterKey' is '[PSCredential]::Empty'" {
                         $creds = [PSCredential]::Empty
                         $masterKey = [PSCredential]::Empty
-                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds -OctopusMasterKey $masterKey } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds -OctopusMasterKey $masterKey } `
+                            | Should -throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
                     }
                     It "Should not throw if all params are supplied" {
                         $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
-                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds} | Should not throw
+                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds} | Should -not -throw
                     }
                 }
 
                 Context "Ensure = 'Present' and 'State' = 'Started'" {
                     It "Should throw if 'Name' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -DownloadUrl "blah2" } | Should throw "Parameter 'Name' must be supplied when 'Ensure' is 'Present'."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Stopped' -DownloadUrl "blah2" } | Should -throw "Parameter 'Name' must be supplied when 'Ensure' is 'Present'."
                     }
                     It "Should throw if 'DownloadUrl' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" } | Should throw "Parameter 'DownloadUrl' must be supplied when 'Ensure' is 'Present'."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" } | Should -throw "Parameter 'DownloadUrl' must be supplied when 'Ensure' is 'Present'."
                     }
                     It "Should throw if 'WebListenPrefix' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" } | Should throw "Parameter 'WebListenPrefix' must be supplied when 'Ensure' is 'Present'."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" } | Should -throw "Parameter 'WebListenPrefix' must be supplied when 'Ensure' is 'Present'."
                     }
                     It "Should throw if 'SqlDbConnectionString' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3"} | Should throw "Parameter 'SqlDbConnectionString' must be supplied when 'Ensure' is 'Present'."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3"} | Should -throw "Parameter 'SqlDbConnectionString' must be supplied when 'Ensure' is 'Present'."
                     }
                     It "Should not throw if 'OctopusAdminCredential' not supplied but 'OctopusMasterKey' is supplied" {
                         $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
-                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $creds} | Should not throw
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $creds} | Should -not -throw
                     }
                     It "Should not throw if 'OctopusAdminCredential' is '[PSCredential]::Empty' but 'OctopusMasterKey' is supplied" {
                         $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
-                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusMasterKey $creds} | Should not throw
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusMasterKey $creds} | Should -not -throw
                     }
                     It "Should throw if 'OctopusAdminCredential' not supplied and 'OctopusMasterKey' is not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" } | Should -throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
                     }
                     It "Should throw if 'OctopusAdminCredential' is null and 'OctopusMasterKey' is null" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $null } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $null } | Should -throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
                     }
                     It "Should throw if 'OctopusAdminCredential' is '[PSCredential]::Empty' and 'OctopusMasterKey' is '[PSCredential]::Empty'" {
                         $creds = [PSCredential]::Empty
                         $masterKey = [PSCredential]::Empty
-                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds -OctopusMasterKey $masterKey } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds -OctopusMasterKey $masterKey } | Should -throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
                     }
                     It "Should not throw if all params are supplied" {
                         $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
-                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds} | Should not throw
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds} | Should -not -throw
                     }
                 }
 
                 Context "Ensure = 'Present' and 'State' = 'Installed'" {
                     It "Should not throw if 'Name' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" } | Should not throw
+                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" } | Should -not -throw
                     }
                     It "Should throw if 'DownloadUrl' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' } | Should throw "Parameter 'DownloadUrl' must be supplied when 'Ensure' is 'Present'."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' } | Should -throw "Parameter 'DownloadUrl' must be supplied when 'Ensure' is 'Present'."
                     }
                     It "Should not throw if 'WebListenPrefix' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" } | Should not throw
+                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" } | Should -not -throw
                     }
                     It "Should not throw if 'SqlDbConnectionString' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3"} | Should not throw
+                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3"} | Should -not -throw
                     }
                     It "Should not throw if 'OctopusAdminCredential' not supplied and 'SqlDbConnectionString' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" -OctopusAdminCredential $null } | Should not throw
+                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" -OctopusAdminCredential $null } | Should -not -throw
                     }
                     It "Should not throw if 'OctopusAdminCredential' is '[PSCredential]::Empty' and 'SqlDbConnectionString' not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" } | Should not throw
+                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" } | Should -not -throw
                     }
                     It "Should not throw if all params are supplied" {
                         $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
-                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds} | Should not throw
+                        { Test-ParameterSet -Ensure 'Present' -State 'Installed' -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds} | Should -not -throw
                     }
                 }
 
                 Context "Ensure = 'Present', 'State' = 'Installed', and 'SqlDbConnectionString' != 'null or empty'" {
                     It "Should throw if 'OctopusAdminCredential' not supplied and 'OctopusMasterKey' is not supplied" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" } | Should -throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
                     }
                     It "Should throw if 'OctopusAdminCredential' is null and 'OctopusMasterKey' is null" {
-                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $null } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null -OctopusMasterKey $null } | Should -throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
                     }
                     It "Should throw if 'OctopusAdminCredential' is '[PSCredential]::Empty' and 'OctopusMasterKey' is '[PSCredential]::Empty'" {
                         $creds = [PSCredential]::Empty
                         $masterKey = [PSCredential]::Empty
-                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds -OctopusMasterKey $masterKey } | Should throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
+                        { Test-ParameterSet -Ensure 'Present' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds -OctopusMasterKey $masterKey } | Should -throw "Parameter 'OctopusAdminCredential' must be supplied when 'Ensure' is 'Present' and you have not supplied a master key to use an existing database."
                     }
                 }
 
                 Context "Ensure = 'Absent' and 'State' = 'Stopped'" {
                     It "Should throw if 'Name' not supplied" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Stopped' } | Should throw "Parameter 'Name' must be supplied when 'Ensure' is 'Absent'."
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Stopped' } | Should -throw "Parameter 'Name' must be supplied when 'Ensure' is 'Absent'."
                     }
                     It "Should not throw if 'DownloadUrl' not supplied" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Stopped' -Name "blah1" } | Should not throw
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Stopped' -Name "blah1" } | Should -not -throw
                     }
                     It "Should not throw if 'WebListenPrefix' not supplied" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" } | Should not throw
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" } | Should -not -throw
                     }
                     It "Should not throw if 'SqlDbConnectionString' not supplied" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3"} | Should not throw
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3"} | Should -not -throw
                     }
                     It "Should not throw if 'OctopusAdminCredential' not supplied" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null} | Should not throw
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null} | Should -not -throw
                     }
                     It "Should not throw if 'OctopusAdminCredential' is '[PSCredential]::Empty'" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4"} | Should not throw
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4"} | Should -not -throw
                     }
                     It "Should not throw if all params are supplied" {
                         $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds} | Should not throw
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Stopped' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds} | Should -not -throw
                     }
                 }
 
                 Context "Ensure = 'Absent' and 'State' = 'Started'" {
                     It "Should throw if 'Name' not supplied" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Started' } | Should throw "Invalid configuration requested. You have asked for the service to not exist, but also be running at the same time. You probably want 'State = `"Stopped`"."
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Started' } | Should -throw "Invalid configuration requested. You have asked for the service to not exist, but also be running at the same time. You probably want 'State = `"Stopped`"."
                     }
                     It "Should throw if 'DownloadUrl' not supplied" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Started' -Name "blah1"} | Should throw "Invalid configuration requested. You have asked for the service to not exist, but also be running at the same time. You probably want 'State = `"Stopped`"."
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Started' -Name "blah1"} | Should -throw "Invalid configuration requested. You have asked for the service to not exist, but also be running at the same time. You probably want 'State = `"Stopped`"."
                     }
                     It "Should throw if 'WebListenPrefix' not supplied" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Started' -Name "blah1" -DownloadUrl "blah2" } | Should throw "Invalid configuration requested. You have asked for the service to not exist, but also be running at the same time. You probably want 'State = `"Stopped`"."
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Started' -Name "blah1" -DownloadUrl "blah2" } | Should -throw "Invalid configuration requested. You have asked for the service to not exist, but also be running at the same time. You probably want 'State = `"Stopped`"."
                     }
                     It "Should throw if 'SqlDbConnectionString' not supplied" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3"} | Should throw "Invalid configuration requested. You have asked for the service to not exist, but also be running at the same time. You probably want 'State = `"Stopped`"."
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3"} | Should -throw "Invalid configuration requested. You have asked for the service to not exist, but also be running at the same time. You probably want 'State = `"Stopped`"."
                     }
                     It "Should throw if 'OctopusAdminCredential' not supplied" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null} | Should throw "Invalid configuration requested. You have asked for the service to not exist, but also be running at the same time. You probably want 'State = `"Stopped`"."
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null} | Should -throw "Invalid configuration requested. You have asked for the service to not exist, but also be running at the same time. You probably want 'State = `"Stopped`"."
                     }
                     It "Should throw if 'OctopusAdminCredential' is '[PSCredential]::Empty'" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4"} | Should throw "Invalid configuration requested. You have asked for the service to not exist, but also be running at the same time. You probably want 'State = `"Stopped`"."
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4"} | Should -throw "Invalid configuration requested. You have asked for the service to not exist, but also be running at the same time. You probably want 'State = `"Stopped`"."
                     }
                     It "Should throw if all params are supplied" {
                         $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds} | Should throw "Invalid configuration requested. You have asked for the service to not exist, but also be running at the same time. You probably want 'State = `"Stopped`"."
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Started' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds} | Should -throw "Invalid configuration requested. You have asked for the service to not exist, but also be running at the same time. You probably want 'State = `"Stopped`"."
                     }
                 }
 
                 Context "Ensure = 'Absent' and 'State' = 'Installed'" {
                     It "Should throw if 'Name' not supplied" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Installed' } | Should throw "Invalid configuration requested. You have asked for the service to not exist, but also be installed at the same time. You probably want 'State = `"Stopped`"."
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Installed' } | Should -throw "Invalid configuration requested. You have asked for the service to not exist, but also be installed at the same time. You probably want 'State = `"Stopped`"."
                     }
                     It "Should throw if 'DownloadUrl' not supplied" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Installed' -Name "blah1"} | Should throw "Invalid configuration requested. You have asked for the service to not exist, but also be installed at the same time. You probably want 'State = `"Stopped`"."
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Installed' -Name "blah1"} | Should -throw "Invalid configuration requested. You have asked for the service to not exist, but also be installed at the same time. You probably want 'State = `"Stopped`"."
                     }
                     It "Should throw if 'WebListenPrefix' not supplied" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Installed' -Name "blah1" -DownloadUrl "blah2" } | Should throw "Invalid configuration requested. You have asked for the service to not exist, but also be installed at the same time. You probably want 'State = `"Stopped`"."
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Installed' -Name "blah1" -DownloadUrl "blah2" } | Should -throw "Invalid configuration requested. You have asked for the service to not exist, but also be installed at the same time. You probably want 'State = `"Stopped`"."
                     }
                     It "Should throw if 'SqlDbConnectionString' not supplied" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Installed' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3"} | Should throw "Invalid configuration requested. You have asked for the service to not exist, but also be installed at the same time. You probably want 'State = `"Stopped`"."
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Installed' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3"} | Should -throw "Invalid configuration requested. You have asked for the service to not exist, but also be installed at the same time. You probably want 'State = `"Stopped`"."
                     }
                     It "Should throw if 'OctopusAdminCredential' not supplied" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Installed' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null} | Should throw "Invalid configuration requested. You have asked for the service to not exist, but also be installed at the same time. You probably want 'State = `"Stopped`"."
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Installed' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $null} | Should -throw "Invalid configuration requested. You have asked for the service to not exist, but also be installed at the same time. You probably want 'State = `"Stopped`"."
                     }
                     It "Should throw if 'OctopusAdminCredential' is '[PSCredential]::Empty'" {
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Installed' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4"} | Should throw "Invalid configuration requested. You have asked for the service to not exist, but also be installed at the same time. You probably want 'State = `"Stopped`"."
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Installed' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4"} | Should -throw "Invalid configuration requested. You have asked for the service to not exist, but also be installed at the same time. You probably want 'State = `"Stopped`"."
                     }
                     It "Should throw if all params are supplied" {
                         $creds = New-Object System.Management.Automation.PSCredential ("username", (new-object System.Security.SecureString))
-                        { Test-ParameterSet -Ensure 'Absent' -State 'Installed' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds} | Should throw "Invalid configuration requested. You have asked for the service to not exist, but also be installed at the same time. You probably want 'State = `"Stopped`"."
+                        { Test-ParameterSet -Ensure 'Absent' -State 'Installed' -Name "blah1" -DownloadUrl "blah2" -WebListenPrefix "blah3" -SqlDbConnectionString "blah4" -OctopusAdminCredential $creds} | Should -throw "Invalid configuration requested. You have asked for the service to not exist, but also be installed at the same time. You probably want 'State = `"Stopped`"."
                     }
                 }
             }
 
             Context 'Test-TargetResource' {
-                $response = @{ Ensure="Absent"; State="Stopped" }
-                Mock Get-TargetResource { return $response }
+                BeforeAll {
+                    $response = @{ Ensure="Absent"; State="Stopped" }
+                    Mock Get-TargetResource { return $response }
+                }
 
                 It 'Returns True when Ensure is set to Absent and Instance does not exist' {
                     $desiredConfiguration = Get-DesiredConfiguration
@@ -341,7 +339,7 @@ try
                     $response['Ensure'] = 'Absent'
                     $response['State'] = 'Stopped'
 
-                    Test-TargetResource @desiredConfiguration | Should Be $true
+                    Test-TargetResource @desiredConfiguration | Should -Be $true
                 }
 
                It 'Returns True when Ensure is set to Present and Instance exists' {
@@ -351,7 +349,7 @@ try
                     $response['Ensure'] = 'Present'
                     $response['State'] = 'Started'
 
-                    Test-TargetResource @desiredConfiguration | Should Be $true
+                    Test-TargetResource @desiredConfiguration | Should -Be $true
                 }
             }
 
@@ -364,7 +362,7 @@ try
                     Mock Get-RegistryValue { return "" }
                     Mock Update-InstallState
                     $desiredConfiguration = Get-DesiredConfiguration
-                    { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.5.2. Please install it before attempting to install Octopus Server."
+                    { Set-TargetResource @desiredConfiguration } | Should -throw "Octopus Server requires .NET 4.5.2. Please install it before attempting to install Octopus Server."
                 }
 
                 It 'Throws an exception if .net 4.5.2 or above is not installed (only .net 4.5.0 installed)' {
@@ -375,7 +373,7 @@ try
                     Mock Get-RegistryValue { return "378389" } # .NET Framework 4.5
                     Mock Update-InstallState
                     $desiredConfiguration = Get-DesiredConfiguration
-                    { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.5.2. Please install it before attempting to install Octopus Server."
+                    { Set-TargetResource @desiredConfiguration } | Should -throw "Octopus Server requires .NET 4.5.2. Please install it before attempting to install Octopus Server."
                 }
 
                 It 'Throws an exception if .net 4.7.2 or above is not installed (no .net reg key found)' {
@@ -386,7 +384,7 @@ try
                     Mock Get-RegistryValue { return "" }
                     Mock Update-InstallState
                     $desiredConfiguration = Get-DesiredConfiguration
-                    { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.7.2. Please install it before attempting to install Octopus Server."
+                    { Set-TargetResource @desiredConfiguration } | Should -throw "Octopus Server requires .NET 4.7.2. Please install it before attempting to install Octopus Server."
                 }
 
                 It 'Throws an exception if .net 4.7.2 or above is not installed (only .net 4.6.2 installed)' {
@@ -397,217 +395,280 @@ try
                     Mock Get-RegistryValue { return "394802" } # .NET Framework 4.6.2 on Windows Server 2016
                     Mock Update-InstallState
                     $desiredConfiguration = Get-DesiredConfiguration
-                    { Set-TargetResource @desiredConfiguration } | Should throw "Octopus Server requires .NET 4.7.2. Please install it before attempting to install Octopus Server."
+                    { Set-TargetResource @desiredConfiguration } | Should -throw "Octopus Server requires .NET 4.7.2. Please install it before attempting to install Octopus Server."
                 }
             }
 
             Context "Octopus server command line" {
-                function Get-CurrentConfiguration ([string] $testName) {
-                    & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName/CurrentState.ps1")
+                BeforeAll {
+                    function Get-CurrentConfiguration ([string] $testName) {
+                        & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName/CurrentState.ps1")
+                    }
+
+                    function Get-RequestedConfiguration ([string] $testName) {
+                        & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName/RequestedState.ps1")
+                    }
+
+                    function Get-TempFolder {
+                        if ("$($env:TmpDir)" -ne "") {
+                            return $env:TmpDir
+                        } else {
+                            return $env:Temp
+                        }
+                    }
                 }
 
-                function Get-RequestedConfiguration ([string] $testName) {
-                    & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName/RequestedState.ps1")
+                function ConvertTo-Hashtable
+                {
+                    param (
+                        [Parameter(ValueFromPipeline = $true)]
+                        [Object[]] $InputObject
+                    )
+
+                    process {
+                        foreach ($object in $InputObject) {
+                            $hash = @{}
+                            foreach ($property in $object.PSObject.Properties) {
+                                $hash[$property.Name] = $property.Value
+                            }
+                            $hash
+                        }
+                    }
                 }
 
                 function Assert-ExpectedResult ([string] $testName) {
                     # todo: test order of execution here
                     $invocations = & (Resolve-Path "$PSCommandPath/../../Tests/OctopusServerExeInvocationFiles/$testName/ExpectedResult.ps1")
+                    $name = @{label="line";expression={$_}};
+                    $cases = @($invocations | select-object -Property $name) | ConvertTo-HashTable
                     it "Should call octopus.server.exe $($invocations.count) times" {
                         Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times $invocations.Count -Exactly
                     }
-                    foreach($line in $invocations) {
-                        It "Should call octopus.server.exe with args '$line'" {
-                            Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($arguments -join ' ') -eq $line }
+                    if ($cases.length -gt 0) {
+                        it "Should call octopus.server.exe with args '<line>'" -TestCases $cases {
+                            param($line)
+                            write-verbose "Checking line $line" # workaround ReviewUnusedParameter does not capture parameter usage within a scriptblock.  See https://github.com/PowerShell/PSScriptAnalyzer/issues/1472
+                            Set-TargetResource @params
+                            Assert-MockCalled -CommandName 'Invoke-OctopusServerCommand' -Times 1 -Exactly -ParameterFilter { ($cmdArgs -join ' ') -eq $line }
                         }
                     }
                 }
 
-                function Get-TempFolder {
-                    if ("$($env:TmpDir)" -ne "") {
-                        return $env:TmpDir
-                    } else {
-                        return $env:Temp
-                    }
-                }
-
                 Context "New instance" {
-                    Mock Invoke-OctopusServerCommand #{write-host $args}
-                    Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstance" }
-                    Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-                    Mock Invoke-MsiExec {}
-                    Mock Get-LogDirectory {}
-                    Mock Request-File {}
-                    Mock Update-InstallState {}
-                    Mock Test-OctopusDeployServerResponding { return $true }
-                    Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
-                    Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+                    BeforeAll {
+                        Mock Invoke-OctopusServerCommand {} #{write-host $cmdArgs}
+                        Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstance" }
+                        Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                        Mock Invoke-MsiExec {}
+                        Mock Get-LogDirectory {}
+                        Mock Request-File {}
+                        Mock Update-InstallState {}
+                        Mock Test-OctopusDeployServerResponding { return $true }
+                        Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
+                        Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
 
-                    $params = Get-RequestedConfiguration "NewInstance"
-                    Set-TargetResource @params
-
+                        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification = "It is actually used, but pester's scoping is weird")]
+                        $params = Get-RequestedConfiguration "NewInstance"
+                    }
                     Assert-ExpectedResult "NewInstance"
                     it "Should download the MSI" {
+                        Set-TargetResource @params
                         Assert-MockCalled Request-File
+                    }
+
+                    it "Should install the MSI" {
+                        Set-TargetResource @params
                         Assert-MockCalled Invoke-MsiExec
                     }
                 }
 
                 Context "New instance with metrics" {
-                    Mock Invoke-OctopusServerCommand #{write-host $args}
-                    Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstanceWithMetrics" }
-                    Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-                    Mock Invoke-MsiExec {}
-                    Mock Get-LogDirectory {}
-                    Mock Request-File {}
-                    Mock Update-InstallState {}
-                    Mock Test-OctopusDeployServerResponding { return $true }
-                    Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
-                    Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
-
-                    $params = Get-RequestedConfiguration "NewInstanceWithMetrics"
-                    Set-TargetResource @params
-
+                    BeforeAll {
+                        Mock Invoke-OctopusServerCommand #{write-host $cmdArgs}
+                        Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstanceWithMetrics" }
+                        Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                        Mock Invoke-MsiExec {}
+                        Mock Get-LogDirectory {}
+                        Mock Request-File {}
+                        Mock Update-InstallState {}
+                        Mock Test-OctopusDeployServerResponding { return $true }
+                        Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
+                        Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+                        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification = "It is actually used, but pester's scoping is weird")]
+                        $params = Get-RequestedConfiguration "NewInstanceWithMetrics"
+                    }
                     Assert-ExpectedResult "NewInstanceWithMetrics"
                     it "Should download the MSI" {
+                        Set-TargetResource @params
                         Assert-MockCalled Request-File
+                    }
+                    it "Should install the MSI" {
+                        Set-TargetResource @params
                         Assert-MockCalled Invoke-MsiExec
                     }
                 }
 
                 Context "When MasterKey is supplied on new instance" {
-                    Mock Invoke-OctopusServerCommand #{write-host $args}
-                    Mock Get-TargetResource { return Get-CurrentConfiguration "MasterKeySupplied" }
-                    Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-                    Mock Invoke-MsiExec {}
-                    Mock Get-LogDirectory {}
-                    Mock Request-File {}
-                    Mock Update-InstallState {}
-                    Mock Test-OctopusDeployServerResponding { return $true }
-                    Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
-                    Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
-
-                    $params = Get-RequestedConfiguration "MasterKeySupplied"
-
-                    Set-TargetResource @params
-
-                    it "Should download the MSI" {
-                        Assert-MockCalled Request-File
-                        Assert-MockCalled Invoke-MsiExec
+                    BeforeAll {
+                        Mock Invoke-OctopusServerCommand #{write-host $cmdArgs}
+                        Mock Get-TargetResource { return Get-CurrentConfiguration "MasterKeySupplied" }
+                        Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                        Mock Invoke-MsiExec {}
+                        Mock Get-LogDirectory {}
+                        Mock Request-File {}
+                        Mock Update-InstallState {}
+                        Mock Test-OctopusDeployServerResponding { return $true }
+                        Mock Test-OctopusVersionNewerThan { return $true } # just assume we're the most recent version
+                        Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+                        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification = "It is actually used, but pester's scoping is weird")]
+                        $params = Get-RequestedConfiguration "MasterKeySupplied"
                     }
                     Assert-ExpectedResult "MasterKeySupplied"
+                    it "Should download the MSI" {
+                        Set-TargetResource @params
+                        Assert-MockCalled Request-File
+                    }
+                    it "Should install the MSI" {
+                        Set-TargetResource @params
+                        Assert-MockCalled Invoke-MsiExec
+                    }
                 }
 
                 Context "When uninstalling running instance" {
-                    Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
-                    Mock Get-TargetResource { return Get-CurrentConfiguration "UninstallingRunningInstance" }
-                    Mock Invoke-MsiExec {}
-                    Mock Get-LogDirectory {}
-                    Mock Request-File {}
-                    Mock Get-ExistingOctopusService { return @() }
-                    Mock Get-LogDirectory { return Get-TempFolder }
-                    Mock Test-Path -ParameterFilter { $path -eq "$($env:SystemDrive)\Octopus\Octopus-x64.msi" } { return $true }
-                    Mock Start-Process { return @{ ExitCode = 0} }
-
-                    $params = Get-RequestedConfiguration "UninstallingRunningInstance"
-                    Set-TargetResource @params
-
+                    BeforeAll {
+                        Mock Invoke-OctopusServerCommand #{ param ($cmdArgs) write-host $cmdArgs}
+                        Mock Get-TargetResource { return Get-CurrentConfiguration "UninstallingRunningInstance" }
+                        Mock Invoke-MsiExec {}
+                        Mock Get-LogDirectory {}
+                        Mock Request-File {}
+                        Mock Get-ExistingOctopusService { return @() }
+                        Mock Get-LogDirectory { return Get-TempFolder }
+                        Mock Test-Path -ParameterFilter { $path -eq "$($env:SystemDrive)\Octopus\Octopus-x64.msi" } { return $true }
+                        Mock Start-Process { return @{ ExitCode = 0} }
+                        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification = "It is actually used, but pester's scoping is weird")]
+                        $params = Get-RequestedConfiguration "UninstallingRunningInstance"
+                    }
+                    Assert-ExpectedResult "UninstallingRunningInstance"
                     it "Should not download the MSI" {
+                        Set-TargetResource @params
                         Assert-MockCalled Request-File -Times 0 -Exactly
+                    }
+                    it "Should not try and install the MSI" {
+                        Set-TargetResource @params
                         Assert-MockCalled Invoke-MsiExec -Times 0 -Exactly
                     }
                     it "Should uninstall the MSI" {
+                        Set-TargetResource @params
                         Assert-MockCalled Start-Process -Times 1 -Exactly -ParameterFilter { $FilePath -eq "msiexec.exe" -and $ArgumentList -eq "/x $($env:SystemDrive)\Octopus\Octopus-x64.msi /quiet /l*v $(Get-TempFolder)\Octopus-x64.msi.uninstall.log"}
                     }
-                    Assert-ExpectedResult "UninstallingRunningInstance"
                 }
 
                 Context "Run-on-server user - new install" {
-                    Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
-                    Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstallWithBuiltInWorker" }
-                    Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-                    Mock Invoke-MsiExec {}
-                    Mock Get-LogDirectory {}
-                    Mock Request-File {}
-                    Mock Update-InstallState {}
-                    Mock Test-OctopusDeployServerResponding { return $true }
-                    Mock Test-OctopusVersionNewerThan { return $true }
-                    Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+                    BeforeAll {
+                        Mock Invoke-OctopusServerCommand #{ param ($cmdArgs) write-host $cmdArgs}
+                        Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstallWithBuiltInWorker" }
+                        Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                        Mock Invoke-MsiExec {}
+                        Mock Get-LogDirectory {}
+                        Mock Request-File {}
+                        Mock Update-InstallState {}
+                        Mock Test-OctopusDeployServerResponding { return $true }
+                        Mock Test-OctopusVersionNewerThan { return $true }
+                        Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
 
-                    $params = Get-RequestedConfiguration "NewInstallWithBuiltInWorker"
-                    Set-TargetResource @params
-
-                    it "Should download the MSI" {
-                        Assert-MockCalled Request-File
-                        Assert-MockCalled Invoke-MsiExec
+                        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification = "It is actually used, but pester's scoping is weird")]
+                        $params = Get-RequestedConfiguration "NewInstallWithBuiltInWorker"
                     }
                     Assert-ExpectedResult "NewInstallWithBuiltInWorker"
+                    it "Should download the MSI" {
+                        Set-TargetResource @params
+                        Assert-MockCalled Request-File
+                    }
+                    it "Should install the MSI" {
+                        Set-TargetResource @params
+                        Assert-MockCalled Invoke-MsiExec
+                    }
                 }
 
                 Context "Run-on-server user - existing install" {
-                    Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
-                    Mock Get-TargetResource { return Get-CurrentConfiguration "EnableBuiltInWorkerOnExistingInstance" }
-                    Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-                    Mock Invoke-MsiExec {}
-                    Mock Get-LogDirectory {}
-                    Mock Request-File {}
-                    Mock Update-InstallState {}
-                    Mock Test-OctopusDeployServerResponding { return $true }
-                    Mock Test-OctopusVersionNewerThan { return $true }
-                    Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+                    BeforeAll {
+                        Mock Invoke-OctopusServerCommand #{ param ($cmdArgs) write-host $cmdArgs}
+                        Mock Get-TargetResource { return Get-CurrentConfiguration "EnableBuiltInWorkerOnExistingInstance" }
+                        Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                        Mock Invoke-MsiExec {}
+                        Mock Get-LogDirectory {}
+                        Mock Request-File {}
+                        Mock Update-InstallState {}
+                        Mock Test-OctopusDeployServerResponding { return $true }
+                        Mock Test-OctopusVersionNewerThan { return $true }
+                        Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
 
-                    $params = Get-RequestedConfiguration "EnableBuiltInWorkerOnExistingInstance"
-                    Set-TargetResource @params
-
-                    it "Should not download the MSI" {
-                        Assert-MockCalled Request-File -Times 0 -Exactly
-                        Assert-MockCalled Invoke-MsiExec -Times 0 -Exactly
+                        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification = "It is actually used, but pester's scoping is weird")]
+                        $params = Get-RequestedConfiguration "EnableBuiltInWorkerOnExistingInstance"
                     }
                     Assert-ExpectedResult "EnableBuiltInWorkerOnExistingInstance"
+                    it "Should not download the MSI" {
+                        Set-TargetResource @params
+                        Assert-MockCalled Request-File -Times 0 -Exactly
+                    }
+                    it "Should not try and install the MSI" {
+                        Set-TargetResource @params
+                        Assert-MockCalled Invoke-MsiExec -Times 0 -Exactly
+                    }
                 }
 
                 Context "Upgrade" {
-                    Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
-                    Mock Get-TargetResource { return Get-CurrentConfiguration "UpgradeExistingInstance" }
-                    Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-                    Mock Invoke-MsiExec {}
-                    Mock Get-LogDirectory {}
-                    Mock Request-File {}
-                    Mock Update-InstallState {}
-                    Mock Test-OctopusDeployServerResponding { return $true }
-                    Mock Test-OctopusVersionNewerThan { return $true }
-                    Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+                    BeforeAll {
+                        Mock Invoke-OctopusServerCommand #{ param ($cmdArgs) write-host $cmdArgs}
+                        Mock Get-TargetResource { return Get-CurrentConfiguration "UpgradeExistingInstance" }
+                        Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                        Mock Invoke-MsiExec {}
+                        Mock Get-LogDirectory {}
+                        Mock Request-File {}
+                        Mock Update-InstallState {}
+                        Mock Test-OctopusDeployServerResponding { return $true }
+                        Mock Test-OctopusVersionNewerThan { return $true }
+                        Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
 
-                    $params = Get-RequestedConfiguration "UpgradeExistingInstance"
-                    Set-TargetResource @params
-
-                    it "Should download the MSI" {
-                        Assert-MockCalled Request-File
-                        Assert-MockCalled Invoke-MsiExec
+                        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification = "It is actually used, but pester's scoping is weird")]
+                        $params = Get-RequestedConfiguration "UpgradeExistingInstance"
                     }
                     Assert-ExpectedResult "UpgradeExistingInstance"
+                    it "Should download the MSI" {
+                        Set-TargetResource @params
+                        Assert-MockCalled Request-File
+                    }
+                    it "Should install the MSI" {
+                        Set-TargetResource @params
+                        Assert-MockCalled Invoke-MsiExec
+                    }
                 }
 
                 Context "Change WebListenPrefix" {
-                    Mock Invoke-OctopusServerCommand #{ param ($arguments) write-host $arguments}
-                    Mock Get-TargetResource { return Get-CurrentConfiguration "ChangeWebListenPrefix" }
-                    Mock Get-RegistryValue { return "478389" } # checking .net 4.5
-                    Mock Invoke-MsiExec {}
-                    Mock Get-LogDirectory {}
-                    Mock Request-File {}
-                    Mock Update-InstallState {}
-                    Mock Test-OctopusDeployServerResponding { return $true }
-                    Mock Test-OctopusVersionNewerThan { return $true }
-                    Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+                    BeforeAll {
+                        Mock Invoke-OctopusServerCommand #{ param ($cmdArgs) write-host $cmdArgs}
+                        Mock Get-TargetResource { return Get-CurrentConfiguration "ChangeWebListenPrefix" }
+                        Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                        Mock Invoke-MsiExec {}
+                        Mock Get-LogDirectory {}
+                        Mock Request-File {}
+                        Mock Update-InstallState {}
+                        Mock Test-OctopusDeployServerResponding { return $true }
+                        Mock Test-OctopusVersionNewerThan { return $true }
+                        Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
 
-                    $params = Get-RequestedConfiguration "ChangeWebListenPrefix"
-                    Set-TargetResource @params
-
-                    it "Should not download the MSI" {
-                        Assert-MockCalled Request-File -Times 0 -Exactly
-                        Assert-MockCalled Invoke-MsiExec -Times 0 -Exactly
+                        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification = "It is actually used, but pester's scoping is weird")]
+                        $params = Get-RequestedConfiguration "ChangeWebListenPrefix"
                     }
                     Assert-ExpectedResult "ChangeWebListenPrefix"
+                    it "Should not download the MSI" {
+                        Set-TargetResource @params
+                        Assert-MockCalled Request-File -Times 0 -Exactly
+                    }
+                    it "Should not try and install the MSI" {
+                        Set-TargetResource @params
+                        Assert-MockCalled Invoke-MsiExec -Times 0 -Exactly
+                    }
                 }
             }
         }

@@ -42,10 +42,18 @@ Remove-OldLogsBeforeNewRun
 
 if(-not $SkipPester) {
     Write-Output "Importing Pester module"
-    Import-PowerShellModule -Name "Pester" -MinimumVersion "4.9.0"
+    Import-PowerShellModule -Name "Pester" -MinimumVersion "5.0.2"
+    Import-PowerShellModule -Name "PSScriptAnalyzer" -MinimumVersion "1.19.0"
 
     Write-Output "Running Pester Tests"
-    $result = Invoke-Pester -OutputFile PesterTestResults.xml -OutputFormat NUnitXml -PassThru
+    $configuration = [PesterConfiguration]::Default
+    $configuration.TestResult.Enabled = $true
+    $configuration.TestResult.OutputPath = 'PesterTestResults.xml'
+    $configuration.TestResult.OutputFormat = 'NUnitXml'
+    $configuration.Run.PassThru = $true
+    $configuration.Run.Exit = $true
+    $configuration.Output.Verbosity = 'Detailed'
+    $result = Invoke-Pester -configuration $configuration
     if ($result.FailedCount -gt 0) {
       exit 1
     }

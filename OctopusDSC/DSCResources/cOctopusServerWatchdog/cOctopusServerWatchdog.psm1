@@ -49,7 +49,7 @@ function Set-TargetResource {
         [string]$Instances = "*"
     )
     if ($Enabled) {
-        $args = @(
+        $cmdArgs = @(
             'watchdog',
             '--create',
             '--interval', $Interval,
@@ -57,12 +57,12 @@ function Set-TargetResource {
         )
     }
     else {
-        $args = @(
+        $cmdArgs = @(
             'watchdog',
             '--delete'
         )
     }
-    Invoke-OctopusServerCommand $args
+    Invoke-OctopusServerCommand $cmdArgs
 }
 
 function Test-TargetResource {

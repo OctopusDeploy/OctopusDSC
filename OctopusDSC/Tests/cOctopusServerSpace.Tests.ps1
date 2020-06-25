@@ -44,7 +44,7 @@ try
                                                  -SpaceManagersTeamMembers @('admin') `
                                                  -SpaceManagersTeams @('Everyone') `
                                                  -OctopusCredentials $creds `
-                                                 -OctopusApiKey $creds } | should throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey', not both."
+                                                 -OctopusApiKey $creds } | Should -throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey', not both."
                 }
 
                 It 'Throws when neither OctopusCredentials and OctopusApiKey are provided' {
@@ -53,7 +53,7 @@ try
                                                  -Name 'Integration Team' `
                                                  -Description 'Integration team space' `
                                                  -SpaceManagersTeamMembers @('admin') `
-                                                 -SpaceManagersTeams @('Everyone') } | should throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey'."
+                                                 -SpaceManagersTeams @('Everyone') } | Should -throw "Please provide either 'OctopusCredentials' or 'OctopusApiKey'."
                 }
 
                 #todo: throw if neither SpaceManagersTeams or SpaceManagersTeamMembers not provided
@@ -62,7 +62,7 @@ try
                                                  -Ensure 'Present' `
                                                  -Name 'Integration Team' `
                                                  -Description 'Integration team space' `
-                                                 -OctopusApiKey $creds } | should throw "Please provide at least one of 'SpaceManagersTeamMembers' or 'SpaceManagersTeams'."
+                                                 -OctopusApiKey $creds } | Should -throw "Please provide at least one of 'SpaceManagersTeamMembers' or 'SpaceManagersTeams'."
                 }
             }
 
@@ -77,7 +77,7 @@ try
                                                  -SpaceManagersTeamMembers @('admin') `
                                                  -SpaceManagersTeams @('Everyone') `
                                                  -OctopusCredentials $creds
-                    $result.Ensure | should be 'Present'
+                    $result.Ensure | Should -Be 'Present'
                 }
             }
 
@@ -91,13 +91,15 @@ try
                                                  -SpaceManagersTeamMembers @('admin') `
                                                  -SpaceManagersTeams @('Everyone') `
                                                  -OctopusCredentials $creds
-                    $result.Ensure | should be 'Absent'
+                    $result.Ensure | Should -Be 'Absent'
                 }
             }
 
             Context 'Test-TargetResource' {
-                $response = @{  }
-                Mock Get-TargetResource { return $response }
+                BeforeAll {
+                    $response = @{  }
+                    Mock Get-TargetResource { return $response }
+                }
 
                 It 'Returns false if space does not exist' {
                     $password = ConvertTo-SecureString "1a2b3c4d5e6f" -AsPlainText -Force
@@ -120,7 +122,7 @@ try
                     $response['SpaceManagersTeams'] = $null
                     $response['OctopusCredentials'] = $creds
 
-                    Test-TargetResource @desiredConfiguration | Should Be $false
+                    Test-TargetResource @desiredConfiguration | Should -Be $false
                 }
 
                 It 'Returns true if space does exist and all properties match' {
@@ -143,7 +145,7 @@ try
                     $response['SpaceManagersTeams'] = @('Everyone')
                     $response['OctopusCredentials'] = $creds
 
-                    Test-TargetResource @desiredConfiguration | Should Be $true
+                    Test-TargetResource @desiredConfiguration | Should -Be $true
                 }
 
                 It 'Returns false if description is different' {
@@ -166,7 +168,7 @@ try
                     $response['SpaceManagersTeams'] = @('Everyone')
                     $response['OctopusCredentials'] = $creds
 
-                    Test-TargetResource @desiredConfiguration | Should Be $false
+                    Test-TargetResource @desiredConfiguration | Should -Be $false
                 }
 
                 It 'Returns false if SpaceManagersTeamMembers is different' {
@@ -189,7 +191,7 @@ try
                     $response['SpaceManagersTeams'] = @('Everyone')
                     $response['OctopusCredentials'] = $creds
 
-                    Test-TargetResource @desiredConfiguration | Should Be $false
+                    Test-TargetResource @desiredConfiguration | Should -Be $false
                 }
 
                 It 'Returns false if SpaceManagersTeams is different' {
@@ -212,7 +214,7 @@ try
                     $response['SpaceManagersTeams'] = @('TeamX')
                     $response['OctopusCredentials'] = $creds
 
-                    Test-TargetResource @desiredConfiguration | Should Be $false
+                    Test-TargetResource @desiredConfiguration | Should -Be $false
                 }
 
                 It 'Calls Get-TargetResource (and therefore inherits its checks)' {
@@ -315,86 +317,98 @@ try
             }
 
             Context 'Team and User mapping' {
-                $spacesRepository = New-Object -TypeName PSObject
-                $getSpaceResponse = @{
-                    Id = "Spaces-262";
-                    Name = "Integration Space";
-                    Description = "The old description";
-                    IsDefault = $false;
-                    TaskQueueStopped = $false;
-                    SpaceManagersTeams = @("teams-spacemanagers-Spaces-262", "teams-everyone");
-                    SpaceManagersTeamMembers = @("Users-582") }
-                $spacesRepository | Add-Member -MemberType ScriptMethod -Name "FindByName" -Force -Value { return $getSpaceResponse }
-                $script:valueReceivedByModifyFunction = $null
-                $spacesRepository | Add-Member -MemberType ScriptMethod -Name "Modify" -Force -Value { param($space) $script:valueReceivedByModifyFunction = $space }
-                $script:valueReceivedByCreateFunction = $null
-                $spacesRepository | Add-Member -MemberType ScriptMethod -Name "Create" -Force -Value { param($space) $script:valueReceivedByCreateFunction = $space }
+                BeforeAll {
+                    $spacesRepository = New-Object -TypeName PSObject
+                    $getSpaceResponse = @{
+                        Id = "Spaces-262";
+                        Name = "Integration Space";
+                        Description = "The old description";
+                        IsDefault = $false;
+                        TaskQueueStopped = $false;
+                        SpaceManagersTeams = @("teams-spacemanagers-Spaces-262", "teams-everyone");
+                        SpaceManagersTeamMembers = @("Users-582") }
+                    $spacesRepository | Add-Member -MemberType ScriptMethod -Name "FindByName" -Force -Value { return $getSpaceResponse }
+                    $script:valueReceivedByModifyFunction = $null
+                    $spacesRepository | Add-Member -MemberType ScriptMethod -Name "Modify" -Force -Value { param($space) $script:valueReceivedByModifyFunction = $space }
+                    $script:valueReceivedByCreateFunction = $null
+                    $spacesRepository | Add-Member -MemberType ScriptMethod -Name "Create" -Force -Value { param($space) $script:valueReceivedByCreateFunction = $space }
 
-                $usersRepository = New-Object -TypeName PSObject
-                $findUsersResponse = @(@{ Id = "Users-1001"; Username = "bob@example.com"}, @{ Id = "Users-582"; Username = 'admin'} )
-                $usersRepository | Add-Member -MemberType ScriptMethod -Name "FindAll" -Force -Value { return $findUsersResponse }
+                    $usersRepository = New-Object -TypeName PSObject
+                    $findUsersResponse = @(@{ Id = "Users-1001"; Username = "bob@example.com"}, @{ Id = "Users-582"; Username = 'admin'} )
+                    $usersRepository | Add-Member -MemberType ScriptMethod -Name "FindAll" -Force -Value { return $findUsersResponse }
 
-                $teamsRepository = New-Object -TypeName PSObject
-                $findTeamsResponse = @(
-                    @{ Id = "teams-everyone"; Name = "Everyone"; SpaceId = $null },
-                    @{ Id = "teams-spacemanagers-Spaces-271"; Name = 'Space Managers'; SpaceId = 'Spaces-271'},  # team in a diff space
-                    @{ Id = "teams-spacemanagers-Spaces-262"; Name = 'Space Managers'; SpaceId = 'Spaces-262'} )
-                $teamsRepository | Add-Member -MemberType ScriptMethod -Name "FindAll" -Force -Value { return $findTeamsResponse }
+                    $teamsRepository = New-Object -TypeName PSObject
+                    $findTeamsResponse = @(
+                        @{ Id = "teams-everyone"; Name = "Everyone"; SpaceId = $null },
+                        @{ Id = "teams-spacemanagers-Spaces-271"; Name = 'Space Managers'; SpaceId = 'Spaces-271'},  # team in a diff space
+                        @{ Id = "teams-spacemanagers-Spaces-262"; Name = 'Space Managers'; SpaceId = 'Spaces-262'} )
+                    $teamsRepository | Add-Member -MemberType ScriptMethod -Name "FindAll" -Force -Value { return $findTeamsResponse }
 
-                $mockRepository = New-Object -TypeName PSObject -Property @{
-                    Spaces = $spacesRepository
-                    Teams = $teamsRepository
-                    Users = $usersRepository
+                    $mockRepository = New-Object -TypeName PSObject -Property @{
+                        Spaces = $spacesRepository
+                        Teams = $teamsRepository
+                        Users = $usersRepository
+                    }
+                    Mock Get-OctopusClientRepository { return $mockRepository }
                 }
-                Mock Get-OctopusClientRepository { return $mockRepository }
 
                 Context 'Get-Space' {
-                    $space = Get-Space `
-                        -Url 'https://octopus.example.com' `
-                        -Name 'Integration Team' `
-                        -OctopusCredentials $null `
-                        -OctopusApiKey $null
+
                     It 'Maps user ids returned by api to names' {
-                        $space.SpaceManagersTeamMembers | should be @('admin')
+                        $space = Get-Space `
+                            -Url 'https://octopus.example.com' `
+                            -Name 'Integration Team' `
+                            -OctopusCredentials $null `
+                            -OctopusApiKey $null
+                        $space.SpaceManagersTeamMembers | Should -Be @('admin')
                     }
                     It 'Maps team ids returned by api to names' {
-                        $space.SpaceManagersTeams | should be @('Space Managers', 'Everyone')
+                        $space = Get-Space `
+                            -Url 'https://octopus.example.com' `
+                            -Name 'Integration Team' `
+                            -OctopusCredentials $null `
+                            -OctopusApiKey $null
+                        $space.SpaceManagersTeams | Should -Be @('Space Managers', 'Everyone')
                     }
                 }
 
                 Context 'Update-Space' {
-                    Update-Space `
-                        -Url 'https://octopus.example.com' `
-                        -Name 'Integration Team' `
-                        -Description 'The new description' `
-                        -SpaceManagersTeamMembers @('admin') `
-                        -SpaceManagersTeams @('Everyone') `
-                        -OctopusCredentials $null `
-                        -OctopusApiKey $null
+                    BeforeAll {
+                        Update-Space `
+                            -Url 'https://octopus.example.com' `
+                            -Name 'Integration Team' `
+                            -Description 'The new description' `
+                            -SpaceManagersTeamMembers @('admin') `
+                            -SpaceManagersTeams @('Everyone') `
+                            -OctopusCredentials $null `
+                            -OctopusApiKey $null
+                    }
                     It 'Maps user names supplied by user to ids' {
-                        $script:valueReceivedByModifyFunction.SpaceManagersTeamMembers | should be @("Users-582")
+                        $script:valueReceivedByModifyFunction.SpaceManagersTeamMembers | Should -Be @("Users-582")
                     }
                     It 'Maps team names supplied by user to ids and adds space managers' {
-                        $script:valueReceivedByModifyFunction.SpaceManagersTeams | should be @("teams-everyone", "teams-spacemanagers-Spaces-262")
+                        $script:valueReceivedByModifyFunction.SpaceManagersTeams | Should -Be @("teams-everyone", "teams-spacemanagers-Spaces-262")
                     }
                 }
 
                 Context 'New-Space' {
-                    Mock New-SpaceResource { return @{} }
-                    Mock ConvertTo-ReferenceCollection { param($list) return $list }
-                    New-Space `
-                        -Url 'https://octopus.example.com' `
-                        -Name 'Integration Team' `
-                        -Description 'The new description' `
-                        -SpaceManagersTeamMembers @('admin') `
-                        -SpaceManagersTeams @('Everyone') `
-                        -OctopusCredentials $null `
-                        -OctopusApiKey $null
+                    BeforeAll {
+                        Mock New-SpaceResource { return @{} }
+                        Mock ConvertTo-ReferenceCollection { param($list) return $list }
+                        New-Space `
+                            -Url 'https://octopus.example.com' `
+                            -Name 'Integration Team' `
+                            -Description 'The new description' `
+                            -SpaceManagersTeamMembers @('admin') `
+                            -SpaceManagersTeams @('Everyone') `
+                            -OctopusCredentials $null `
+                            -OctopusApiKey $null
+                    }
                     It 'Maps user names supplied by user to ids' {
-                        $script:valueReceivedByCreateFunction.SpaceManagersTeamMembers | should be @("Users-582")
+                        $script:valueReceivedByCreateFunction.SpaceManagersTeamMembers | Should -Be @("Users-582")
                     }
                     It 'Maps team names supplied by user to ids and adds space managers' {
-                        $script:valueReceivedByCreateFunction.SpaceManagersTeams | should be @("teams-everyone")
+                        $script:valueReceivedByCreateFunction.SpaceManagersTeams | Should -Be @("teams-everyone")
                     }
                 }
             }

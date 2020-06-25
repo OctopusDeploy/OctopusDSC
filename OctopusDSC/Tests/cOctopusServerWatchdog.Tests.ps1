@@ -40,35 +40,37 @@ try
                     }
 
                     $config = Get-TargetResource @desiredConfiguration
-                    $config.InstanceName    | Should Be 'OctopusServer'
-                    $config.Enabled         | Should Be $true
-                    $config.Interval        | Should Be 5
-                    $config.Instances       | Should Be "master"
+                    $config.InstanceName    | Should -Be 'OctopusServer'
+                    $config.Enabled         | Should -Be $true
+                    $config.Interval        | Should -Be 5
+                    $config.Instances       | Should -Be "master"
                 }
 
                 It 'Throws an exception if Octopus is not installed' {
                     Mock Test-Path { return $false } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-OctopusVersionSupportsWatchdogInShowConfiguration { return $true }
-                    { Get-TargetResource @desiredConfiguration } | Should Throw "Unable to find Octopus (checked for existence of file '$octopusServerExePath')."
+                    { Get-TargetResource @desiredConfiguration } | Should -throw "Unable to find Octopus (checked for existence of file '$octopusServerExePath')."
                 }
 
                 It 'Throws an exception if its an old version of Octopus' {
                     Mock Test-Path { return $true } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-OctopusVersionSupportsWatchdogInShowConfiguration { return $false }
-                    { Get-TargetResource @desiredConfiguration } | Should Throw "This resource only supports Octopus Deploy 3.17.0+."
+                    { Get-TargetResource @desiredConfiguration } | Should -throw "This resource only supports Octopus Deploy 3.17.0+."
                 }
             }
 
             Context 'Test-TargetResource' {
-                $response = @{ InstanceName="OctopusServer"; Enabled=$true }
-                Mock Get-TargetResource { return $response }
+                BeforeAll {
+                    $response = @{ InstanceName="OctopusServer"; Enabled=$true }
+                    Mock Get-TargetResource { return $response }
+                }
 
                 It 'Returns True when values the same' {
                     $response['Enabled'] = $true
                     $response['Interval'] = 5
                     $response['Instances'] = "*"
 
-                    Test-TargetResource @desiredConfiguration | Should Be $true
+                    Test-TargetResource @desiredConfiguration | Should -Be $true
                 }
 
                 It 'Returns false when its currently disabled' {
@@ -76,7 +78,7 @@ try
                     $response['Interval'] = 5
                     $response['Instances'] = "*"
 
-                    Test-TargetResource @desiredConfiguration | Should Be $false
+                    Test-TargetResource @desiredConfiguration | Should -Be $false
                 }
 
                 It 'Returns false when interval is currently different' {
@@ -84,14 +86,14 @@ try
                     $response['Interval'] = 10
                     $response['Instances'] = "*"
 
-                    Test-TargetResource @desiredConfiguration | Should Be $false
+                    Test-TargetResource @desiredConfiguration | Should -Be $false
                 }
 
                 It 'Returns false when the Instances is currently different' {
                     $response['Enabled'] = $true
                     $response['Interval'] = 5
                     $response['Instances'] = "master"
-                    Test-TargetResource @desiredConfiguration | Should Be $false
+                    Test-TargetResource @desiredConfiguration | Should -Be $false
                 }
 
                 It 'Calls Get-TargetResource (and therefore inherits its checks)' {
@@ -108,7 +110,7 @@ try
                                        -Enabled $true `
                                        -Interval 5 `
                                        -Instances "*"
-                    Assert-MockCalled Invoke-OctopusServerCommand -ParameterFilter { ($arguments -join ' ') -eq 'watchdog --create --interval 5 --instances "*"'}
+                    Assert-MockCalled Invoke-OctopusServerCommand -ParameterFilter { ($cmdArgs -join ' ') -eq 'watchdog --create --interval 5 --instances "*"'}
                 }
 
                 It 'Calls Invoke-OctopusServerCommand with the correct arguments to disable' {
@@ -118,7 +120,7 @@ try
                                        -Enabled $false `
                                        -Interval 5 `
                                        -Instances "*"
-                    Assert-MockCalled Invoke-OctopusServerCommand -ParameterFilter { ($arguments -join ' ') -eq 'watchdog --delete'}
+                    Assert-MockCalled Invoke-OctopusServerCommand -ParameterFilter { ($cmdArgs -join ' ') -eq 'watchdog --delete'}
                 }
             }
         }

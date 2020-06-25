@@ -41,13 +41,13 @@ function Set-TargetResource {
         [Parameter(Mandatory)]
         [boolean]$Enabled
     )
-    $args = @(
+    $cmdArgs = @(
         'configure',
         '--console',
         '--instance', $InstanceName,
         '--guestLoginEnabled', $Enabled
     )
-    Invoke-OctopusServerCommand $args
+    Invoke-OctopusServerCommand $cmdArgs
 }
 
 function Test-TargetResource {
