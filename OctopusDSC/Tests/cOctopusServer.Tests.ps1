@@ -132,6 +132,15 @@ try
                 }
 
                 Context "Should return a hash table that lists all the resource properties as keys and the actual values" {
+                    # Get-Service is not available on mac/unix systems - fake it
+                    $getServiceCommand = Get-Command "Get-Service" -ErrorAction SilentlyContinue
+                    if ($null -eq $getServiceCommand) {
+                        function Get-Service {
+                            [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification='Get-Service is not available on mac/unix systems, so without faking it, our builds fail')]
+                            param()
+                        }
+                    }
+
                     $desiredConfiguration = @{
                         Name                   = 'Stub'
                         Ensure                 = 'Present'
