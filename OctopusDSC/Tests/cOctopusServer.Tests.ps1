@@ -115,6 +115,55 @@ try
                         $config['State']                   | Should -Be 'Stopped'
                     }
                 }
+
+                function Get-PropertiesFromMof() {
+                    $moduleName = Split-Path ($PSCommandPath -replace '\.Tests\.ps1$', '') -Leaf
+                    $modulePath = Resolve-Path "$PSCommandPath/../../DSCResources/$moduleName/$moduleName.psm1"
+                    $mofFile = Get-Item ($modulePath -replace ".psm1", ".schema.mof")
+                    $schemaMofFileContent = Get-Content $mofFile
+
+                    $properties = @()
+                    foreach($line in $schemaMofFileContent) {
+                        if ($line -match "\s*(\[.*\])\s*(.*) (.*);") {
+                            $properties += $matches[3].Replace("[]", "");
+                        }
+                    }
+                    return $properties
+                }
+
+                Context "Should return a hash table that lists all the resource properties as keys and the actual values" {
+                    # Get-Service is not available on mac/unix systems - fake it
+                    $getServiceCommand = Get-Command "Get-Service" -ErrorAction SilentlyContinue
+                    if ($null -eq $getServiceCommand) {
+                        function Get-Service {
+                            [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification='Get-Service is not available on mac/unix systems, so without faking it, our builds fail')]
+                            param()
+                        }
+                    }
+
+                    $desiredConfiguration = @{
+                        Name                   = 'Stub'
+                        Ensure                 = 'Present'
+                        State                  = 'Started'
+                        WebListenPrefix        = "http://localhost:80"
+                        SqlDbConnectionString  = "conn-string"
+                        OctopusAdminCredential = New-Object System.Management.Automation.PSCredential ("Admin", (ConvertTo-SecureString "S3cur3P4ssphraseHere!" -AsPlainText -Force))
+                    }
+                    $currentState = Get-TargetResource @desiredConfiguration
+                    $expectedProperties = Get-PropertiesFromMof;
+
+                    $testCases = @()
+                    foreach($expectedProperty in $expectedProperties) {
+                        $testCases += @{ propertyName = $expectedProperty; propertyReturned = $currentState.ContainsKey($expectedProperty) }
+                    }
+
+                    it "should return a hashtable with an entry for <propertyName>" -TestCases $testCases {
+                        param($propertyName, $propertyReturned)
+                        write-verbose "Property $propertyName should exist" # to keep psscriptanalyzer from complaining about PSReviewUnusedParameter
+                        $propertyReturned | Should -Be $true
+                    }
+
+                }
             }
 
             Context "Parameter Validation" {
@@ -668,6 +717,30 @@ try
                     it "Should not try and install the MSI" {
                         Set-TargetResource @params
                         Assert-MockCalled Invoke-MsiExec -Times 0 -Exactly
+                    }
+                }
+
+                Context "When nothing changes" {
+                    BeforeAll {
+                        Mock Invoke-OctopusServerCommand #{ param ($cmdArgs) write-host $cmdArgs}
+                        Mock Get-TargetResource { return Get-CurrentConfiguration "WhenNothingChanges" }
+                        Mock Get-RegistryValue { return "478389" } # checking .net 4.5
+                        Mock Invoke-MsiExec {}
+                        Mock Get-LogDirectory {}
+                        Mock Request-File {}
+                        Mock Update-InstallState {}
+                        Mock Test-OctopusDeployServerResponding { return $true }
+                        Mock Test-OctopusVersionNewerThan { return $true }
+                        Mock ConvertFrom-SecureString { return "" } # mock this, as its not available on mac/linux
+                        Mock Stop-OctopusDeployService
+
+                        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "", Justification = "It is actually used, but pester's scoping is weird")]
+                        $params = Get-RequestedConfiguration "WhenNothingChanges"
+                    }
+                    Assert-ExpectedResult "WhenNothingChanges"
+                    it "Should not restart the service" {
+                        Set-TargetResource @params
+                        Assert-MockCalled Stop-OctopusDeployService -Times 0 -Exactly
                     }
                 }
             }
