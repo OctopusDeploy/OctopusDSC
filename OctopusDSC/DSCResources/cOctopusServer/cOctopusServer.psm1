@@ -815,10 +815,14 @@ function Set-OctopusDeployConfiguration {
 }
 
 function Test-ReconfigurationRequired($currentState, $desiredState) {
-    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'HSTSEnabled', 'HSTSMaxAge', 'AllowCollectionOfUsageStatistics', 'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'LicenseKey', 'OctopusServiceCredential', 'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled', 'OctopusBuiltInWorkerCredential', 'TaskLogsDirectory', 'PackagesDirectory', 'ArtifactsDirectory', 'LogTaskMetrics', 'LogRequestMetrics', 'OctopusMasterKey')
+    $reconfigurableProperties = @('ListenPort', 'WebListenPrefix', 'ForceSSL', 'HSTSEnabled', 'HSTSMaxAge', 'AllowCollectionOfUsageStatistics',
+                                  'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'LicenseKey', 'OctopusServiceCredential',
+                                  'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled', 'OctopusBuiltInWorkerCredential',
+                                  'TaskLogsDirectory', 'PackagesDirectory', 'ArtifactsDirectory', 'LogTaskMetrics', 'LogRequestMetrics', 'OctopusMasterKey')
     foreach ($property in $reconfigurableProperties) {
         if ($currentState.Item($property) -is [PSCredential]) {
-            if (Test-PSCredentialChanged $currentState.Item($property) $desiredState.Item($property)) {
+            $shouldComparePasswordOnly = $property -eq 'OctopusMasterKey'
+            if (Test-PSCredentialChanged $currentState.Item($property) $desiredState.Item($property) -comparePasswordOnly $shouldComparePasswordOnly) {
                 return $true
             }
         }
@@ -841,7 +845,8 @@ function Test-ReconfigurationRequiresServiceRestart($currentState, $desiredState
         )
     foreach ($property in $reconfigurableProperties) {
         if ($currentState.Item($property) -is [PSCredential]) {
-            if (Test-PSCredentialChanged $currentState.Item($property) $desiredState.Item($property)) {
+            $shouldComparePasswordOnly = $property -eq 'OctopusMasterKey'
+            if (Test-PSCredentialChanged $currentState.Item($property) $desiredState.Item($property) -comparePasswordOnly $shouldComparePasswordOnly) {
                 write-verbose "Triggering service restart as property '$property' has changed"
                 return $true
             }
@@ -1519,7 +1524,8 @@ function Test-TargetResource {
             $requestedValue = $params.Item($key)
 
             if ($currentValue -is [PSCredential]) {
-                if (Test-PSCredentialChanged $currentValue $requestedValue) {
+                $shouldComparePasswordOnly = $key -eq 'OctopusMasterKey';
+                if (Test-PSCredentialChanged $currentValue $requestedValue -comparePasswordOnly $shouldComparePasswordOnly) {
                     Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '********' mismatched the specified value '********'"
                     $currentConfigurationMatchesRequestedConfiguration = $false
                 } else {
@@ -1551,7 +1557,12 @@ function Test-PSCredentialIsNullOrEmpty {
     return $cred -eq [PSCredential]::Empty -or $cred -eq $null
 }
 
-function Test-PSCredentialChanged ($currentValue, $requestedValue) {
+function Test-PSCredentialChanged{
+    param (
+        [PSCredential]$currentValue,
+        [PSCredential]$requestedValue,
+        [boolean]$comparePasswordOnly = $false
+    )
 
     if (-not (Test-PSCredentialIsNullOrEmpty $currentValue)) {
         $currentUsername = $currentValue.GetNetworkCredential().UserName
@@ -1571,10 +1582,11 @@ function Test-PSCredentialChanged ($currentValue, $requestedValue) {
         $requestedPassword = ""
     }
 
-    if ($currentPassword -ne $requestedPassword -or $currentUsername -ne $requestedUsername) {
-        return $true
+    if ($comparePasswordOnly) {
+        return  ($currentPassword -ne $requestedPassword);
+    } else {
+        return ($currentPassword -ne $requestedPassword -or $currentUsername -ne $requestedUsername);
     }
-    return $false
 }
 
 function Test-ParameterSet {
