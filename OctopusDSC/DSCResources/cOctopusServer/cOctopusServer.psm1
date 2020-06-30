@@ -105,6 +105,7 @@ function Get-TargetResource {
         $existingAutoLoginEnabled = $null
         $existingOctopusServiceCredential = [PSCredential]::Empty
         $existingOctopusBuiltInWorkerCredential = [PSCredential]::Empty
+        $existingOctopusMasterKey = [PSCredential]::Empty
         $existingHomeDirectory = $null
         $existingPackagesDirectory = $null
         $existingArtifactsDirectory = $null
@@ -181,34 +182,34 @@ function Get-TargetResource {
         }
 
         $currentResource = @{
-            Name                                      = $Name;
-            Ensure                                    = $existingEnsure;
-            State                                     = $existingState;
-            DownloadUrl                               = $existingDownloadUrl;
-            WebListenPrefix                           = $existingWebListenPrefix;
-            SqlDbConnectionString                     = $existingSqlDbConnectionString;
-            ForceSSL                                  = $existingForceSSL;
-            HSTSEnabled                               = $existingHSTSEnabled;
-            HSTSMaxAge                                = $existingHSTSMaxAge;
-            AllowUpgradeCheck                         = $existingOctopusUpgradesAllowChecking;
-            AllowCollectionOfUsageStatistics          = $existingOctopusUpgradesIncludeStatistics;
-            ListenPort                                = $existingListenPort;
-            OctopusAdminCredential                    = $existingOctopusAdminCredential;
-            LegacyWebAuthenticationMode               = $existingLegacyWebAuthenticationMode;
-            AutoLoginEnabled                          = $existingAutoLoginEnabled;
-            OctopusServiceCredential                  = $existingOctopusServiceCredential;
-            HomeDirectory                             = $existingHomeDirectory;
-            LicenseKey                                = $existingLicenseKey;
-            OctopusBuiltInWorkerCredential            = $existingOctopusBuiltInWorkerCredential;
-            PackagesDirectory                         = $existingPackagesDirectory;
-            ArtifactsDirectory                        = $existingArtifactsDirectory;
-            TaskLogsDirectory                         = $existingTaskLogsDirectory;
-            LogTaskMetrics                            = $existingLogTaskMetrics;
-            LogRequestMetrics                         = $existingLogRequestMetrics;
-            TaskCap                                   = $existingTaskCap;
-            OctopusMasterKey                          = $existingOctopusMasterKey;
-            GrantDatabasePermissions                  = $GrantDatabasePermissions;
-            SkipLicenseCheck                          = $SkipLicenseCheck;
+            Name                                      = [string]$Name;
+            Ensure                                    = [string]$existingEnsure;
+            State                                     = [string]$existingState;
+            DownloadUrl                               = [string]$existingDownloadUrl;
+            WebListenPrefix                           = [string]$existingWebListenPrefix;
+            SqlDbConnectionString                     = [string]$existingSqlDbConnectionString;
+            ForceSSL                                  = [boolean]$existingForceSSL;
+            HSTSEnabled                               = [boolean]$existingHSTSEnabled;
+            HSTSMaxAge                                = [uint64]$existingHSTSMaxAge;
+            AllowUpgradeCheck                         = [boolean]$existingOctopusUpgradesAllowChecking;
+            AllowCollectionOfUsageStatistics          = [boolean]$existingOctopusUpgradesIncludeStatistics;
+            ListenPort                                = [uint16]$existingListenPort;
+            OctopusAdminCredential                    = [PSCredential]$existingOctopusAdminCredential;
+            LegacyWebAuthenticationMode               = [string]$existingLegacyWebAuthenticationMode;
+            AutoLoginEnabled                          = [boolean]$existingAutoLoginEnabled;
+            OctopusServiceCredential                  = [PSCredential]$existingOctopusServiceCredential;
+            HomeDirectory                             = [string]$existingHomeDirectory;
+            LicenseKey                                = [string]$existingLicenseKey;
+            OctopusBuiltInWorkerCredential            = [PSCredential]$existingOctopusBuiltInWorkerCredential;
+            PackagesDirectory                         = [string]$existingPackagesDirectory;
+            ArtifactsDirectory                        = [string]$existingArtifactsDirectory;
+            TaskLogsDirectory                         = [string]$existingTaskLogsDirectory;
+            LogTaskMetrics                            = [boolean]$existingLogTaskMetrics;
+            LogRequestMetrics                         = [boolean]$existingLogRequestMetrics;
+            TaskCap                                   = [uint64]$existingTaskCap;
+            OctopusMasterKey                          = [PSCredential]$existingOctopusMasterKey;
+            GrantDatabasePermissions                  = [boolean]$GrantDatabasePermissions;
+            SkipLicenseCheck                          = [boolean]$SkipLicenseCheck;
         }
 
         return $currentResource
