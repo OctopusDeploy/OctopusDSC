@@ -125,7 +125,15 @@ try
                     $properties = @()
                     foreach($line in $schemaMofFileContent) {
                         if ($line -match "\s*(\[.*\])\s*(.*) (.*);") {
-                            $properties += $matches[3].Replace("[]", "");
+                            $attributes = $matches[1];
+                            if ($attributes -like '*MSFT_Credential*') {
+                                $propertyType = 'PSCredential';
+                            } else {
+                                $propertyType = $matches[2];
+                            }
+                            $propertyName = $matches[3].Replace("[]", "");
+
+                            $properties += @{ propertyType = $propertyType; propertyName = $propertyName };
                         }
                     }
                     return $properties
@@ -151,10 +159,23 @@ try
                     }
                     $currentState = Get-TargetResource @desiredConfiguration
                     $expectedProperties = Get-PropertiesFromMof;
-
                     $testCases = @()
                     foreach($expectedProperty in $expectedProperties) {
-                        $testCases += @{ propertyName = $expectedProperty; propertyReturned = $currentState.ContainsKey($expectedProperty) }
+                        $propertyReturned = $currentState.ContainsKey($expectedProperty.PropertyName);
+                        $propertyMatches = $false;
+                        if ($propertyReturned) {
+                            $value = $currentState[$expectedProperty.PropertyName];
+                            if ($null -ne $value) {
+                                $propertyMatches = $value.GetType().Name -eq $expectedProperty.PropertyType;
+                            }
+                        }
+
+                        $testCases += @{
+                            propertyName = $expectedProperty.PropertyName;
+                            PropertyType = $expectedProperty.PropertyType;
+                            propertyReturned = $propertyReturned;
+                            propertyMatches = $propertyMatches;
+                         }
                     }
 
                     it "should return a hashtable with an entry for <propertyName>" -TestCases $testCases {
@@ -163,6 +184,11 @@ try
                         $propertyReturned | Should -Be $true
                     }
 
+                    it "should return a <propertyType> value for <propertyName>" -TestCases $testCases {
+                        param($propertyName, $propertyMatches)
+                        write-verbose "Property $propertyName should exist" # to keep psscriptanalyzer from complaining about PSReviewUnusedParameter
+                        $propertyMatches | Should -Be $true
+                    }
                 }
             }
 

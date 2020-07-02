@@ -266,8 +266,11 @@ function Get-ServerConfiguration($instanceName) {
         }
     } -MaxRetries 3 -IntervalInMilliseconds 100
 
-    $masterkey = & $octopusServerExePath show-master-key --noconsolelogging --console --instance $instanceName
-    $config | Add-Member -NotePropertyName "OctopusMasterKey" -NotePropertyValue $masterkey
+    $plainTextMasterKey = & $octopusServerExePath show-master-key --noconsolelogging --console --instance $instanceName
+
+    $encryptedMasterKey = New-Object SecureString
+    $plainTextMasterKey.ToCharArray() | Foreach-Object { $encryptedMasterKey.AppendChar($_) }
+    $config | Add-Member -NotePropertyName "OctopusMasterKey" -NotePropertyValue (New-Object System.Management.Automation.PSCredential ("ignored", $encryptedMasterKey))
 
     return $config
 }
