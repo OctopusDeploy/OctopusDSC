@@ -25,12 +25,6 @@ if (-not (Test-Path "C:\tools\ruby27")) {
     New-Item "C:\temp" -Type Directory | out-null
   }
 
-  Invoke-WebRequest "https://rubygems.org/downloads/rubygems-update-2.7.4.gem" -outFile "C:\temp\rubygems-update-2.7.4.gem"
-  & C:\tools\ruby27\bin\gem.cmd install --local C:\temp\rubygems-update-2.7.4.gem
-  if ($LASTEXITCODE -ne 0) { exit 1 }
-  & C:\tools\ruby27\bin\update_rubygems.bat --no-document
-  if ($LASTEXITCODE -ne 0) { exit 1 }
-
   write-output "##teamcity[blockClosed name='Install Ruby']"
 
   write-output "##teamcity[blockOpened name='Install ServerSpec']"
