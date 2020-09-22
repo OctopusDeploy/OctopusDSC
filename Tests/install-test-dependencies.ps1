@@ -139,6 +139,7 @@ write-output "##teamcity[blockOpened name='Installing gem bundle']"
 Set-Location c:\temp\tests
 
 write-output "updating bundler"
+& C:\tools\ruby27\bin\gem install bundler:1.17.2
 & C:\tools\ruby27\bin\bundle.bat update --bundler
 
 write-output "updating bundle"
