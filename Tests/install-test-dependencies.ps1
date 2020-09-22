@@ -137,11 +137,17 @@ write-output "##teamcity[blockClosed name='Configuring SQL Server']"
 write-output "##teamcity[blockOpened name='Installing gem bundle']"
 
 Set-Location c:\temp\tests
+
+write-output "updating bundler"
+& C:\tools\ruby27\bin\bundle.bat update --bundler
+
 write-output "updating bundle"
 & C:\tools\ruby27\bin\bundle.bat update
+
 write-output "gemfile:"
 get-content Gemfile.lock
 
+write-output "installing bundle"
 & C:\tools\ruby27\bin\bundle.bat install --path=vendor
 if ($LASTEXITCODE -ne 0) { exit 1 }
 
