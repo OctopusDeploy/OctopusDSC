@@ -48,7 +48,11 @@ function Get-TargetResource {
         [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs",
         [bool]$LogTaskMetrics = $false,
         [bool]$LogRequestMetrics = $false,
-        [int]$TaskCap = $null
+        [int]$TaskCap = $null,
+        [string]$SSLCertificateThumbprint = [string]::Empty,
+        [string]$SSLCertificateStoreName = [string]::Empty,
+        [int]$SSLPort = 443,
+        [string]$SSLWebListenPrefix = [string]::Empty
     )
 
     try {
@@ -395,7 +399,11 @@ function Set-TargetResource {
         [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs",
         [bool]$LogTaskMetrics = $false,
         [bool]$LogRequestMetrics = $false,
-        [int]$TaskCap = $null
+        [int]$TaskCap = $null,
+        [string]$SSLCertificateThumbprint = [string]::Empty,
+        [string]$SSLCertificateStoreName = [string]::Empty,
+        [int]$SSLPort = 443,
+        [string]$SSLWebListenPrefix = [string]::Empty
     )
 
     try {
@@ -498,7 +506,11 @@ function Set-TargetResource {
                 -taskLogsDirectory $TaskLogsDirectory `
                 -logTaskMetrics $LogTaskMetrics `
                 -logRequestMetrics $LogRequestMetrics `
-                -taskCap $TaskCap
+                -taskCap $TaskCap `
+                -SSLCertificateThumbprint $SSLCertificateThumbprint `
+                -SSLCertificateStoreName $SSLCertificateStoreName `
+                -SSLPort $SSLPort `
+                -SSLWebListenPrefix $SSLWebListenPrefix
         } else {
             #have they asked for a new msi?
             if ($installAndConfigureRequested -and $currentResource["DownloadUrl"] -ne $DownloadUrl) {
@@ -536,7 +548,11 @@ function Set-TargetResource {
                     -taskLogsDirectory $TaskLogsDirectory `
                     -logTaskMetrics $LogTaskMetrics `
                     -logRequestMetrics $LogRequestMetrics `
-                    -taskCap $TaskCap
+                    -taskCap $TaskCap `
+                    -SSLCertificateThumbprint $SSLCertificateThumbprint `
+                    -SSLCertificateStoreName $SSLCertificateStoreName `
+                    -SSLPort $SSLPort `
+                    -SSLWebListenPrefix $SSLWebListenPrefix
                 if ((Test-ReconfigurationRequiresServiceRestart $currentResource $params) -and $isCurrentlyStarted) {
                     Stop-OctopusDeployService -name $Name
                     $isCurrentlyStopped = $true
@@ -606,7 +622,11 @@ function Set-OctopusDeployConfiguration {
         [string]$taskLogsDirectory = $null,
         [bool]$logTaskMetrics = $false,
         [bool]$logRequestMetrics = $false,
-        [int]$TaskCap
+        [int]$TaskCap,
+        [string]$SSLCertificateThumbprint,
+        [string]$SSLCertificateStoreName,
+        [int]$SSLPort = 443,
+        [string]$SSLWebListenPrefix
     )
 
     Write-Log "Configuring Octopus Deploy instance ..."
@@ -655,6 +675,7 @@ function Set-OctopusDeployConfiguration {
         }
         $args += @('--webAuthenticationMode', $legacyWebAuthenticationMode)
     }
+
 
     Invoke-OctopusServerCommand $args
 
@@ -806,6 +827,42 @@ function Set-OctopusDeployConfiguration {
         } else {
             throw "'OctopusBuiltInWorkerCredential' is only supported from Octopus 2018.1.0 and newer."
         }
+    }
+
+    if (($SSLPort -ne 443) -and (!$SSLWebListenPrefix.Contains(":$SSLPort")))
+    {
+        throw "Please update the value for SSLWebListenPrefix to use port $SSLPort."   
+    }
+
+    if (![string]::IsNullOrEmpty($SSLCertificateThumbprint) -and ![string]::IsNullOrEmpty($SSLCertificateStoreName))
+    {
+        $args = @(
+            'ssl-certificate',
+            '--instance', $name,
+            '--thumbprint', $SSLCertificateThumbprint,
+            '--certificate-store', $SSLCertificateStoreName,
+            '--port', $SSLPort
+        )
+
+        Invoke-OctopusServerCommand $args
+
+        $args = @(
+            'configure',
+            '--instance', $name,
+            '--webListenPrefixes', (@($webListenPrefix, $SSLWebListenPrefix) -join ',')
+        )
+
+        Invoke-OctopusServerCommand $args
+
+        $args = @(
+            'service',
+            '--instance', $name
+            '--stop',
+            '--start'
+        )
+
+        Invoke-OctopusServerCommand $args
+
     }
 }
 
@@ -1139,7 +1196,11 @@ function Install-OctopusDeploy {
         [string]$artifactsDirectory = $null,
         [bool]$logTaskMetrics = $false,
         [bool]$logRequestMetrics = $false,
-        [int]$taskCap
+        [int]$taskCap,
+        [string]$SSLCertificateThumbprint,
+        [string]$SSLCertificateStoreName,
+        [int]$SSLPort = 443,
+        [string]$SSLWebListenPrefix
     )
 
     Write-Verbose "Installing Octopus Deploy..."
@@ -1423,6 +1484,41 @@ function Install-OctopusDeploy {
         }
     }
 
+    if (![string]::IsNullOrEmpty($SSLCertificateThumbprint) -and ![string]::IsNullOrEmpty($SSLCertificateStoreName))
+    {
+        $args = @(
+            'ssl-certificate',
+            '--instance', $name,
+            '--thumbprint', $SSLCertificateThumbprint,
+            '--certificate-store', $SSLCertificateStoreName,
+            '--port', $SSLPort
+        )
+
+        Invoke-OctopusServerCommand $args
+
+        if (($SSLPort -ne 443) -and (!$SSLWebListenPrefix.Contains(":$SSLPort")))
+        {
+            throw "Please update the value for SSLWebListenPrefix to use port $SSLPort."   
+        }
+
+        $args = @(
+            'configure',
+            '--instance', $name,
+            '--webListenPrefixes', (@($webListenPrefix, $SSLWebListenPrefix) -join ',')
+        )
+
+        Invoke-OctopusServerCommand $args
+
+        $args = @(
+            'service',
+            '--instance', $name
+            '--stop',
+            '--start'
+        )
+
+        Invoke-OctopusServerCommand $args
+    }    
+
     Write-Verbose "Octopus Deploy installed!"
 }
 
@@ -1459,7 +1555,11 @@ function Test-TargetResource {
         [string]$TaskLogsDirectory = "$HomeDirectory\TaskLogs",
         [bool]$LogTaskMetrics = $false,
         [bool]$LogRequestMetrics = $false,
-        [int]$TaskCap = $null
+        [int]$TaskCap = $null,
+        [string]$SSLCertificateThumbprint = [string]::Empty,
+        [string]$SSLCertificateStoreName = [string]::Empty,
+        [int]$SSLPort = 443,
+        [string]$SSLWebListenPrefix
     )
 
     try {
@@ -1502,7 +1602,11 @@ function Test-TargetResource {
                 -TaskLogsDirectory $TaskLogsDirectory `
                 -LogTaskMetrics $LogTaskMetrics `
                 -LogRequestMetrics $LogRequestMetrics `
-                -OctopusMasterKey $OctopusMasterKey)
+                -OctopusMasterKey $OctopusMasterKey `
+                -SSLCertificateThumbprint $SSLCertificateThumbprint `
+                -SSLCertificateStoreName $SSLCertificateStoreName `
+                -SSLPort $SSLPort `
+                -SSLWebListenPrefix $SSLWebListenPrefix)
 
         $paramsWhereNullMeansIgnore = @('AutoLoginEnabled')
 
@@ -1512,6 +1616,12 @@ function Test-TargetResource {
         foreach ($key in $currentResource.Keys) {
             $currentValue = $currentResource.Item($key)
             $requestedValue = $params.Item($key)
+
+            if (($key -eq "ListenPrefixes") -and (![string]::IsNullOrEmpty($SSLWebListenPrefix)))
+            {
+                # Append to listen prefixes
+                $requestedValue = (@($requestedValue, $SSLWebListenPrefix) -join ',')
+            }
 
             if ($currentValue -is [PSCredential]) {
                 if (Test-PSCredentialChanged $currentValue $requestedValue) {
@@ -1525,6 +1635,7 @@ function Test-TargetResource {
                 Write-Verbose "Configuration parameter '$key' has value '$currentValue' - requested value not set"
             }
             elseif ($currentValue -ne $requestedValue) {
+
                 Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '$currentValue' mismatched the specified value '$requestedValue'"
                 $currentConfigurationMatchesRequestedConfiguration = $false
             }

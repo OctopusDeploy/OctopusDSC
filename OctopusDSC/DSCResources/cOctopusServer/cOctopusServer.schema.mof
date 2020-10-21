@@ -29,4 +29,8 @@ class cOctopusServer : OMI_BaseResource
   [Write] boolean LogTaskMetrics;
   [Write] boolean LogRequestMetrics;
   [Write] uint64 TaskCap;
+  [Write] string SSLCertificateThumbprint;
+  [Write] string SSLCertificateStoreName;
+  [Write] uint16 SSLPort;
+  [Write] string SSLWebListenPrefix;
 };
