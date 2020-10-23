@@ -116,6 +116,9 @@ function Get-TargetResource {
         $existingLogTaskMetrics = $null
         $existingLogRequestMetrics = $null
         $existingTaskCap = $null
+        $existingSSLPort = $null
+        $existingSSLThumbprint = $null
+        $existingSSLCertificateStoreName = $null
 
         if ($existingEnsure -eq "Present") {
 
@@ -180,6 +183,15 @@ function Get-TargetResource {
                 if (($null -ne $user) -and ($null -ne $pass)) {
                     $existingOctopusBuiltInWorkerCredential = New-Object System.Management.Automation.PSCredential ($user, ($pass | ConvertTo-SecureString))
                 }
+
+                $existingSSLConfig = (Get-CurrentSSLBinding -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}")
+
+                if ($null -ne $existingSSLConfig)
+                {
+                    $existingSSLPort = [int](($existingSSLConfig.IPPort).Split(":")[1])
+                    $existingSSLThumbprint = $existingSSLConfig.CertificateHash.Trim()
+                    $existingSSLCertificateStoreName = $existingSSLConfig.CertStore.Trim()
+                }
             }
         }
 
@@ -209,7 +221,10 @@ function Get-TargetResource {
             TaskLogsDirectory                         = $existingTaskLogsDirectory;
             LogTaskMetrics                            = $existingLogTaskMetrics;
             LogRequestMetrics                         = $existingLogRequestMetrics;
-            TaskCap                                   = $existingTaskCap
+            TaskCap                                   = $existingTaskCap;
+            SSLCertificateThumbprint                  = $existingSSLThumbprint;
+            SSLPort                                   = $existingSSLPort;
+            SSLCertificateStoreName                   = $existingSSLCertificateStoreName
         }
 
         return $currentResource
@@ -1616,7 +1631,7 @@ function Test-TargetResource {
         foreach ($key in $currentResource.Keys) {
             $currentValue = $currentResource.Item($key)
             $requestedValue = $params.Item($key)
-
+Write-Verbose "Testing key $key"
             if (($key -eq "WebListenPrefix") -and (![string]::IsNullOrEmpty($SSLWebListenPrefix)))
             {
                 # Append to listen prefixes
@@ -1643,19 +1658,36 @@ function Test-TargetResource {
                 Write-Verbose "Configuration parameter '$key' matches the requested value '$requestedValue'"
             }
 
+            # Get current SSL certificate binding
+            $currentSSLBinding = (Get-CurrentSSLBinding -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}")
+
             if ($key -eq "SSLCertificateThumbprint")
             {
-                $currentSSLBinding = (Get-CurrentSSLBinding -CertificateStoreName $SSLCertificateStoreName -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}")
-
-                if (($null -ne $currentSSLBinding) -and ($currentSSLBinding.CertificateHash -ne $SSLCertificateThumbprint))
+                if (($null -ne $currentSSLBinding) -and ($currentSSLBinding.CertificateHash -ne $requestedValue))
                 {
-                    Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '$($currentSSLBinding.CertificateHash)' mismatched the specified value '$SSLCertificateThumbprint'"
+                    Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '$($currentSSLBinding.CertificateHash)' mismatched the specified value '$requestedValue'"
                     $currentConfigurationMatchesRequestedConfiguration = $false
                 }
-                elseif (($null -eq $currentSSLBinding) -and ![string]::IsNullOrEmpty($SSLCertificateThumbprint))
+                elseif (($null -eq $currentSSLBinding) -and ![string]::IsNullOrEmpty($requestedValue))
                 {
-                    Write-Verbose "Certificate thumbprint specified, but no SSL binding exists."
+                    Write-Verbose "(FOUND MISTMATCH) Certificate thumbprint specified, but no SSL binding exists."
                     $currentConfigurationMatchesRequestedConfiguration = $false
+                }
+                else 
+                {
+                    Write-Verbose "Configuration parameter '$key' matches the requested value '$requestedValue'"
+                }
+            }
+
+            if ($key -eq "SSLCertifcateStoreName")
+            {
+                if ($currentSSLBinding.CertStore -ne $requestedValue)
+                {
+                    Write-Verbose "(FOUND MISMATCH) '$key' with value '$currentValue' mismatched the specified value '$requestedValue'"
+                }
+                else 
+                {
+                    Write-Verbose "Configuration parameter '$key' matches the requested value '$requestedValue'"
                 }
             }
         }
@@ -1702,8 +1734,7 @@ function Test-PSCredentialChanged ($currentValue, $requestedValue) {
 function Get-CurrentSSLBinding
 {
 
-    param([string] $CertificateStoreName,
-          [string] $ApplicationId)
+    param([string] $ApplicationId)
 
     $certificateBindings = (& netsh http show sslcert) | select-object -skip 3 | out-string
     $newLine = [System.Environment]::NewLine
@@ -1720,7 +1751,7 @@ function Get-CurrentSSLBinding
         }
     }
 
-    return ($certificateBindingsList | Where-Object {($_.AppID.Trim() -eq $ApplicationId) -and ($_.CertStore.Trim() -eq $CertificateStoreName)})
+    return ($certificateBindingsList | Where-Object {$_.AppID.Trim() -eq $ApplicationId})
 }
 
 function Test-ParameterSet {
