@@ -1617,7 +1617,7 @@ function Test-TargetResource {
             $currentValue = $currentResource.Item($key)
             $requestedValue = $params.Item($key)
 
-            if (($key -eq "ListenPrefixes") -and (![string]::IsNullOrEmpty($SSLWebListenPrefix)))
+            if (($key -eq "WebListenPrefix") -and (![string]::IsNullOrEmpty($SSLWebListenPrefix)))
             {
                 # Append to listen prefixes
                 $requestedValue = (@($requestedValue, $SSLWebListenPrefix) -join ',')
@@ -1641,6 +1641,22 @@ function Test-TargetResource {
             }
             else {
                 Write-Verbose "Configuration parameter '$key' matches the requested value '$requestedValue'"
+            }
+
+            if ($key -eq "SSLCertificateThumbprint")
+            {
+                $currentSSLBinding = (Get-CurrentSSLBinding -CertificateStoreName $SSLCertificateStoreName -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}")
+
+                if (($null -ne $currentSSLBinding) -and ($currentSSLBinding.CertificateHash -ne $SSLCertificateThumbprint))
+                {
+                    Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '$($currentSSLBinding.CertificateHash)' mismatched the specified value '$SSLCertificateThumbprint'"
+                    $currentConfigurationMatchesRequestedConfiguration = $false
+                }
+                elseif (($null -eq $currentSSLBinding) -and ![string]::IsNullOrEmpty($SSLCertificateThumbprint))
+                {
+                    Write-Verbose "Certificate thumbprint specified, but no SSL binding exists."
+                    $currentConfigurationMatchesRequestedConfiguration = $false
+                }
             }
         }
 
@@ -1681,6 +1697,30 @@ function Test-PSCredentialChanged ($currentValue, $requestedValue) {
         return $true
     }
     return $false
+}
+
+function Get-CurrentSSLBinding
+{
+
+    param([string] $CertificateStoreName,
+          [string] $ApplicationId)
+
+    $certificateBindings = (& netsh http show sslcert) | select-object -skip 3 | out-string
+    $newLine = [System.Environment]::NewLine
+    $certificateBindings = $certificateBindings -split "$newLine$newLine"
+    $certificateBindingsList = foreach ($certificateBinding in $certificateBindings) {
+        if ($certificateBinding -ne "") {
+            $certificateBinding = $certificateBinding -replace "  ", "" -split ": "
+            [pscustomobject]@{
+                IPPort          = ($certificateBinding[1] -split "`n")[0] 
+                CertificateHash = ($certificateBinding[2] -split "`n" -replace '[^a-zA-Z0-9]', '')[0] 
+                AppID           = ($certificateBinding[3] -split "`n")[0]
+                CertStore       = ($certificateBinding[4] -split "`n")[0] 
+            }
+        }
+    }
+
+    return ($certificateBindingsList | Where-Object {($_.AppID.Trim() -eq $ApplicationId) -and ($_.CertStore.Trim() -eq $CertificateStoreName)})
 }
 
 function Test-ParameterSet {
