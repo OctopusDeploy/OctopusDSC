@@ -1657,39 +1657,6 @@ Write-Verbose "Testing key $key"
             else {
                 Write-Verbose "Configuration parameter '$key' matches the requested value '$requestedValue'"
             }
-
-            # Get current SSL certificate binding
-            $currentSSLBinding = (Get-CurrentSSLBinding -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}")
-
-            if ($key -eq "SSLCertificateThumbprint")
-            {
-                if (($null -ne $currentSSLBinding) -and ($currentSSLBinding.CertificateHash -ne $requestedValue))
-                {
-                    Write-Verbose "(FOUND MISMATCH) Configuration parameter '$key' with value '$($currentSSLBinding.CertificateHash)' mismatched the specified value '$requestedValue'"
-                    $currentConfigurationMatchesRequestedConfiguration = $false
-                }
-                elseif (($null -eq $currentSSLBinding) -and ![string]::IsNullOrEmpty($requestedValue))
-                {
-                    Write-Verbose "(FOUND MISTMATCH) Certificate thumbprint specified, but no SSL binding exists."
-                    $currentConfigurationMatchesRequestedConfiguration = $false
-                }
-                else 
-                {
-                    Write-Verbose "Configuration parameter '$key' matches the requested value '$requestedValue'"
-                }
-            }
-
-            if ($key -eq "SSLCertifcateStoreName")
-            {
-                if ($currentSSLBinding.CertStore -ne $requestedValue)
-                {
-                    Write-Verbose "(FOUND MISMATCH) '$key' with value '$currentValue' mismatched the specified value '$requestedValue'"
-                }
-                else 
-                {
-                    Write-Verbose "Configuration parameter '$key' matches the requested value '$requestedValue'"
-                }
-            }
         }
 
         return $currentConfigurationMatchesRequestedConfiguration
