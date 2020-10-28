@@ -846,7 +846,7 @@ function Set-OctopusDeployConfiguration {
 
     if (($SSLPort -ne 443) -and (!$SSLWebListenPrefix.Contains(":$SSLPort")))
     {
-        throw "Please update the value for SSLWebListenPrefix to use port $SSLPort."   
+        throw "Please update the value for SSLWebListenPrefix to use port $SSLPort."
     }
 
     if (![string]::IsNullOrEmpty($SSLCertificateThumbprint) -and ![string]::IsNullOrEmpty($SSLCertificateStoreName))
@@ -1513,7 +1513,7 @@ function Install-OctopusDeploy {
 
         if (($SSLPort -ne 443) -and (!$SSLWebListenPrefix.Contains(":$SSLPort")))
         {
-            throw "Please update the value for SSLWebListenPrefix to use port $SSLPort."   
+            throw "Please update the value for SSLWebListenPrefix to use port $SSLPort."
         }
 
         $args = @(
@@ -1532,7 +1532,7 @@ function Install-OctopusDeploy {
         )
 
         Invoke-OctopusServerCommand $args
-    }    
+    }
 
     Write-Verbose "Octopus Deploy installed!"
 }
@@ -1710,10 +1710,10 @@ function Get-CurrentSSLBinding
         if ($certificateBinding -ne "") {
             $certificateBinding = $certificateBinding -replace "  ", "" -split ": "
             [pscustomobject]@{
-                IPPort          = ($certificateBinding[1] -split "`n")[0] 
-                CertificateHash = ($certificateBinding[2] -split "`n" -replace '[^a-zA-Z0-9]', '')[0] 
+                IPPort          = ($certificateBinding[1] -split "`n")[0]
+                CertificateHash = ($certificateBinding[2] -split "`n" -replace '[^a-zA-Z0-9]', '')[0]
                 AppID           = ($certificateBinding[3] -split "`n")[0]
-                CertStore       = ($certificateBinding[4] -split "`n")[0] 
+                CertStore       = ($certificateBinding[4] -split "`n")[0]
             }
         }
     }
