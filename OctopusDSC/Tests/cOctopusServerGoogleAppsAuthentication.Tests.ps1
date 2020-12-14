@@ -3,7 +3,6 @@
 $moduleName = Split-Path ($PSCommandPath -replace '\.Tests\.ps1$', '') -Leaf
 $modulePath = Split-Path $PSCommandPath -Parent
 $modulePath = Resolve-Path "$PSCommandPath/../../DSCResources/$moduleName/$moduleName.psm1"
-$script:dscHelpersPath = Resolve-Path "$PSCommandPath/../../OctopusDSCHelpers.ps1"
 $module = $null
 
 try
@@ -104,9 +103,6 @@ try
             }
 
             Context 'Set-TargetResource' {
-                BeforeAll {
-                    . $dscHelpersPath
-                }
                 It 'Calls Invoke-OctopusServerCommand with the correct arguments' {
                     Mock Invoke-OctopusServerCommand
 
