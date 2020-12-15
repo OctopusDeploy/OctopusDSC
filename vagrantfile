@@ -14,8 +14,8 @@ $run_test_scenario_script = <<SCRIPT
   write-output "##teamcity[blockOpened name='Testing Scenario {scenario_name}']"
   $env:TEAMCITY_PROJECT_NAME="#{ENV['TEAMCITY_PROJECT_NAME']}"
   set-location c:/temp/tests
-  write-host "executing bundle.bat _1.16.1_ exec rspec Spec/{scenario_name}_spec.rb --format documentation"
-  C:/tools/ruby25/bin/bundle.bat _1.16.1_ exec rspec Spec/{scenario_name}_spec.rb --format documentation
+  write-host "executing invoke-pester Spec/{scenario_name}_spec.ps1"
+  invoke-pester Spec/{scenario_name}_spec.ps1
   write-output "##teamcity[blockClosed name='Testing Scenario {scenario_name}']"
   exit $LASTEXITCODE
 SCRIPT
