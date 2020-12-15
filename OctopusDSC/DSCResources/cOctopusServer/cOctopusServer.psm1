@@ -31,7 +31,7 @@ function Get-TargetResource {
         [bool]$AllowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$LegacyWebAuthenticationMode = 'Ignore',
-        [bool]$ForceSSL = $false,
+        [nullable[bool]]$ForceSSL = $false,
         [bool]$HSTSEnabled = $false,
         [Int64]$HSTSMaxAge = 3600, # 1 hour
         [int]$ListenPort = 10943,
@@ -383,7 +383,7 @@ function Set-TargetResource {
         [bool]$AllowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$LegacyWebAuthenticationMode = 'Ignore',
-        [bool]$ForceSSL = $false,
+        [nullable[bool]]$ForceSSL = $false,
         [bool]$HSTSEnabled = $false,
         [Int64]$HSTSMaxAge = 3600, # 1 hour
         [int]$ListenPort = 10943,
@@ -595,7 +595,7 @@ function Set-OctopusDeployConfiguration {
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$legacyWebAuthenticationMode = 'Ignore',
         [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty,
-        [bool]$forceSSL = $false,
+        [nullable[bool]]$ForceSSL = $false,
         [bool]$hstsEnabled = $false,
         [Int64]$hstsMaxAge = 3600, # 1 hour
         [int]$listenPort = 10943,
@@ -621,10 +621,12 @@ function Set-OctopusDeployConfiguration {
         '--instance', $name,
         '--upgradeCheck', $allowUpgradeCheck,
         '--upgradeCheckWithStatistics', $allowCollectionOfUsageStatistics,
-        '--webForceSSL', $forceSSL,
         '--webListenPrefixes', $webListenPrefix,
         '--commsListenPort', $listenPort
     )
+    if ($null -ne $forceSSL) {
+        $cmdArgs += @('--webForceSSL', $forceSSL)
+    }
     if (($homeDirectory -ne "") -and ($null -ne $homeDirectory)) {
         $cmdArgs += @('--home', $homeDirectory)
     }
@@ -1132,7 +1134,7 @@ function Install-OctopusDeploy {
         [bool]$allowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$legacyWebAuthenticationMode = 'Ignore',
-        [bool]$forceSSL = $false,
+        [nullable[bool]]$ForceSSL = $false,
         [bool]$hstsEnabled = $false,
         [Int64]$hstsMaxAge = 3600, # 1 hour
         [int]$listenPort = 10943,
@@ -1196,10 +1198,13 @@ function Install-OctopusDeploy {
         '--instance', $name,
         '--upgradeCheck', $allowUpgradeCheck,
         '--upgradeCheckWithStatistics', $allowCollectionOfUsageStatistics,
-        '--webForceSSL', $forceSSL,
         '--webListenPrefixes', $webListenPrefix,
         '--commsListenPort', $listenPort
     )
+
+    if ($null -ne $forceSSL) {
+        $cmdArgs += @('--webForceSSL', $forceSSL)
+    }
 
     if (Test-OctopusVersionRequiresDatabaseBeforeConfigure) {
         $dbargs = @(
@@ -1452,7 +1457,7 @@ function Test-TargetResource {
         [bool]$AllowCollectionOfUsageStatistics = $true,
         [ValidateSet("UsernamePassword", "Domain", "Ignore")]
         [string]$LegacyWebAuthenticationMode = 'Ignore',
-        [bool]$ForceSSL = $false,
+        [nullable[bool]]$ForceSSL = $false,
         [bool]$HSTSEnabled = $false,
         [Int64]$HSTSMaxAge = 3600, # 1 hour
         [int]$ListenPort = 10943,
