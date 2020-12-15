@@ -233,7 +233,7 @@ Describe "Configuration Scenarios" {
 
     It "Scenario <name> should have a matching spec" -TestCases $cases {
         param([string]$name, [string]$fullName)
-        $specName = ($name + '_spec.rb').ToLower()
+        $specName = ($name + '_spec.ps1').ToLower()
         (Resolve-Path "$PSCommandPath/../../Tests/Spec/$specName") | Should -Exist
     }
 }
