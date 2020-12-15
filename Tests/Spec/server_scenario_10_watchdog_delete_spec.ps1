@@ -5,9 +5,10 @@ describe "server watchdog delete" {
     $response.Octopus.Watchdog.Enabled | Should -be $false
   }
 
-  describe windows_dsc do
-    it { should be_able_to_get_dsc_configuration }
-    it { should have_test_dsc_configuration_return_true }
-    it { should have_dsc_configuration_status_of_success }
-  end
+  # TODO: PESTER CONVERSION: Still to be converted
+  # describe windows_dsc do
+  #   it { should be_able_to_get_dsc_configuration }
+  #   it { should have_test_dsc_configuration_return_true }
+  #   it { should have_dsc_configuration_status_of_success }
+  # end
 }

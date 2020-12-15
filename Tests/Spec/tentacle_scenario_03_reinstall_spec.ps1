@@ -1,5 +1,5 @@
 describe "tentacle reinstall" {
-  config = JSON.parse(File.read("c:\\temp\\octopus-configured.marker"))
+  # config = JSON.parse(File.read("c:\\temp\\octopus-configured.marker"))
 
   it "should have created 'c:/Octopus'" {
     Test-Path 'c:/Octopus' | Should -be $true
@@ -13,9 +13,10 @@ describe "tentacle reinstall" {
     Test-Path 'C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe' -PathType Leaf | Should -be $true
   }
 
-  describe file('C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe') do
-    it { should have_version('3.20.0.0') }
-  end
+  # TODO: PESTER CONVERSION: Still to be converted
+  # describe file('C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe') do
+  #   it { should have_version('3.20.0.0') }
+  # end
 
   it "should have registed the 'OctopusDeploy Tentacle' service" {
     (Get-Service 'OctopusDeploy Tentacle' -ErrorAction SilentlyContinue) | Should -not -be $null
@@ -33,19 +34,20 @@ describe "tentacle reinstall" {
     (Get-WmiObject Win32_Service -Filter "Name='OctopusDeploy Tentacle'").StartName | Should -be 'LocalSystem'
   }
 
-  describe port(10933) do
-    it { should be_listening.with('tcp') }
-  end
+  # TODO: PESTER CONVERSION: Still to be converted
+  # describe port(10933) do
+  #   it { should be_listening.with('tcp') }
+  # end
 
-  describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "Tentacle") do
-    it { should exist }
-    it { should be_registered_with_the_server }
-    it { should be_online }
-    it { should be_listening_tentacle }
-    it { should be_in_environment('The-Env') }
-    it { should have_role('Test-Tentacle') }
-    it { should have_policy('Default Machine Policy') }
-  end
+  # describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "Tentacle") do
+  #   it { should exist }
+  #   it { should be_registered_with_the_server }
+  #   it { should be_online }
+  #   it { should be_listening_tentacle }
+  #   it { should be_in_environment('The-Env') }
+  #   it { should have_role('Test-Tentacle') }
+  #   it { should have_policy('Default Machine Policy') }
+  # end
 
   it "should have created 'HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle'" {
     Get-Item 'HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle' | Should -be $true
@@ -63,9 +65,10 @@ describe "tentacle reinstall" {
     Get-ItemProperty -Path 'HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\Tentacle' -Name 'ConfigurationFilePath' | Should -be 'C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config'
   }
 
-  describe windows_dsc do
-    it { should be_able_to_get_dsc_configuration }
-    it { should have_test_dsc_configuration_return_true }
-    it { should have_dsc_configuration_status_of_success }
-  end
+  # TODO: PESTER CONVERSION: Still to be converted
+  # describe windows_dsc do
+  #   it { should be_able_to_get_dsc_configuration }
+  #   it { should have_test_dsc_configuration_return_true }
+  #   it { should have_dsc_configuration_status_of_success }
+  # end
 }

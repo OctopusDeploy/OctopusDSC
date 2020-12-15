@@ -61,17 +61,18 @@ describe "server configure pre-installed instance" {
     (Get-WmiObject Win32_Service -Filter "Name='OctopusDeploy: ConfigurePreInstalledInstance'").StartName | Should -be 'LocalSystem'
   }
 
-  describe port(10943) do
-    it { should be_listening.with('tcp') }
-  end
+  # TODO: PESTER CONVERSION: Still to be converted
+  # describe port(10943) do
+  #   it { should be_listening.with('tcp') }
+  # end
 
-  describe port(81) do
-    it { should be_listening.with('tcp') }
-  end
+  # describe port(81) do
+  #   it { should be_listening.with('tcp') }
+  # end
 
-  describe windows_dsc do
-    it { should be_able_to_get_dsc_configuration }
-    it { should have_test_dsc_configuration_return_true }
-    it { should have_dsc_configuration_status_of_success }
-  end
+  # describe windows_dsc do
+  #   it { should be_able_to_get_dsc_configuration }
+  #   it { should have_test_dsc_configuration_return_true }
+  #   it { should have_dsc_configuration_status_of_success }
+  # end
 }

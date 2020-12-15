@@ -54,23 +54,24 @@ describe "server upgrade" {
     (Get-WmiObject Win32_Service -Filter "Name='OctopusDeploy'").StartName | Should -be 'LocalSystem'
   }
 
-  describe port(10943) do
-    it { should be_listening.with('tcp') }
-  end
+  # TODO: PESTER CONVERSION: Still to be converted
+  # describe port(10943) do
+  #   it { should be_listening.with('tcp') }
+  # end
 
-  describe port(81) do
-    it { should be_listening.with('tcp') }
-  end
+  # describe port(81) do
+  #   it { should be_listening.with('tcp') }
+  # end
 
-  #environment
-  describe octopus_deploy_environment(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "UAT 1") do
-    it { should_not exist }
-  end
+  # #environment
+  # describe octopus_deploy_environment(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "UAT 1") do
+  #   it { should_not exist }
+  # end
 
-  #dsc overall status
-  describe windows_dsc do
-    it { should be_able_to_get_dsc_configuration }
-    it { should have_test_dsc_configuration_return_true }
-    it { should have_dsc_configuration_status_of_success }
-  end
+  # #dsc overall status
+  # describe windows_dsc do
+  #   it { should be_able_to_get_dsc_configuration }
+  #   it { should have_test_dsc_configuration_return_true }
+  #   it { should have_dsc_configuration_status_of_success }
+  # end
 }

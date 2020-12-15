@@ -1,5 +1,5 @@
 describe "tentacle comms port" {
-  config = JSON.parse(File.read("c:\\temp\\octopus-configured.marker"))
+  # config = JSON.parse(File.read("c:\\temp\\octopus-configured.marker"))
 
   it "should have created 'c:/Octopus'" {
     Test-Path 'c:/Octopus' | Should -be $true
@@ -13,10 +13,11 @@ describe "tentacle comms port" {
     Test-Path 'C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe' -PathType Leaf | Should -be $true
   }
 
-  describe file('C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe') do
-    #todo: maybe we should have a matcher "it {should have_version_newer_than('3.3.24.0')}"
-    it { should_not have_version('3.3.24.0') } # we should've upgraded past this
-  end
+  # TODO: PESTER CONVERSION: Still to be converted
+  # describe file('C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe') do
+  #   #todo: maybe we should have a matcher "it {should have_version_newer_than('3.3.24.0')}"
+  #   it { should_not have_version('3.3.24.0') } # we should've upgraded past this
+  # end
 
   it "should have registed the 'OctopusDeploy Tentacle' service" {
     (Get-Service 'OctopusDeploy Tentacle' -ErrorAction SilentlyContinue) | Should -not -be $null
@@ -34,19 +35,20 @@ describe "tentacle comms port" {
     (Get-WmiObject Win32_Service -Filter "Name='OctopusDeploy Tentacle'").StartName | Should -be 'LocalSystem'
   }
 
-  describe port(10933) do
-    it { should be_listening.with('tcp') }
-  end
+  # TODO: PESTER CONVERSION: Still to be converted
+  # describe port(10933) do
+  #   it { should be_listening.with('tcp') }
+  # end
 
-  describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "Tentacle") do
-    it { should exist }
-    it { should be_registered_with_the_server }
-    it { should be_listening_tentacle }
-    it { should be_in_environment('The-Env') }
-    it { should have_role('Test-Tentacle') }
-    it { should have_policy('Default Machine Policy') }
-    it { should have_endpoint("https://#{ENV['COMPUTERNAME']}:10900/") }
-  end
+  # describe octopus_deploy_tentacle(config['OctopusServerUrl'], config['OctopusApiKey'], "Tentacle") do
+  #   it { should exist }
+  #   it { should be_registered_with_the_server }
+  #   it { should be_listening_tentacle }
+  #   it { should be_in_environment('The-Env') }
+  #   it { should have_role('Test-Tentacle') }
+  #   it { should have_policy('Default Machine Policy') }
+  #   it { should have_endpoint("https://#{ENV['COMPUTERNAME']}:10900/") }
+  # end
 
   it "should have created 'HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle'" {
     Get-Item 'HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle' | Should -be $true
@@ -68,15 +70,16 @@ describe "tentacle comms port" {
     Test-Path 'C:/ProgramData/Octopus/Tentacle/Instances/Tentacle.config' | Should -be $true
   }
 
-  config_file = File.read('C:/ProgramData/Octopus/Tentacle/Instances/Tentacle.config')
-  config_json = JSON.parse(config_file)
-  describe config_json['ConfigurationFilePath'] do
-    it { should eq('C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config') }
-  end
+  # TODO: PESTER CONVERSION: Still to be converted
+  # config_file = File.read('C:/ProgramData/Octopus/Tentacle/Instances/Tentacle.config')
+  # config_json = JSON.parse(config_file)
+  # describe config_json['ConfigurationFilePath'] do
+  #   it { should eq('C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config') }
+  # end
 
-  describe windows_dsc do
-    it { should be_able_to_get_dsc_configuration }
-    it { should have_test_dsc_configuration_return_true }
-    it { should have_dsc_configuration_status_of_success }
-  end
+  # describe windows_dsc do
+  #   it { should be_able_to_get_dsc_configuration }
+  #   it { should have_test_dsc_configuration_return_true }
+  #   it { should have_dsc_configuration_status_of_success }
+  # end
 }

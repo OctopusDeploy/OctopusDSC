@@ -43,15 +43,16 @@ describe "server built-in worker" {
     Get-Content 'C:/ProgramData/Octopus/OctopusServer/Instances/OctopusServer.config' -Raw | Should -match "`"Name`": `"OctopusServer`""
   }
 
-  describe user('OctoSquid') do
-    it { should exist }
-    it { should belong_to_group('Administrators')}
-  end
+  # TODO: PESTER CONVERSION: Still to be converted
+  # describe user('OctoSquid') do
+  #   it { should exist }
+  #   it { should belong_to_group('Administrators')}
+  # end
 
-  describe user('OctoMollusc') do
-    it { should exist }
-    it { should_not belong_to_group('Administrators')}
-  end
+  # describe user('OctoMollusc') do
+  #   it { should exist }
+  #   it { should_not belong_to_group('Administrators')}
+  # end
 
   it "should have registed the 'OctopusDeploy' service" {
     (Get-Service 'OctopusDeploy' -ErrorAction SilentlyContinue) | Should -not -be $null
@@ -69,22 +70,23 @@ describe "server built-in worker" {
     (Get-WmiObject Win32_Service -Filter "Name='OctopusDeploy'").StartName | Should -be '.\OctoSquid'
   }
 
-  describe command('& "C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe" show-configuration --instance OctopusServer --format xml') do
-    its(:exit_status) { should eq 0 }
-    its(:stdout) { should match /<set key="Octopus.BuiltInWorker.CustomAccountUserName">OctoMollusc<\/set>/ }
-  end
+  # TODO: PESTER CONVERSION: Still to be converted
+  # describe command('& "C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe" show-configuration --instance OctopusServer --format xml') do
+  #   its(:exit_status) { should eq 0 }
+  #   its(:stdout) { should match /<set key="Octopus.BuiltInWorker.CustomAccountUserName">OctoMollusc<\/set>/ }
+  # end
 
-  describe port(10943) do
-    it { should be_listening.with('tcp') }
-  end
+  # describe port(10943) do
+  #   it { should be_listening.with('tcp') }
+  # end
 
-  describe port(81) do
-    it { should be_listening.with('tcp') }
-  end
+  # describe port(81) do
+  #   it { should be_listening.with('tcp') }
+  # end
 
-  describe windows_dsc do
-    it { should be_able_to_get_dsc_configuration }
-    it { should have_test_dsc_configuration_return_true }
-    it { should have_dsc_configuration_status_of_success }
-  end
+  # describe windows_dsc do
+  #   it { should be_able_to_get_dsc_configuration }
+  #   it { should have_test_dsc_configuration_return_true }
+  #   it { should have_dsc_configuration_status_of_success }
+  # end
 }
