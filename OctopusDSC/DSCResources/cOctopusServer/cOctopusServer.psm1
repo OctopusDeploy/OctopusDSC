@@ -334,7 +334,7 @@ function Test-OctopusVersionRequiresDatabaseBeforeConfigure {
 }
 
 function Test-OctopusVersionSupportsTaskMetricsLogging {
-    return (Test-OctopusVersionNewerThan (New-Object System.Version 2018, 2, 7)) && (-not (Test-OctopusVersionNewerThan (New-Object System.Version 2020, 5, 0)))
+    return (Test-OctopusVersionNewerThan (New-Object System.Version 2018, 2, 7)) -and (-not (Test-OctopusVersionNewerThan (New-Object System.Version 2020, 5, 0)))
 }
 
 function Test-OctopusVersionSupportsTaskCap {
