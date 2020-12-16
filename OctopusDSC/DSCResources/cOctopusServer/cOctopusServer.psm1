@@ -821,11 +821,19 @@ function Test-ReconfigurationRequired($currentState, $desiredState) {
                                   'AllowUpgradeCheck', 'LegacyWebAuthenticationMode', 'HomeDirectory', 'LicenseKey', 'OctopusServiceCredential',
                                   'OctopusAdminCredential', 'SqlDbConnectionString', 'AutoLoginEnabled', 'OctopusBuiltInWorkerCredential',
                                   'TaskLogsDirectory', 'PackagesDirectory', 'ArtifactsDirectory', 'LogTaskMetrics', 'LogRequestMetrics', 'OctopusMasterKey')
+    $nullableProperties = @('ForceSSL', 'AutoLoginEnabled')
     foreach ($property in $reconfigurableProperties) {
         if ($currentState.Item($property) -is [PSCredential]) {
             $shouldComparePasswordOnly = $property -eq 'OctopusMasterKey'
             if (Test-PSCredentialChanged $currentState.Item($property) $desiredState.Item($property) -comparePasswordOnly $shouldComparePasswordOnly) {
                 return $true
+            }
+        }
+        elseif ($nullableProperties -contains $property) {
+            # short circuit if the value is null - that means "dont change the existing setting"
+            write-host "property is $property"
+            if ($null -eq $desiredState.Item($property)) {
+                return $false
             }
         }
         elseif ($currentState.Item($property) -ne ($desiredState.Item($property))) {
