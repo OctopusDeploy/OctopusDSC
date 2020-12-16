@@ -14,6 +14,4 @@ return @{
     ListenPort = 10935;
     AllowCollectionOfUsageStatistics = $false;
     HomeDirectory = "C:\Octopus";
-    LogRequestMetrics = $true
-    LogTaskMetrics = $true
 }

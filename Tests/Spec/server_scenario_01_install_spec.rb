@@ -16,10 +16,6 @@ describe file('c:/ChezOctopus/Logs') do
   it { should be_directory }
 end
 
-describe file('c:/ChezOctopus/Logs/metrics.txt') do
-  it { should be_file }
-end
-
 describe file('c:/ChezOctopus/TaskLogs') do
   it { should be_directory }
 end

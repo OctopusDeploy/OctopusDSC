@@ -334,7 +334,7 @@ function Test-OctopusVersionRequiresDatabaseBeforeConfigure {
 }
 
 function Test-OctopusVersionSupportsTaskMetricsLogging {
-    return Test-OctopusVersionNewerThan (New-Object System.Version 2018, 2, 7)
+    return (Test-OctopusVersionNewerThan (New-Object System.Version 2018, 2, 7)) && (-not (Test-OctopusVersionNewerThan (New-Object System.Version 2020, 5, 0)))
 }
 
 function Test-OctopusVersionSupportsTaskCap {
@@ -686,7 +686,7 @@ function Set-OctopusDeployConfiguration {
     }
 
     if ((-not (Test-OctopusVersionSupportsTaskMetricsLogging)) -and $logTaskMetrics) {
-        throw "LogTaskMetrics = 'true' is only supported from Octopus 2018.2.7"
+        throw "LogTaskMetrics = 'true' is only supported from Octopus 2018.2.7, and was removed in 2020.5.0"
     }
 
     if (
