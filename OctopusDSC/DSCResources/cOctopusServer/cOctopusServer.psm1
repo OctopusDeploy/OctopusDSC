@@ -831,7 +831,6 @@ function Test-ReconfigurationRequired($currentState, $desiredState) {
         }
         elseif ($nullableProperties -contains $property) {
             # short circuit if the value is null - that means "dont change the existing setting"
-            write-host "property is $property"
             if ($null -eq $desiredState.Item($property)) {
                 return $false
             }
