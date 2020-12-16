@@ -531,6 +531,7 @@ try
 
                 Context "New instance" {
                     BeforeAll {
+                        Mock Invoke-OctopusServerCommand #{ param ($cmdArgs) write-host $cmdArgs}
                         Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstance" }
                         Mock Get-RegistryValue { return "478389" } # checking .net 4.5
                         Mock Invoke-MsiExec {}
@@ -639,6 +640,7 @@ try
 
                 Context "Run-on-server user - new install" {
                     BeforeAll {
+                        Mock Invoke-OctopusServerCommand #{ param ($cmdArgs) write-host $cmdArgs}
                         Mock Get-TargetResource { return Get-CurrentConfiguration "NewInstallWithBuiltInWorker" }
                         Mock Get-RegistryValue { return "478389" } # checking .net 4.5
                         Mock Invoke-MsiExec {}
@@ -665,6 +667,7 @@ try
 
                 Context "Run-on-server user - existing install" {
                     BeforeAll {
+                        Mock Invoke-OctopusServerCommand #{ param ($cmdArgs) write-host $cmdArgs}
                         Mock Get-TargetResource { return Get-CurrentConfiguration "EnableBuiltInWorkerOnExistingInstance" }
                         Mock Get-RegistryValue { return "478389" } # checking .net 4.5
                         Mock Invoke-MsiExec {}
@@ -769,7 +772,7 @@ try
 
                 Context "With null ForceSSL" {
                     BeforeAll {
-                        Mock Invoke-OctopusServerCommand { param ($cmdArgs) write-host $cmdArgs}
+                        Mock Invoke-OctopusServerCommand #{ param ($cmdArgs) write-host $cmdArgs}
                         Mock Get-TargetResource { return Get-CurrentConfiguration "WhenNothingChanges" }
                         Mock Get-RegistryValue { return "478389" } # checking .net 4.5
                         Mock Invoke-MsiExec {}
