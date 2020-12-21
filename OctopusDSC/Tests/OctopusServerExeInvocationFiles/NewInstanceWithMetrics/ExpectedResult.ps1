@@ -6,7 +6,6 @@ return @(
   "admin --console --instance OctopusServer --username Admin --password S3cur3P4ssphraseHere!",
   "license --console --instance OctopusServer --free",
   "path --console --instance OctopusServer --nugetRepository C:\Octopus\Packages --artifacts C:\Octopus\Artifacts --taskLogs C:\Octopus\TaskLogs",
-  "metrics --console --instance OctopusServer --tasks True --webapi True"
   "service --console --instance OctopusServer --install --reconfigure --stop",
   "service --start --console --instance OctopusServer"
 )
