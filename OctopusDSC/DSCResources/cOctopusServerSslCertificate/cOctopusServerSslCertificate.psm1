@@ -1,3 +1,7 @@
+# dot-source the helper file (cannot load as a module due to scope considerations)
+. (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1')
+
+
 function Get-CurrentSSLBinding
 {
 
@@ -25,25 +29,13 @@ function Get-CurrentSSLBinding
 function Get-TargetResource
 {
     param (
+        [Parameter(Mandatory)]
         [string] $InstanceName,
         [string] $Ensure = "Present",
         [string] $Thumbprint,
-        [string] $Store,
-        [string] $Port,
-        [string] $HostName
+        [string] $StoreName,
+        [string] $Port
     )
-
-    $existingConfiguration = Get-ServerConfiguration $InstanceName
-
-    if ($existingConfiguration.ListenPrefixes.ToLower() -contains "https://")
-    {
-        $existingEnsure = "Present"
-        $existingHTTPSPrefixes = ($existingConfiguration.ListenPrefixes.Split(";") | Where-Object {$_.ToLower().BeginsWith("https://")})
-    }
-    else 
-    {
-        $existingEnsure = "Absent"    
-    }
 
     $existingSSLConfig = (Get-CurrentSSLBinding -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}" -Port $Port -IPAddress $IPAddress)
 
@@ -52,14 +44,14 @@ function Get-TargetResource
         $existingSSLPort = [int](($existingSSLConfig.IPPort).Split(":")[1])
         $existingSSLThumbprint = $existingSSLConfig.CertificateHash.Trim()
         $existingSSLCertificateStoreName = $existingSSLConfig.CertStore.Trim()
+        $existingEnsure = "Present"
     }
 
     $result = @{
-        InstanceName    = $Name
+        InstanceName    = $InstanceName
         Ensure          = $existingEnsure
-        HostNames       = $existingHTTPSPrefixes -join ";"
         Port            = $existingSSLPort
-        Store           = $existingSSLCertificateStoreName
+        StoreName       = $existingSSLCertificateStoreName
         Thumbprint      = $existingSSLThumbprint
     }
 
@@ -69,15 +61,17 @@ function Get-TargetResource
 function Test-TargetResource
 {
     param(
+        [Parameter(Mandatory)]
         [string] $InstanceName,
         [string] $Ensure = "Present",
         [string] $Thumbprint,
-        [string] $Store,
-        [string] $Port,
-        [string] $HostName
+        [string] $StoreName,
+        [string] $Port
     )
 
     $currentResource = (Get-TargetResource @PSBoundParameters)
+
+    $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
 
     $currentConfigurationMatchesRequestedConfiguration = $true
     foreach ($key in $currentResource.Keys) {
@@ -99,44 +93,36 @@ function Test-TargetResource
 function Set-TargetResource
 {
     param(
+        [Parameter(Mandatory)]
         [string] $InstanceName,
         [string] $Ensure = "Present",
         [string] $Thumbprint,
-        [string] $Store,
-        [string] $Port,
-        [string] $HostName
+        [string] $StoreName,
+        [string] $Port
     )
 
-    $existingConfiguration = Get-ServerConfiguration $InstanceName
-
-    $exeArgs = @(
-        'ssl-certificate',
-        '--instance', $Instancename,
-        '--thumbprint', $Thumbprint,
-        '--certificate-store', $Store,
-        '--port', $Port
-    )
-    
-    Invoke-OctopusServerCommand $exeArgs
-
-    $sslEntry = ("https://{0}:{1}" -f $HostName, $Port)
-
-    if ($Ensure = "Present")
+    if ($Ensure -eq "Present")
     {
-        $existingConfiguration.WebPrefixes += $sslEntry
+
+        $exeArgs = @(
+            'ssl-certificate',
+            '--instance', $Instancename,
+            '--thumbprint', $Thumbprint,
+            '--certificate-store', $StoreName,
+            '--port', $Port
+        )
+        
+        Write-Verbose "Binding certificate ..."
+
+        Invoke-OctopusServerCommand $exeArgs   
     }
     else 
     {
-        $sslEntries = $existingConfiguration.WebPrefixes.Split(";")
-        $sslEntries = ($sslEntries | Where-Object -ne $sslEntry)
-        $existingConfiguration.WebPrefixes = ($sslEntries -join ";")
+        if ($null -ne (Get-CurrentSSLBinding -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}" -Port $Port -IPAddress $IPAddress))
+        {
+            Write-Verbose "Removing certificate binding ..."
+            & netsh http delete sslcert ("{0}:{1}" -f "0.0.0.0", $Port)
+        }
     }
-
-    $exeArgs = @(
-        'configure',
-        '--webPrefixes', $existingConfiguration.WebPrefixes
-    )
-
-    Invoke-OctopusServerCommand $exeArgs
 }
 

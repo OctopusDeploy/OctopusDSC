@@ -6,5 +6,4 @@ class cOctopusServerSslCertificate : OMI_BaseResource
     [Write, ValueMap{"Present", "Absent"}, Values{"Present", "Absent"}] string Ensure;
     [Write, ValueMap{"My", "WebHosting"}, Values{"My", "WebHosting"}] string StoreName;
     [Write] string Port;
-    [Write] string HostName;
 };
