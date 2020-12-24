@@ -31,10 +31,16 @@ function Get-TargetResource
     param (
         [Parameter(Mandatory)]
         [string] $InstanceName,
+        [ValidateSet("Present", "Absent")]
         [string] $Ensure = "Present",
+        [ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory)]
         [string] $Thumbprint,
+        [ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory)]
         [string] $StoreName,
-        [string] $Port
+        [ValidateNotNullOrEmpty()]
+        [string] $Port = "443"
     )
 
     $existingSSLConfig = (Get-CurrentSSLBinding -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}" -Port $Port -IPAddress $IPAddress)
@@ -45,6 +51,10 @@ function Get-TargetResource
         $existingSSLThumbprint = $existingSSLConfig.CertificateHash.Trim()
         $existingSSLCertificateStoreName = $existingSSLConfig.CertStore.Trim()
         $existingEnsure = "Present"
+    }
+    else 
+    {
+        $existingEnsure = "Absent"    
     }
 
     $result = @{
@@ -63,10 +73,16 @@ function Test-TargetResource
     param(
         [Parameter(Mandatory)]
         [string] $InstanceName,
+        [ValidateSet("Present", "Absent")]
         [string] $Ensure = "Present",
+        [ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory)]
         [string] $Thumbprint,
+        [ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory)]
         [string] $StoreName,
-        [string] $Port
+        [ValidateNotNullOrEmpty()]
+        [string] $Port = "443"
     )
 
     $currentResource = (Get-TargetResource @PSBoundParameters)
@@ -95,10 +111,16 @@ function Set-TargetResource
     param(
         [Parameter(Mandatory)]
         [string] $InstanceName,
+        [ValidateSet("Present", "Absent")]
         [string] $Ensure = "Present",
+        [ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory)]
         [string] $Thumbprint,
+        [ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory)]
         [string] $StoreName,
-        [string] $Port
+        [ValidateNotNullOrEmpty()]
+        [string] $Port = "443"
     )
 
     if ($Ensure -eq "Present")
@@ -122,6 +144,11 @@ function Set-TargetResource
         {
             Write-Verbose "Removing certificate binding ..."
             & netsh http delete sslcert ("{0}:{1}" -f "0.0.0.0", $Port)
+
+            if ($null -eq (Get-CurrentSSLBinding -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}" -Port $Port -IPAddress $IPAddress))
+            {
+                Write-Verbose "Binding successfully removed."
+            }
         }
     }
 }

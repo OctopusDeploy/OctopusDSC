@@ -2,8 +2,8 @@
 class cOctopusServerSslCertificate : OMI_BaseResource
 {
     [Key, Description("Name of the Octopus Server instance")] string InstanceName;
-    [Write, Description("Thumbprint of the certificate")] string Thumbprint;
+    [Write, Required, Description("Thumbprint of the certificate")] string Thumbprint;
     [Write, ValueMap{"Present", "Absent"}, Values{"Present", "Absent"}] string Ensure;
-    [Write, ValueMap{"My", "WebHosting"}, Values{"My", "WebHosting"}] string StoreName;
+    [Write, Required, ValueMap{"My", "WebHosting"}, Values{"My", "WebHosting"}] string StoreName;
     [Write] string Port;
 };
