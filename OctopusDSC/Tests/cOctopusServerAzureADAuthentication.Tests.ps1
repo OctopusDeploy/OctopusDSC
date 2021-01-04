@@ -105,6 +105,7 @@ try
 
             Context 'Set-TargetResource' {
                 BeforeAll {
+                    $dscHelpersPath = Resolve-Path "$PSCommandPath/../../OctopusDSCHelpers.ps1"
                     . $dscHelpersPath
                 }
                 It 'Calls Invoke-OctopusServerCommand with the correct arguments' {
