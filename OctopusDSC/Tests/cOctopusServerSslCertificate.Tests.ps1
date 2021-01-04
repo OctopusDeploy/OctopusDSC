@@ -103,16 +103,36 @@ try
                             CertificateHash = "dfcbdb879e5315e05982c05793e57c39241797e3"
                             AppID = "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
                             CertStore = "My"
+                        }
+
+                        $result = Test-TargetResource -InstanceName "OctopusServer"
+                                                    -Ensure "Present"
+                                                    -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3"
+                                                    -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
+                                                    -StoreName = "My"
+                                                    -Port = "1443"
+
+                        $result | Should -Be $false
+                    }
+                }
+
+                It 'Returns true when port matches'
+                {
+                    return [PSCustomObject]@{
+                        IPPort = "0.0.0.0:443"
+                        CertificateHash = "dfcbdb879e5315e05982c05793e57c39241797e3"
+                        AppID = "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
+                        CertStore = "My"
                     }
 
                     $result = Test-TargetResource -InstanceName "OctopusServer"
-                                                  -Ensure "Present"
-                                                  -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3"
-                                                  -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
-                                                  -StoreName = "My"
-                                                  -Port = "1433"
-
-                    $result | Should -Be $false
+                                                -Ensure "Present"
+                                                -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3"
+                                                -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
+                                                -StoreName = "My"
+                                                -Port = "443"
+                    
+                    $result | Should -Be $true
                 }
             }
         }
