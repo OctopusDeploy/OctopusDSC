@@ -12,19 +12,14 @@ try
     $prefix = [guid]::NewGuid().Guid -replace '-'
     $module = Import-Module $modulePath -Prefix $prefix -PassThru -ErrorAction Stop
 
-    InModuleScope $module.Name 
-    {
+    InModuleScope $module.Name {
         $sampleConfigPath = Split-Path $PSCommandPath -Parent
         $sampleConfigPath = Join-Path $sampleConfigPath "SampleConfigs"
 
-        Describe 'cOctopusServerSslCertificate'
-        {
-            Context 'Get-TargetResource - when present and port not specified'
-            {
-                It 'Returns present and 443 when SSL binding exists'
-                {
-                    Mock Get-CurrentSSLBinding 
-                    {
+        Describe 'cOctopusServerSslCertificate' {
+            Context 'Get-TargetResource - when present and port not specified' {
+                It 'Returns present and 443 when SSL binding exists' {
+                    Mock Get-CurrentSSLBinding {
                         return [PSCustomObject]@{
                             IPPort = "0.0.0.0:443"
                             CertificateHash = "dfcbdb879e5315e05982c05793e57c39241797e3"
@@ -33,57 +28,48 @@ try
                         }
                     }
 
-                    $result = Get-TargetResource -InstanceName "OctopusServer"
-                                                 -Ensure "Present"
-                                                 -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3"
-                                                 -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
-                                                 -StoreName = "My"
+                    $result = Get-TargetResource -InstanceName "OctopusServer" `
+                                                 -Ensure "Present" `
+                                                 -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3" `
+                                                 -StoreName "My"
                     
                     $result.Ensure | Should -Be 'Present'
                     $result.Port | Should -Be "443"
                 }
             }
 
-            Context 'Get-TargetResource - when present and port specified'
-            {
-                It 'Returns present and 1443 when SSL binding exists'
-                {
-                    Mock Get-CurrentSSLBinding 
-                    {
+            Context 'Get-TargetResource - when present and port specified' {
+                It 'Returns present and 1443 when SSL binding exists' {
+                    Mock Get-CurrentSSLBinding {
                         return [PSCustomObject]@{
-                            IPPort = "0.0.0.0:443"
+                            IPPort = "0.0.0.0:1443"
                             CertificateHash = "dfcbdb879e5315e05982c05793e57c39241797e3"
                             AppID = "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
                             CertStore = "My"
                         }
                     }
                     
-                    $result = Get-TargetResource -InstanceName "OctopusServer"
-                                                 -Ensure "Present"
-                                                 -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3"
-                                                 -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
-                                                 -StoreName = "My"
-                                                 -Port = "1443"
+                    $result = Get-TargetResource -InstanceName "OctopusServer" `
+                                                 -Ensure "Present" `
+                                                 -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3" `
+                                                 -StoreName "My" `
+                                                 -Port "1443"
                     
                     $result.Ensure | Should -Be 'Present'
                     $result.Port | Should -Be "1443"
                 }
             }
 
-            Context 'Get-TargetResource - when absent'
-            {
-                It 'Returns absent when binding does not exist'
-                {
-                    Mock Get-CurrentSSLBinding 
-                    {
+            Context 'Get-TargetResource - when absent' {
+                It 'Returns absent when binding does not exist' {
+                    Mock Get-CurrentSSLBinding {
                         return $null
                     }
                     
-                    $result = Get-TargetResource -InstanceName "OctopusServer"
-                                                 -Ensure "Present"
-                                                 -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3"
-                                                 -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
-                                                 -StoreName = "My"
+                    $result = Get-TargetResource -InstanceName "OctopusServer" `
+                                                 -Ensure "Present" `
+                                                 -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3" `
+                                                 -StoreName "My"
 
                     $result.Ensure | Should -Be "Absent"
                     $result.StoreName | Should -Be $null
@@ -92,12 +78,9 @@ try
                 }
             }
 
-            Context 'Test-TargetResource - when present'
-            {
-                It 'Returns false when port differs'
-                {
-                    Mock Get-CurrentSSLBinding
-                    {
+            Context 'Test-TargetResource - when present' {
+                It 'Returns false when port differs' {
+                    Mock Get-CurrentSSLBinding {
                         return [PSCustomObject]@{
                             IPPort = "0.0.0.0:443"
                             CertificateHash = "dfcbdb879e5315e05982c05793e57c39241797e3"
@@ -105,19 +88,17 @@ try
                             CertStore = "My"
                         }
 
-                        $result = Test-TargetResource -InstanceName "OctopusServer"
-                                                    -Ensure "Present"
-                                                    -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3"
-                                                    -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
-                                                    -StoreName = "My"
-                                                    -Port = "1443"
+                        $result = Test-TargetResource -InstanceName "OctopusServer" `
+                                                    -Ensure "Present" `
+                                                    -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3" `
+                                                    -StoreName "My" `
+                                                    -Port "1443"
 
                         $result | Should -Be $false
                     }
                 }
 
-                It 'Returns true when port matches'
-                {
+                It 'Returns true when port matches' {
                     return [PSCustomObject]@{
                         IPPort = "0.0.0.0:443"
                         CertificateHash = "dfcbdb879e5315e05982c05793e57c39241797e3"
@@ -125,12 +106,11 @@ try
                         CertStore = "My"
                     }
 
-                    $result = Test-TargetResource -InstanceName "OctopusServer"
-                                                -Ensure "Present"
-                                                -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3"
-                                                -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
-                                                -StoreName = "My"
-                                                -Port = "443"
+                    $result = Test-TargetResource -InstanceName "OctopusServer" `
+                                                -Ensure "Present" `
+                                                -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3" `
+                                                -StoreName "My" `
+                                                -Port "443"
                     
                     $result | Should -Be $true
                 }
