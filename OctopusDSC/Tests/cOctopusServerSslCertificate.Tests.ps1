@@ -7,7 +7,7 @@ $modulePath = Split-Path $PSCommandPath -Parent
 $modulePath = Resolve-Path "$PSCommandPath/../../DSCResources/$moduleName/$moduleName.psm1"
 $module = $null
 
-try 
+try
 {
     $prefix = [guid]::NewGuid().Guid -replace '-'
     $module = Import-Module $modulePath -Prefix $prefix -PassThru -ErrorAction Stop
@@ -32,7 +32,7 @@ try
                                                  -Ensure "Present" `
                                                  -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3" `
                                                  -StoreName "My"
-                    
+
                     $result.Ensure | Should -Be 'Present'
                     $result.Port | Should -Be "443"
                 }
@@ -48,13 +48,13 @@ try
                             CertStore = "My"
                         }
                     }
-                    
+
                     $result = Get-TargetResource -InstanceName "OctopusServer" `
                                                  -Ensure "Present" `
                                                  -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3" `
                                                  -StoreName "My" `
                                                  -Port "1443"
-                    
+
                     $result.Ensure | Should -Be 'Present'
                     $result.Port | Should -Be "1443"
                 }
@@ -65,7 +65,7 @@ try
                     Mock Get-CurrentSSLBinding {
                         return $null
                     }
-                    
+
                     $result = Get-TargetResource -InstanceName "OctopusServer" `
                                                  -Ensure "Present" `
                                                  -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3" `
@@ -111,17 +111,17 @@ try
                                                 -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3" `
                                                 -StoreName "My" `
                                                 -Port "443"
-                    
+
                     $result | Should -Be $true
                 }
             }
         }
     }
 }
-finally 
+finally
 {
-    if ($module) 
+    if ($module)
     {
         Remove-Module -ModuleInfo $module
-    }    
+    }
 }

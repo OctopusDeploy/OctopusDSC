@@ -28,6 +28,7 @@ function Get-CurrentSSLBinding
 
 function Get-TargetResource
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSDSCUseVerboseMessageInDSCResource", "")]
     param (
         [Parameter(Mandatory)]
         [string] $InstanceName,
@@ -52,9 +53,9 @@ function Get-TargetResource
         $existingSSLCertificateStoreName = $existingSSLConfig.CertStore.Trim()
         $existingEnsure = "Present"
     }
-    else 
+    else
     {
-        $existingEnsure = "Absent"    
+        $existingEnsure = "Absent"
     }
 
     $result = @{
@@ -133,12 +134,12 @@ function Set-TargetResource
             '--certificate-store', $StoreName,
             '--port', $Port
         )
-        
+
         Write-Verbose "Binding certificate ..."
 
-        Invoke-OctopusServerCommand $exeArgs   
+        Invoke-OctopusServerCommand $exeArgs
     }
-    else 
+    else
     {
         if ($null -ne (Get-CurrentSSLBinding -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}" -Port $Port -IPAddress $IPAddress))
         {
