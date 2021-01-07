@@ -1,4 +1,4 @@
-# Creates an environment in an Octopus Server instance
+# Binds an SSL certificate to the Octopus Server
 
 Configuration SampleConfig
 {
@@ -8,11 +8,11 @@ Configuration SampleConfig
     {
         cOctopusServerSslCertificate "Bind SSL Certifiate"
         {
-            InstanceName = "OctopusSErver"
+            InstanceName = "OctopusServer"
             Thumbprint = "c42a148bcd3959101f2e7a3d76edb924bff84b6b"
             Ensure = "Present"
             StoreName = "My"
-            Port = "443"
+            Port = 443
         }
     }
 }

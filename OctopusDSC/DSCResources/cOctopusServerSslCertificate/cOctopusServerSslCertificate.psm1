@@ -1,10 +1,10 @@
 # dot-source the helper file (cannot load as a module due to scope considerations)
 . (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1')
 
+# Create constant for Octopus Deploy server Application ID
+$octopusServerApplicationId = "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
 
-function Get-CurrentSSLBinding
-{
-
+function Get-CurrentSSLBinding {
     param([string] $ApplicationId,
     [string]$Port)
 
@@ -26,8 +26,7 @@ function Get-CurrentSSLBinding
     return ($certificateBindingsList | Where-Object {($_.AppID.Trim() -eq $ApplicationId) -and ($_.IPPort.Trim() -eq "{0}:{1}" -f "0.0.0.0", $Port) })
 }
 
-function Get-TargetResource
-{
+function Get-TargetResource {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSDSCUseVerboseMessageInDSCResource", "")]
     param (
         [Parameter(Mandatory)]
@@ -41,20 +40,18 @@ function Get-TargetResource
         [Parameter(Mandatory)]
         [string] $StoreName,
         [ValidateNotNullOrEmpty()]
-        [string] $Port = "443"
+        [int] $Port = 443
     )
 
-    $existingSSLConfig = (Get-CurrentSSLBinding -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}" -Port $Port -IPAddress $IPAddress)
+    $existingSSLConfig = (Get-CurrentSSLBinding -ApplicationId $octopusServerApplicationId -Port $Port -IPAddress $IPAddress)
 
-    if ($null -ne $existingSSLConfig)
-    {
+    if ($null -ne $existingSSLConfig) {
         $existingSSLPort = [int](($existingSSLConfig.IPPort).Split(":")[1])
         $existingSSLThumbprint = $existingSSLConfig.CertificateHash.Trim()
         $existingSSLCertificateStoreName = $existingSSLConfig.CertStore.Trim()
         $existingEnsure = "Present"
     }
-    else
-    {
+    else {
         $existingEnsure = "Absent"
     }
 
@@ -69,8 +66,7 @@ function Get-TargetResource
     return $result
 }
 
-function Test-TargetResource
-{
+function Test-TargetResource {
     param(
         [Parameter(Mandatory)]
         [string] $InstanceName,
@@ -83,11 +79,10 @@ function Test-TargetResource
         [Parameter(Mandatory)]
         [string] $StoreName,
         [ValidateNotNullOrEmpty()]
-        [string] $Port = "443"
+        [int] $Port = 443
     )
 
     $currentResource = (Get-TargetResource @PSBoundParameters)
-
     $params = Get-ODSCParameter $MyInvocation.MyCommand.Parameters
 
     $currentConfigurationMatchesRequestedConfiguration = $true
@@ -107,8 +102,7 @@ function Test-TargetResource
     return $currentConfigurationMatchesRequestedConfiguration
 }
 
-function Set-TargetResource
-{
+function Set-TargetResource {
     param(
         [Parameter(Mandatory)]
         [string] $InstanceName,
@@ -121,12 +115,10 @@ function Set-TargetResource
         [Parameter(Mandatory)]
         [string] $StoreName,
         [ValidateNotNullOrEmpty()]
-        [string] $Port = "443"
+        [int] $Port = 443
     )
 
-    if ($Ensure -eq "Present")
-    {
-
+    if ($Ensure -eq "Present") {
         $exeArgs = @(
             'ssl-certificate',
             '--instance', $Instancename,
@@ -136,21 +128,18 @@ function Set-TargetResource
         )
 
         Write-Verbose "Binding certificate ..."
-
         Invoke-OctopusServerCommand $exeArgs
     }
-    else
-    {
-        if ($null -ne (Get-CurrentSSLBinding -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}" -Port $Port -IPAddress $IPAddress))
-        {
+    else {
+        $currentBinding = (Get-CurrentSSLBinding -ApplicationId $octopusServerApplicationId -Port $Port -IPAddress $IPAddress)
+        if ($null -ne $currentBinding) {
             Write-Verbose "Removing certificate binding ..."
             & netsh http delete sslcert ("{0}:{1}" -f "0.0.0.0", $Port)
+            $currentBinding = (Get-CurrentSSLBinding -ApplicationId $octopusServerApplicationId -Port $Port -IPAddress $IPAddress)
 
-            if ($null -eq (Get-CurrentSSLBinding -ApplicationId "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}" -Port $Port -IPAddress $IPAddress))
-            {
+            if ($null -eq $currentBinding) {
                 Write-Verbose "Binding successfully removed."
             }
         }
     }
 }
-
