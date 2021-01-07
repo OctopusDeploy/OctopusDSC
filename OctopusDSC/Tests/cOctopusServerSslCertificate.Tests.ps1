@@ -6,6 +6,7 @@ $moduleName = Split-Path ($PSCommandPath -replace '\.Tests\.ps1$', '') -Leaf
 $modulePath = Split-Path $PSCommandPath -Parent
 $modulePath = Resolve-Path "$PSCommandPath/../../DSCResources/$moduleName/$moduleName.psm1"
 $module = $null
+$octopusServerApplicationId = "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
 
 try
 {
@@ -23,7 +24,7 @@ try
                         return [PSCustomObject]@{
                             IPPort = "0.0.0.0:443"
                             CertificateHash = "dfcbdb879e5315e05982c05793e57c39241797e3"
-                            AppID = "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
+                            AppID = $octopusServerApplicationId
                             CertStore = "My"
                         }
                     }
@@ -44,7 +45,7 @@ try
                         return [PSCustomObject]@{
                             IPPort = "0.0.0.0:1443"
                             CertificateHash = "dfcbdb879e5315e05982c05793e57c39241797e3"
-                            AppID = "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
+                            AppID = $octopusServerApplicationId
                             CertStore = "My"
                         }
                     }
@@ -84,7 +85,7 @@ try
                         return [PSCustomObject]@{
                             IPPort = "0.0.0.0:443"
                             CertificateHash = "dfcbdb879e5315e05982c05793e57c39241797e3"
-                            AppID = "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
+                            AppID = $octopusServerApplicationId
                             CertStore = "My"
                         }
 
@@ -102,7 +103,7 @@ try
                     return [PSCustomObject]@{
                         IPPort = "0.0.0.0:443"
                         CertificateHash = "dfcbdb879e5315e05982c05793e57c39241797e3"
-                        AppID = "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
+                        AppID = $octopusServerApplicationId
                         CertStore = "My"
                     }
 
