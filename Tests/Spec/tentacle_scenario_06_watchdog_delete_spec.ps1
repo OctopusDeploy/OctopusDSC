@@ -1,7 +1,7 @@
 describe "tentacle watchdog delete" {
   it "should report that watchdog is disabled" {
     $ProgressPreference = "SilentlyContinue";
-    $response = (& "C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe" show-configuration --format json-hierarchical | out-string | ConvertFrom-Json);
+    $response = (& "C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe" show-configuration | out-string | ConvertFrom-Json);
     $response.Octopus.Watchdog.Enabled | Should -be $false
   }
 
