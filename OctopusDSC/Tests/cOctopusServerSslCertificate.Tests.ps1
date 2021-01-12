@@ -7,6 +7,7 @@ $modulePath = Split-Path $PSCommandPath -Parent
 $modulePath = Resolve-Path "$PSCommandPath/../../DSCResources/$moduleName/$moduleName.psm1"
 $module = $null
 $octopusServerApplicationId = "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
+$certificateThumbprint = "dfcbdb879e5315e05982c05793e57c39241797e3"
 
 try
 {
@@ -23,7 +24,7 @@ try
                     Mock Get-CurrentSSLBinding {
                         return [PSCustomObject]@{
                             IPPort = "0.0.0.0:443"
-                            CertificateHash = "dfcbdb879e5315e05982c05793e57c39241797e3"
+                            CertificateHash = $certificateThumbprint
                             AppID = $octopusServerApplicationId
                             CertStore = "My"
                         }
@@ -31,11 +32,14 @@ try
 
                     $result = Get-TargetResource -InstanceName "OctopusServer" `
                                                  -Ensure "Present" `
-                                                 -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3" `
+                                                 -Thumbprint $certificateThumbprint `
                                                  -StoreName "My"
 
                     $result.Ensure | Should -Be 'Present'
                     $result.Port | Should -Be "443"
+                    $result.AppID | Should -Be $octopusServerApplicationId
+                    $result.CertStore | Should -Be "My"
+                    $result.CertificateHash | Should -Be $certificateThumbprint
                 }
             }
 
@@ -44,7 +48,7 @@ try
                     Mock Get-CurrentSSLBinding {
                         return [PSCustomObject]@{
                             IPPort = "0.0.0.0:1443"
-                            CertificateHash = "dfcbdb879e5315e05982c05793e57c39241797e3"
+                            CertificateHash = $certificateThumbprint
                             AppID = $octopusServerApplicationId
                             CertStore = "My"
                         }
@@ -52,12 +56,15 @@ try
 
                     $result = Get-TargetResource -InstanceName "OctopusServer" `
                                                  -Ensure "Present" `
-                                                 -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3" `
+                                                 -Thumbprint $certificateThumbprint `
                                                  -StoreName "My" `
                                                  -Port "1443"
 
                     $result.Ensure | Should -Be 'Present'
                     $result.Port | Should -Be "1443"
+                    $result.AppID | Should -Be $octopusServerApplicationId
+                    $result.CertStore | Should -Be "My"
+                    $result.CertificateHash | Should -Be $certificateThumbprint
                 }
             }
 
@@ -69,13 +76,14 @@ try
 
                     $result = Get-TargetResource -InstanceName "OctopusServer" `
                                                  -Ensure "Present" `
-                                                 -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3" `
+                                                 -Thumbprint $certificateThumbprint `
                                                  -StoreName "My"
 
                     $result.Ensure | Should -Be "Absent"
-                    $result.StoreName | Should -Be $null
-                    $result.Thumbprint | Should -Be $null
+                    $result.CertStore | Should -Be $null
+                    $result.CertificateHash | Should -Be $null
                     $result.Port | Should -Be $null
+                    $result.AppID | Should -Be $null
                 }
             }
 
@@ -84,14 +92,14 @@ try
                     Mock Get-CurrentSSLBinding {
                         return [PSCustomObject]@{
                             IPPort = "0.0.0.0:443"
-                            CertificateHash = "dfcbdb879e5315e05982c05793e57c39241797e3"
+                            CertificateHash = $certificateThumbprint
                             AppID = $octopusServerApplicationId
                             CertStore = "My"
                         }
 
                         $result = Test-TargetResource -InstanceName "OctopusServer" `
                                                     -Ensure "Present" `
-                                                    -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3" `
+                                                    -Thumbprint $certificateThumbprint `
                                                     -StoreName "My" `
                                                     -Port "1443"
 
@@ -102,14 +110,14 @@ try
                 It 'Returns true when port matches' {
                     return [PSCustomObject]@{
                         IPPort = "0.0.0.0:443"
-                        CertificateHash = "dfcbdb879e5315e05982c05793e57c39241797e3"
+                        CertificateHash = $certificateThumbprint
                         AppID = $octopusServerApplicationId
                         CertStore = "My"
                     }
 
                     $result = Test-TargetResource -InstanceName "OctopusServer" `
                                                 -Ensure "Present" `
-                                                -Thumbprint "dfcbdb879e5315e05982c05793e57c39241797e3" `
+                                                -Thumbprint $certificateThumbprint `
                                                 -StoreName "My" `
                                                 -Port "443"
 
