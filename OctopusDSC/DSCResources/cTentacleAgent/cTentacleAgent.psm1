@@ -763,6 +763,10 @@ function Get-MyPrivateIPAddress {
         [string]$cidrRange
         )
     {
+    
+        # http://www.padisetty.com/2014/05/powershell-bit-manipulation-and-network.html
+        # The original code is available here - https://github.com/padisetty/Samples under Apache 2
+        # Initially found this via http://www.gi-architects.co.uk/2016/02/powershell-check-if-ip-or-subnet-matchesfits/
         function CheckNetworkToSubnet ([uint32]$un2, [uint32]$ma2, [uint32]$un1)
         {
             return ($un2 -eq ($ma2 -band $un1))
@@ -783,7 +787,7 @@ function Get-MyPrivateIPAddress {
             # IPv6 is not currently supported
             return $False
         }
-        # Separate the network address and lenght
+        # Separate the network address and length
         $network1, [int]$subnetlen1 = $ipAddress.Split('/')
         $network2, [int]$subnetlen2 = $cidrRange.Split('/')
     
