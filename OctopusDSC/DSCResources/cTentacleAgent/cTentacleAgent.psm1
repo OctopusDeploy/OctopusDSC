@@ -249,9 +249,10 @@ function Get-TargetResource {
         [int]$ServerPort = 10943,
         [string]$tentacleDownloadUrl = $defaultTentacleDownloadUrl,
         [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64,
-        [ValidateSet("PublicIp", "FQDN", "ComputerName", "Custom")]
+        [ValidateSet("PublicIp", "FQDN", "ComputerName", "DHCP","Custom")]
         [string]$PublicHostNameConfiguration = "PublicIp",
         [string]$CustomPublicHostName,
+        [string]$CidrRange,
         [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
         [bool]$RegisterWithServer = $true,
         [string]$OctopusServerThumbprint,
@@ -408,9 +409,10 @@ function Set-TargetResource {
         [int]$ServerPort = 10943,
         [string]$tentacleDownloadUrl = $defaultTentacleDownloadUrl,
         [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64,
-        [ValidateSet("PublicIp", "FQDN", "ComputerName", "Custom")]
+        [ValidateSet("PublicIp", "FQDN", "ComputerName", "DHCP","Custom")]
         [string]$PublicHostNameConfiguration = "PublicIp",
         [string]$CustomPublicHostName,
+        [string]$CidrRange,
         [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
         [bool]$RegisterWithServer = $true,
         [string]$OctopusServerThumbprint,
@@ -420,6 +422,7 @@ function Set-TargetResource {
         [string]$TenantedDeploymentParticipation,
         [string]$Space
     )
+
     Confirm-RequestedState $PSBoundParameters
     Confirm-RegistrationParameter `
         -Ensure $Ensure `
@@ -483,6 +486,7 @@ function Set-TargetResource {
             -serverPort $ServerPort `
             -publicHostNameConfiguration $PublicHostNameConfiguration `
             -customPublicHostName $CustomPublicHostName `
+            -CidrRange $CidrRange
             -tentacleHomeDirectory $TentacleHomeDirectory `
             -registerWithServer $RegisterWithServer `
             -octopusServerThumbprint $OctopusServerThumbprint `
@@ -518,6 +522,7 @@ function Set-TargetResource {
                 -displayName $displayName `
                 -publicHostNameConfiguration $publicHostNameConfiguration `
                 -customPublicHostName $customPublicHostName `
+                -CidrRange $CidrRange `
                 -listenPort $listenPort `
                 -tentacleCommsPort $tentacleCommsPort `
                 -space $space
@@ -534,6 +539,7 @@ function Set-TargetResource {
                  -displayName $DisplayName `
                  -publicHostNameConfiguration $PublicHostNameConfiguration `
                  -customPublicHostName $CustomPublicHostName `
+                 -CidrRange $CidrRange `
                  -listenPort $ListenPort `
                  -serverPort $ServerPort `
                  -tentacleCommsPort $TentacleCommsPort `
@@ -576,9 +582,10 @@ function Test-TargetResource {
         [int]$ServerPort = 10943,
         [string]$tentacleDownloadUrl = $defaultTentacleDownloadUrl,
         [string]$tentacleDownloadUrl64 = $defaultTentacleDownloadUrl64,
-        [ValidateSet("PublicIp", "FQDN", "ComputerName", "Custom")]
+        [ValidateSet("PublicIp", "FQDN", "ComputerName", "DHCP","Custom")]
         [string]$PublicHostNameConfiguration = "PublicIp",
         [string]$CustomPublicHostName,
+        [string]$CidrRange,
         [string]$TentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
         [bool]$RegisterWithServer = $true,
         [string]$OctopusServerThumbprint,
@@ -742,6 +749,69 @@ function Get-MyPublicIPAddress {
     return $ip
 }
 
+function Get-MyPrivateIPAddress {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $True)]
+        $CidrRange
+    )
+    
+    function Test-Subnet (
+        [Parameter(Mandatory = $True)]
+        [string]$ipAddress, 
+        [Parameter(Mandatory = $True)]
+        [string]$cidrRange
+        )
+    {
+        function CheckNetworkToSubnet ([uint32]$un2, [uint32]$ma2, [uint32]$un1)
+        {
+            return ($un2 -eq ($ma2 -band $un1))
+        }
+    
+    
+        function SubToBinary ([int]$sub)
+        {
+            return ((-bnot [uint32]0) -shl (32 - $sub))
+        }
+    
+        function NetworkToBinary ($network)
+        {
+            $a = [uint32[]]$network.split('.')
+            return ($a[0] -shl 24) + ($a[1] -shl 16) + ($a[2] -shl 8) + $a[3]
+        }
+        if ($ipAddress.Contains("::")){
+            # IPv6 is not currently supported
+            return $False
+        }
+        # Separate the network address and lenght
+        $network1, [int]$subnetlen1 = $ipAddress.Split('/')
+        $network2, [int]$subnetlen2 = $cidrRange.Split('/')
+    
+     
+        #Convert network address to binary
+        [uint32] $unetwork1 = NetworkToBinary $network1
+     
+        [uint32] $unetwork2 = NetworkToBinary $network2
+     
+        $mask = [System.UInt32]::MaxValue
+        if($subnetlen2 -lt 32){
+            $mask = SubToBinary $subnetlen2
+        }
+        return CheckNetworkToSubnet $unetwork2 $mask $unetwork1
+    }
+
+
+    Write-Verbose "Getting private IP address"
+    $localAddresses = Get-NetIPAddress -AddressFamily IPv4
+    $ipAddress = $localAddresses | Where-Object {Test-Subnet -ipAddress $_.IPAddress -cidrRange $CidrRange } | Select-Object -First 1
+    if ($null -eq $ipAddress) {
+        $addresses = ($localAddresses.IPAddress) -join ", "
+        Write-Warning "$CidrRange does not match any of the local IP addresses $addresses"
+        throw "Invalid Configuration requested. " + `
+            "CidrRange does not match any of the local IP Addresses"
+    }
+    return $ipAddress.IPAddress
+}
 
 function Install-Tentacle {
     param (
@@ -866,9 +936,10 @@ function New-Tentacle {
         [ValidateSet("Listen", "Poll")]
         [string]$communicationMode = "Listen",
         [int]$serverPort = 10943,
-        [ValidateSet("PublicIp", "FQDN", "ComputerName", "Custom")]
+        [ValidateSet("PublicIp", "FQDN", "ComputerName", "DHCP","Custom")]
         [string]$publicHostNameConfiguration = "PublicIp",
         [string]$customPublicHostName,
+        [string]$CidrRange,
         [string]$tentacleHomeDirectory = "$($env:SystemDrive)\Octopus",
         [bool]$registerWithServer = $true,
         [Parameter(Mandatory = $False)]
@@ -988,16 +1059,20 @@ function New-Tentacle {
 
 function Get-PublicHostName {
     param (
-        [ValidateSet("PublicIp", "FQDN", "ComputerName", "Custom")]
+        [ValidateSet("PublicIp", "FQDN", "ComputerName", "DHCP","Custom")]
         [string]$publicHostNameConfiguration = "PublicIp",
-        [string]$customPublicHostName
+        [string]$customPublicHostName,
+        [string]$CidrRange
     )
+
     if ($publicHostNameConfiguration -eq "Custom") {
         $publicHostName = $customPublicHostName
     } elseif ($publicHostNameConfiguration -eq "FQDN") {
         $publicHostName = [System.Net.Dns]::GetHostByName($env:computerName).HostName
     } elseif ($publicHostNameConfiguration -eq "ComputerName") {
         $publicHostName = $env:COMPUTERNAME
+    } elseif ($publicHostNameConfiguration -eq "DHCP") {
+        $publicHostName = Get-MyPrivateIPAddress -CidrRange $CidrRange
     } else {
         $publicHostName = Get-MyPublicIPAddress
     }
@@ -1110,6 +1185,7 @@ function Add-TentacleToWorkerPool {
         [string]$displayName,
         [string]$publicHostNameConfiguration = "PublicIp",
         [string]$customPublicHostName,
+        [string]$CidrRange,
         [int]$tentacleCommsPort = 0,
         [int]$listenPort = 0,
         [Parameter(Mandatory = $true)]
@@ -1148,7 +1224,7 @@ function Add-TentacleToWorkerPool {
             throw "Both APIKey and TentacleServiceCredential are null!"
         }
         if ($CommunicationMode -eq "Listen") {
-            $publicHostName = Get-PublicHostName $publicHostNameConfiguration $customPublicHostName
+            $publicHostName = Get-PublicHostName $publicHostNameConfiguration $customPublicHostName $CidrRange
             Write-Verbose "Public host name: $publicHostName"
             $argumentList += @(
                 "--comms-style", "TentaclePassive",
@@ -1193,6 +1269,7 @@ function Register-Tentacle {
         [string]$communicationMode = "Listen",
         [string]$displayName,
         [string]$publicHostNameConfiguration = "PublicIp",
+        [string]$CidrRange,
         [string]$customPublicHostName,
         [int]$serverPort = 10943,
         [int]$listenPort = 10933,
@@ -1223,7 +1300,7 @@ function Register-Tentacle {
         $registerArguments += @("--policy", $policy)
     }
     if ($CommunicationMode -eq "Listen") {
-        $publicHostName = Get-PublicHostName $publicHostNameConfiguration $customPublicHostName
+        $publicHostName = Get-PublicHostName $publicHostNameConfiguration $customPublicHostName $CidrRange
         Write-Verbose "Public host name: $publicHostName"
         $registerArguments += @(
             "--comms-style", "TentaclePassive",
