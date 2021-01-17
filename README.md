@@ -24,7 +24,7 @@ Version 3.0 of OctopusDSC supports Octopus Deploy 4.x and above with backwards c
 ## Installation
 
 ### [PowerShellGet](https://technet.microsoft.com/en-us/library/dn807169.aspx) / PowerShell 5 (recommended)
-1. Install PowerShellGet from [PowerShell Gallery](https://www.powershellgallery.com/GettingStarted)
+1. Install PowerShellGet from [PowerShell Gallery](https://docs.microsoft.com/en-gb/powershell/scripting/gallery/installing-psget?view=powershell-7)
 2. Install DSC module via `PowerShellGet\Install-Module -Name OctopusDSC`
 
 ### Manual ###
