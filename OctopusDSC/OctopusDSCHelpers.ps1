@@ -186,16 +186,17 @@ Function Get-MaskedOutput
     return $arguments
 }
 
+function Write-MaskedCommandVerbose ($cmdArgs) {
+    $copiedarguments = @() # hack to pass a copy of the array, not a reference
+    $copiedarguments += $cmdArgs
+    $maskedarguments = Get-MaskedOutput $copiedarguments
+    Write-Verbose "Executing command '$octopusServerExePath $($maskedarguments -join ' ')'"
+}
+
 function Invoke-OctopusServerCommand ($cmdArgs) {
-    # todo: fix this up
-    if ((($cmdArgs -match "masterkey|password|license|pwd=").Count -eq 0)) {
-        Write-Verbose "Executing command '$octopusServerExePath $($cmdArgs -join ' ')'"
-    } else {
-        $copiedarguments = @() # hack to pass a copy of the array, not a reference
-        $copiedarguments += $cmdArgs
-        $maskedarguments = Get-MaskedOutput $copiedarguments
-        Write-Verbose "Executing command '$octopusServerExePath $($maskedarguments -join ' ')'"
-    }
+
+    Write-MaskedCommandVerbose($cmdArgs);
+
     $LASTEXITCODE = 0
     $output = & $octopusServerExePath $cmdArgs 2>&1
 
@@ -213,15 +214,9 @@ function Test-TentacleExecutableExists {
 }
 
 function Invoke-TentacleCommand ($cmdArgs) {
-    # todo: fix this up
-    if ((($cmdArgs -match "masterkey|password|license|pwd=").Count -eq 0)) {
-        Write-Verbose "Executing command '$tentacleExePath $($cmdArgs -join ' ')'"
-    } else {
-        $copiedarguments = @() # hack to pass a copy of the array, not a reference
-        $copiedarguments += $cmdArgs
-        $maskedarguments = Get-MaskedOutput $copiedarguments
-        Write-Verbose "Executing command '$tentacleExePath $($maskedarguments -join ' ')'"
-    }
+
+    Write-MaskedCommandVerbose($cmdArgs);
+
     $LASTEXITCODE = 0
     $output = & $tentacleExePath $cmdArgs 2>&1
 
