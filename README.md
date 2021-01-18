@@ -37,7 +37,7 @@ The community has also submitted a few [other options](https://github.com/Octopu
 
 ## Development
 
-This project is setup to use [Vagrant](vagrant.io) to provide a dev/test environment. Once you've installed Vagrant, you can use the build scripts to spin up a local virtual machine and run the test scenarios (**NOTE:** The first time you run `vagrant up` in Virtualbox or Hyper-V it has to download the `octopusdeploy/dsc-test-server` box and this can take some time depending on your Internet speed, so be patient and go grab a coffee while it downloads).
+This project is setup to use [Vagrant](www.vagrant.io) to provide a dev/test environment. Once you've installed Vagrant, you can use the build scripts to spin up a local virtual machine and run the test scenarios (**NOTE:** The first time you run `vagrant up` in Virtualbox or Hyper-V it has to download the `octopusdeploy/dsc-test-server` box and this can take some time depending on your Internet speed, so be patient and go grab a coffee while it downloads).
 
 There are four options provided:
 
