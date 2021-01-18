@@ -12,7 +12,7 @@ describe "server install without configure" {
     Get-Item 'HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer' | Should -be $true
   }
 
-  it "should have set 'InstallLocation' to "C:\\Program Files\\Octopus Deploy\\Octopus\\"" {
+  it "should have set 'InstallLocation' to 'C:\\Program Files\\Octopus Deploy\\Octopus\\'" {
     Get-ItemProperty -Path 'HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer' -Name 'InstallLocation' | Should -be "C:\\Program Files\\Octopus Deploy\\Octopus\\"
   }
 

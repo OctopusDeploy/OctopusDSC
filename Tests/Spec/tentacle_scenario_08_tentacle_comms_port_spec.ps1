@@ -54,7 +54,7 @@ describe "tentacle comms port" {
     Get-Item 'HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle' | Should -be $true
   }
 
-  it "should have set 'InstallLocation' to "C:\\Program Files\\Octopus Deploy\\Tentacle\\"" {
+  it "should have set 'InstallLocation' to 'C:\\Program Files\\Octopus Deploy\\Tentacle\\'" {
     Get-ItemProperty -Path 'HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle' -Name 'InstallLocation' | Should -be "C:\\Program Files\\Octopus Deploy\\Tentacle\\"
   }
 
