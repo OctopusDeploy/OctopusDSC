@@ -158,29 +158,32 @@ Function Get-MaskedOutput
     [CmdletBinding()]
     param($arguments)
 
-    $reg = [System.Text.RegularExpressions.RegEx]::new("--masterkey|--password|--license",
-                [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+    $singleAsterixArgs = "--masterkey|--license|--trust|--password|--remove-trust|--apikey|--pw|--pfx-password|--proxyPassword";
+    $connectionStringArgs = "--connectionstring";
 
-    if(($arguments -match "--masterkey|--password|--license"))
+    $combinedArgs = Join-String -Separator "|" -InputObject $singleAsterixArgs, $connectionStringArgs
+
+    # early bail for edge case where many args are passed
+    if (!$arguments -match $combinedArgs)
     {
-        for($x=0;$x -lt $arguments.count; $x++)
+        return @("************************")
+    }
+
+    # Scrub sensitive values
+    for($x=0; $x -lt $arguments.count; $x++)
+    {
+        if($arguments[$x] -match $singleAsterixArgs)
         {
-            if(($arguments[$x] -match "--masterkey|--password|--license|--trust|--remove-trust|--apikey|--password|--pw|--pfx-password|--proxyPassword"))
-            {
-                $arguments[$x+1] = $arguments[$x+1] -replace ".", "*"
-            }
+            $arguments[$x+1] = $arguments[$x+1] -replace ".", "*"
         }
-        $out = $arguments
+
+        if($arguments[$x] -match $connectionStringArgs)
+        {
+            $arguments[$x+1] = $arguments[$x+1] -replace "(password|pwd)=[^;|`"]*", "`$1=********"
+        }
     }
-    elseif(($arguments -match "password|pwd"))
-    {
-        $out = $arguments -replace "(password|pwd)=[^;|`"]*", "`$1=********"
-    }
-    else
-    {
-        $out = @("************************")
-    }
-    return $out
+
+    return $arguments
 }
 
 function Invoke-OctopusServerCommand ($cmdArgs) {
