@@ -6,19 +6,6 @@
 
 <!-- Describe the result of the change including a link to any resolved issues. -->
 
-Fixes https://github.com/OctopusDeploy/Issues/issues/...
-
-
-<!-- Consider adding a before/after log excerpt or screen capture. -->
-
-## Before
-
-![Before](https://www.fillmurray.com/g/300/150)
-
-## After
-
-![After](https://www.fillmurray.com/300/150)
-
 # How to review this PR
 
 <!--
@@ -31,11 +18,10 @@ Quality :heavy_check_mark:
 <!-- Describe focus areas (if any): Review tests/ Exploratory testing/ Smoke testing? -->
 
 # Pre-requisites
-- [ ] I have considered informing or consulting the right people, e.g.: 
+- [ ] I have considered informing or consulting the right people, e.g.:
   - For changes to the execution pipeline: [`#topic-execution`](https://octopusdeploy.slack.com/archives/C3KT1DFSM)
   - For other changes, consider the other `#topic-...` channels
 - [ ] I have considered whether this should be a patch or wait for a minor.
 - [ ] I have considered appropriate testing for my change.
-    <!-- Describe what has been covered: Automated testing/ Exploratory testing/ Nothing required? 
+    <!-- Describe what has been covered: Automated testing/ Exploratory testing/ Nothing required?
          Is the build green? -->
-      
