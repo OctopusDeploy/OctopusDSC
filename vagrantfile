@@ -2,6 +2,19 @@
 
 VAGRANT_FILE_API_VERSION = "2"
 
+# start workaround for https://github.com/mitchellh/vagrant-aws/issues/566
+class Hash
+  def slice(*keep_keys)
+    h = {}
+    keep_keys.each { |key| h[key] = fetch(key) if has_key?(key) }
+    h
+  end unless Hash.method_defined?(:slice)
+  def except(*less_keys)
+    slice(*keys - less_keys)
+  end unless Hash.method_defined?(:except)
+end
+# end workaround for https://github.com/mitchellh/vagrant-aws/issues/566
+
 aws_access_key_id = ENV['AWS_ACCESS_KEY_ID'] || 'not-set'
 aws_secret_access_key = ENV['AWS_SECRET_ACCESS_KEY'] || 'not-set'
 aws_subnet_id = ENV['AWS_SUBNET_ID'] || 'not-set'
