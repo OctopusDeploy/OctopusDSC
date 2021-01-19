@@ -161,7 +161,7 @@ Function Get-MaskedOutput
     $singleAsterixArgs = "--masterkey|--license|--trust|--password|--remove-trust|--apikey|--pw|--pfx-password|--proxyPassword";
     $connectionStringArgs = "--connectionstring";
 
-    $combinedArgs = Join-String -Separator "|" -InputObject $singleAsterixArgs, $connectionStringArgs
+    $combinedArgs = $singleAsterixArgs + "|" + $connectionStringArgs;
 
     # Early bail for edge case where many args are passed
     if (!$arguments -match $combinedArgs)
