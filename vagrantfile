@@ -34,8 +34,9 @@ $run_test_scenario_script = <<SCRIPT
   $configuration.TestResult.OutputPath = 'c:/temp/tests/PesterTestResults_{scenario_name}.xml'
   $configuration.TestResult.OutputFormat = 'NUnitXml'
   $configuration.Run.PassThru = $true
+  $configuration.Run.Path = "Spec/{scenario_name}_spec.ps1"
 
-  Invoke-Pester -path "Spec/{scenario_name}_spec.ps1" -configuration $configuration
+  Invoke-Pester -configuration $configuration
 
   write-output "##teamcity[blockClosed name='Testing Scenario {scenario_name}']"
   exit $LASTEXITCODE
