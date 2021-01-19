@@ -55,7 +55,7 @@ describe "tentacle upgrade" {
   }
 
   it "should have set 'InstallLocation' to 'C:\\Program Files\\Octopus Deploy\\Tentacle\\'" {
-    Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle' -Name 'InstallLocation' | Should -be "C:\\Program Files\\Octopus Deploy\\Tentacle\\"
+    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle' -Name 'InstallLocation').InstallLocation | Should -be "C:\Program Files\Octopus Deploy\Tentacle\"
   }
 
   # reg entry sticks around for backwards compat

@@ -17,7 +17,7 @@ describe "server re-install" {
   }
 
   it "should have set 'InstallLocation' to 'C:\\Program Files\\Octopus Deploy\\Octopus\\'" {
-    Get-ItemProperty -Path 'HKLM:\Software\Octopus\OctopusServer' -Name 'InstallLocation' | Should -be "C:\\Program Files\\Octopus Deploy\\Octopus\\"
+    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\OctopusServer' -Name 'InstallLocation').InstallLocation | Should -be "C:\Program Files\Octopus Deploy\Octopus\"
   }
 
   it "should have created 'HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer\OctopusServer'" {

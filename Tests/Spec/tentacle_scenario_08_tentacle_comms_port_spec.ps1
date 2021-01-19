@@ -55,7 +55,7 @@ describe "tentacle comms port" {
   }
 
   it "should have set 'InstallLocation' to 'C:\\Program Files\\Octopus Deploy\\Tentacle\\'" {
-    Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle' -Name 'InstallLocation' | Should -be "C:\\Program Files\\Octopus Deploy\\Tentacle\\"
+    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle' -Name 'InstallLocation').InstallLocation | Should -be "C:\Program Files\Octopus Deploy\Tentacle\"
   }
 
   it "should have created 'HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle\Tentacle'" {
