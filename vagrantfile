@@ -39,18 +39,21 @@ $run_test_scenario_script = <<SCRIPT
   Invoke-Pester -configuration $configuration
 
   write-output "##teamcity[blockClosed name='Testing Scenario {scenario_name}']"
-  exit $LASTEXITCODE
 SCRIPT
 
+def publish_log(config, scenario, file)
+  dest = file.gsub(':', '').gsub('/', '-')
+  source = file.gsub('/', '\\')
+  config.vm.provision "winrm-file-download" do |winrm|
+    winrm.source = source
+    winrm.destination = "logs/#{scenario}-#{dest}"
+  end
+  config.vm.provision "shell", inline: "write-output \"##teamcity[publishArtifacts 'logs/#{scenario}-#{dest}']\""
+end
+
 def publish_logs(config, scenario, log_files)
-  log_files.concat(["c:/temp/tests/PesterTestResults_#{scenario}.xml"]).each do |file|
-    dest = file.gsub(':', '').gsub('/', '-')
-    source = file.gsub('/', '\\')
-    config.vm.provision "winrm-file-download" do |winrm|
-      winrm.source = source
-      winrm.destination = "logs/#{scenario}-#{dest}"
-    end
-    config.vm.provision "shell", inline: "write-output \"##teamcity[publishArtifacts 'logs/#{scenario}-#{dest}']\""
+  log_files.each do |file|
+    publish_log(config, scenario, file)
   end
 end
 
@@ -66,6 +69,7 @@ def run_octopus_scenario(config, scenario, log_files)
   config.vm.provision "shell", path: "Tests/surface-logs.ps1"
   publish_logs(config, scenario, log_files)
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', scenario.downcase)
+  publish_logs(config, scenario, "c:/temp/tests/PesterTestResults_#{scenario.downcase}.xml")
 end
 
 def run_tentacle_scenario(config, scenario, log_files)
