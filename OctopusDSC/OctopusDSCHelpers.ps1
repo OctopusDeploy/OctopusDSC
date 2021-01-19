@@ -186,7 +186,7 @@ Function Get-MaskedOutput
     return $arguments
 }
 
-function Write-MaskedCommandVerbose ($cmdArgs) {
+function Write-VerboseWithMaskedCommand ($cmdArgs) {
     $copiedarguments = @() # hack to pass a copy of the array, not a reference
     $copiedarguments += $cmdArgs
     $maskedarguments = Get-MaskedOutput $copiedarguments
@@ -195,7 +195,7 @@ function Write-MaskedCommandVerbose ($cmdArgs) {
 
 function Invoke-OctopusServerCommand ($cmdArgs) {
 
-    Write-MaskedCommandVerbose($cmdArgs);
+    Write-VerboseWithMaskedCommand($cmdArgs);
 
     $LASTEXITCODE = 0
     $output = & $octopusServerExePath $cmdArgs 2>&1
@@ -215,7 +215,7 @@ function Test-TentacleExecutableExists {
 
 function Invoke-TentacleCommand ($cmdArgs) {
 
-    Write-MaskedCommandVerbose($cmdArgs);
+    Write-VerboseWithMaskedCommand($cmdArgs);
 
     $LASTEXITCODE = 0
     $output = & $tentacleExePath $cmdArgs 2>&1
