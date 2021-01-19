@@ -282,6 +282,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     config.vm.provision "shell", inline: "& c:\\temp\\Tests\\register-polling-tentacle.ps1; exit $LASTEXITCODE"
     config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_01_install')
+    publish_log(config, scenario, "c:/temp/tests/PesterTestResults_tentacle_scenario_01_install.xml")
 
     # uninstall tentacle
     run_tentacle_scenario(config,
@@ -294,6 +295,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
        'C:/Octopus/OctopusServer-OctopusServer.config'])
     config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_02_remove')
+    publish_log(config, scenario, "c:/temp/tests/PesterTestResults_tentacle_scenario_02_remove.xml")
 
     # Install old version
     run_tentacle_scenario(config,
@@ -308,6 +310,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
        'C:/Octopus/OctopusTentacleHome/Tentacle/Tentacle.config'])
     config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_03_reinstall')
+    publish_log(config, scenario, "c:/temp/tests/PesterTestResults_tentacle_scenario_03_reinstall.xml")
 
     # Upgrade it
     run_tentacle_scenario(config,
@@ -322,6 +325,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
        'C:/Octopus/OctopusTentacleHome/Tentacle/Tentacle.config'])
     config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_04_upgrade')
+    publish_log(config, scenario, "c:/temp/tests/PesterTestResults_tentacle_scenario_04_upgrade.xml")
 
     # install watchdog
     run_tentacle_scenario(config,
@@ -335,6 +339,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
        'C:/Octopus/OctopusTentacleHome/Logs/OctopusTentacle.txt',
        'C:/Octopus/OctopusTentacleHome/Tentacle/Tentacle.config'])
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_05_watchdog_create')
+    publish_log(config, scenario, "c:/temp/tests/PesterTestResults_tentacle_scenario_05_watchdog_create.xml")
 
     # delete watchdog
     run_tentacle_scenario(config,
@@ -348,6 +353,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
        'C:/Octopus/OctopusTentacleHome/Logs/OctopusTentacle.txt',
        'C:/Octopus/OctopusTentacleHome/Tentacle/Tentacle.config'])
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_06_watchdog_delete')
+    publish_log(config, scenario, "c:/temp/tests/PesterTestResults_tentacle_scenario_06_watchdog_delete.xml")
 
     # remove in preparation for testing comms port
     run_tentacle_scenario(config,
@@ -361,6 +367,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
        'C:/Octopus/OctopusTentacleHome/Logs/OctopusTentacle.txt',
        'C:/Octopus/OctopusTentacleHome/Tentacle/Tentacle.config'])
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_07_remove')
+    publish_log(config, scenario, "c:/temp/tests/PesterTestResults_tentacle_scenario_07_remove.xml")
 
     # tentacle comms port
     run_tentacle_scenario(config,
@@ -374,5 +381,6 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
        'C:/Octopus/OctopusTentacleHome/Logs/OctopusTentacle.txt',
        'C:/Octopus/OctopusTentacleHome/Tentacle/Tentacle.config'])
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_08_tentacle_comms_port')
+    publish_log(config, scenario, "c:/temp/tests/PesterTestResults_tentacle_scenario_08_tentacle_comms_port.xml")
   end
 end
