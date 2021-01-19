@@ -28,7 +28,7 @@ describe "tentacle upgrade" {
   }
 
   it "should have set the 'OctopusDeploy Tentacle' service to start mode 'Automatic'" {
-    (Get-Service 'OctopusDeploy Tentacle' -ErrorAction SilentlyContinue).StartMode | Should -be 'Automatic'
+    (Get-Service 'OctopusDeploy Tentacle' -ErrorAction SilentlyContinue).StartType | Should -be 'Automatic'
   }
 
   it "should have set the 'OctopusDeploy Tentacle' service to run under 'LocalSystem'" {

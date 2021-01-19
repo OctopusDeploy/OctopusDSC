@@ -47,7 +47,7 @@ describe "server upgrade" {
   }
 
   it "should have set the 'OctopusDeploy' service to start mode 'Automatic'" {
-    (Get-Service 'OctopusDeploy' -ErrorAction SilentlyContinue).StartMode | Should -be 'Automatic'
+    (Get-Service 'OctopusDeploy' -ErrorAction SilentlyContinue).StartType | Should -be 'Automatic'
   }
 
   it "should have set the 'OctopusDeploy' service to run under 'LocalSystem'" {

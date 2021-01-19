@@ -76,7 +76,7 @@ describe "server install second node" {
   }
 
   it "should have set the 'OctopusDeploy: HANode' service to start mode 'Automatic'" {
-    (Get-Service 'OctopusDeploy: HANode' -ErrorAction SilentlyContinue).StartMode | Should -be 'Automatic'
+    (Get-Service 'OctopusDeploy: HANode' -ErrorAction SilentlyContinue).StartType | Should -be 'Automatic'
   }
 
   it "should have set the 'OctopusDeploy: HANode' service to run under 'LocalSystem'" {

@@ -54,7 +54,7 @@ describe "server configure pre-installed instance" {
   }
 
   it "should have set the 'OctopusDeploy: ConfigurePreInstalledInstance' service to start mode 'Automatic'" {
-    (Get-Service 'OctopusDeploy: ConfigurePreInstalledInstance' -ErrorAction SilentlyContinue).StartMode | Should -be 'Automatic'
+    (Get-Service 'OctopusDeploy: ConfigurePreInstalledInstance' -ErrorAction SilentlyContinue).StartType | Should -be 'Automatic'
   }
 
   it "should have set the 'OctopusDeploy: ConfigurePreInstalledInstance' service to run under 'LocalSystem'" {

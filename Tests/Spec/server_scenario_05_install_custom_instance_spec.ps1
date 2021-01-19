@@ -40,7 +40,7 @@ describe "server install custom instance" {
   }
 
   it "should have set the 'OctopusDeploy: MyOctopusServer' service to start mode 'Automatic'" {
-    (Get-Service 'OctopusDeploy: MyOctopusServer' -ErrorAction SilentlyContinue).StartMode | Should -be 'Automatic'
+    (Get-Service 'OctopusDeploy: MyOctopusServer' -ErrorAction SilentlyContinue).StartType | Should -be 'Automatic'
   }
 
   it "should have set the 'OctopusDeploy: MyOctopusServer' service to run under 'LocalSystem'" {

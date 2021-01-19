@@ -36,7 +36,7 @@ describe "tentacle install" {
   }
 
   it "should have set the 'OctopusDeploy Tentacle: ListeningTentacle' service to start mode 'Automatic'" {
-    (Get-Service 'OctopusDeploy Tentacle: ListeningTentacle' -ErrorAction SilentlyContinue).StartMode | Should -be 'Automatic'
+    (Get-Service 'OctopusDeploy Tentacle: ListeningTentacle' -ErrorAction SilentlyContinue).StartType | Should -be 'Automatic'
   }
 
   it "should have set the 'OctopusDeploy Tentacle: ListeningTentacle' service to run under 'LocalSystem'" {
@@ -84,7 +84,7 @@ describe "tentacle install" {
   }
 
   it "should have set the 'OctopusDeploy Tentacle: PollingTentacle' service to start mode 'Automatic'" {
-    (Get-Service 'OctopusDeploy Tentacle: PollingTentacle' -ErrorAction SilentlyContinue).StartMode | Should -be 'Automatic'
+    (Get-Service 'OctopusDeploy Tentacle: PollingTentacle' -ErrorAction SilentlyContinue).StartType | Should -be 'Automatic'
   }
 
   it "should have set the 'OctopusDeploy Tentacle: PollingTentacle' service to run under 'LocalSystem'" {
@@ -125,7 +125,7 @@ describe "tentacle install" {
   }
 
   it "should have set the 'OctopusDeploy Tentacle: ListeningTentacleWithoutAutoRegister' service to start mode 'Automatic'" {
-    (Get-Service 'OctopusDeploy Tentacle: ListeningTentacleWithoutAutoRegister' -ErrorAction SilentlyContinue).StartMode | Should -be 'Automatic'
+    (Get-Service 'OctopusDeploy Tentacle: ListeningTentacleWithoutAutoRegister' -ErrorAction SilentlyContinue).StartType | Should -be 'Automatic'
   }
 
   it "should have set the 'OctopusDeploy Tentacle: ListeningTentacleWithoutAutoRegister' service to run under 'LocalSystem'" {
@@ -173,7 +173,7 @@ describe "tentacle install" {
   }
 
   it "should have set the 'OctopusDeploy Tentacle: ListeningTentacleWithThumbprintWithoutAutoRegister' service to start mode 'Automatic'" {
-    (Get-Service 'OctopusDeploy Tentacle: ListeningTentacleWithThumbprintWithoutAutoRegister' -ErrorAction SilentlyContinue).StartMode | Should -be 'Automatic'
+    (Get-Service 'OctopusDeploy Tentacle: ListeningTentacleWithThumbprintWithoutAutoRegister' -ErrorAction SilentlyContinue).StartType | Should -be 'Automatic'
   }
 
   it "should have set the 'OctopusDeploy Tentacle: ListeningTentacleWithThumbprintWithoutAutoRegister' service to run under 'LocalSystem'" {
@@ -227,7 +227,7 @@ describe "tentacle install" {
   }
 
   it "should have set the 'OctopusDeploy Tentacle: WorkerTentacle' service to start mode 'Automatic'" {
-    (Get-Service 'OctopusDeploy Tentacle: WorkerTentacle' -ErrorAction SilentlyContinue).StartMode | Should -be 'Automatic'
+    (Get-Service 'OctopusDeploy Tentacle: WorkerTentacle' -ErrorAction SilentlyContinue).StartType | Should -be 'Automatic'
   }
 
   it "should have set the 'OctopusDeploy Tentacle: WorkerTentacle' service to run under 'LocalSystem'" {
@@ -279,7 +279,7 @@ describe "tentacle install" {
   }
 
   it "should have set the 'OctopusDeploy Tentacle: ListeningTentacleWithCustomAccount' service to start mode 'Automatic'" {
-    (Get-Service 'OctopusDeploy Tentacle: ListeningTentacleWithCustomAccount' -ErrorAction SilentlyContinue).StartMode | Should -be 'Automatic'
+    (Get-Service 'OctopusDeploy Tentacle: ListeningTentacleWithCustomAccount' -ErrorAction SilentlyContinue).StartType | Should -be 'Automatic'
   }
 
   it "should have set the 'OctopusDeploy Tentacle: ListeningTentacleWithCustomAccount' service to run under '.\ServiceUser'" {
