@@ -163,7 +163,7 @@ Function Get-MaskedOutput
 
     $combinedArgs = Join-String -Separator "|" -InputObject $singleAsterixArgs, $connectionStringArgs
 
-    # early bail for edge case where many args are passed
+    # Early bail for edge case where many args are passed
     if (!$arguments -match $combinedArgs)
     {
         return @("************************")
