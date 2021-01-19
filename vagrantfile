@@ -42,7 +42,7 @@ $run_test_scenario_script = <<SCRIPT
 SCRIPT
 
 def publish_logs(config, scenario, log_files)
-  log_files.concat(['c:/temp/tests/PesterTestResults_{scenario}.xml']).each do |file|
+  log_files.concat(["c:/temp/tests/PesterTestResults_#{scenario}.xml"]).each do |file|
     dest = file.gsub(':', '').gsub('/', '-')
     source = file.gsub('/', '\\')
     config.vm.provision "winrm-file-download" do |winrm|
