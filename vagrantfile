@@ -69,7 +69,7 @@ def run_octopus_scenario(config, scenario, log_files)
   config.vm.provision "shell", path: "Tests/surface-logs.ps1"
   publish_logs(config, scenario, log_files)
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', scenario.downcase)
-  publish_logs(config, scenario, "c:/temp/tests/PesterTestResults_#{scenario.downcase}.xml")
+  publish_log(config, scenario, "c:/temp/tests/PesterTestResults_#{scenario.downcase}.xml")
 end
 
 def run_tentacle_scenario(config, scenario, log_files)
