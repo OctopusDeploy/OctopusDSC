@@ -28,13 +28,21 @@ $run_test_scenario_script = <<SCRIPT
   $env:TEAMCITY_PROJECT_NAME="#{ENV['TEAMCITY_PROJECT_NAME']}"
   set-location c:/temp/tests
   write-host "executing invoke-pester Spec/{scenario_name}_spec.ps1"
-  invoke-pester Spec/{scenario_name}_spec.ps1
+
+  $configuration = [PesterConfiguration]::Default
+  $configuration.TestResult.Enabled = $true
+  $configuration.TestResult.OutputPath = 'c:/temp/tests/PesterTestResults_{scenario_name}.xml'
+  $configuration.TestResult.OutputFormat = 'NUnitXml'
+  $configuration.Run.PassThru = $true
+
+  Invoke-Pester Spec/{scenario_name}_spec.ps1 -configuration $configuration
+
   write-output "##teamcity[blockClosed name='Testing Scenario {scenario_name}']"
   exit $LASTEXITCODE
 SCRIPT
 
 def publish_logs(config, scenario, log_files)
-  log_files.each do |file|
+  log_files.concat(['c:/temp/tests/PesterTestResults_{scenario}.xml']).each do |file|
     dest = file.gsub(':', '').gsub('/', '-')
     source = file.gsub('/', '\\')
     config.vm.provision "winrm-file-download" do |winrm|
