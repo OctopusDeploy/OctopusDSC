@@ -15,10 +15,6 @@ describe "server install" {
     Test-Path 'c:/ChezOctopus/Logs' | Should -be $true
   }
 
-  it "should have created 'c:/ChezOctopus/Logs/metrics.txt'" {
-    Test-Path 'c:/ChezOctopus/Logs/metrics.txt' | Should -be $true
-  }
-
   it "should have created 'c:/ChezOctopus/TaskLogs'" {
     Test-Path 'c:/ChezOctopus/TaskLogs' | Should -be $true
   }
