@@ -28,11 +28,11 @@ describe "server remove custom instance" {
   # end
 
   # #todo: confirm whether these should be deleted
-  # # describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer') do
+  # # describe windows_registry_key('HKLM:\Software\Octopus\OctopusServer') do
   # #   it { should_not exist }
   # # end
 
-  # # describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer\OctopusServer') do
+  # # describe windows_registry_key('HKLM:\Software\Octopus\OctopusServer\OctopusServer') do
   # #   it { should_not exist }
   # # end
 }

@@ -14,11 +14,11 @@ describe "tentacle install" {
   }
 
   it "should have created 'HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle'" {
-    Get-Item 'HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle' | Should -be $true
+    Test-Path 'HKLM:\Software\Octopus\Tentacle' | Should -be $true
   }
 
   it "should have set 'InstallLocation' to 'C:\\Program Files\\Octopus Deploy\\Tentacle\\'" {
-    Get-ItemProperty -Path 'HKEY_LOCAL_MACHINE\Software\Octopus\Tentacle' -Name 'InstallLocation' | Should -be "C:\\Program Files\\Octopus Deploy\\Tentacle\\"
+    Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle' -Name 'InstallLocation' | Should -be "C:\\Program Files\\Octopus Deploy\\Tentacle\\"
   }
 
   it "should have created 'C:/ProgramData/Octopus/Tentacle/Instances'" {

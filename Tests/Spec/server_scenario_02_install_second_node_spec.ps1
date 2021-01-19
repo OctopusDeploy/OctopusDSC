@@ -44,11 +44,11 @@ describe "server install second node" {
   }
 
   it "should have created 'HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer'" {
-    Get-Item 'HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer' | Should -be $true
+    Test-Path 'HKLM:\Software\Octopus\OctopusServer' | Should -be $true
   }
 
   it "should have set 'InstallLocation' to 'C:\\Program Files\\Octopus Deploy\\Octopus\\'" {
-    Get-ItemProperty -Path 'HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer' -Name 'InstallLocation' | Should -be "C:\\Program Files\\Octopus Deploy\\Octopus\\"
+    Get-ItemProperty -Path 'HKLM:\Software\Octopus\OctopusServer' -Name 'InstallLocation' | Should -be "C:\\Program Files\\Octopus Deploy\\Octopus\\"
   }
 
   it "should have created 'C:/ProgramData/Octopus/OctopusServer/Instances/HANode.config'" {

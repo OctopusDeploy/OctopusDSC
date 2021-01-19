@@ -9,14 +9,14 @@ describe "server install without configure" {
   }
 
   it "should have created 'HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer'" {
-    Get-Item 'HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer' | Should -be $true
+    Test-Path 'HKLM:\Software\Octopus\OctopusServer' | Should -be $true
   }
 
   it "should have set 'InstallLocation' to 'C:\\Program Files\\Octopus Deploy\\Octopus\\'" {
-    Get-ItemProperty -Path 'HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer' -Name 'InstallLocation' | Should -be "C:\\Program Files\\Octopus Deploy\\Octopus\\"
+    Get-ItemProperty -Path 'HKLM:\Software\Octopus\OctopusServer' -Name 'InstallLocation' | Should -be "C:\\Program Files\\Octopus Deploy\\Octopus\\"
   }
 
-  #describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer\OctopusServer') do
+  #describe windows_registry_key('HKLM:\Software\Octopus\OctopusServer\OctopusServer') do
   #  it { should_not exist }
   #end
 
