@@ -25,7 +25,7 @@ describe "server re-install" {
   }
 
   it "should have set 'ConfigurationFilePath' to 'C:\Octopus\OctopusServer-OctopusServer.config'" {
-    Get-ItemProperty -Path 'HKLM:\Software\Octopus\OctopusServer\OctopusServer' -Name 'ConfigurationFilePath' | Should -be 'C:\Octopus\OctopusServer-OctopusServer.config'
+    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\OctopusServer\OctopusServer' -Name 'ConfigurationFilePath').ConfigurationFilePath | Should -be 'C:\Octopus\OctopusServer-OctopusServer.config'
   }
 
   it "should have registed the 'OctopusDeploy' service" {

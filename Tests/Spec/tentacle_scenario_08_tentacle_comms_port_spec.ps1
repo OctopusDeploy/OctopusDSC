@@ -63,7 +63,7 @@ describe "tentacle comms port" {
   }
 
   it "should have set 'ConfigurationFilePath' to 'C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config'" {
-    Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle\Tentacle' -Name 'ConfigurationFilePath' | Should -be 'C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config'
+    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle\Tentacle' -Name 'ConfigurationFilePath').ConfigurationFilePath | Should -be 'C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config'
   }
 
   it "should have created 'C:/ProgramData/Octopus/Tentacle/Instances/Tentacle.config'" {
