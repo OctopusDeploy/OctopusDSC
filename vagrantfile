@@ -339,7 +339,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
        'C:/Octopus/OctopusTentacleHome/Logs/OctopusTentacle.txt',
        'C:/Octopus/OctopusTentacleHome/Tentacle/Tentacle.config'])
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_05_watchdog_create')
-    publish_log(config, scenario, "c:/temp/tests/PesterTestResults_tentacle_scenario_05_watchdog_create.xml")
+    publish_log(config, 'Tentacle_Scenario_05_Watchdog_Create', "c:/temp/tests/PesterTestResults_tentacle_scenario_05_watchdog_create.xml")
 
     # delete watchdog
     run_tentacle_scenario(config,
