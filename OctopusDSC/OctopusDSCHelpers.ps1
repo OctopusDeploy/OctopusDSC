@@ -153,36 +153,21 @@ Function Invoke-WithRetries {
     return $returnvalue
 }
 
-Function Get-MaskedOutput
-{
+function Get-MaskedOutput {
     [CmdletBinding()]
     param($arguments)
 
-    $singleAsterixArgs = "--masterkey|--license|--trust|--password|--remove-trust|--apikey|--pw|--pfx-password|--proxyPassword";
+    $singleAsterixArgs = "--masterkey|--license|--licence|--trust|--password|--remove-trust|--apikey|--pw|--pfx-password|--proxyPassword";
     $connectionStringArgs = "--connectionstring";
 
-    $combinedArgs = $singleAsterixArgs + "|" + $connectionStringArgs;
-
-    # Early bail for edge case where many args are passed
-    if (!$arguments -match $combinedArgs)
-    {
-        return @("************************")
-    }
-
     # Scrub sensitive values
-    for($x=0; $x -lt $arguments.count; $x++)
-    {
-        if($arguments[$x] -match $singleAsterixArgs)
-        {
-            $arguments[$x+1] = $arguments[$x+1] -replace ".", "*"
-        }
-
-        if($arguments[$x] -match $connectionStringArgs)
-        {
+    for($x=0; $x -lt $arguments.count; $x++) {
+        if($arguments[$x] -match $singleAsterixArgs) {
+            $arguments[$x+1] = "**********"
+        } elseif($arguments[$x] -match $connectionStringArgs) {
             $arguments[$x+1] = $arguments[$x+1] -replace "(password|pwd)=[^;|`"]*", "`$1=********"
         }
     }
-
     return $arguments
 }
 
