@@ -1278,6 +1278,5 @@ function Register-Tentacle {
         $registerArguments += @("--tenanted-deployment-participation", $TenantedDeploymentParticipation)
     }
 
-    Write-Verbose "Registering with arguments: $registerArguments"
     Invoke-TentacleCommand $registerArguments
 }
