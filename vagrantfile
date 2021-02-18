@@ -124,7 +124,10 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     aws.instance_type = "c4.xlarge"
     aws.keypair_name = "#{aws_key_name}"
     aws.tags = {
-      'Name' => 'Vagrant DSC testing'
+      'Name' => 'Vagrant DSC testing',
+      'Application' => 'OctopusDSC',
+      'Lifetime' => '< 1 day',
+      'Environment' => 'Test'
     }
     aws.security_groups = [ aws_security_group_id ]
     aws.subnet_id = aws_subnet_id
