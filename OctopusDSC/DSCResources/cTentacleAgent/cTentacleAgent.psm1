@@ -514,6 +514,7 @@ function Set-TargetResource {
                 -octopusServerUrl $octopusServerUrl `
                 -apiKey $apiKey `
                 -workerPools $workerPools `
+                -policy $Policy `
                 -communicationMode $communicationMode `
                 -displayName $displayName `
                 -publicHostNameConfiguration $publicHostNameConfiguration `
@@ -952,6 +953,7 @@ function New-Tentacle {
                 -octopusServerUrl $octopusServerUrl `
                 -apiKey $apiKey `
                 -workerPools $workerPools `
+                -policy $Policy `
                 -communicationMode $communicationMode `
                 -displayName $displayName `
                 -customPublicHostName $customPublicHostName `
@@ -1103,6 +1105,7 @@ function Add-TentacleToWorkerPool {
         [Parameter(Mandatory = $true)]
         [String[]]
         $workerPools,
+        [string]$policy,
         [Parameter(Mandatory = $true)]
         [String]
         [ValidateSet("Listen", "Poll")]
@@ -1163,7 +1166,11 @@ function Add-TentacleToWorkerPool {
                 "--server-comms-port", $serverPort
             )
         }
-
+        if (![string]::IsNullOrEmpty($policy)) {
+            $argumentList += @(
+                "--policy", $policy
+            )
+        }
         foreach ($workerPool in $workerPools) {
             $argumentList += @(
                 "--workerpool", $workerPool
