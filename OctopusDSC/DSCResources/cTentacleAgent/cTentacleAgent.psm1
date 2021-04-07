@@ -1171,8 +1171,7 @@ function Add-TentacleToWorkerPool {
             )
         }
 
-        if(![string]::IsNullOrWhiteSpace($Policy))
-        {
+        if(![string]::IsNullOrWhiteSpace($Policy)) {
             $argumentList += @(
                 "--policy", "$Policy"
             )
