@@ -19,4 +19,5 @@ return @{
     DefaultApplicationDirectory = "C:\Applications"
     TentacleHomeDirectory = "C:\Octopus"
     WorkerPools = @("NodeJSWorker")
+    Policy = "My machine policy"
 }

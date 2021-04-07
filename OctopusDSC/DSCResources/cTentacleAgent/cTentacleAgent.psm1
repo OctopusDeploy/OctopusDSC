@@ -520,7 +520,8 @@ function Set-TargetResource {
                 -customPublicHostName $customPublicHostName `
                 -listenPort $listenPort `
                 -tentacleCommsPort $tentacleCommsPort `
-                -space $space
+                -space $space `
+                -Policy $Policy
         } elseif (![string]::IsNullOrEmpty($Environments) -and ![string]::IsNullOrEmpty($Roles)) {
              Register-Tentacle -name $Name `
                  -apiKey $ApiKey `
@@ -958,7 +959,8 @@ function New-Tentacle {
                 -publicHostNameConfiguration $publicHostNameConfiguration `
                 -listenPort $listenPort `
                 -tentacleCommsPort $tentacleCommsPort `
-                -space $space
+                -space $space `
+                -Policy $Policy
         } elseif (![string]::IsNullOrEmpty($Environments) -and ![string]::IsNullOrEmpty($Roles)) {
             Write-Verbose "Registering Tentacle"
             Register-Tentacle -name $name `
@@ -1116,7 +1118,12 @@ function Add-TentacleToWorkerPool {
         [AllowNull()]
         [AllowEmptyString()]
         [String]
-        $Space
+        $Space,
+        [Parameter(Mandatory = $false)]
+        [AllowNull()]
+        [AllowEmptyString()]
+        [String]
+        $Policy
     )
     if ($listenPort -eq 0) {
         $listenPort = 10933
@@ -1161,6 +1168,12 @@ function Add-TentacleToWorkerPool {
             $argumentList += @(
                 "--comms-style", "TentacleActive",
                 "--server-comms-port", $serverPort
+            )
+        }
+
+        if(![string]::IsNullOrWhiteSpace($Policy)) {
+            $argumentList += @(
+                "--policy", "$Policy"
             )
         }
 
