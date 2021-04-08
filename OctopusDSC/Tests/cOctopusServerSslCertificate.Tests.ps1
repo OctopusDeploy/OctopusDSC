@@ -22,7 +22,7 @@ try
                     Mock Get-CurrentSSLBinding {
                         return [PSCustomObject]@{
                             IPPort = "0.0.0.0:443"
-                            CertificateHash = "dfcbdb879e5315e05982c05793e57c39241797e3"
+                            CertificateThumbprint = "dfcbdb879e5315e05982c05793e57c39241797e3"
                             AppID = "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
                             CertStore = "My"
                         }
@@ -45,7 +45,7 @@ try
                     Mock Get-CurrentSSLBinding {
                         return [PSCustomObject]@{
                             IPPort = "0.0.0.0:1443"
-                            CertificateHash = "dfcbdb879e5315e05982c05793e57c39241797e3"
+                            CertificateThumbprint = "dfcbdb879e5315e05982c05793e57c39241797e3"
                             AppID = "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
                             CertStore = "My"
                         }
@@ -87,7 +87,7 @@ try
                     Mock Get-CurrentSSLBinding {
                         return [PSCustomObject]@{
                             IPPort = "0.0.0.0:443"
-                            CertificateHash = "dfcbdb879e5315e05982c05793e57c39241797e3"
+                            CertificateThumbprint = "dfcbdb879e5315e05982c05793e57c39241797e3"
                             AppID = "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
                             CertStore = "My"
                         }
@@ -105,7 +105,7 @@ try
                 It 'Returns true when port matches' {
                     return [PSCustomObject]@{
                         IPPort = "0.0.0.0:443"
-                        CertificateHash = "dfcbdb879e5315e05982c05793e57c39241797e3"
+                        CertificateThumbprint = "dfcbdb879e5315e05982c05793e57c39241797e3"
                         AppID = "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
                         CertStore = "My"
                     }

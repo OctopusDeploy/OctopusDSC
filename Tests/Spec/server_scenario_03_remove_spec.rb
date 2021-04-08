@@ -27,6 +27,10 @@ describe port(81) do
   it { should_not be_listening.with('tcp') }
 end
 
+describe port(443) do
+  it { should_not be_listening.with('tcp') }
+end
+
 #todo: confirm whether these should be deleted
 # describe windows_registry_key('HKEY_LOCAL_MACHINE\Software\Octopus\OctopusServer') do
 #   it { should_not exist }

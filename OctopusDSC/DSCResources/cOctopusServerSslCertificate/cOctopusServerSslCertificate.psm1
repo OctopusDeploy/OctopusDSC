@@ -16,7 +16,7 @@ function Get-CurrentSSLBinding {
             $certificateBinding = $certificateBinding -replace "  ", "" -split ": "
             [pscustomobject]@{
                 IPPort          = ($certificateBinding[1] -split "`n")[0]
-                CertificateHash = ($certificateBinding[2] -split "`n" -replace '[^a-zA-Z0-9]', '')[0]
+                CertificateThumbprint = ($certificateBinding[2] -split "`n" -replace '[^a-zA-Z0-9]', '')[0]
                 AppID           = ($certificateBinding[3] -split "`n")[0]
                 CertStore       = ($certificateBinding[4] -split "`n")[0]
             }
@@ -47,7 +47,7 @@ function Get-TargetResource {
 
     if ($null -ne $existingSSLConfig) {
         $existingSSLPort = [int](($existingSSLConfig.IPPort).Split(":")[1])
-        $existingSSLThumbprint = $existingSSLConfig.CertificateHash.Trim()
+        $existingSSLThumbprint = $existingSSLConfig.CertificateThumbprint.Trim()
         $existingSSLCertificateStoreName = $existingSSLConfig.CertStore.Trim()
         $existingEnsure = "Present"
     }

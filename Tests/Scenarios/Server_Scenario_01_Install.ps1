@@ -1,5 +1,6 @@
 $pass = ConvertTo-SecureString "SuperS3cretPassw0rd!" -AsPlainText -Force
 $cred = New-Object System.Management.Automation.PSCredential ("OctoAdmin", $pass)
+$certificate = New-SelfSignedCertificate -CertStoreLocation "cert:\LocalMachine\My" -Subject "OctopusServerTest"
 
 Configuration Server_Scenario_01_Install
 {
@@ -24,7 +25,7 @@ Configuration Server_Scenario_01_Install
             Name = "OctopusServer"
 
             # The url that Octopus will listen on
-            WebListenPrefix = "http://localhost:81"
+            WebListenPrefix = "http://localhost:81,https://localhost"
 
             SqlDbConnectionString = "Server=(local)\SQLEXPRESS;Database=OctopusScenario1;Trusted_Connection=True;"
 
@@ -174,6 +175,15 @@ Configuration Server_Scenario_01_Install
             ClientID = "5743519123-1232358520259-3634528"
             HostedDomain = "https://octopus.example.com"
             DependsOn = "[cOctopusServer]OctopusServer"
+        }
+
+        cOctopusServerSslCertificate "Configure SSL Certificate"
+        {
+            InstanceName = "OctopusServer"
+            Thumbprint = $certificate.Thumbprint
+            Ensure = "Present"
+            StoreName = "My"
+            Port = 443
         }
     }
 }
