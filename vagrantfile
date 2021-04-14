@@ -258,10 +258,6 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-OctopusServer.config'])
 
-#  run_octopus_scenario(config, 'Server_Scenario_16_Configure_Server_With_Ssl',
-#      ['C:/ChezOctopus/Logs/OctopusServer.txt',
-#       'C:/Octopus/OctopusServer-OctopusServer.config'])       
-
   if ENV['OctopusDSCTestMode'] != 'ServerOnly' then
 
     config.vm.provision "shell", path: "Tests/configure-octopus-for-tentacle-tests.ps1"

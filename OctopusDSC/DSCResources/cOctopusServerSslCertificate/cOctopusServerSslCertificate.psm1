@@ -15,10 +15,10 @@ function Get-CurrentSSLBinding {
         if ($certificateBinding -ne "") {
             $certificateBinding = $certificateBinding -replace "  ", "" -split ": "
             [pscustomobject]@{
-                IPPort          = ($certificateBinding[1] -split "`n")[0]
+                IPPort                = ($certificateBinding[1] -split "`n")[0]
                 CertificateThumbprint = ($certificateBinding[2] -split "`n" -replace '[^a-zA-Z0-9]', '')[0]
-                AppID           = ($certificateBinding[3] -split "`n")[0]
-                CertStore       = ($certificateBinding[4] -split "`n")[0]
+                AppID                 = ($certificateBinding[3] -split "`n")[0]
+                CertStore             = ($certificateBinding[4] -split "`n")[0]
             }
         }
     }
