@@ -1,0 +1,9 @@
+[ClassVersion("1.0.0"), FriendlyName("cOctopusServerSslCertificate")]
+class cOctopusServerSslCertificate : OMI_BaseResource
+{
+    [Key, Description("Name of the Octopus Server instance")] string InstanceName;
+    [Write, Required, Description("Thumbprint of the certificate")] string Thumbprint;
+    [Write, ValueMap{"Present", "Absent"}, Values{"Present", "Absent"}] string Ensure;
+    [Write, Required, ValueMap{"My", "WebHosting"}, Values{"My", "WebHosting"}] string StoreName;
+    [Write] uint16 Port;
+};

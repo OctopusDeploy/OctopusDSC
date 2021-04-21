@@ -51,6 +51,10 @@ describe port(81) do
   it { should be_listening.with('tcp') }
 end
 
+describe port(443) do
+  it { should be_listening.with('tcp') }
+end
+
 #environment
 describe octopus_deploy_environment(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "Production") do
   it { should exist }
