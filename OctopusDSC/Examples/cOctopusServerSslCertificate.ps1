@@ -1,4 +1,4 @@
-# Binds an SSL certificate to the Octopus Server
+# Binds an SSL certificate to the Octopus Server to allow Octopus to listen over https
 
 Configuration SampleConfig
 {
