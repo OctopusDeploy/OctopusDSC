@@ -1,7 +1,7 @@
 # dot-source the helper file (cannot load as a module due to scope considerations)
 . (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1')
 
-# Create constant for Octopus Deploy server Application ID
+# This is the Octopus Deploy server Application ID, declared within Octopus Server itself
 $octopusServerApplicationId = "{E2096A4C-2391-4BE1-9F17-E353F930E7F1}"
 
 function Get-CurrentSSLBinding {
