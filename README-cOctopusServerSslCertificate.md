@@ -32,10 +32,10 @@ Test-DscConfiguration
 ```
 
 ## Properties
-| Property                                  | Type         | Default Value    | Description |
-| ------------------------------------------| ------------ | -----------------| ------------|
-| `Ensure`                                  | `string` - `Present` or `Absent`| `Present`   | The desired state of the Octopus Server - effectively whether to install or uninstall. |
-| `InstanceName`                            | `string`     |                  | The name of the Octopus Server instance. Use `OctopusServer` by convention unless you have more than one instance. |
-| `Thumbprint`                              | `string`     |                  | Thumbprint of the SSL certificate to use with Octopus Deploy |
-| `StoreName`                               | `string` - `My` or `WebHosting` |          | Which certificate store to look for the thumbprint in. |
-| `Port`                                    | `int`        |                  | The port to use SSL on.  |
+| Property                                  | Type                            | Default Value    | Description                                                                                                        |
+| ------------------------------------------| ------------------------------- | -----------------| ------------------------------------------------------------------------------------------------------------------ |
+| `Ensure`                                  | `string` - `Present` or `Absent`| `Present`        | The desired state of the Octopus Server - effectively whether to install or uninstall.                             |
+| `InstanceName`                            | `string`                        |                  | The name of the Octopus Server instance. Use `OctopusServer` by convention unless you have more than one instance. |
+| `Thumbprint`                              | `string`                        |                  | Thumbprint of the SSL certificate to use with Octopus Deploy,                                                      |
+| `StoreName`                               | `string` - `My` or `WebHosting` |                  | Which certificate store to look for the thumbprint in.                                                             |
+| `Port`                                    | `int`                           |                  | The port to use SSL on.                                                                                            |
