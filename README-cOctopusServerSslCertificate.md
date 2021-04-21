@@ -1,6 +1,8 @@
 # README-cOctopusServerSslCertificate
 
-This resource will bind a certificate identified by the StoreName and Thumbprint to the SSL entry in the `WebListenPrefix` element of the cOctopusServer resource.  The port defined for the SSL entry must match to bind properly.
+This resource binds a SSL certificate to allow Octopus Server to listen over HTTPS.
+It binds the certificate stored in the Windows Certificate store identified by the `StoreName` and `Thumbprint` to the port that the sever will listen on.
+This port must match the https entry in the `WebListenPrefix` element of the cOctopusServer resource. 
 
 ## Sample
 
