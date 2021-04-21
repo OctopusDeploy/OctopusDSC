@@ -18,7 +18,7 @@ try
 
         Describe 'cOctopusServerSslCertificate' {
             Describe 'Get-TargetResource - when present and port not specified' {
-                It 'Returns present and 443 when SSL binding exists' {
+                It 'Returns correct data when SSL binding exists' {
                     Mock Get-CurrentSSLBinding {
                         return [PSCustomObject]@{
                             IPPort = "0.0.0.0:443"
