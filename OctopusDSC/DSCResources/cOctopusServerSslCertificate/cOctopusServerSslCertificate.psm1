@@ -134,6 +134,7 @@ function Set-TargetResource {
         $currentBinding = (Get-CurrentSSLBinding -ApplicationId $octopusServerApplicationId -Port $Port -IPAddress $IPAddress)
         if ($null -ne $currentBinding) {
             Write-Verbose "Removing certificate binding ..."
+            # ideally, we'd call a command in Octopus.Server for this, but there's no command to do this (at this point)
             & netsh http delete sslcert ("{0}:{1}" -f "0.0.0.0", $Port)
             $currentBinding = (Get-CurrentSSLBinding -ApplicationId $octopusServerApplicationId -Port $Port -IPAddress $IPAddress)
 
