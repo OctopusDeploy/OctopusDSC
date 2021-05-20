@@ -104,58 +104,55 @@ Describe "OctopusDSC.psd1" {
 }
 
 Describe "Mandatory Parameters" {
-    . (Join-Path -Path $script:scriptRoot -ChildPath "powershell-helpers.ps1")
-
-    $parseErrorTestCases = @()
-    $mandatoryParamTestCases = @()
-    $nonMandatoryParamTestCases = @()
-
-    $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/DSCResources"
-    $schemaMofFiles = Get-ChildItem $path -Recurse -Filter *.mof
-    foreach ($schemaMofFile in $schemaMofFiles) {
-        $schemaMofFileContent = Get-Content $schemaMofFile.FullName
-        $moduleFile = Get-Item ($schemaMofFile.FullName -replace ".schema.mof", ".psm1")
-        $tokens = $null;
-        $parseErrors = $null;
-        $ast = [System.Management.Automation.Language.Parser]::ParseFile($moduleFile.FullName, [ref] $tokens, [ref] $parseErrors);
-        $filter = { $true }
-        $astMembers = $ast.FindAll($filter, $true);
-
-        $parseErrorTestCases += @{ moduleFileName = $moduleFile.Name; parseErrorCount = $parseErrors.length }
-
-        function Get-TestCase($functionName, $astMembers, $propertyName, $moduleFileName, $propertyType)
-        {
-            $param = Get-ParameterFromFunction -functionName $functionName -astMembers $astMembers -propertyName $propertyName
-            $paramisMandatory = $param -contains "[Parameter(Mandatory)]"
-            return @{
-                functionName = $functionName;
-                propertyName = $propertyName;
-                moduleFileName = $moduleFile.Name;
-                propertyType = $propertyType;
-                paramisMandatory = $paramisMandatory
-            }
-        }
-
-        foreach($line in $schemaMofFileContent) {
-            if ($line -match "\s*(\[.*\b(Required|Key)\b.*\])\s*(.*) (.*);") {
-                $propertyType = $matches[2]
-                $propertyName = $matches[4].Replace("[]", "");
-                $mandatoryParamTestCases += Get-TestCase "Get-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
-                $mandatoryParamTestCases += Get-TestCase "Set-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
-                $mandatoryParamTestCases += Get-TestCase "Test-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
-            } elseif ($line -match "\s*(\[.*\])\s*(.*) (.*);") {
-                $propertyType = $matches[1]
-                $propertyName = $matches[3].Replace("[]", "");
-
-                $nonMandatoryParamTestCases += Get-TestCase "Get-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
-                $nonMandatoryParamTestCases += Get-TestCase "Set-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
-                $nonMandatoryParamTestCases += Get-TestCase "Test-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
-            }
-        }
-    }
-
     BeforeAll {
         . (Join-Path -Path $script:scriptRoot -ChildPath "powershell-helpers.ps1")
+        $parseErrorTestCases = @()
+        $mandatoryParamTestCases = @()
+        $nonMandatoryParamTestCases = @()
+
+        $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/DSCResources"
+        $schemaMofFiles = Get-ChildItem $path -Recurse -Filter *.mof
+        foreach ($schemaMofFile in $schemaMofFiles) {
+            $schemaMofFileContent = Get-Content $schemaMofFile.FullName
+            $moduleFile = Get-Item ($schemaMofFile.FullName -replace ".schema.mof", ".psm1")
+            $tokens = $null;
+            $parseErrors = $null;
+            $ast = [System.Management.Automation.Language.Parser]::ParseFile($moduleFile.FullName, [ref] $tokens, [ref] $parseErrors);
+            $filter = { $true }
+            $astMembers = $ast.FindAll($filter, $true);
+
+            $parseErrorTestCases += @{ moduleFileName = $moduleFile.Name; parseErrorCount = $parseErrors.length }
+
+            function Get-TestCase($functionName, $astMembers, $propertyName, $moduleFileName, $propertyType)
+            {
+                $param = Get-ParameterFromFunction -functionName $functionName -astMembers $astMembers -propertyName $propertyName
+                $paramisMandatory = $param -contains "[Parameter(Mandatory)]"
+                return @{
+                    functionName = $functionName;
+                    propertyName = $propertyName;
+                    moduleFileName = $moduleFile.Name;
+                    propertyType = $propertyType;
+                    paramisMandatory = $paramisMandatory
+                }
+            }
+
+            foreach($line in $schemaMofFileContent) {
+                if ($line -match "\s*(\[.*\b(Required|Key)\b.*\])\s*(.*) (.*);") {
+                    $propertyType = $matches[2]
+                    $propertyName = $matches[4].Replace("[]", "");
+                    $mandatoryParamTestCases += Get-TestCase "Get-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
+                    $mandatoryParamTestCases += Get-TestCase "Set-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
+                    $mandatoryParamTestCases += Get-TestCase "Test-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
+                } elseif ($line -match "\s*(\[.*\])\s*(.*) (.*);") {
+                    $propertyType = $matches[1]
+                    $propertyName = $matches[3].Replace("[]", "");
+
+                    $nonMandatoryParamTestCases += Get-TestCase "Get-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
+                    $nonMandatoryParamTestCases += Get-TestCase "Set-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
+                    $nonMandatoryParamTestCases += Get-TestCase "Test-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
+                }
+            }
+        }
     }
 
     It "The module <moduleFileName> should have no parse errors" -TestCases $parseErrorTestCases {
@@ -175,41 +172,40 @@ Describe "Mandatory Parameters" {
 }
 
 Describe "Test/Get/Set-TargetResource all implement the same properties" {
-    function Get-TestCase($functionName, $astMembers, $propertyName, $moduleFileName, $propertyType) {
-        $param = Get-ParameterFromFunction -functionName $functionName -astMembers $astMembers -propertyName $propertyName
-        $paramExists = $null -ne $param
-        return @{
-            functionName = $functionName;
-            propertyName = $propertyName;
-            moduleFileName = $moduleFile.Name;
-            paramExists = $paramExists
-        }
-    }
-
-    $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/DSCResources"
-    $schemaMofFiles = Get-ChildItem $path -Recurse -Filter *.schema.mof
-    $cases = @()
-    foreach ($schemaMofFile in $schemaMofFiles) {
-        $schemaMofFileContent = Get-Content $schemaMofFile.FullName
-        $moduleFile = Get-Item ($schemaMofFile.FullName -replace ".schema.mof", ".psm1")
-
-        $tokens = $null;
-        $parseErrors = $null;
-        $ast = [System.Management.Automation.Language.Parser]::ParseFile($moduleFile.FullName, [ref] $tokens, [ref] $parseErrors);
-        $filter = { $true }
-        $astMembers = $ast.FindAll($filter, $true);
-        foreach($line in $schemaMofFileContent) {
-            if ($line -match "\s*(\[.*\])\s*(.*) (.*);") {
-                $propertyName = $matches[3].Replace("[]", "");
-                $cases += Get-TestCase "Get-TargetResource" $astMembers $propertyName $moduleFile.Name
-                $cases += Get-TestCase "Set-TargetResource" $astMembers $propertyName $moduleFile.Name
-                $cases += Get-TestCase "Test-TargetResource" $astMembers $propertyName $moduleFile.Name
-            }
-        }
-    }
-
     BeforeAll {
         . (Join-Path -Path $script:scriptRoot -ChildPath "powershell-helpers.ps1")
+        function Get-TestCase($functionName, $astMembers, $propertyName, $moduleFileName, $propertyType) {
+            $param = Get-ParameterFromFunction -functionName $functionName -astMembers $astMembers -propertyName $propertyName
+            $paramExists = $null -ne $param
+            return @{
+                functionName = $functionName;
+                propertyName = $propertyName;
+                moduleFileName = $moduleFile.Name;
+                paramExists = $paramExists
+            }
+        }
+    
+        $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/DSCResources"
+        $schemaMofFiles = Get-ChildItem $path -Recurse -Filter *.schema.mof
+        $cases = @()
+        foreach ($schemaMofFile in $schemaMofFiles) {
+            $schemaMofFileContent = Get-Content $schemaMofFile.FullName
+            $moduleFile = Get-Item ($schemaMofFile.FullName -replace ".schema.mof", ".psm1")
+    
+            $tokens = $null;
+            $parseErrors = $null;
+            $ast = [System.Management.Automation.Language.Parser]::ParseFile($moduleFile.FullName, [ref] $tokens, [ref] $parseErrors);
+            $filter = { $true }
+            $astMembers = $ast.FindAll($filter, $true);
+            foreach($line in $schemaMofFileContent) {
+                if ($line -match "\s*(\[.*\])\s*(.*) (.*);") {
+                    $propertyName = $matches[3].Replace("[]", "");
+                    $cases += Get-TestCase "Get-TargetResource" $astMembers $propertyName $moduleFile.Name
+                    $cases += Get-TestCase "Set-TargetResource" $astMembers $propertyName $moduleFile.Name
+                    $cases += Get-TestCase "Test-TargetResource" $astMembers $propertyName $moduleFile.Name
+                }
+            }
+        }
     }
 
     It "Function <functionName> should have parameter <propertyName> in <moduleFileName> as its a defined in the .schema.mof file" -TestCases $cases {
@@ -219,12 +215,14 @@ Describe "Test/Get/Set-TargetResource all implement the same properties" {
 }
 
 Describe "Configuration Scenarios" {
-    $path = Resolve-Path "$PSCommandPath/../../Tests/Scenarios"
-    $name = @{label="name";expression={[System.Io.Path]::GetFileNameWithoutExtension($_.Name)}};
-    $fullName = @{label="fullName";expression={$_.FullName}};
-    . (Join-Path -Path $script:scriptRoot -ChildPath "powershell-helpers.ps1")
+    BeforeAll {
+        $path = Resolve-Path "$PSCommandPath/../../Tests/Scenarios"
+        $name = @{label="name";expression={[System.Io.Path]::GetFileNameWithoutExtension($_.Name)}};
+        $fullName = @{label="fullName";expression={$_.FullName}};
+        . (Join-Path -Path $script:scriptRoot -ChildPath "powershell-helpers.ps1")
 
-    $cases = @(Get-ChildItem $path -Recurse -Filter *.ps1 | Select-Object -Property $name, $fullName) | ConvertTo-Hashtable
+        $cases = @(Get-ChildItem $path -Recurse -Filter *.ps1 | Select-Object -Property $name, $fullName) | ConvertTo-Hashtable
+    }
 
     It "Configuration block in scenario <name> should have the same name as the file" -TestCases $cases {
         param([string]$name, [string]$fullName)
