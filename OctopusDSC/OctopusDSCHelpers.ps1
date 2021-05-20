@@ -1,7 +1,26 @@
 # Module contains shared code for OctopusDSC
 
 $octopusServerExePath = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
-$tentacleExePath = "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe"
+
+function Get-OctopusServerExePath {
+    $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\OctopusServer" -ErrorAction SilentlyContinue).InstallLocation
+
+    if ($installLocation -ne $null) {
+        return "$installLocation\Octopus.Server.exe"
+    }
+
+    return ""
+}
+
+function Get-TentacleExePath {
+    $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\Tentacle" -ErrorAction SilentlyContinue).InstallLocation
+
+    if ($installLocation -ne $null) {
+        return "$installLocation\tentacle.exe"
+    }
+
+    return ""
+}
 
 function Get-ODSCParameter($parameters) {
     # unfortunately $PSBoundParameters doesn't contain parameters that weren't supplied (because the default value was okay)
@@ -194,16 +213,15 @@ function Invoke-OctopusServerCommand ($cmdArgs) {
 }
 
 function Test-TentacleExecutableExists {
-    $tentacleDir = "${env:ProgramFiles}\Octopus Deploy\Tentacle"
-    return ((test-path $tentacleDir) -and (test-path "$tentacleDir\tentacle.exe"))
+    return (test-path Get-TentacleExePath)
 }
 
 function Invoke-TentacleCommand ($cmdArgs) {
 
-    Write-VerboseWithMaskedCommand $tentacleExePath $cmdArgs
+    Write-VerboseWithMaskedCommand Get-TentacleExePath $cmdArgs
 
     $LASTEXITCODE = 0
-    $output = & $tentacleExePath $cmdArgs 2>&1
+    $output = & Get-TentacleExePath $cmdArgs 2>&1
 
     Write-CommandOutput $output
     if (($null -ne $LASTEXITCODE) -and ($LASTEXITCODE -ne 0)) {
@@ -260,7 +278,7 @@ function Get-ServerConfiguration($instanceName) {
 
 function Get-TentacleConfiguration($instanceName)
 {
-  $rawConfig = & $tentacleExePath show-configuration --instance $instanceName
+  $rawConfig = & Get-TentacleExePath show-configuration --instance $instanceName
   $config = $rawConfig | ConvertFrom-Json
   return $config
 }
