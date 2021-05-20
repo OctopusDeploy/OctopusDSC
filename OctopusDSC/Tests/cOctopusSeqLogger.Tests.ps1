@@ -36,6 +36,7 @@ try
 
             Context 'Get-TargetResource' {
                 It 'Returns expected data for valid config' {
+                    Mock Get-OctopusServerExePath { return "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe.nlog" }
                     Mock Test-NLogDll { return $true }
@@ -52,6 +53,7 @@ try
                 }
 
                 It 'Returns expected data for old sync config' {
+                    Mock Get-OctopusServerExePath { return "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe.nlog" }
                     Mock Test-NLogDll { return $true }
@@ -68,6 +70,7 @@ try
                 }
 
                 It 'Returns expected data when config not set' {
+                    Mock Get-OctopusServerExePath { return "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe.nlog" }
                     Mock Test-NLogDll { return $true }
@@ -82,6 +85,7 @@ try
                 }
 
                 It 'Returns expected data when dll does not exist' {
+                    Mock Get-OctopusServerExePath { return "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe.nlog" }
                     Mock Test-NLogDll { return $false }
@@ -97,20 +101,20 @@ try
                 }
 
                 It 'Throws an exception if Octopus is not installed and ensure is set to present' {
-                    Mock Test-Path { return $false } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
-                    Mock Test-Path { return $false } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe.nlog" }
+                    Mock Get-OctopusServerExePath { return "" }
+                    Mock Get-TentacleExePath { return "" }
                     Mock Test-NLogDll { return $true }
                     Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml")) }
-                    { Get-TargetResourceInternal @desiredConfiguration } | Should -throw "Unable to find Octopus (checked for existence of file '$octopusServerExePath')."
+                    { Get-TargetResourceInternal @desiredConfiguration } | Should -throw "Unable to find Octopus (checked for existence of file '')."
                 }
 
                 It 'Does not throw an exception if Octopus is not installed and ensure is set to absent' {
-                    Mock Test-Path { return $false } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
-                    Mock Test-Path { return $false } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe.nlog" }
+                    Mock Get-OctopusServerExePath { return "" }
+                    Mock Get-TentacleExePath { return "" }
                     Mock Test-NLogDll { return $true }
                     Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml")) }
                     $desiredConfiguration.Ensure = 'Absent'
-                    { Get-TargetResourceInternal @desiredConfiguration } | Should -not -throw "Unable to find Octopus (checked for existence of file '$octopusServerExePath')."
+                    { Get-TargetResourceInternal @desiredConfiguration } | Should -not -throw "Unable to find Octopus (checked for existence of file '')."
                 }
             }
 
@@ -323,6 +327,7 @@ try
                 It 'Calls Get-TargetResource (and therefore inherits its checks)' {
                     $response = @{ InstanceType="OctopusServer"; Ensure='Present'; SeqServer = 'https://seq.example.com' }
                     Mock Get-TargetResourceInternal { return $response }
+                    Mock Get-OctopusServerExePath { return "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml")) }
                     Mock Request-SeqClientNlogDll
@@ -332,8 +337,8 @@ try
                 }
 
                 It 'Deletes the dll if it exists and ensure is set to absent' {
+                    Mock Get-OctopusServerExePath { return "" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
-                    Mock Test-Path { return $false } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe.nlog" }
                     Mock Remove-Item
                     Set-TargetResourceInternal -InstanceType 'OctopusServer' -Ensure 'Absent'
                     Assert-MockCalled Remove-Item -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
@@ -341,6 +346,7 @@ try
 
                 It 'Removes the settings from the nlog config file if ensure is set to absent' {
                     #octopus is installed
+                    Mock Get-OctopusServerExePath { return "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     # the nlog dll is NOT installed
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
@@ -359,6 +365,7 @@ try
 
                 It 'Removes the settings from the nlog config file if ensure is set to absent when config is the old sync version' {
                     #octopus is installed
+                    Mock Get-OctopusServerExePath { return "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     # the nlog dll is NOT installed
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
@@ -377,6 +384,7 @@ try
 
                 It 'Downloads the dll if it doesnt exist and ensure is set to present' {
                     #octopus is installed
+                    Mock Get-OctopusServerExePath { return "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     # the nlog dll is NOT installed
                     Mock Test-Path { return $false } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
@@ -392,6 +400,7 @@ try
 
                 It 'Add the settings to the nlog config file if ensure is set to present with no api key' {
                     #octopus is installed
+                    Mock Get-OctopusServerExePath { return "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     # the nlog dll is NOT installed
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
@@ -411,6 +420,7 @@ try
 
                 It 'Add the settings to the nlog config file if ensure is set to present with an api key' {
                     #octopus is installed
+                    Mock Get-OctopusServerExePath { return "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     # the nlog dll is installed
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
@@ -433,6 +443,7 @@ try
 
                 It 'Updates the settings in the nlog config file if config is version 1' {
                     #octopus is installed
+                    Mock Get-OctopusServerExePath { return "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     # the nlog dll is installed
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
@@ -455,6 +466,7 @@ try
 
                 It 'Throws if ensure is set to present and SeqServer is not supplied' {
                     #octopus is installed
+                    Mock Get-OctopusServerExePath { return "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     # the nlog dll is installed
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }

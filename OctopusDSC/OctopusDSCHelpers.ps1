@@ -1,7 +1,5 @@
 # Module contains shared code for OctopusDSC
 
-$octopusServerExePath = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
-
 function Get-OctopusServerExePath {
     $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\OctopusServer" -ErrorAction SilentlyContinue).InstallLocation
 

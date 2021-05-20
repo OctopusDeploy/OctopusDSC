@@ -25,6 +25,7 @@ try
 
             Context 'Get-TargetResource' {
                 It 'Returns the proper data' {
+                    Mock Get-OctopusServerExePath { return "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-OctopusVersionSupportsWatchdogInShowConfiguration { return $true }
                     Mock Get-ServerConfiguration {
@@ -47,12 +48,13 @@ try
                 }
 
                 It 'Throws an exception if Octopus is not installed' {
-                    Mock Test-Path { return $false } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
+                    Mock Get-OctopusServerExePath { return "" }
                     Mock Test-OctopusVersionSupportsWatchdogInShowConfiguration { return $true }
-                    { Get-TargetResource @desiredConfiguration } | Should -throw "Unable to find Octopus (checked for existence of file '$octopusServerExePath')."
+                    { Get-TargetResource @desiredConfiguration } | Should -throw "Unable to find Octopus (checked for existence of file '')."
                 }
 
                 It 'Throws an exception if its an old version of Octopus' {
+                    Mock Get-OctopusServerExePath { return "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-Path { return $true } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-OctopusVersionSupportsWatchdogInShowConfiguration { return $false }
                     { Get-TargetResource @desiredConfiguration } | Should -throw "This resource only supports Octopus Deploy 3.17.0+."

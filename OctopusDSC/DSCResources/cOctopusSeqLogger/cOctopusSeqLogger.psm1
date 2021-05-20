@@ -1,9 +1,6 @@
 # dot-source the helper file (cannot load as a module due to scope considerations)
 . (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1')
 
-$octopusServerExePath = Get-OctopusServerExePath
-$tentacleExePath = Get-TentacleExePath
-
 function Get-TargetResource {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSDSCUseVerboseMessageInDSCResource", "")]
     [OutputType([HashTable])]
@@ -100,9 +97,11 @@ function Get-TargetResourceInternal {
         [int]$ConfigVersion
     )
 
+    $octopusServerExePath = Get-OctopusServerExePath
     if (-not (Test-Path -Path $octopusServerExePath) -and ($InstanceType -eq "OctopusServer") -and ($Ensure -eq "Present")) {
         throw "Unable to find Octopus (checked for existence of file '$octopusServerExePath')."
     }
+    $tentacleExePath = Get-TentacleExePath
     if (-not (Test-Path -Path $tentacleExePath) -and ($InstanceType -eq "Tentacle") -and ($Ensure -eq "Present")) {
         throw "Unable to find Tentacle (checked for existence of file '$tentacleExePath')."
     }
@@ -226,9 +225,11 @@ function Set-TargetResourceInternal {
     }
 
     if ($InstanceType -eq "Tentacle") {
+        $tentacleExePath = Get-TentacleExePath
         $nlogConfigFile = "$tentacleExePath.nlog"
     }
     elseif ($InstanceType -eq "OctopusServer") {
+        $octopusServerExePath = Get-OctopusServerExePath
         $nlogConfigFile = "$octopusServerExePath.nlog"
     }
 
