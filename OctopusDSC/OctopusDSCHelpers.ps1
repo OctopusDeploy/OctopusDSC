@@ -196,7 +196,7 @@ function Write-VerboseWithMaskedCommand ($exePath, $cmdArgs) {
 }
 
 function Invoke-OctopusServerCommand ($cmdArgs) {
-
+    $octopusServerExePath = Get-OctopusServerExePath
     Write-VerboseWithMaskedCommand $octopusServerExePath $cmdArgs
 
     $LASTEXITCODE = 0
@@ -211,15 +211,16 @@ function Invoke-OctopusServerCommand ($cmdArgs) {
 }
 
 function Test-TentacleExecutableExists {
-    return (test-path Get-TentacleExePath)
+    $tentacleExePath =  Get-TentacleExePath
+    return (test-path $tentacleExePath)
 }
 
 function Invoke-TentacleCommand ($cmdArgs) {
-
-    Write-VerboseWithMaskedCommand Get-TentacleExePath $cmdArgs
+    $tentacleExePath =  Get-TentacleExePath
+    Write-VerboseWithMaskedCommand $tentacleExePath $cmdArgs
 
     $LASTEXITCODE = 0
-    $output = & Get-TentacleExePath $cmdArgs 2>&1
+    $output = & $tentacleExePath $cmdArgs 2>&1
 
     Write-CommandOutput $output
     if (($null -ne $LASTEXITCODE) -and ($LASTEXITCODE -ne 0)) {
@@ -246,6 +247,7 @@ function Write-CommandOutput {
 }
 
 function Get-ServerConfiguration($instanceName) {
+    $octopusServerExePath = Get-OctopusServerExePath
     $rawConfig = & $octopusServerExePath show-configuration --format=json-hierarchical --noconsolelogging --console --instance $instanceName
 
     # handle a specific error where an exception in registry migration finds its way into the json-hierarchical output
@@ -276,9 +278,10 @@ function Get-ServerConfiguration($instanceName) {
 
 function Get-TentacleConfiguration($instanceName)
 {
-  $rawConfig = & Get-TentacleExePath show-configuration --instance $instanceName
-  $config = $rawConfig | ConvertFrom-Json
-  return $config
+    $tentacleExePath =  Get-TentacleExePath
+    $rawConfig = & $tentacleExePath show-configuration --instance $instanceName
+    $config = $rawConfig | ConvertFrom-Json
+    return $config
 }
 
 function Test-ValidJson
