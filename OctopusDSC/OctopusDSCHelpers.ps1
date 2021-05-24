@@ -7,17 +7,17 @@ function Get-OctopusServerExePath {
         return "$installLocation\Octopus.Server.exe"
     }
 
-    return ""
+    return "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
 }
 
 function Get-TentacleExePath {
     $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\Tentacle" -ErrorAction SilentlyContinue).InstallLocation
 
     if ($installLocation -ne $null) {
-        return "$installLocation\tentacle.exe"
+        return "$installLocation\Tentacle.exe"
     }
 
-    return ""
+    return "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe"
 }
 
 function Get-ODSCParameter($parameters) {

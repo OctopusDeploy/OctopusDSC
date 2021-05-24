@@ -12,6 +12,9 @@ try
     $module = Import-Module $modulePath -Prefix $prefix -PassThru -ErrorAction Stop
 
     InModuleScope $module.Name {
+        BeforeAll {
+            $defaultOctopusServerExePath = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
+        }
 
         Describe 'cOctopusServerGoogleAppsAuthentication' {
             BeforeEach {
@@ -26,8 +29,8 @@ try
 
             Context 'Get-TargetResource' {
                 It 'Returns the proper data' {
-                    Mock Get-OctopusServerExePath { return "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
-                    Mock Test-Path { return $true } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
+                    Mock Get-OctopusServerExePath { return $defaultOctopusServerExePath }
+                    Mock Test-Path { return $true } -ParameterFilter { $LiteralPath -eq $defaultOctopusServerExePath }
                     Mock Test-OctopusVersionSupportsAuthenticationProvider { return $true }
                     Mock Get-ServerConfiguration {
                         return  @{
@@ -49,14 +52,15 @@ try
                 }
 
                 It 'Throws an exception if Octopus is not installed' {
-                    Mock Get-OctopusServerExePath { return "" }
+                    Mock Get-OctopusServerExePath { return $defaultOctopusServerExePath }
+                    Mock Test-Path { return $false } -ParameterFilter { $LiteralPath -eq $defaultOctopusServerExePath }
                     Mock Test-OctopusVersionSupportsAuthenticationProvider { return $true }
-                    { Get-TargetResource @desiredConfiguration } | Should -throw "Unable to find Octopus (checked for existence of file '')."
+                    { Get-TargetResource @desiredConfiguration } | Should -throw "Unable to find Octopus (checked for existence of file '$defaultOctopusServerExePath')."
                 }
 
                 It 'Throws an exception if its an old version of Octopus' {
-                    Mock Get-OctopusServerExePath { return "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
-                    Mock Test-Path { return $true } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
+                    Mock Get-OctopusServerExePath { return $defaultOctopusServerExePath }
+                    Mock Test-Path { return $true } -ParameterFilter { $LiteralPath -eq $defaultOctopusServerExePath }
                     Mock Test-OctopusVersionSupportsAuthenticationProvider { return $false }
                     { Get-TargetResource @desiredConfiguration } | Should -throw "This resource only supports Octopus Deploy 3.5.0+."
                 }
