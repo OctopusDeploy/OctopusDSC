@@ -339,7 +339,8 @@ try
                 }
 
                 It 'Deletes the dll if it exists and ensure is set to absent' {
-                    Mock Get-OctopusServerExePath { return "" }
+                    Mock Get-OctopusServerExePath { return $defaultOctopusServerExePath }
+                    Mock Test-Path { return $true } -ParameterFilter { $Path -eq $defaultOctopusServerExePath }
                     Mock Test-Path { return $true } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Seq.Client.NLog.dll" }
                     Mock Remove-Item
                     Set-TargetResourceInternal -InstanceType 'OctopusServer' -Ensure 'Absent'
