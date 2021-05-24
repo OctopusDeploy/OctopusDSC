@@ -101,8 +101,6 @@ Describe "OctopusDSC" {
         }
     }
 
-
-
     Describe "Modules have no parse errors" {
         BeforeDiscovery {
             $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/DSCResources"
@@ -113,6 +111,7 @@ Describe "OctopusDSC" {
             BeforeAll {
                 $schemaMofFile = $_
             }
+            
             It "The module <moduleFileName> should have no parse errors" {
 
                 $moduleFile = Get-Item ($schemaMofFile.FullName -replace ".schema.mof", ".psm1")
