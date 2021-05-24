@@ -22,7 +22,6 @@ Describe "Get-ODSCParameter" {
 Describe "Request-File" {
     Context "It shouldn't download when hashes match" {
         BeforeAll {
-            # . $script:modulePath
             Mock Invoke-WebRequest {
                 return [pscustomobject]@{
                     Headers = @{'x-amz-meta-sha256' = "abcdef1234567890"};
@@ -42,7 +41,6 @@ Describe "Request-File" {
 
     Context "It should download when hashes mismatch" {
         BeforeAll {
-            # . $script:modulePath
             Mock Invoke-WebRequest {
                 return [pscustomobject]@{
                     Headers = @{'x-amz-meta-sha256' = "abcdef1234567891"};
@@ -65,7 +63,6 @@ Describe "Invoke-OctopusServerCommand" {
     Context "It should not leak passwords" {
 
         BeforeAll {
-            # . $script:modulePath
             $octopusServerExePath = "echo"
             Write-Output "Mocked OctopusServerExePath as $OctopusServerExePath"
             Mock Write-Verbose { } -verifiable
