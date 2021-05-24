@@ -111,7 +111,7 @@ Describe "OctopusDSC" {
             BeforeAll {
                 $schemaMofFile = $_
             }
-            
+
             It "The module <moduleFileName> should have no parse errors" {
 
                 $moduleFile = Get-Item ($schemaMofFile.FullName -replace ".schema.mof", ".psm1")
@@ -126,7 +126,7 @@ Describe "OctopusDSC" {
         }
     }
 
-    Describe "Mandatory and non-mandatory parameters" {
+    Describe "Mandatory parameters are marked correctly" {
         BeforeDiscovery {
             $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/DSCResources"
             $schemaMofFiles = Get-ChildItem $path -Recurse -Filter *.mof
@@ -136,6 +136,7 @@ Describe "OctopusDSC" {
             BeforeDiscovery {
                 $schemaMofFile = $_
                 $schemaMofFileContent = Get-Content $schemaMofFile.FullName
+
                 $moduleFile = Get-Item ($schemaMofFile.FullName -replace ".schema.mof", ".psm1")
                 $tokens = $null;
                 $parseErrors = $null;
@@ -161,15 +162,62 @@ Describe "OctopusDSC" {
                 BeforeDiscovery {
                     $line = $_
                     $mandatoryParamTestCases = @()
-                    $nonMandatoryParamTestCases = @()
 
-                    if ($line -match "\s*(\[.*\b(Required|Key)\b.*\])\s*(.*) (.*);") {
+                    if ($line -Match "\s*(\[.*\b(Required|Key)\b.*\])\s*(.*) (.*);") {
                         $propertyType = $matches[2]
                         $propertyName = $matches[4].Replace("[]", "");
                         $mandatoryParamTestCases += Get-TestCase "Get-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
                         $mandatoryParamTestCases += Get-TestCase "Set-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
                         $mandatoryParamTestCases += Get-TestCase "Test-TargetResource"  $astMembers $propertyName $moduleFile.Name $propertyType
-                    } elseif ($line -match "\s*(\[.*\])\s*(.*) (.*);") {
+                    }
+                }
+
+                It "Parameter '<propertyName>' in function '<functionName>' should Be marked with [Parameter(Mandatory)] in <moduleFileName> as its a <propertyType> property" -ForEach $mandatoryParamTestCases {
+                    param($functionName, $propertyName, $moduleFileName, $propertyType, $paramisMandatory)
+                    $paramisMandatory | Should -Be $true
+                }
+            }
+        }
+    }
+
+    Describe "Non-mandatory parameters are marked correctly" {
+        BeforeDiscovery {
+            $path = Resolve-Path "$PSCommandPath/../../OctopusDSC/DSCResources"
+            $schemaMofFiles = Get-ChildItem $path -Recurse -Filter *.mof
+        }
+
+        Describe "<schemaMofFile>" -ForEach $schemaMofFiles {
+            BeforeDiscovery {
+                $schemaMofFile = $_
+                $schemaMofFileContent = Get-Content $schemaMofFile.FullName
+
+                $moduleFile = Get-Item ($schemaMofFile.FullName -replace ".schema.mof", ".psm1")
+                $tokens = $null;
+                $parseErrors = $null;
+                $ast = [System.Management.Automation.Language.Parser]::ParseFile($moduleFile.FullName, [ref] $tokens, [ref] $parseErrors);
+                $filter = { $true }
+                $astMembers = $ast.FindAll($filter, $true);
+            }
+
+            Describe "<line>" -ForEach $schemaMofFileContent {
+                function Get-TestCase($functionName, $astMembers, $propertyName, $moduleFileName, $propertyType)
+                {
+                    $param = Get-ParameterFromFunction -functionName $functionName -astMembers $astMembers -propertyName $propertyName
+                    $paramisMandatory = $param -contains "[Parameter(Mandatory)]"
+                    return @{
+                        functionName = $functionName;
+                        propertyName = $propertyName;
+                        moduleFileName = $moduleFile.Name;
+                        propertyType = $propertyType;
+                        paramisMandatory = $paramisMandatory
+                    }
+                }
+
+                BeforeDiscovery {
+                    $line = $_
+                    $nonMandatoryParamTestCases = @()
+
+                    if ($line -NotMatch "\s*(\[.*\b(Required|Key)\b.*\])\s*(.*) (.*);" -And $line -Match "\s*(\[.*\])\s*(.*) (.*);") {
                         $propertyType = $matches[1]
                         $propertyName = $matches[3].Replace("[]", "");
 
@@ -179,11 +227,6 @@ Describe "OctopusDSC" {
                     }
                 }
 
-                It "Parameter '<propertyName>' in function '<functionName>' should Be marked with [Parameter(Mandatory)] in <moduleFileName> as its a <propertyType> property" -ForEach $mandatoryParamTestCases {
-                    param($functionName, $propertyName, $moduleFileName, $propertyType, $paramisMandatory)
-                    $paramisMandatory | Should -Be $true
-                }
-
                 It "Parameter <propertyName> in function <functionName> should not be marked with [Parameter(Mandatory)] in <moduleFileName> as its not mandatory in the mof" -ForEach $nonMandatoryParamTestCases {
                     param($functionName, $propertyName, $moduleFileName, $propertyType, $paramisMandatory)
                     $paramisMandatory | Should -Be $false
@@ -191,8 +234,6 @@ Describe "OctopusDSC" {
             }
         }
     }
-
-
 
     Describe "Test/Get/Set-TargetResource all implement the same properties" {
         BeforeDiscovery {
