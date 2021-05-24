@@ -1,16 +1,14 @@
-$moduleName = Split-Path ($PSCommandPath -replace '\.Tests\.ps1$', '') -Leaf
-$modulePath = Split-Path $PSCommandPath -Parent
-$script:modulePath = Resolve-Path "$PSCommandPath/../../$moduleName.ps1"
+BeforeAll {
 
-. $script:modulePath
+    $moduleName = Split-Path ($PSCommandPath -replace '\.Tests\.ps1$', '') -Leaf
+    $modulePath = Split-Path $PSCommandPath -Parent
+    $script:modulePath = Resolve-Path "$PSCommandPath/../../$moduleName.ps1"
+    . $script:modulePath
 
-$script:SamplePath = Split-Path $PSCommandPath -parent
-$script:samplePath = Resolve-path "$script:SamplePath/SampleConfigs/"
-
+    $script:SamplePath = Split-Path $PSCommandPath -parent
+    $script:samplePath = Resolve-path "$script:SamplePath/SampleConfigs/"
+}
 Describe "Get-ODSCParameter" {
-    BeforeAll {
-        . $script:modulePath
-    }
 
     It "should be able to return our known default values" {
         $desiredConfiguration = @{
@@ -24,7 +22,6 @@ Describe "Get-ODSCParameter" {
 Describe "Request-File" {
     Context "It shouldn't download when hashes match" {
         BeforeAll {
-            . $script:modulePath
             Mock Invoke-WebRequest {
                 return [pscustomobject]@{
                     Headers = @{'x-amz-meta-sha256' = "abcdef1234567890"};
@@ -44,7 +41,6 @@ Describe "Request-File" {
 
     Context "It should download when hashes mismatch" {
         BeforeAll {
-            . $script:modulePath
             Mock Invoke-WebRequest {
                 return [pscustomobject]@{
                     Headers = @{'x-amz-meta-sha256' = "abcdef1234567891"};
@@ -67,7 +63,6 @@ Describe "Invoke-OctopusServerCommand" {
     Context "It should not leak passwords" {
 
         BeforeAll {
-            . $script:modulePath
             $octopusServerExePath = "echo"
             Write-Output "Mocked OctopusServerExePath as $OctopusServerExePath"
             Mock Write-Verbose { } -verifiable
@@ -144,9 +139,6 @@ Describe "Invoke-OctopusServerCommand" {
 }
 
 Describe "Test-ValidJson" {
-    BeforeAll {
-        . $script:modulePath
-    }
 
     It "Returns false for known bad json" {
         Test-ValidJson (Get-Content "$script:SamplePath\octopus.server.exe-output-when-json-has-exception-prepended.json" -raw) | Should -Be $false
@@ -158,9 +150,6 @@ Describe "Test-ValidJson" {
 }
 
 Describe "Get-CleanedJson" {
-    BeforeAll {
-        . $script:modulePath
-    }
 
     It "Correctly cleans our expected exception-prepended output" {
         Mock Write-Warning {} # supress warning text
