@@ -11,10 +11,6 @@ try
     $module = Import-Module $modulePath -Prefix $prefix -PassThru -ErrorAction Stop
 
     InModuleScope $module.Name {
-        BeforeAll {
-            $defaultTentacleExePath = "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe"
-        }
-
         Describe 'cTentacleWatchdog' {
             BeforeEach {
                 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
