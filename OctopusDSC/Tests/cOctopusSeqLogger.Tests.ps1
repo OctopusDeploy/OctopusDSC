@@ -105,7 +105,7 @@ try
                     Mock Test-Path { return $false } -ParameterFilter { $Path -eq "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe" }
                     Mock Test-NLogDll { return $true }
                     Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml")) }
-                    { Get-TargetResourceInternal @desiredConfiguration } | Should -throw "Unable to find Octopus (checked for existence of file '"$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"')."
+                    { Get-TargetResourceInternal @desiredConfiguration } | Should -throw "Unable to find Octopus (checked for existence of file '$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe')."
                 }
 
                 It 'Does not throw an exception if Octopus is not installed and ensure is set to absent' {
@@ -114,7 +114,7 @@ try
                     Mock Test-NLogDll { return $true }
                     Mock Get-NLogConfig { return  [xml] (Get-Content (Join-Path $sampleConfigPath "octopus.server.exe.nlog-with-valid-configuration-with-api-key.xml")) }
                     $desiredConfiguration.Ensure = 'Absent'
-                    { Get-TargetResourceInternal @desiredConfiguration } | Should -not -throw "Unable to find Octopus (checked for existence of file '"$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"')."
+                    { Get-TargetResourceInternal @desiredConfiguration } | Should -not -throw "Unable to find Octopus (checked for existence of file '$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe')."
                 }
             }
 
