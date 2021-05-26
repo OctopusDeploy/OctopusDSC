@@ -1,7 +1,24 @@
 # Module contains shared code for OctopusDSC
 
-$octopusServerExePath = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
-$tentacleExePath = "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe"
+function Get-OctopusServerExePath {
+    $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\OctopusServer" -ErrorAction SilentlyContinue).InstallLocation
+
+    if ($installLocation -ne $null) {
+        return "$installLocation\Octopus.Server.exe"
+    }
+
+    return "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
+}
+
+function Get-TentacleExePath {
+    $installLocation = (Get-ItemProperty -path "HKLM:\Software\Octopus\Tentacle" -ErrorAction SilentlyContinue).InstallLocation
+
+    if ($installLocation -ne $null) {
+        return "$installLocation\Tentacle.exe"
+    }
+
+    return "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe"
+}
 
 function Get-ODSCParameter($parameters) {
     # unfortunately $PSBoundParameters doesn't contain parameters that weren't supplied (because the default value was okay)
@@ -179,7 +196,7 @@ function Write-VerboseWithMaskedCommand ($exePath, $cmdArgs) {
 }
 
 function Invoke-OctopusServerCommand ($cmdArgs) {
-
+    $octopusServerExePath = Get-OctopusServerExePath
     Write-VerboseWithMaskedCommand $octopusServerExePath $cmdArgs
 
     $LASTEXITCODE = 0
@@ -194,12 +211,12 @@ function Invoke-OctopusServerCommand ($cmdArgs) {
 }
 
 function Test-TentacleExecutableExists {
-    $tentacleDir = "${env:ProgramFiles}\Octopus Deploy\Tentacle"
-    return ((test-path $tentacleDir) -and (test-path "$tentacleDir\tentacle.exe"))
+    $tentacleExePath =  Get-TentacleExePath
+    return (test-path $tentacleExePath)
 }
 
 function Invoke-TentacleCommand ($cmdArgs) {
-
+    $tentacleExePath =  Get-TentacleExePath
     Write-VerboseWithMaskedCommand $tentacleExePath $cmdArgs
 
     $LASTEXITCODE = 0
@@ -230,6 +247,7 @@ function Write-CommandOutput {
 }
 
 function Get-ServerConfiguration($instanceName) {
+    $octopusServerExePath = Get-OctopusServerExePath
     $rawConfig = & $octopusServerExePath show-configuration --format=json-hierarchical --noconsolelogging --console --instance $instanceName
 
     # handle a specific error where an exception in registry migration finds its way into the json-hierarchical output
@@ -260,9 +278,10 @@ function Get-ServerConfiguration($instanceName) {
 
 function Get-TentacleConfiguration($instanceName)
 {
-  $rawConfig = & $tentacleExePath show-configuration --instance $instanceName
-  $config = $rawConfig | ConvertFrom-Json
-  return $config
+    $tentacleExePath =  Get-TentacleExePath
+    $rawConfig = & $tentacleExePath show-configuration --instance $instanceName
+    $config = $rawConfig | ConvertFrom-Json
+    return $config
 }
 
 function Test-ValidJson

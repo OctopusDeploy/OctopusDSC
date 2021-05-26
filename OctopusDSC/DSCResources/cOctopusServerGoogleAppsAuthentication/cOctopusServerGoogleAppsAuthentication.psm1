@@ -1,5 +1,3 @@
-$octopusServerExePath = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
-
 # dot-source the helper file (cannot load as a module due to scope considerations)
 . (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1')
 
@@ -16,6 +14,7 @@ function Get-TargetResource {
         [string]$HostedDomain
     )
     # check octopus installed
+    $octopusServerExePath = Get-OctopusServerExePath
     if (-not (Test-Path -LiteralPath $octopusServerExePath)) {
         throw "Unable to find Octopus (checked for existence of file '$octopusServerExePath')."
     }
@@ -93,6 +92,7 @@ function Test-TargetResource {
 }
 
 function Test-OctopusVersionSupportsAuthenticationProvider {
+    $octopusServerExePath = Get-OctopusServerExePath
     if (-not (Test-Path -LiteralPath $octopusServerExePath)) {
         throw "Octopus.Server.exe path '$octopusServerExePath' does not exist."
     }

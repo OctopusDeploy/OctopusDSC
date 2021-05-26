@@ -63,8 +63,7 @@ Describe "Invoke-OctopusServerCommand" {
     Context "It should not leak passwords" {
 
         BeforeAll {
-            $octopusServerExePath = "echo"
-            Write-Output "Mocked OctopusServerExePath as $OctopusServerExePath"
+            Mock Get-OctopusServerExePath { return "echo" }
             Mock Write-Verbose { } -verifiable
             Mock Write-CommandOutput {}
         }

@@ -1,5 +1,3 @@
-$tentacleExePath = "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe"
-
 # dot-source the helper file (cannot load as a module due to scope considerations)
 . (Join-Path -Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -ChildPath 'OctopusDSCHelpers.ps1')
 
@@ -17,6 +15,7 @@ function Get-TargetResource
     [string]$Instances = "*"
   )
   # check octopus installed
+  $tentacleExePath = Get-TentacleExePath
   if (-not (Test-Path -LiteralPath $tentacleExePath)) {
     throw "Unable to find Tentacle (checked for existence of file '$tentacleExePath')."
   }
@@ -107,6 +106,7 @@ function Test-TargetResource
 
 function Test-TentacleSupportsShowConfiguration
 {
+  $tentacleExePath = Get-TentacleExePath
   if (-not (Test-Path -LiteralPath $tentacleExePath))
   {
     throw "Tentacle.exe path '$tentacleExePath' does not exist."

@@ -1,5 +1,4 @@
 $ErrorActionPreference = "Stop"
-$octopusServerExePath = "$($env:ProgramFiles)\Octopus Deploy\Octopus\Octopus.Server.exe"
 $script:instancecontext = ''  # a global to hold the name of the current instance's context
 
 # dot-source the helper file (cannot load as a module due to scope considerations)
@@ -350,6 +349,7 @@ function Test-OctopusVersionSupportsDatabaseUpgrade {
 }
 
 function Test-OctopusVersionNewerThan($targetVersion) {
+    $octopusServerExePath = Get-OctopusServerExePath
     if (-not (Test-Path -LiteralPath $octopusServerExePath)) {
         throw "Octopus.Server.exe path '$octopusServerExePath' does not exist."
     }
