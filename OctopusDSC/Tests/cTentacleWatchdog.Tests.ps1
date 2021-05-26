@@ -24,8 +24,8 @@ try
 
             Context 'Get-TargetResource' {
                 It 'Returns the proper data' {
-                    Mock Get-TentacleExePath { return $defaultTentacleExePath }
-                    Mock Test-Path { return $true } -ParameterFilter { $LiteralPath -eq $defaultTentacleExePath }
+                    Mock Get-TentacleExePath { return "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe" }
+                    Mock Test-Path { return $true } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe" }
                     Mock Test-TentacleSupportsShowConfiguration { return $true }
                     Mock Get-TentacleConfiguration {
                         return  @{
@@ -47,15 +47,15 @@ try
                 }
 
                 It 'Throws an exception if Octopus is not installed' {
-                    Mock Get-TentacleExePath { return $defaultTentacleExePath }
-                    Mock Test-Path { return $false } -ParameterFilter { $LiteralPath -eq $defaultTentacleExePath }
+                    Mock Get-TentacleExePath { return "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe" }
+                    Mock Test-Path { return $false } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe" }
                     Mock Test-TentacleSupportsShowConfiguration { return $true }
-                    { Get-TargetResource @desiredConfiguration } | Should -throw "Unable to find Tentacle (checked for existence of file '$defaultTentacleExePath')."
+                    { Get-TargetResource @desiredConfiguration } | Should -throw "Unable to find Tentacle (checked for existence of file '$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe')."
                 }
 
                 It 'Throws an exception if its an old version of Tentacle' {
-                    Mock Get-TentacleExePath { return $defaultTentacleExePath }
-                    Mock Test-Path { return $true } -ParameterFilter { $LiteralPath -eq $defaultTentacleExePath }
+                    Mock Get-TentacleExePath { return "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe" }
+                    Mock Test-Path { return $true } -ParameterFilter { $LiteralPath -eq "$($env:ProgramFiles)\Octopus Deploy\Tentacle\Tentacle.exe" }
                     Mock Test-TentacleSupportsShowConfiguration { return $false }
                     { Get-TargetResource @desiredConfiguration } | Should -throw "This resource only supports Tentacle 3.15.8+."
                 }
