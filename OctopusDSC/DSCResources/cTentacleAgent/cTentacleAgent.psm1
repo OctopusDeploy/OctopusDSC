@@ -29,7 +29,7 @@ function Get-APIResult {
     $apiEndpoint = "{0}api{1}" -f $ServerUrl, $API
 
     # Call API and capture results
-    $results = Invoke-WebRequest -Uri $apiEndpoint -Headers @{"X-Octopus-ApiKey"="$APIKey"} -UseBasicParsing
+    $results = Invoke-WebRequest -Uri $apiEndpoint -Headers @{"X-Octopus-ApiKey"="$APIKey"; "Accept-Encoding"="gzip"} -UseBasicParsing
 
     # return the result
     return ConvertFrom-Json -InputObject $results
