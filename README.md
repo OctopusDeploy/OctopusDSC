@@ -25,7 +25,7 @@ Version 3.0 of OctopusDSC supports Octopus Deploy 4.x and above with backwards c
 ## Installation
 
 ### [PowerShellGet](https://technet.microsoft.com/en-us/library/dn807169.aspx) / PowerShell 5 (recommended)
-1. Install PowerShellGet from [PowerShell Gallery](https://www.powershellgallery.com/GettingStarted)
+1. Install PowerShellGet from [PowerShell Gallery](https://docs.microsoft.com/en-gb/powershell/scripting/gallery/installing-psget?view=powershell-7)
 2. Install DSC module via `PowerShellGet\Install-Module -Name OctopusDSC`
 
 ### Manual ###
@@ -38,7 +38,7 @@ The community has also submitted a few [other options](https://github.com/Octopu
 
 ## Development
 
-This project is setup to use [Vagrant](vagrant.io) to provide a dev/test environment. Once you've installed Vagrant, you can use the build scripts to spin up a local virtual machine and run the test scenarios (**NOTE:** The first time you run `vagrant up` in Virtualbox or Hyper-V it has to download the `octopusdeploy/dsc-test-server` box and this can take some time depending on your Internet speed, so be patient and go grab a coffee while it downloads).
+This project is setup to use [Vagrant](https://www.vagrantup.com/) to provide a dev/test environment. Once you've installed Vagrant, you can use the build scripts to spin up a local virtual machine and run the test scenarios (**NOTE:** The first time you run `vagrant up` in Virtualbox or Hyper-V it has to download the `octopusdeploy/dsc-test-server` box and this can take some time depending on your Internet speed, so be patient and go grab a coffee while it downloads).
 
 There are four options provided:
 
