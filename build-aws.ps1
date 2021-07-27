@@ -85,10 +85,10 @@ if (Test-AppExists "chmod") {
 }
 
 Write-Output "Adding vagrant box"
-vagrant box add OctopusDeploy/dsc-test-server-windows-server-1909 https://s3-ap-southeast-2.amazonaws.com/octopus-vagrant-boxes/vagrant/json/OctopusDeploy/amazon-ebs/dsc-test-server-windows-server-1909.json --force
+vagrant box add OctopusDeploy/dsc-test-server-windows-server-20H2 https://s3-ap-southeast-2.amazonaws.com/octopus-vagrant-boxes/vagrant/json/OctopusDeploy/amazon-ebs/dsc-test-server-windows-server-20H2.json --force
 
 Write-Output "Ensuring vagrant box is latest"
-vagrant box update --box OctopusDeploy/dsc-test-server-windows-server-1909 --provider aws
+vagrant box update --box OctopusDeploy/dsc-test-server-windows-server-20H2 --provider aws
 
 $splat = @{
   provider="aws";
