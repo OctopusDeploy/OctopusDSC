@@ -100,6 +100,8 @@ Configuration Server_Scenario_01_Install
                 $createApiKeyResult = $repository.Users.CreateApiKey($user, "Octopus DSC Testing")
 
                 #save it to enviornment variables for tests to use
+                Set-Content c:\temp\OctopusServerUrl.txt "http://localhost:81"
+                Set-Content c:\temp\OctopusApiKey.txt $createApiKeyResult.ApiKey
                 [environment]::SetEnvironmentVariable("OctopusServerUrl", "http://localhost:81", "User")
                 [environment]::SetEnvironmentVariable("OctopusServerUrl", "http://localhost:81", "Machine")
                 [environment]::SetEnvironmentVariable("OctopusApiKey", $createApiKeyResult.ApiKey, "User")

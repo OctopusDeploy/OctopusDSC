@@ -38,7 +38,7 @@ describe port(81) do
 end
 
 #environment
-describe octopus_deploy_environment(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "UAT 1") do
+describe octopus_deploy_environment(File.read('c:/temp/OctopusServerUrl.txt'), File.read('c:/temp/OctopusApiKey.txt'), "UAT 1") do
   it { should_not exist }
 end
 

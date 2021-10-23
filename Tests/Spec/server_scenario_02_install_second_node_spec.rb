@@ -70,7 +70,7 @@ describe port(81) do
 end
 
 #environment
-describe octopus_deploy_environment(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "Production") do
+describe octopus_deploy_environment(File.read('c:/temp/OctopusServerUrl.txt'), File.read('c:/temp/OctopusApiKey.txt'), "Production") do
   it { should exist }
 end
 

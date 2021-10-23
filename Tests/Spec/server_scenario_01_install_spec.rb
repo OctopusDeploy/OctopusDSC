@@ -56,18 +56,18 @@ describe port(443) do
 end
 
 #environment
-describe octopus_deploy_environment(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "Production") do
+describe octopus_deploy_environment(File.read('c:/temp/OctopusServerUrl.txt'), File.read('c:/temp/OctopusApiKey.txt'), "Production") do
   it { should exist }
 end
 
 #space
-describe octopus_deploy_space(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], 'Integration Team') do
+describe octopus_deploy_space(File.read('c:/temp/OctopusServerUrl.txt'), File.read('c:/temp/OctopusApiKey.txt'), 'Integration Team') do
   it { should exist }
   it { should have_description('Description for the Integration Team Space') }
 end
 
 #worker pool
-describe octopus_deploy_worker_pool(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "Secondary Worker Pool") do
+describe octopus_deploy_worker_pool(File.read('c:/temp/OctopusServerUrl.txt'), File.read('c:/temp/OctopusApiKey.txt'), "Secondary Worker Pool") do
   it { should exist }
 end
 
