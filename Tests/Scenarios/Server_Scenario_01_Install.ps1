@@ -48,6 +48,24 @@ Configuration Server_Scenario_01_Install
             DependsOn = "[cOctopusServer]OctopusServer"
         }
 
+        #hack until https://github.com/OctopusDeploy/Issues/issues/7113 is resolved
+        Script "Create Api Key and set environment variables for tests"
+        {
+            SetScript = {
+                Start-Sleep -seconds 120
+                Set-Content c:\temp\SleepAfterInstallHasHappened.txt -value "true"
+            }
+            TestScript = {
+                return Test-Path c:\temp\SleepAfterInstallHasHappened.txt
+            }
+            GetScript = {
+                @{
+                    Result = Test-Path c:\temp\SleepAfterInstallHasHappened.txt
+                }
+            }
+            DependsOn = "[cOctopusServer]OctopusServer"
+        }
+
         cOctopusEnvironment "Create 'Production' Environment"
         {
             Url = "http://localhost:81"
