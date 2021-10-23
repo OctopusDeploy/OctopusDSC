@@ -49,7 +49,7 @@ Configuration Server_Scenario_01_Install
         }
 
         #hack until https://github.com/OctopusDeploy/Issues/issues/7113 is resolved
-        Script "Create Api Key and set environment variables for tests"
+        Script "Sleep for a bit to workaround server bug"
         {
             SetScript = {
                 Start-Sleep -seconds 120
