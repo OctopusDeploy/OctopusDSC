@@ -49,10 +49,10 @@ Describe "OctopusDSC" {
                     #even though it works fine on ubuntu locally
                     Set-ItResult -Inconclusive -Because "We couldnt get this test to run on our CentOS buildagent"
                 } else {
-                    $path = Resolve-Path "$PSCommandPath/../../Tests/Scenarios"
                     Write-Output "Running PsScriptAnalyzer against $path"
                     $results = @(Invoke-ScriptAnalyzer $path -recurse -exclude @('PSUseShouldProcessForStateChangingFunctions', 'PSAvoidUsingConvertToSecureStringWithPlainText'))
                     $results | ConvertTo-Json | Out-File PsScriptAnalyzer-Scenarios.log
+                    $path = Resolve-Path "$PSCommandPath/../../E2ETests/Scenarios"
                     if ($IsLinux -or $IsMacOS) {
                         $results = $results | where-object {
                             # these DSC resources are available on linux
@@ -288,7 +288,7 @@ Describe "OctopusDSC" {
 
     Describe "Configuration Scenarios" {
         BeforeDiscovery {
-            $path = Resolve-Path "$PSCommandPath/../../Tests/Scenarios"
+            $path = Resolve-Path "$PSCommandPath/../../E2ETests/Scenarios"
             $name = @{label="name";expression={[System.Io.Path]::GetFileNameWithoutExtension($_.Name)}};
             $fullName = @{label="fullName";expression={$_.FullName}};
 
@@ -302,8 +302,8 @@ Describe "OctopusDSC" {
 
         It "Scenario <name> should have a matching spec" -ForEach $cases {
             param([string]$name, [string]$fullName)
-            $specName = ($name + '_spec.rb').ToLower()
-            (Resolve-Path "$PSCommandPath/../../Tests/Spec/$specName") | Should -Exist
+            $specName = ($name + '.Tests.ps1').ToLower()
+            (Resolve-Path "$PSCommandPath/../../E2ETests/Spec/$specName") | Should -Exist
         }
     }
 }
