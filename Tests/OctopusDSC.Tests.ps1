@@ -291,7 +291,7 @@ Describe "OctopusDSC" {
             $path = Resolve-Path "$PSCommandPath/../../E2ETests/Scenarios"
             $name = @{label="name";expression={[System.Io.Path]::GetFileNameWithoutExtension($_.Name)}};
             $fullName = @{label="fullName";expression={$_.FullName}};
-            $specPath = @{label="specPath";expression={"$PSCommandPath/../../E2ETests/Spec/$([System.Io.Path]::GetFileNameWithoutExtension($_.Name) + '.Tests.ps1')"}};
+            $specPath = @{label="specPath";expression={"$path/../Spec/$([System.Io.Path]::GetFileNameWithoutExtension($_.Name) + '.Tests.ps1')"}};
 
             $cases = @(Get-ChildItem $path -Recurse -Filter *.ps1 | Select-Object -Property $name, $fullName, $specPath) | ConvertTo-Hashtable
         }
