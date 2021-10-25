@@ -291,8 +291,9 @@ Describe "OctopusDSC" {
             $path = Resolve-Path "$PSCommandPath/../../E2ETests/Scenarios"
             $name = @{label="name";expression={[System.Io.Path]::GetFileNameWithoutExtension($_.Name)}};
             $fullName = @{label="fullName";expression={$_.FullName}};
+            $specPath = @{label="specPath";expression={"$PSCommandPath/../../E2ETests/Spec/$([System.Io.Path]::GetFileNameWithoutExtension($_.Name) + '.Tests.ps1')"}};
 
-            $cases = @(Get-ChildItem $path -Recurse -Filter *.ps1 | Select-Object -Property $name, $fullName) | ConvertTo-Hashtable
+            $cases = @(Get-ChildItem $path -Recurse -Filter *.ps1 | Select-Object -Property $name, $fullName, $specPath) | ConvertTo-Hashtable
         }
 
         It "Configuration block in scenario <name> should have the same name as the file" -ForEach $cases {
@@ -300,10 +301,9 @@ Describe "OctopusDSC" {
             $fullName | Should -FileContentMatch "Configuration $name"
         }
 
-        It "Scenario <name> should have a matching spec" -ForEach $cases {
-            param([string]$name, [string]$fullName)
-            $specName = ($name + '.Tests.ps1').ToLower()
-            (Resolve-Path "$PSCommandPath/../../E2ETests/Spec/$specName") | Should -Exist
+        It "Scenario <name> should have a matching spec at <specPath>" -ForEach $cases {
+            param([string]$name, [string]$fullName, [string]$specPath)
+            (Resolve-Path $specPath) | Should -Exist
         }
     }
 }
