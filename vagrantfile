@@ -27,8 +27,17 @@ $run_test_scenario_script = <<SCRIPT
   write-output "##teamcity[blockOpened name='Testing Scenario {scenario_name}']"
   $env:TEAMCITY_PROJECT_NAME="#{ENV['TEAMCITY_PROJECT_NAME']}"
   set-location c:/temp/tests
-  write-host "executing bundle.bat _1.16.1_ exec rspec Spec/{scenario_name}_spec.rb --format documentation"
-  C:/tools/ruby25/bin/bundle.bat _1.16.1_ exec rspec Spec/{scenario_name}_spec.rb --format documentation
+
+  $configuration = [PesterConfiguration]::Default
+  $configuration.TestResult.Enabled = $true
+  $configuration.TestResult.OutputPath = 'PesterTestResults.xml'
+  $configuration.TestResult.OutputFormat = 'NUnitXml'
+  $configuration.Run.PassThru = $true
+  $configuration.Run.Path = @('Spec/{scenario_name}.Tests.ps1')
+  $configuration.Run.Exit = $true
+  $configuration.Output.Verbosity = 'Detailed'
+  $result = Invoke-Pester -configuration $configuration
+
   write-output "##teamcity[blockClosed name='Testing Scenario {scenario_name}']"
   exit $LASTEXITCODE
 SCRIPT
@@ -49,8 +58,8 @@ def run_octopus_scenario(config, scenario, log_files)
   config.vm.provision "shell", inline: "write-output \"##teamcity[blockOpened name='Running Scenario #{scenario}']\""
   config.vm.provision "dsc" do |dsc|
     dsc.configuration_file  = "#{scenario}.ps1"
-    dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
-    dsc.manifests_path = "Tests/Scenarios/"
+    dsc.configuration_data_file  = "E2ETests/Scenarios/Configuration.psd1"
+    dsc.manifests_path = "E2ETests/Scenarios/"
     dsc.abort_on_dsc_failure = true
   end
   config.vm.provision "shell", inline: "write-output \"##teamcity[blockClosed name='Running Scenario #{scenario}']\""
@@ -63,8 +72,8 @@ def run_tentacle_scenario(config, scenario, log_files)
   config.vm.provision "shell", inline: "write-output \"##teamcity[blockOpened name='Running Scenario #{scenario}']\""
   config.vm.provision "dsc" do |dsc|
     dsc.configuration_file  = "#{scenario}.ps1"
-    dsc.configuration_data_file  = "Tests/Scenarios/Configuration.psd1"
-    dsc.manifests_path = "Tests/Scenarios/"
+    dsc.configuration_data_file  = "E2ETests/Scenarios/Configuration.psd1"
+    dsc.manifests_path = "E2ETests/Scenarios/"
     dsc.abort_on_dsc_failure = true
   end
   config.vm.provision "shell", inline: "write-output \"##teamcity[blockClosed name='Running Scenario #{scenario}']\""
@@ -165,7 +174,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   # delete existing tests if they exist (for dev)
   config.vm.provision "shell", inline: "if (Test-Path 'c:\\temp\\tests') {remove-item -force -recurse 'c:\\temp\\tests' }"
   # upload tests
-  config.vm.provision "file", source: "Tests", destination: "c:\\temp\\tests"
+  config.vm.provision "file", source: "E2ETests", destination: "c:\\temp\\tests"
   config.vm.provision "shell", path: "Tests/install-test-dependencies.ps1"
   # in theory, we shouldn't have to do this - the vagrant-dsc should upload it automatically, but cant get it to work
   config.vm.provision "file", source: "OctopusDSC", destination: 'C:\Windows\System32\WindowsPowerShell\v1.0\modules\OctopusDSC'
