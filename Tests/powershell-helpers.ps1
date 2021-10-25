@@ -39,6 +39,11 @@ function Test-AppExists($appName) {
 
 function Invoke-PesterTests {
     Write-Output "##teamcity[blockOpened name='Pester tests']"
+    Write-Output "##teamcity[blockOpened name='Importing modules']"
+    Write-Output "Importing Pester module"
+    Import-PowerShellModule -Name "Pester" -MinimumVersion "5.2.1"
+    Import-PowerShellModule -Name "PSScriptAnalyzer" -MinimumVersion "1.19.0"
+    Write-Output "##teamcity[blockClosed name='Importing modules']"
     Write-Output "Running Pester Tests"
     $configuration = [PesterConfiguration]::Default
     $configuration.TestResult.Enabled = $true
