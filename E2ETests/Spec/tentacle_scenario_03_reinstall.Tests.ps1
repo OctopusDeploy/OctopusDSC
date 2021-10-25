@@ -90,7 +90,7 @@ describe tentacle_scenario_03_reinstall {
     Test-Path 'HKLM:\Software\Octopus\Tentacle' | should -be $true
   }
 
-  it "should have set the InstallLocation"
+  it "should have set the InstallLocation" {
     (Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle' -Name "InstallLocation" -ErrorAction SilentlyContinue).InstallLocation | Should -be "C:\\Program Files\\Octopus Deploy\\Tentacle\\"
   }
 
@@ -127,8 +127,7 @@ describe tentacle_scenario_03_reinstall {
     Test-DSCConfiguration -ErrorAction Stop | should -be $true
   }
 
-  it "should get Success back from Get-DSCConfigurationStatus"
-  {
+  it "should get Success back from Get-DSCConfigurationStatus" {
     $ProgressPreference = "SilentlyContinue"
     $statuses = @(Get-DSCConfigurationStatus -ErrorAction Stop -All)
     $statuses[0].Status | Should -be "Success"

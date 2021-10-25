@@ -51,7 +51,7 @@ describe server_scenario_12_built_in_worker {
     Get-LocalUser 'OctoMollusc' -ErrorAction SilentlyContinue | should -not -be $null
   }
 
-  it "should not have added octoOctoMolluscMollusc to the local administrators group"
+  it "should not have added octoOctoMolluscMollusc to the local administrators group" {
     (Get-LocalGroupMember "Administrators").Name -contains "$env:COMPUTERNAME\OctoSquid" | should -be $false
   end
 
@@ -111,8 +111,7 @@ describe server_scenario_12_built_in_worker {
     Test-DSCConfiguration -ErrorAction Stop | should -be $true
   }
 
-  it "should get Success back from Get-DSCConfigurationStatus"
-  {
+  it "should get Success back from Get-DSCConfigurationStatus" {
     $ProgressPreference = "SilentlyContinue"
     $statuses = @(Get-DSCConfigurationStatus -ErrorAction Stop -All)
     $statuses[0].Status | Should -be "Success"

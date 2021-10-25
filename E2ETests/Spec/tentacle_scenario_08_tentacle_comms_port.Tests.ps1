@@ -40,8 +40,6 @@ describe tentacle_scenario_08_tentacle_comms_port {
     (Get-NetTCPConnection -LocalPort 10933 -ErrorAction SilentlyContinue).State -contains "Listen" | should -be $true
   }
 
-    it { should have_endpoint("https://#{ENV['COMPUTERNAME']}:10900/") }
-
   describe "Tentacle: Tentacle" {
     BeforeDiscovery {
       . (Join-Path -Path $PSScriptRoot -ChildPath "Get-TentacleDetails.ps1")
@@ -139,8 +137,7 @@ describe tentacle_scenario_08_tentacle_comms_port {
     Test-DSCConfiguration -ErrorAction Stop | should -be $true
   }
 
-  it "should get Success back from Get-DSCConfigurationStatus"
-  {
+  it "should get Success back from Get-DSCConfigurationStatus" {
     $ProgressPreference = "SilentlyContinue"
     $statuses = @(Get-DSCConfigurationStatus -ErrorAction Stop -All)
     $statuses[0].Status | Should -be "Success"

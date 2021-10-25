@@ -76,8 +76,7 @@ describe server_scenario_05_install_custom_instance {
     Test-DSCConfiguration -ErrorAction Stop | should -be $true
   }
 
-  it "should get Success back from Get-DSCConfigurationStatus"
-  {
+  it "should get Success back from Get-DSCConfigurationStatus" {
     $ProgressPreference = "SilentlyContinue"
     $statuses = @(Get-DSCConfigurationStatus -ErrorAction Stop -All)
     $statuses[0].Status | Should -be "Success"
