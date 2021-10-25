@@ -27,7 +27,7 @@ $run_test_scenario_script = <<SCRIPT
   write-output "##teamcity[blockOpened name='Testing Scenario {scenario_name}']"
   $env:TEAMCITY_PROJECT_NAME="#{ENV['TEAMCITY_PROJECT_NAME']}"
   set-location c:/temp/tests
-
+  Import-Module Pester
   $configuration = [PesterConfiguration]::Default
   $configuration.TestResult.Enabled = $true
   $configuration.TestResult.OutputPath = 'PesterTestResults.xml'
