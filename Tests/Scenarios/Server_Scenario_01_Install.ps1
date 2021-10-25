@@ -41,7 +41,7 @@ Configuration Server_Scenario_01_Install
             SkipLicenseCheck = $true
         }
 
-        cOctopusServerUsernamePasswordAuthentication "Enable Username/Password Auth"
+        cOctopusServerUsernamePasswordAuthentication "EnableUsernamePasswordAuth"
         {
             InstanceName = "OctopusServer"
             Enabled = $true
@@ -49,7 +49,7 @@ Configuration Server_Scenario_01_Install
         }
 
         #hack until https://github.com/OctopusDeploy/Issues/issues/7113 is resolved
-        Script "Sleep for a bit to workaround server bug"
+        Script "SleepForABitToWorkaroundServerBug"
         {
             SetScript = {
                 Start-Sleep -seconds 120
@@ -63,7 +63,7 @@ Configuration Server_Scenario_01_Install
                     Result = Test-Path c:\temp\SleepAfterInstallHasHappened.txt
                 }
             }
-            DependsOn = "[cOctopusServer]OctopusServer"
+            DependsOn = "[cOctopusServerUsernamePasswordAuthentication]EnableUsernamePasswordAuth"
         }
 
         cOctopusEnvironment "Create 'Production' Environment"
@@ -72,7 +72,7 @@ Configuration Server_Scenario_01_Install
             Ensure = "Present"
             OctopusCredentials = $cred
             EnvironmentName = "Production"
-            DependsOn = "[cOctopusServer]OctopusServer"
+            DependsOn = "[Script]SleepForABitToWorkaroundServerBug"
         }
 
         cOctopusServerSpace "Create 'Integration Team' Space"
@@ -84,7 +84,7 @@ Configuration Server_Scenario_01_Install
             SpaceManagersTeamMembers = @("admin")
             SpaceManagersTeams = @("Everyone")
             Description = "Description for the Integration Team Space"
-            DependsOn = "[cOctopusServer]OctopusServer"
+            DependsOn = "[Script]SleepForABitToWorkaroundServerBug"
         }
 
         cOctopusWorkerPool "Create a second workerpool"
@@ -95,6 +95,7 @@ Configuration Server_Scenario_01_Install
             WorkerPoolName = "Secondary Worker Pool"
             WorkerPoolDescription = "A secondary worker pool to test the resource"
             SpaceId = "Spaces-1"
+            DependsOn = "[Script]SleepForABitToWorkaroundServerBug"
         }
 
         Script "Create Api Key and set environment variables for tests"
@@ -149,7 +150,7 @@ Configuration Server_Scenario_01_Install
                     Result = "" #probably bad
                 }
             }
-            DependsOn = "[cOctopusServer]OctopusServer"
+            DependsOn = "[Script]SleepForABitToWorkaroundServerBug"
         }
 
         cOctopusServerGuestAuthentication "Enable Guest Login"
@@ -202,6 +203,7 @@ Configuration Server_Scenario_01_Install
             Ensure = "Present"
             StoreName = "My"
             Port = 443
+            DependsOn = "[cOctopusServer]OctopusServer"
         }
     }
 }
