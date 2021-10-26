@@ -23,7 +23,9 @@ describe tentacle_scenario_02_remove {
   # Listening Tentacle
   describe "Tentacle: ListeningTentacle" {
     BeforeDiscovery {
-      . (Join-Path -Path $PSScriptRoot -ChildPath "Get-TentacleDetails.ps1")
+      foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
+        . $import.fullname
+      }
     }
 
     BeforeAll {
@@ -47,7 +49,9 @@ describe tentacle_scenario_02_remove {
 
   describe "Tentacle: PollingTentacle" {
     BeforeDiscovery {
-      . (Join-Path -Path $PSScriptRoot -ChildPath "Get-TentacleDetails.ps1")
+      foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
+        . $import.fullname
+      }
     }
 
     BeforeAll {
@@ -67,7 +71,9 @@ describe tentacle_scenario_02_remove {
 
   describe "Tentacle: PollingTentacleWithoutAutoRegister" {
     BeforeDiscovery {
-      . (Join-Path -Path $PSScriptRoot -ChildPath "Get-TentacleDetails.ps1")
+      foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
+        . $import.fullname
+      }
     }
 
     BeforeAll {
@@ -87,7 +93,9 @@ describe tentacle_scenario_02_remove {
 
   describe "Tentacle: PollingTentacleWithThumbprintWithoutAutoRegister" {
     BeforeDiscovery {
-      . (Join-Path -Path $PSScriptRoot -ChildPath "Get-TentacleDetails.ps1")
+      foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
+        . $import.fullname
+      }
     }
 
     BeforeAll {

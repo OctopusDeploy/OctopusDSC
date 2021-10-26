@@ -41,7 +41,9 @@ describe tentacle_scenario_03_reinstall {
 
   describe "Tentacle: Tentacle" {
     BeforeDiscovery {
-      . (Join-Path -Path $PSScriptRoot -ChildPath "Get-TentacleDetails.ps1")
+      foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
+        . $import.fullname
+      }
     }
 
     BeforeAll {
