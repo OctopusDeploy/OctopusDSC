@@ -43,11 +43,6 @@ $run_test_scenario_script = <<SCRIPT
 SCRIPT
 
 def publish_logs(config, scenario, log_files)
-  config.vm.provision "winrm-file-download" do |winrm|
-    winrm.source = "c:/temp/tests/PesterTestResults_#{scenario}.xml"
-    winrm.destination = "PesterTestResults_#{scenario}.xml"
-    config.vm.provision "shell", inline: "write-output \"##teamcity[publishArtifacts 'PesterTestResults_#{scenario}.xml']\""
-  end
   log_files.each do |file|
     dest = file.gsub(':', '').gsub('/', '-')
     source = file.gsub('/', '\\')
@@ -71,6 +66,11 @@ def run_octopus_scenario(config, scenario, log_files)
   config.vm.provision "shell", path: "Tests/surface-logs.ps1"
   publish_logs(config, scenario, log_files)
   config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', scenario.downcase)
+  config.vm.provision "winrm-file-download" do |winrm|
+    winrm.source = "c:/temp/tests/PesterTestResults_#{scenario}.xml"
+    winrm.destination = "PesterTestResults_#{scenario}.xml"
+    config.vm.provision "shell", inline: "write-output \"##teamcity[publishArtifacts 'PesterTestResults_#{scenario}.xml']\""
+  end
 end
 
 def run_tentacle_scenario(config, scenario, log_files)
