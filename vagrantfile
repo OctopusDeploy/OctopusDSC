@@ -30,7 +30,7 @@ $run_test_scenario_script = <<SCRIPT
   Import-Module Pester
   $configuration = [PesterConfiguration]::Default
   $configuration.TestResult.Enabled = $true
-  $configuration.TestResult.OutputPath = 'PesterTestResults.xml'
+  $configuration.TestResult.OutputPath = 'PesterTestResults_{scenario_name}.xml'
   $configuration.TestResult.OutputFormat = 'NUnitXml'
   $configuration.Run.PassThru = $true
   $configuration.Run.Path = @('Spec/{scenario_name}.Tests.ps1')
@@ -43,6 +43,11 @@ $run_test_scenario_script = <<SCRIPT
 SCRIPT
 
 def publish_logs(config, scenario, log_files)
+  config.vm.provision "winrm-file-download" do |winrm|
+    winrm.source = "c:/temp/tests/PesterTestResults_#{scenario}.xml"
+    winrm.destination = "PesterTestResults_#{scenario}.xml"
+    config.vm.provision "shell", inline: "write-output \"##teamcity[publishArtifacts 'PesterTestResults_#{scenario}.xml']\""
+  end
   log_files.each do |file|
     dest = file.gsub(':', '').gsub('/', '-')
     source = file.gsub('/', '\\')
