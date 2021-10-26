@@ -28,7 +28,7 @@ describe server_scenario_01_install {
   }
 
   it "should have set the InstallLocation" {
-    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\OctopusServer' -Name "InstallLocation" -ErrorAction SilentlyContinue).InstallLocation | Should -be "C:\\Program Files\\Octopus Deploy\\Octopus\\"
+    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\OctopusServer' -Name "InstallLocation" -ErrorAction SilentlyContinue).InstallLocation | Should -be "C:\Program Files\Octopus Deploy\Octopus\"
   }
 
   it "should have created the config file" {

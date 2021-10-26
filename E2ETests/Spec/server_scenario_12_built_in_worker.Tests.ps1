@@ -22,7 +22,7 @@ describe server_scenario_12_built_in_worker {
 
   it "should have created registry entries" {
     Test-Path 'HKLM:\Software\Octopus\OctopusServer' | should -be $true
-    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\OctopusServer' -Name "InstallLocation" -ErrorAction SilentlyContinue).InstallLocation | Should -be "C:\\Program Files\\Octopus Deploy\\Octopus\\"
+    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\OctopusServer' -Name "InstallLocation" -ErrorAction SilentlyContinue).InstallLocation | Should -be "C:\Program Files\Octopus Deploy\Octopus\"
   }
 
   it "should have created the config file" {
