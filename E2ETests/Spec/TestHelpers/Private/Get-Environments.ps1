@@ -9,6 +9,7 @@ function Get-Environments {
         [string]
         $OctopusApiKey,
         [Parameter(Mandatory=$true)]
+        [AllowEmptyString()]
         [string]
         $spaceFragment
     )

@@ -12,6 +12,7 @@ function Get-MachineViaApi {
         [string]
         $thumbprint,
         [Parameter(Mandatory=$true)]
+        [AllowEmptyString()]
         [string]
         $spaceFragment
     )

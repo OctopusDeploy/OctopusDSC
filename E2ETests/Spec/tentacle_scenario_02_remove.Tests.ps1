@@ -18,15 +18,13 @@ describe tentacle_scenario_02_remove {
 
   # Listening Tentacle
   describe "Tentacle: ListeningTentacle" {
-    BeforeDiscovery {
+    BeforeAll {
       foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
         . $import.fullname
       }
-    }
 
-    BeforeAll {
       $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-      $tentacle = Get-TentacleDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "ListeningTentacle"
+      $tentacle = Get-TentacleDetails $config.OctopusServerUrl $config.OctopusApiKey "ListeningTentacle"
     }
 
     it "should not exist" {
@@ -44,15 +42,13 @@ describe tentacle_scenario_02_remove {
   }
 
   describe "Tentacle: PollingTentacle" {
-    BeforeDiscovery {
+    BeforeAll {
       foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
         . $import.fullname
       }
-    }
 
-    BeforeAll {
       $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-      $tentacle = Get-TentacleDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "PollingTentacle"
+      $tentacle = Get-TentacleDetails $config.OctopusServerUrl $config.OctopusApiKey "PollingTentacle"
     }
 
     it "should not exist" {
@@ -66,15 +62,13 @@ describe tentacle_scenario_02_remove {
   }
 
   describe "Tentacle: PollingTentacleWithoutAutoRegister" {
-    BeforeDiscovery {
+    BeforeAll {
       foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
         . $import.fullname
       }
-    }
 
-    BeforeAll {
       $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-      $tentacle = Get-TentacleDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "PollingTentacleWithoutAutoRegister"
+      $tentacle = Get-TentacleDetails $config.OctopusServerUrl $config.OctopusApiKey "PollingTentacleWithoutAutoRegister"
     }
 
     it "should not exist" {
@@ -88,15 +82,13 @@ describe tentacle_scenario_02_remove {
   }
 
   describe "Tentacle: PollingTentacleWithThumbprintWithoutAutoRegister" {
-    BeforeDiscovery {
+    BeforeAll {
       foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
         . $import.fullname
       }
-    }
 
-    BeforeAll {
       $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-      $tentacle = Get-TentacleDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "PollingTentacleWithThumbprintWithoutAutoRegister"
+      $tentacle = Get-TentacleDetails $config.OctopusServerUrl $config.OctopusApiKey "PollingTentacleWithThumbprintWithoutAutoRegister"
     }
 
     it "should not exist" {
@@ -110,15 +102,13 @@ describe tentacle_scenario_02_remove {
   }
 
   describe "Worker: WorkerTentacle" {
-    BeforeDiscovery {
+    BeforeAll {
       foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
         . $import.fullname
       }
-    }
 
-    BeforeAll {
       $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-      $worker = Get-WorkerDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "WorkerTentacle"
+      $worker = Get-WorkerDetails $config.OctopusServerUrl $config.OctopusApiKey "WorkerTentacle"
     }
 
     it "should not exist" {

@@ -12,11 +12,12 @@ function Test-IsOnline {
         [string]
         $thumbprint,
         [Parameter(Mandatory=$true)]
+        [AllowEmptyString()]
         [string]
         $spaceFragment
     )
 
-    $machine = Invoke-PollUntilMachineHasCompletedHealthCheck -OctopusServerUrl "https://matt-richardson.octopus.app" -OctopusApiKey "API-BII5ZPNWVCJQRAVEOTCRDZYFAW62BI5" -thumbprint $thumbprint -spaceFragment $spaceFragment
+    $machine = Invoke-PollUntilMachineHasCompletedHealthCheck -OctopusServerUrl $OctopusServerUrl -OctopusApiKey $OctopusApiKey -thumbprint $thumbprint -spaceFragment $spaceFragment
     $status = $machine.Status
     if ("$status" -eq "") {
         $status = $machine.HealthStatus

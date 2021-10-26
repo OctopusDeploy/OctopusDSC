@@ -12,6 +12,7 @@ function Get-WorkerViaApi {
         [string]
         $thumbprint,
         [Parameter(Mandatory=$true)]
+        [AllowEmptyString()]
         [string]
         $spaceFragment
     )

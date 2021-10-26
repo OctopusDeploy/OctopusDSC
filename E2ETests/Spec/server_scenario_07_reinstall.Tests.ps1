@@ -53,15 +53,13 @@ describe server_scenario_07_reinstall {
   }
 
   describe "Environment: UAT 1" {
-    BeforeDiscovery {
+    BeforeAll {
       foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
         . $import.fullname
       }
-    }
 
-    BeforeAll {
       $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-      $environment = Environment $config['OctopusServerUrl'] config['OctopusApiKey'] "UAT 1"
+      $environment = Get-EnvironmentDetails $config.OctopusServerUrl $config.OctopusApiKey "UAT 1"
     }
 
     it "should exist" {

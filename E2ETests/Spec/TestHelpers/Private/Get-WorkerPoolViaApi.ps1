@@ -12,6 +12,7 @@ function Get-WorkerPoolViaApi {
         [string]
         $WorkerPoolName,
         [Parameter(Mandatory=$true)]
+        [AllowEmptyString()]
         [string]
         $spaceFragment
     )

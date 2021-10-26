@@ -10,13 +10,10 @@ function Get-SpaceDetails {
         $OctopusApiKey,
         [Parameter(Mandatory=$true)]
         [string]
-        $SpaceName,
-        [Parameter(Mandatory=$false)]
-        [string]
-        $SpaceId
+        $SpaceName
     )
 
-    [PSCustomObject]$space = Get-SpaceViaApi -OctopusServerUrl $OctopusServerUrl -OctopusApiKey $OctopusApiKey -SpaceName $SpaceName -SpaceFragment $spaceFragment
+    [PSCustomObject]$space = Get-SpaceViaApi -OctopusServerUrl $OctopusServerUrl -OctopusApiKey $OctopusApiKey -SpaceName $SpaceName
     $exists = $null -ne $environment
     $description = ""
     if ($exists) {

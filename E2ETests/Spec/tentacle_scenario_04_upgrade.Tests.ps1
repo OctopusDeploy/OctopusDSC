@@ -37,15 +37,13 @@ describe tentacle_scenario_04_upgrade {
   }
 
   describe "Tentacle: Tentacle" {
-    BeforeDiscovery {
+    BeforeAll {
       foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
         . $import.fullname
       }
-    }
 
-    BeforeAll {
       $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-      $tentacle = Get-TentacleDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "Tentacle"
+      $tentacle = Get-TentacleDetails $config.OctopusServerUrl $config.OctopusApiKey "Tentacle"
     }
 
     it "should exist" {

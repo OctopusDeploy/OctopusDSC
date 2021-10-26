@@ -82,15 +82,13 @@ describe server_scenario_02_install_second_node {
   }
 
   describe "Environment: Production" {
-    BeforeDiscovery {
+    BeforeAll {
       foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
         . $import.fullname
       }
-    }
 
-    BeforeAll {
       $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-      $environment = Environment $config['OctopusServerUrl'] config['OctopusApiKey'] "Production"
+      $environment = Get-EnvironmentDetails $config.OctopusServerUrl $config.OctopusApiKey "Production"
     }
 
     it "should exist" {

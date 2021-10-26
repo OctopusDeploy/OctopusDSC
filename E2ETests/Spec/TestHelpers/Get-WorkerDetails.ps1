@@ -24,7 +24,7 @@ function Get-WorkerDetails {
     if ($exists) {
         $thumbprint = Get-Thumbprint $InstanceName
         $serverSupportsSpaces = Test-ServerSupportsSpaces $OctopusServerUrl
-        if ($serverSupportsSpaces) {
+        if ($serverSupportsSpaces -and (-not [string]::IsNullOrEmpty($SpaceId))) {
             $spaceFragment = "$SpaceId/"
         }
         $worker = Get-WorkerViaApi -OctopusServerUrl $OctopusServerUrl -OctopusApiKey $OctopusApiKey -Thumbprint $thumbprint -SpaceFragment $spaceFragment

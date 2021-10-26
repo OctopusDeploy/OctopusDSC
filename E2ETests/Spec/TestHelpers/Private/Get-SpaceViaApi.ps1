@@ -1,4 +1,4 @@
-function Get-MachinePolicies {
+function Get-SpaceViaApi {
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param (
@@ -9,11 +9,13 @@ function Get-MachinePolicies {
         [string]
         $OctopusApiKey,
         [Parameter(Mandatory=$true)]
-        [AllowEmptyString()]
         [string]
-        $spaceFragment
+        $SpaceName
     )
 
-    $url = "$OctopusServerUrl/api/$($spaceFragment)machinepolicies/all?api-key=$OctopusApiKey"
-    return Invoke-RestMethod $url
+    $url = "$OctopusServerUrl/api/spaces/all?api-key=$OctopusApiKey"
+    $response = Invoke-RestMethod $url
+    $space = $response | Where-Object { $_.Name -eq $SpaceName }
+
+    return $space
 }

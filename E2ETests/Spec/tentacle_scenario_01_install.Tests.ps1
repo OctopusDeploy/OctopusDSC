@@ -44,15 +44,13 @@ describe tentacle_scenario_01_install {
   }
 
   describe "Tentacle: Listening Tentacle" {
-    BeforeDiscovery {
+    BeforeAll {
       foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
         . $import.fullname
       }
-    }
 
-    BeforeAll {
       $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-      $tentacle = Get-TentacleDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "ListeningTentacle"
+      $tentacle = Get-TentacleDetails $config.OctopusServerUrl $config.OctopusApiKey "ListeningTentacle"
     }
 
     it "should exist" {
@@ -128,15 +126,13 @@ describe tentacle_scenario_01_install {
   }
 
   describe "Tentacle: Polling Tentacle" {
-    BeforeDiscovery {
+    BeforeAll {
       foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
         . $import.fullname
       }
-    }
 
-    BeforeAll {
       $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-      $tentacle = Get-TentacleDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "PollingTentacle"
+      $tentacle = Get-TentacleDetails $config.OctopusServerUrl $config.OctopusApiKey "PollingTentacle"
     }
 
     it "should exist" {
@@ -211,15 +207,13 @@ describe tentacle_scenario_01_install {
   }
 
   describe "Tentacle: ListeningTentacleWithoutAutoRegister" {
-    BeforeDiscovery {
+    BeforeAll {
       foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
         . $import.fullname
       }
-    }
 
-    BeforeAll {
       $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-      $tentacle = Get-TentacleDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "ListeningTentacleWithoutAutoRegister"
+      $tentacle = Get-TentacleDetails $config.OctopusServerUrl $config.OctopusApiKey "ListeningTentacleWithoutAutoRegister"
     }
 
     it "should exist" {
@@ -271,15 +265,13 @@ describe tentacle_scenario_01_install {
   }
 
   describe "Tentacle: ListeningTentacleWithThumbprintWithoutAutoRegister" {
-    BeforeDiscovery {
+    BeforeAll {
       foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
         . $import.fullname
       }
-    }
 
-    BeforeAll {
       $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-      $tentacle = Get-TentacleDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "ListeningTentacleWithThumbprintWithoutAutoRegister"
+      $tentacle = Get-TentacleDetails $config.OctopusServerUrl $config.OctopusApiKey "ListeningTentacleWithThumbprintWithoutAutoRegister"
     }
 
     it "should exist" {
@@ -363,15 +355,13 @@ describe tentacle_scenario_01_install {
   }
 
   describe "Worker: WorkerTentacle" {
-    BeforeDiscovery {
+    BeforeAll {
       foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
         . $import.fullname
       }
-    }
 
-    BeforeAll {
       $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-      $worker = Get-WorkerDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "WorkerTentacle"
+      $worker = Get-WorkerDetails $config.OctopusServerUrl $config.OctopusApiKey "WorkerTentacle"
     }
 
     it "should exist" {
@@ -410,7 +400,7 @@ describe tentacle_scenario_01_install {
   }
 
   it "should have set ConfigurationFilePath in the config file" {
-    (Get-Content 'C:\Octopus\WorkerTentacleHome\WorkerTentacle\Tentacle.config' -raw | should -match "Tentacle.Communication.TrustedOctopusServers"
+    Get-Content 'C:\Octopus\WorkerTentacleHome\WorkerTentacle\Tentacle.config' -raw | should -match "Tentacle.Communication.TrustedOctopusServers"
   }
 
   ### listening tentacle with specific service account
@@ -436,15 +426,13 @@ describe tentacle_scenario_01_install {
   }
 
   describe "Tentacle: ListeningTentacleWithCustomAccount" {
-    BeforeDiscovery {
+    BeforeAll {
       foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
         . $import.fullname
       }
-    }
 
-    BeforeAll {
       $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-      $tentacle = Get-TentacleDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "ListeningTentacleWithCustomAccount"
+      $tentacle = Get-TentacleDetails $config.OctopusServerUrl $config.OctopusApiKey "ListeningTentacleWithCustomAccount"
     }
 
     it "should exist" {
@@ -501,7 +489,7 @@ describe tentacle_scenario_01_install {
   }
 
   it "should have set ConfigurationFilePath in the config file" {
-    (Get-Content 'C:\Octopus\ListeningTentacleWithCustomAccountHome\ListeningTentacleWithCustomAccount\Tentacle.config' -raw | Should -match "Tentacle.Communication.TrustedOctopusServers"
+    Get-Content 'C:\Octopus\ListeningTentacleWithCustomAccountHome\ListeningTentacleWithCustomAccount\Tentacle.config' -raw | Should -match "Tentacle.Communication.TrustedOctopusServers"
   }
 
   it "should be able to get dsc configuration" {

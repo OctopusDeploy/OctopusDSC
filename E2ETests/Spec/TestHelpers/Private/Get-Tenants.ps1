@@ -9,6 +9,7 @@ function Get-Tenants {
         [string]
         $OctopusApiKey,
         [Parameter(Mandatory=$true)]
+        [AllowEmptyString()]
         [string]
         $spaceFragment
     )

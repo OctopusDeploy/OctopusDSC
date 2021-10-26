@@ -17,7 +17,7 @@ function Get-EnvironmentDetails {
     )
 
     $serverSupportsSpaces = Test-ServerSupportsSpaces $OctopusServerUrl
-    if ($serverSupportsSpaces) {
+    if ($serverSupportsSpaces -and (-not [string]::IsNullOrEmpty($SpaceId))) {
         $spaceFragment = "$SpaceId/"
     }
 

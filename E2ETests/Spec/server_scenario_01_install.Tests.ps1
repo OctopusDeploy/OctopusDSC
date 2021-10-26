@@ -74,15 +74,13 @@ describe server_scenario_01_install {
   }
 
   describe "Environment: Production" {
-    BeforeDiscovery {
+    BeforeAll {
       foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
         . $import.fullname
       }
-    }
 
-    BeforeAll {
       $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-      $environment = Get-EnvironmentDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "Production"
+      $environment = Get-EnvironmentDetails $config.OctopusServerUrl $config.OctopusApiKey "Production"
     }
 
     it "should exist" {
@@ -91,15 +89,13 @@ describe server_scenario_01_install {
   }
 
   describe "Space: Integration Team" {
-    BeforeDiscovery {
+    BeforeAll {
       foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
         . $import.fullname
       }
-    }
 
-    BeforeAll {
       $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-      $space = Get-SpaceDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "Integration Team"
+      $space = Get-SpaceDetails $config.OctopusServerUrl $config.OctopusApiKey "Integration Team"
     }
 
     it "should exist" {
@@ -112,15 +108,13 @@ describe server_scenario_01_install {
   }
 
   describe "WorkerPool: Secondary Worker Pool" {
-    BeforeDiscovery {
+    BeforeAll {
       foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
         . $import.fullname
       }
-    }
 
-    BeforeAll {
       $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-      $workerPool = Get-WorkerPoolDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "Secondary Worker Pool"
+      $workerPool = Get-WorkerPoolDetails $config.OctopusServerUrl $config.OctopusApiKey "Secondary Worker Pool"
     }
 
     it "should exist" {

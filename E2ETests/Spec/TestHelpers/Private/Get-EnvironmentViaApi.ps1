@@ -12,6 +12,7 @@ function Get-EnvironmentViaApi {
         [string]
         $EnvironmentName,
         [Parameter(Mandatory=$true)]
+        [AllowEmptyString()]
         [string]
         $spaceFragment
     )
