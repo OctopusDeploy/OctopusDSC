@@ -6,7 +6,7 @@ describe server_scenario_03_remove {
 
   it "should have left the executable there" {
       # as there is another instance still on the box - we shouldn't have removed the binaries
-    Test-Path 'C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe' -PathType Container | should -be $true
+    Test-Path 'C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe' -PathType Leaf | should -be $true
   }
 
   it "should have uninstalled the service" {
