@@ -45,7 +45,7 @@ describe server_scenario_12_built_in_worker {
 
   it "should have added OctoSquid to local administrators" {
     (Get-LocalGroupMember "Administrators").Name -contains "$env:COMPUTERNAME\OctoSquid" | should -be $true
-  end
+  }
 
   it "should have created the OctoMollusc user" {
     Get-LocalUser 'OctoMollusc' -ErrorAction SilentlyContinue | should -not -be $null
@@ -53,7 +53,7 @@ describe server_scenario_12_built_in_worker {
 
   it "should not have added octoOctoMolluscMollusc to the local administrators group" {
     (Get-LocalGroupMember "Administrators").Name -contains "$env:COMPUTERNAME\OctoSquid" | should -be $false
-  end
+  }
 
   it "should have created the service" {
     Get-Service 'OctopusDeploy' | should -not -be $null

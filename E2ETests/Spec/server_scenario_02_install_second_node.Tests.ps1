@@ -20,7 +20,7 @@ describe server_scenario_02_install_second_node {
   it "should store logs in the local instance folder" {
     # node logs go in the local instance folder
     Test-Path 'c:/ChezOctopusSecondNode/Logs' | should -be $true
-  end
+  }
 
   it "should have created c:/ChezOctopus/TaskLogs" {
     Test-Path 'c:/ChezOctopus/TaskLogs' -PathType Container | should -be $true
