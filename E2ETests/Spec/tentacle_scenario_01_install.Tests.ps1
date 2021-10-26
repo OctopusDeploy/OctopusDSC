@@ -1,7 +1,4 @@
 describe tentacle_scenario_01_install {
-  require 'json'
-
-  config = JSON.parse(File.read("c:\\temp\\octopus-configured.marker"))
 
   it "should have created c:/Octopus" {
     Test-Path 'c:/Octopus' -PathType Container | should -be $true

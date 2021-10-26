@@ -1,8 +1,4 @@
 describe tentacle_scenario_02_remove {
-  require 'json'
-
-  config = JSON.parse(File.read("c:\\temp\\octopus-configured.marker"))
-
   #we deliberately dont cleanup the octopus directory, as it contains logs & config
   it "should have left c:/Octopus alone" {
     Test-Path 'c:/Octopus' -PathType Container | should -be $true
