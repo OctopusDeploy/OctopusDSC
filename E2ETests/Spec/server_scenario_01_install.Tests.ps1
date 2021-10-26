@@ -73,21 +73,60 @@ describe server_scenario_01_install {
     (Get-NetTCPConnection -LocalPort 443 -ErrorAction SilentlyContinue).State -contains "Listen" | should -be $true
   }
 
-#   #environment
-#   describe octopus_deploy_environment(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "Production") do
-#     it { should exist }
-#   end
+  describe "Environment: Production" {
+    BeforeDiscovery {
+      foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
+        . $import.fullname
+      }
+    }
 
-#   #space
-#   describe octopus_deploy_space(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], 'Integration Team') do
-#     it { should exist }
-#     it { should have_description('Description for the Integration Team Space') }
-#   end
+    BeforeAll {
+      $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
+      $environment = Get-EnvironmentDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "Production"
+    }
 
-#   #worker pool
-#   describe octopus_deploy_worker_pool(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "Secondary Worker Pool") do
-#     it { should exist }
-#   end
+    it "should exist" {
+      $environment.Exists | Should -be $true
+    }
+  }
+
+  describe "Space: Integration Team" {
+    BeforeDiscovery {
+      foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
+        . $import.fullname
+      }
+    }
+
+    BeforeAll {
+      $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
+      $space = Get-SpaceDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "Integration Team"
+    }
+
+    it "should exist" {
+      $space.Exists | Should -be $true
+    }
+
+    it "should have description 'Description for the Integration Team Space'" {
+        $space.Description | Should -be 'Description for the Integration Team Space'
+      }
+  }
+
+  describe "WorkerPool: Secondary Worker Pool" {
+    BeforeDiscovery {
+      foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
+        . $import.fullname
+      }
+    }
+
+    BeforeAll {
+      $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
+      $workerPool = Get-WorkerPoolDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "Secondary Worker Pool"
+    }
+
+    it "should exist" {
+      $workerPool.Exists | Should -be $true
+    }
+  }
 
   #dsc overall status
   it "should be able to get dsc configuration" {

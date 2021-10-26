@@ -81,10 +81,22 @@ describe server_scenario_02_install_second_node {
     (Get-NetTCPConnection -LocalPort 81 -ErrorAction SilentlyContinue).State -contains "Listen" | should -be $true
   }
 
-  #environment
-#   describe octopus_deploy_environment(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "Production") do
-#     it { should exist }
-#   end
+  describe "Environment: Production" {
+    BeforeDiscovery {
+      foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
+        . $import.fullname
+      }
+    }
+
+    BeforeAll {
+      $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
+      $environment = Environment $config['OctopusServerUrl'] config['OctopusApiKey'] "Production"
+    }
+
+    it "should exist" {
+      $environment.Exists | Should -be $true
+    }
+  }
 
   #dsc overall status
   it "should be able to get dsc configuration" {

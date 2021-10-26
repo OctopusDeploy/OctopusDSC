@@ -113,9 +113,22 @@ describe tentacle_scenario_02_remove {
     Get-Service 'OctopusDeploy Tentacle: WorkerTentacle' -ErrorAction SilentlyContinue | should -be $null
   }
 
-#   describe octopus_deploy_worker(config['OctopusServerUrl'], config['OctopusApiKey'], "WorkerTentacle") do
-#     it { should_not exist }
-#   end
+  describe "Worker: WorkerTentacle" {
+    BeforeDiscovery {
+      foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
+        . $import.fullname
+      }
+    }
+
+    BeforeAll {
+      $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
+      $worker = Get-WorkerDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "WorkerTentacle"
+    }
+
+    it "should not exist" {
+      $worker.Exists | Should -be $false
+    }
+  }
 
   it "should be able to get dsc configuration" {
     $ProgressPreference = "SilentlyContinue"

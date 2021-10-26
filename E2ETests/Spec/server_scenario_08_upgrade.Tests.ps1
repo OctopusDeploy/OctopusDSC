@@ -59,10 +59,22 @@ describe server_scenario_08_upgrade {
     (Get-NetTCPConnection -LocalPort 81 -ErrorAction SilentlyContinue).State -contains "Listen" | should -be $true
   }
 
-#   #environment
-#   describe octopus_deploy_environment(ENV['OctopusServerUrl'], ENV['OctopusApiKey'], "UAT 1") do
-#     it { should_not exist }
-#   end
+  describe "Environment: UAT 1" {
+    BeforeDiscovery {
+      foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
+        . $import.fullname
+      }
+    }
+
+    BeforeAll {
+      $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
+      $environment = Environment $config['OctopusServerUrl'] config['OctopusApiKey'] "UAT 1"
+    }
+
+    it "should exist" {
+      $environment.Exists | Should -be $true
+    }
+  }
 
   #dsc overall status
   it "should be able to get dsc configuration" {

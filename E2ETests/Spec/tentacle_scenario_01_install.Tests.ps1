@@ -365,14 +365,40 @@ describe tentacle_scenario_01_install {
     (Get-NetTCPConnection -LocalPort 10937 -ErrorAction SilentlyContinue).State -contains "Listen" | should -be $true
   }
 
-#   describe octopus_deploy_worker(config['OctopusServerUrl'], config['OctopusApiKey'], "WorkerTentacle") do
-#     it { should exist }
-#     it { should be_registered_with_the_server }
-#     it { should be_online }
-#     it { should be_listening_worker }
-#     it { should have_display_name("My Worker Tentacle")}
-#     # TODO check pool membership
-#   end
+  describe "Worker: WorkerTentacle" {
+    BeforeDiscovery {
+      foreach($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
+        . $import.fullname
+      }
+    }
+
+    BeforeAll {
+      $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
+      $worker = Get-WorkerDetails $config['OctopusServerUrl'] config['OctopusApiKey'] "WorkerTentacle"
+    }
+
+    it "should exist" {
+      $worker.Exists | Should -be $true
+    }
+
+    it "should be registered with the server" {
+      $worker.IsRegisteredWithTheServer | Should -be $true
+    }
+
+    it "should be online" {
+      $worker.IsOnline | Should -be $true
+    }
+
+    it "should be a listening worker" {
+      $worker.IsListening | Should -be $true
+    }
+
+    it "should have display name 'My Worker Tentacle'" {
+      $worker.DisplayName | should -be "My Worker Tentacle"
+    }
+
+    # TODO check pool membership
+  }
 
   it "should have created C:/ProgramData/Octopus/Tentacle/Instances/WorkerTentacle.config" {
     Test-Path 'C:/ProgramData/Octopus/Tentacle/Instances/WorkerTentacle.config' -PathType Leaf | should -be $true
