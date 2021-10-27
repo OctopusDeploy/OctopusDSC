@@ -32,14 +32,10 @@ $run_test_scenario_script = <<SCRIPT
   $configuration.TestResult.Enabled = $true
   $configuration.TestResult.OutputPath = 'PesterTestResults_{scenario_name}.xml'
   $configuration.TestResult.OutputFormat = 'NUnitXml'
-  $configuration.Run.PassThru = $true
   $configuration.Run.Path = @('Spec/{scenario_name}.Tests.ps1')
-  $configuration.Run.Exit = $true
   $configuration.Output.Verbosity = 'Detailed'
-  $result = Invoke-Pester -configuration $configuration
-
+  Invoke-Pester -configuration $configuration
   write-output "##teamcity[blockClosed name='Testing Scenario {scenario_name}']"
-  exit $LASTEXITCODE
 SCRIPT
 
 def publish_logs(config, scenario, log_files)
