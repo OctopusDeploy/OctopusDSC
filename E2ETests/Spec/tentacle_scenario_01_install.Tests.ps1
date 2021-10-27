@@ -86,8 +86,7 @@ describe tentacle_scenario_01_install {
     }
 
     it "should have tenant tag 'Hosting' and 'Cloud'" {
-      $tentacle.TenantTags | should -contain 'Hosting'
-      $tentacle.TenantTags | should -contain 'Cloud'
+      $tentacle.TenantTags | should -contain 'Hosting/Cloud'
     }
 
     it "should have policy 'Test Policy'" {
