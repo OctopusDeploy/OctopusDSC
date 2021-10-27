@@ -53,14 +53,14 @@ Configuration Server_Scenario_01_Install
         {
             SetScript = {
                 Start-Sleep -seconds 120
-                Set-Content c:\temp\SleepAfterInstallHasHappened.txt -value "true"
+                Set-Content c:\temp\SleepAfterInstallHasHappened_Server_Scenario_01_Install.txt -value "true"
             }
             TestScript = {
-                return Test-Path c:\temp\SleepAfterInstallHasHappened.txt
+                return Test-Path c:\temp\SleepAfterInstallHasHappened_Server_Scenario_01_Install.txt
             }
             GetScript = {
                 @{
-                    Result = Test-Path c:\temp\SleepAfterInstallHasHappened.txt
+                    Result = Test-Path c:\temp\SleepAfterInstallHasHappened_Server_Scenario_01_Install.txt
                 }
             }
             DependsOn = "[cOctopusServerUsernamePasswordAuthentication]EnableUsernamePasswordAuth"

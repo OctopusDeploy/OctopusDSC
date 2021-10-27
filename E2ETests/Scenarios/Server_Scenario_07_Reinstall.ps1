@@ -41,11 +41,29 @@ Configuration Server_Scenario_07_Reinstall
             AllowCollectionOfUsageStatistics = $false
         }
 
-        cOctopusServerUsernamePasswordAuthentication "Enable Username/Password Auth"
+        cOctopusServerUsernamePasswordAuthentication "EnableUsernamePasswordAuth"
         {
             InstanceName = "OctopusServer"
             Enabled = $true
             DependsOn = "[cOctopusServer]OctopusServer"
+        }
+
+        #hack until https://github.com/OctopusDeploy/Issues/issues/7113 is resolved
+        Script "SleepForABitToWorkaroundServerBug"
+        {
+            SetScript = {
+                Start-Sleep -seconds 120
+                Set-Content c:\temp\SleepAfterInstallHasHappened_Server_Scenario_07_Reinstall.txt -value "true"
+            }
+            TestScript = {
+                return Test-Path c:\temp\SleepAfterInstallHasHappened_Server_Scenario_07_Reinstall.txt
+            }
+            GetScript = {
+                @{
+                    Result = Test-Path c:\temp\SleepAfterInstallHasHappened_Server_Scenario_07_Reinstall.txt
+                }
+            }
+            DependsOn = "[cOctopusServerUsernamePasswordAuthentication]EnableUsernamePasswordAuth"
         }
 
         cOctopusEnvironment "Create 'UAT 1' Environment"
@@ -54,7 +72,7 @@ Configuration Server_Scenario_07_Reinstall
             Ensure = "Present"
             OctopusCredentials = $cred
             EnvironmentName = "UAT 1"
-            DependsOn = "[cOctopusServer]OctopusServer"
+            DependsOn = "[Script]SleepForABitToWorkaroundServerBug"
         }
 
         Script "Create Api Key and set environment variables for tests"
@@ -79,11 +97,12 @@ Configuration Server_Scenario_07_Reinstall
 
                 write-verbose "setting OctopusApiKey to $($createApiKeyResult.ApiKey)"
 
-                #save it to enviornment variables for tests to use
-                [environment]::SetEnvironmentVariable("OctopusServerUrl", "http://localhost:81", "User")
-                [environment]::SetEnvironmentVariable("OctopusServerUrl", "http://localhost:81", "Machine")
-                [environment]::SetEnvironmentVariable("OctopusApiKey", $createApiKeyResult.ApiKey, "User")
-                [environment]::SetEnvironmentVariable("OctopusApiKey", $createApiKeyResult.ApiKey, "Machine")
+                #save it to file for tests to use
+                $content = @{
+                    "OctopusServerUrl" = "http://localhost:81";
+                    "OctopusApiKey" = $createApiKeyResult.ApiKey;
+                }
+                set-content "c:\temp\octopus-configured.marker" ($content | ConvertTo-Json)
             }
             TestScript = {
                 Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Newtonsoft.Json.dll"
