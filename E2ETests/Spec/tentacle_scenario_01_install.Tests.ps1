@@ -171,8 +171,8 @@ describe tentacle_scenario_01_install {
       $tentacle.TenantTags.length | should -be 0
     }
 
-    it "should have policy 'Test Policy'" {
-      $tentacle.Policy | should -be 'Test Policy'
+    it "should have policy 'Default Machine Policy'" {
+      $tentacle.Policy | should -be 'Default Machine Policy'
     }
   }
 
