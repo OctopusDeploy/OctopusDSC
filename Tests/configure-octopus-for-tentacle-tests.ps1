@@ -8,78 +8,75 @@ $octopusAdminPassword="SuperS3cretPassw0rd!"
 
 try
 {
-  if (-not (Test-Path "c:\temp\octopus-configured.marker")) {
+  Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Newtonsoft.Json.dll"
+  Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Octopus.Client.dll"
 
-    Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Newtonsoft.Json.dll"
-    Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Octopus.Client.dll"
+  #connect
+  $endpoint = new-object Octopus.Client.OctopusServerEndpoint $OctopusURI
+  $repository = new-object Octopus.Client.OctopusRepository $endpoint
 
-    #connect
-    $endpoint = new-object Octopus.Client.OctopusServerEndpoint $OctopusURI
-    $repository = new-object Octopus.Client.OctopusRepository $endpoint
+  #sign in
+  $credentials = New-Object Octopus.Client.Model.LoginCommand
+  $credentials.Username = $octopusAdminUsername
+  $credentials.Password = $octopusAdminPassword
+  $repository.Users.SignIn($credentials)
 
-    #sign in
-    $credentials = New-Object Octopus.Client.Model.LoginCommand
-    $credentials.Username = $octopusAdminUsername
-    $credentials.Password = $octopusAdminPassword
-    $repository.Users.SignIn($credentials)
+  #create the api key
+  $user = $repository.Users.GetCurrent()
+  $createApiKeyResult = $repository.Users.CreateApiKey($user, "Octopus DSC Testing")
 
-    #create the api key
-    $user = $repository.Users.GetCurrent()
-    $createApiKeyResult = $repository.Users.CreateApiKey($user, "Octopus DSC Testing")
+  #create an environment for the tentacles to go into
+  $environmentEditor = $repository.Environments.CreateOrModify("The-Env")
+  $environment = $environmentEditor.Instance
+  $repository.Environments.CreateOrModify("Env2") | Out-Null
 
-    #create an environment for the tentacles to go into
-    $environmentEditor = $repository.Environments.CreateOrModify("The-Env")
-    $environment = $environmentEditor.Instance
-    $repository.Environments.CreateOrModify("Env2") | Out-Null
-
-    #create a project
-    $projectGroup = $repository.ProjectGroups.Get("ProjectGroups-1")
-    if($null -eq $projectGroup) {
-      throw "Default Project group not found during configuration"
-    }
-
-    $lifecycle = $repository.Lifecycles.FindByName("Default Lifecycle")
-    if($null -eq $lifecycle) {
-      throw "Lifecycle 'Default Lifecycle' not found during configuration"
-    }
-
-    $projectEditor = $repository.Projects.CreateOrModify("Multi tenant project", $projectGroup, $lifecycle)
-    $project = $projectEditor.Instance
-
-    # setup tag set
-    $tagSetEditor = $repository.TagSets.CreateOrModify("Hosting")
-    $tagSetEditor.AddOrUpdateTag("On premises", "Hosted on site", [Octopus.Client.Model.TagResource+StandardColor]::DarkGreen) | Out-Null
-    $tagSetEditor.AddOrUpdateTag("Cloud", "Hosted in the cloud", [Octopus.Client.Model.TagResource+StandardColor]::LightBlue) | Out-Null
-    $tagSetEditor.Save() | Out-Null
-    $tagSet = $tagSetEditor.Instance
-
-    $tenantEditor = $repository.Tenants.CreateOrModify("John")
-    $tenantEditor.WithTag($tagSet.Tags[0]) | Out-Null
-    $tenantEditor.ConnectToProjectAndEnvironments($project, $environment) | Out-Null
-
-    # create a non-default Test Machine Policy w/ defaults
-    $policyResource = $repository.MachinePolicies.GetTemplate()
-    $policyResource.Name = "Test Policy"
-    $policyResource.IsDefault = $false
-    $policyResource.Description = "Test Machine Policy"
-    $repository.MachinePolicies.Create($policyResource) | Out-Null
-
-    #ensure we have a worker pool
-    $repository.WorkerPools.CreateOrModify("Secondary Worker Pool") #| Out-Null
-
-    #ensure we have a cloud region (ie, something without a thumbprint, to catch null thumbprint errors)
-    $cloudRegionEndpoint = New-Object Octopus.Client.Model.Endpoints.CloudRegionEndpointResource
-    $repository.Machines.CreateOrModify("My Cloud Region", $cloudRegionEndpoint, @($environment), @("cloud-region")) | Out-Null
-
-    $certificate = Invoke-RestMethod "$OctopusURI/api/configuration/certificates/certificate-global?apikey=$($createApiKeyResult.ApiKey)"
-    $content = @{
-        "OctopusServerUrl" = $OctopusURI;
-        "OctopusApiKey" = $createApiKeyResult.ApiKey;
-        "OctopusServerThumbprint" = $certificate.Thumbprint;
-    }
-    set-content "c:\temp\octopus-configured.marker" ($content | ConvertTo-Json)
-    Stop-Transcript
+  #create a project
+  $projectGroup = $repository.ProjectGroups.Get("ProjectGroups-1")
+  if($null -eq $projectGroup) {
+    throw "Default Project group not found during configuration"
   }
+
+  $lifecycle = $repository.Lifecycles.FindByName("Default Lifecycle")
+  if($null -eq $lifecycle) {
+    throw "Lifecycle 'Default Lifecycle' not found during configuration"
+  }
+
+  $projectEditor = $repository.Projects.CreateOrModify("Multi tenant project", $projectGroup, $lifecycle)
+  $project = $projectEditor.Instance
+
+  # setup tag set
+  $tagSetEditor = $repository.TagSets.CreateOrModify("Hosting")
+  $tagSetEditor.AddOrUpdateTag("On premises", "Hosted on site", [Octopus.Client.Model.TagResource+StandardColor]::DarkGreen) | Out-Null
+  $tagSetEditor.AddOrUpdateTag("Cloud", "Hosted in the cloud", [Octopus.Client.Model.TagResource+StandardColor]::LightBlue) | Out-Null
+  $tagSetEditor.Save() | Out-Null
+  $tagSet = $tagSetEditor.Instance
+
+  $tenantEditor = $repository.Tenants.CreateOrModify("John")
+  $tenantEditor.WithTag($tagSet.Tags[0]) | Out-Null
+  $tenantEditor.ConnectToProjectAndEnvironments($project, $environment) | Out-Null
+
+  # create a non-default Test Machine Policy w/ defaults
+  $policyResource = $repository.MachinePolicies.GetTemplate()
+  $policyResource.Name = "Test Policy"
+  $policyResource.IsDefault = $false
+  $policyResource.Description = "Test Machine Policy"
+  $repository.MachinePolicies.Create($policyResource) | Out-Null
+
+  #ensure we have a worker pool
+  $repository.WorkerPools.CreateOrModify("Secondary Worker Pool") #| Out-Null
+
+  #ensure we have a cloud region (ie, something without a thumbprint, to catch null thumbprint errors)
+  $cloudRegionEndpoint = New-Object Octopus.Client.Model.Endpoints.CloudRegionEndpointResource
+  $repository.Machines.CreateOrModify("My Cloud Region", $cloudRegionEndpoint, @($environment), @("cloud-region")) | Out-Null
+
+  $certificate = Invoke-RestMethod "$OctopusURI/api/configuration/certificates/certificate-global?apikey=$($createApiKeyResult.ApiKey)"
+  $content = @{
+    "OctopusServerUrl" = $OctopusURI;
+    "OctopusApiKey" = $createApiKeyResult.ApiKey;
+    "OctopusServerThumbprint" = $certificate.Thumbprint;
+  }
+  set-content "c:\temp\octopus-configured.marker" ($content | ConvertTo-Json)
+  Stop-Transcript
 }
 catch
 {
