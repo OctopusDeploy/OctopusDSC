@@ -94,7 +94,7 @@ describe tentacle_scenario_04_upgrade {
   }
 
   it "should have kept the ConfigurationFilePath" {
-    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle\Tentacle' -Name "ConfigurationFilePath" -ErrorAction SilentlyContinue).InstallLocation | Should -be "C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config"
+    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle\Tentacle' -Name "ConfigurationFilePath" -ErrorAction SilentlyContinue).ConfigurationFilePath | Should -be "C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config"
   }
 
   it "should have created C:/ProgramData/Octopus/Tentacle/Instances/Tentacle.config" {

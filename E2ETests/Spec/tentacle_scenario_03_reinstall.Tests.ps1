@@ -95,7 +95,7 @@ describe tentacle_scenario_03_reinstall {
   }
 
   it "should have set the ConfigurationFilePath" {
-    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle\Tentacle' -Name "ConfigurationFilePath" -ErrorAction SilentlyContinue).InstallLocation | Should -be "C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config"
+    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle\Tentacle' -Name "ConfigurationFilePath" -ErrorAction SilentlyContinue).ConfigurationFilePath | Should -be "C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config"
   }
 
   it "should be able to get dsc configuration" {
