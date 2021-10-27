@@ -70,7 +70,7 @@ describe server_scenario_08_upgrade {
     }
 
     it "should exist" {
-      $environment.Exists | Should -be $true
+      $environment.Exists | Should -be $false
     }
   }
 
