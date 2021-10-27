@@ -1,7 +1,7 @@
 describe tentacle_scenario_06_watchdog_delete {
   it "should have installed the watchdog" {
     $ProgressPreference = "SilentlyContinue"
-    $response = (& "C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe" show-configuration --format json-hierarchical | out-string | ConvertFrom-Json)
+    $response = (& "C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe" show-configuration | out-string | ConvertFrom-Json)
     $LASTEXITCODE | Should -be 0
     $response.Octopus.Watchdog.Enabled | should -be "False"
   }
