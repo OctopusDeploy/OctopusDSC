@@ -48,6 +48,11 @@ try
     $tentacle.Roles.Add($role)
     $tentacle.Name = $machineName
 
+    write-output "Registering tentacle with server..."
+    Write-Output "-----------------------------------"
+    $tentacle | ConvertTo-Json | Write-Output
+    Write-Output "-----------------------------------"
+
     $repository.Machines.Create($tentacle) | Out-Null
 }
 catch
