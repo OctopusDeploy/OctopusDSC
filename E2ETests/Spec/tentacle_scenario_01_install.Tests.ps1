@@ -14,7 +14,7 @@ describe tentacle_scenario_01_install {
 
   it "should have created registry entries" {
     Test-Path 'HKLM:\Software\Octopus\Tentacle' | should -be $true
-    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle' -Name "InstallLocation" -ErrorAction SilentlyContinue).InstallLocation | Should -be "C:\\Program Files\\Octopus Deploy\\Tentacle\\"
+    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle' -Name "InstallLocation" -ErrorAction SilentlyContinue).InstallLocation | Should -be "C:\Program Files\Octopus Deploy\Tentacle\"
   }
 
   it "should have created C:/ProgramData/Octopus/Tentacle/Instances" {
@@ -181,7 +181,7 @@ describe tentacle_scenario_01_install {
   }
 
   it "should have set ConfigurationFilePath in the config file" {
-    (Get-Content 'C:/ProgramData/Octopus/Tentacle/Instances/pollingtentacle.config' -raw | ConvertFrom-Json -depth 10).ConfigurationFilePath | Should -be 'C:\Octopus\Polling Tentacle Home\PollingTentacle\Tentacle.config'
+    (Get-Content 'C:/ProgramData/Octopus/Tentacle/Instances/pollingtentacle.config' -raw | ConvertFrom-Json).ConfigurationFilePath | Should -be 'C:\Octopus\Polling Tentacle Home\PollingTentacle\Tentacle.config'
   }
 
   ### listening tentacle (without autoregister, no thumbprint):
@@ -230,7 +230,7 @@ describe tentacle_scenario_01_install {
   }
 
   it "should have set ConfigurationFilePath in the config file" {
-    (Get-Content 'C:/ProgramData/Octopus/Tentacle/Instances/listeningtentaclewithoutautoregister.config' -raw | ConvertFrom-Json -depth 10).ConfigurationFilePath | Should -be 'C:\Octopus\ListeningTentacleWithoutAutoRegisterHome\ListeningTentacleWithoutAutoRegister\Tentacle.config'
+    (Get-Content 'C:/ProgramData/Octopus/Tentacle/Instances/listeningtentaclewithoutautoregister.config' -raw | ConvertFrom-Json).ConfigurationFilePath | Should -be 'C:\Octopus\ListeningTentacleWithoutAutoRegisterHome\ListeningTentacleWithoutAutoRegister\Tentacle.config'
   }
 
   it "should have created the config file" {
@@ -320,7 +320,7 @@ describe tentacle_scenario_01_install {
   }
 
   it "should have set ConfigurationFilePath in the instance config" {
-    (Get-Content 'C:/ProgramData/Octopus/Tentacle/Instances/ListeningTentacleWithThumbprintWithoutAutoRegister.config' -raw | ConvertFrom-Json -depth 10).ConfigurationFilePath | Should -be 'C:\Octopus\ListeningTentacleWithThumbprintWithoutAutoRegisterHome\ListeningTentacleWithThumbprintWithoutAutoRegister\Tentacle.config'
+    (Get-Content 'C:/ProgramData/Octopus/Tentacle/Instances/ListeningTentacleWithThumbprintWithoutAutoRegister.config' -raw | ConvertFrom-Json).ConfigurationFilePath | Should -be 'C:\Octopus\ListeningTentacleWithThumbprintWithoutAutoRegisterHome\ListeningTentacleWithThumbprintWithoutAutoRegister\Tentacle.config'
   }
 
   it "should have created the config file" {
@@ -392,7 +392,7 @@ describe tentacle_scenario_01_install {
   }
 
   it "should have set ConfigurationFilePath in the config file" {
-    (Get-Content 'C:/ProgramData/Octopus/Tentacle/Instances/WorkerTentacle.config' -raw | ConvertFrom-Json -depth 10).ConfigurationFilePath | Should -be 'C:\Octopus\WorkerTentacleHome\WorkerTentacle\Tentacle.config'
+    (Get-Content 'C:/ProgramData/Octopus/Tentacle/Instances/WorkerTentacle.config' -raw | ConvertFrom-Json).ConfigurationFilePath | Should -be 'C:\Octopus\WorkerTentacleHome\WorkerTentacle\Tentacle.config'
   }
 
   it "should have created C:\Octopus\WorkerTentacleHome\WorkerTentacle\Tentacle.config" {
@@ -481,7 +481,7 @@ describe tentacle_scenario_01_install {
   }
 
   it "should have set ConfigurationFilePath in the config file" {
-    (Get-Content 'C:/ProgramData/Octopus/Tentacle/Instances/ListeningTentacleWithCustomAccount.config' -raw | ConvertFrom-Json -depth 10).ConfigurationFilePath | Should -be 'C:\Octopus\ListeningTentacleWithCustomAccountHome\ListeningTentacleWithCustomAccount\Tentacle.config'
+    (Get-Content 'C:/ProgramData/Octopus/Tentacle/Instances/ListeningTentacleWithCustomAccount.config' -raw | ConvertFrom-Json).ConfigurationFilePath | Should -be 'C:\Octopus\ListeningTentacleWithCustomAccountHome\ListeningTentacleWithCustomAccount\Tentacle.config'
   }
 
   it "should have created C:\Octopus\ListeningTentacleWithCustomAccountHome\ListeningTentacleWithCustomAccount\Tentacle.config" {

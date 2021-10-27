@@ -87,7 +87,7 @@ describe tentacle_scenario_03_reinstall {
   }
 
   it "should have set the InstallLocation" {
-    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle' -Name "InstallLocation" -ErrorAction SilentlyContinue).InstallLocation | Should -be "C:\\Program Files\\Octopus Deploy\\Tentacle\\"
+    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle' -Name "InstallLocation" -ErrorAction SilentlyContinue).InstallLocation | Should -be "C:\Program Files\Octopus Deploy\Tentacle\"
   }
 
   it "should have created instance registry entry" {

@@ -85,7 +85,7 @@ describe tentacle_scenario_04_upgrade {
 
   it "should have created registry entries" {
     Test-Path 'HKLM:\Software\Octopus\Tentacle' | should -be $true
-    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle' -Name "InstallLocation" -ErrorAction SilentlyContinue).InstallLocation | Should -be "C:\\Program Files\\Octopus Deploy\\Tentacle\\"
+    (Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle' -Name "InstallLocation" -ErrorAction SilentlyContinue).InstallLocation | Should -be "C:\Program Files\Octopus Deploy\Tentacle\"
   }
 
   # reg entry sticks around for backwards compat
@@ -102,7 +102,7 @@ describe tentacle_scenario_04_upgrade {
   }
 
   it "should have set ConfigurationFilePath in the config file" {
-    (Get-Content 'C:/ProgramData/Octopus/Tentacle/Instances/Tentacle.config' -raw | ConvertFrom-Json -depth 10).ConfigurationFilePath | Should -be 'C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config'
+    (Get-Content 'C:/ProgramData/Octopus/Tentacle/Instances/Tentacle.config' -raw | ConvertFrom-Json).ConfigurationFilePath | Should -be 'C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config'
   }
 
   it "should be able to get dsc configuration" {
