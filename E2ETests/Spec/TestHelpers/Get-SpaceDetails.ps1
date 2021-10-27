@@ -14,7 +14,7 @@ function Get-SpaceDetails {
     )
 
     [PSCustomObject]$space = Get-SpaceViaApi -OctopusServerUrl $OctopusServerUrl -OctopusApiKey $OctopusApiKey -SpaceName $SpaceName
-    $exists = $null -ne $environment
+    $exists = $null -ne $space
     $description = ""
     if ($exists) {
         $description = $space.Description
