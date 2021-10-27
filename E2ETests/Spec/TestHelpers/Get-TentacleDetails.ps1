@@ -44,10 +44,10 @@ function Get-TentacleDetails {
         IsOnline = $isOnline
         IsListening = $communicationStyle -eq "TentaclePassive"
         IsPolling = $communicationStyle -eq "TentacleActive"
-        Environments = ,$environments
+        Environments = $environments
         Roles = $machine.Roles
         DisplayName  = $machine.Name
-        Tenants = ,$tenants
+        Tenants = $tenants
         TenantTags = $machine.TenantTags
         Policy = $machinePolicy
         TenantedDeploymentParticipation = $machine.TenantedDeploymentParticipation
