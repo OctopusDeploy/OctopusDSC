@@ -29,7 +29,7 @@ function Get-WorkerDetails {
         }
         $worker = Get-WorkerViaApi -OctopusServerUrl $OctopusServerUrl -OctopusApiKey $OctopusApiKey -Thumbprint $thumbprint -SpaceFragment $spaceFragment
         $communicationStyle = $worker.Endpoint.CommunicationStyle
-        $isOnline = Test-IsOnline -OctopusServerUrl $OctopusServerUrl -OctopusApiKey $OctopusApiKey -thumbprint $thumbprint -SpaceFragment $spaceFragment
+        $isOnline = Test-IsWorkerOnline -OctopusServerUrl $OctopusServerUrl -OctopusApiKey $OctopusApiKey -thumbprint $thumbprint -SpaceFragment $spaceFragment
     }
 
     return @{

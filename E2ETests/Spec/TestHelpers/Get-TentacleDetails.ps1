@@ -35,7 +35,7 @@ function Get-TentacleDetails {
         $environments = (Get-Environments -OctopusServerUrl $OctopusServerUrl -OctopusApiKey $OctopusApiKey -SpaceFragment $spaceFragment) | Where-Object { $machine.EnvironmentIds -contains $_.Id } | Select-Object -ExpandProperty Name
         $tenants = (Get-Tenants -OctopusServerUrl $OctopusServerUrl -OctopusApiKey $OctopusApiKey -SpaceFragment $spaceFragment) | Where-Object { $machine.TenantIds -contains $_.Id } | Select-Object -ExpandProperty Name
         $machinePolicy = (Get-MachinePolicies -OctopusServerUrl $OctopusServerUrl -OctopusApiKey $OctopusApiKey -SpaceFragment $spaceFragment) | Where-Object { $machine.MachinePolicyId -contains $_.Id } | Select-Object -ExpandProperty Name
-        $isOnline = Test-IsOnline -OctopusServerUrl $OctopusServerUrl -OctopusApiKey $OctopusApiKey -thumbprint $thumbprint -SpaceFragment $spaceFragment
+        $isOnline = Test-IsTentacleOnline -OctopusServerUrl $OctopusServerUrl -OctopusApiKey $OctopusApiKey -thumbprint $thumbprint -SpaceFragment $spaceFragment
     }
 
     return @{

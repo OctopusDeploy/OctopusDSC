@@ -1,4 +1,4 @@
-function Test-IsOnline {
+function Test-IsTentacleOnline {
     [CmdletBinding()]
     [OutputType([boolean])]
     param (
