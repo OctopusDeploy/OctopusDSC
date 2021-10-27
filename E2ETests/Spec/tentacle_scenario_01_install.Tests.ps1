@@ -517,10 +517,23 @@ describe tentacle_scenario_01_install {
     Test-DSCConfiguration -ErrorAction Stop | should -be $true
   }
 
-  it "should get Success back from Get-DSCConfigurationStatus" {
-    $ProgressPreference = "SilentlyContinue"
-    $statuses = @(Get-DSCConfigurationStatus -ErrorAction Stop -All)
-    $statuses[0].Status | Should -be "Success"
+  Describe "Get-DSCConfigurationStatus" {
+      BeforeDiscovery {
+        $status = @(Get-DSCConfigurationStatus -ErrorAction Stop -All)[0]
+        $resourceStates = @($status.ResourcesInDesiredState + $status.ResourcesNotInDesiredState)
+      }
+
+      It "should have succeeded" {
+          $status.Status | Should -be "Success"
+      }
+
+      It "should have applied <ResourceId> correctly" -ForEach $resourceStates {
+        $_.InDesiredState | should -be $true
+      }
+
+      It "should have not received any errors from <ResourceId>" -ForEach $resourceStates {
+        $_.Error | should -be $null
+      }
   }
 }
 
