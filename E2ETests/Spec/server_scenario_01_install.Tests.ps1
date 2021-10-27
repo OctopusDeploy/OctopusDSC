@@ -151,18 +151,19 @@ describe server_scenario_01_install {
   Describe "Get-DSCConfigurationStatus" {
       BeforeDiscovery {
         $status = @(Get-DSCConfigurationStatus -ErrorAction Stop -All)[0]
-        $resourceStates = @($status.ResourcesInDesiredState + $status.ResourcesNotInDesiredState)
+        $resourceStates = @($status.ResourcesInDesiredState + $status.ResourcesNotInDesiredState) | where-object { $null -ne $_ }
       }
 
       It "should have succeeded" {
-          $status.Status | Should -be "Success"
+        $status = @(Get-DSCConfigurationStatus -ErrorAction Stop -All)[0]
+        $status.Status | Should -be "Success"
       }
 
-      It "should have applied <ResourceId> correctly" -ForEach $resourceStates {
-        $_.InDesiredState | should -be $true
+      It "should have applied <_.ResourceId> correctly" -ForEach $resourceStates {
+        $_.InDesiredState | should -be $false
       }
 
-      It "should have not received any errors from <ResourceId>" -ForEach $resourceStates {
+      It "should have not received any errors from <_.ResourceId>" -ForEach $resourceStates {
         $_.Error | should -be $null
       }
   }
