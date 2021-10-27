@@ -71,11 +71,11 @@ describe tentacle_scenario_08_tentacle_comms_port {
     }
 
     it "should not be assigned to any tenants" {
-      $tentacle.Tenants.length | should -be 0
+      $tentacle.Tenants | should -be @()
     }
 
     it "should not have any tenant tags" {
-      $tentacle.TenantTags.length | should -be 0
+      $tentacle.TenantTags | should -be @()
     }
 
     it "should have policy 'Default Machine Policy'" {
