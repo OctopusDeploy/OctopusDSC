@@ -63,7 +63,7 @@ describe tentacle_scenario_04_upgrade {
     }
 
     it "should be in environment 'The-Env'" {
-      $tentacle.Environments -contains 'The-Env' | Should -be $true
+      $tentacle.Environments | Should -contain 'The-Env'
     }
 
     it "should have role 'Test-Tentacle'" {

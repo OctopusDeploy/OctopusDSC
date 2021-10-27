@@ -70,7 +70,7 @@ describe tentacle_scenario_01_install {
     }
 
     it "should be in environment 'The-Env'" {
-      $tentacle.Environments -contains 'The-Env' | Should -be $true
+      $tentacle.Environments | Should -contain 'The-Env'
     }
 
     it "should have role 'Test-Tentacle'" {
@@ -82,12 +82,12 @@ describe tentacle_scenario_01_install {
     }
 
     it "should be assigned to tenant 'John'" {
-      $tentacle.Tenants -contains 'John' | should -be $true
+      $tentacle.Tenants | should -contain 'John'
     }
 
     it "should have tenant tag 'Hosting' and 'Cloud'" {
-      $tentacle.TenantTags -contains 'Hosting' | should -be $true
-      $tentacle.TenantTags -contains 'Cloud' | should -be $true
+      $tentacle.TenantTags | should -contain 'Hosting'
+      $tentacle.TenantTags | should -contain 'Cloud'
     }
 
     it "should have policy 'Test Policy'" {
@@ -152,7 +152,7 @@ describe tentacle_scenario_01_install {
     }
 
     it "should be in environment 'Env2'" {
-      $tentacle.Environments -contains 'Env2' | Should -be $true
+      $tentacle.Environments | Should -contain 'Env2'
     }
 
     it "should have role 'Test-Tentacle'" {
@@ -164,7 +164,7 @@ describe tentacle_scenario_01_install {
     }
 
     it "should not be assigned to any tenants" {
-      $tentacle.Tenants.length | should -be 0
+      $tentacle.Tenants | should -be @()
     }
 
     it "should not have any tenant tags" {
@@ -291,7 +291,7 @@ describe tentacle_scenario_01_install {
     }
 
     it "should be in environment 'The-Env'" {
-      $tentacle.Environments -contains 'The-Env' | Should -be $true
+      $tentacle.Environments | Should -contain 'The-Env'
     }
 
     it "should have role 'Test-Tentacle'" {
@@ -303,11 +303,11 @@ describe tentacle_scenario_01_install {
     }
 
     it "should not be assigned to any tenants" {
-      $tentacle.Tenants.length | should -be 0
+      $tentacle.Tenants | should -be @()
     }
 
     it "should not have any tenant tags" {
-      $tentacle.TenantTags.length | should -be 0
+      $tentacle.TenantTags | should -be @()
     }
 
     it "should have policy 'Default Machine Policy'" {
@@ -452,7 +452,7 @@ describe tentacle_scenario_01_install {
     }
 
     it "should be in environment 'The-Env'" {
-      $tentacle.Environments -contains 'The-Env' | Should -be $true
+      $tentacle.Environments | Should -contain 'The-Env'
     }
 
     it "should have role 'Test-Tentacle'" {

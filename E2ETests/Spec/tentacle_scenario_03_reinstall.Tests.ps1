@@ -62,7 +62,7 @@ describe tentacle_scenario_03_reinstall {
     }
 
     it "should be in environment 'The-Env'" {
-      $tentacle.Environments -contains 'The-Env' | Should -be $true
+      $tentacle.Environments | Should -contain 'The-Env'
     }
 
     it "should have role 'Test-Tentacle'" {
