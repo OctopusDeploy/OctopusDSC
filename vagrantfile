@@ -50,7 +50,16 @@ def publish_logs(config, scenario, log_files)
   end
 end
 
-def run_scenario(config, scenario, log_files)
+def run_tests(config, scenario)
+  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', scenario)
+  config.vm.provision "winrm-file-download" do |winrm|
+    winrm.source = "c:/temp/tests/PesterTestResults_#{scenario}.xml"
+    winrm.destination = "PesterTestResults_#{scenario}.xml"
+    config.vm.provision "shell", inline: "write-output \"##teamcity[publishArtifacts 'PesterTestResults_#{scenario}.xml']\""
+  end
+end
+
+def run_octopus_scenario(config, scenario, log_files)
   config.vm.provision "shell", inline: "write-output \"##teamcity[blockOpened name='Running Scenario #{scenario}']\""
   config.vm.provision "dsc" do |dsc|
     dsc.configuration_file  = "#{scenario}.ps1"
@@ -61,12 +70,20 @@ def run_scenario(config, scenario, log_files)
   config.vm.provision "shell", inline: "write-output \"##teamcity[blockClosed name='Running Scenario #{scenario}']\""
   config.vm.provision "shell", path: "Tests/surface-logs.ps1"
   publish_logs(config, scenario, log_files)
-  config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', scenario.downcase)
-  config.vm.provision "winrm-file-download" do |winrm|
-    winrm.source = "c:/temp/tests/PesterTestResults_#{scenario}.xml"
-    winrm.destination = "PesterTestResults_#{scenario}.xml"
-    config.vm.provision "shell", inline: "write-output \"##teamcity[publishArtifacts 'PesterTestResults_#{scenario}.xml']\""
+  run_tests(config, scenario)
+end
+
+def run_tentacle_scenario(config, scenario, log_files)
+  config.vm.provision "shell", inline: "write-output \"##teamcity[blockOpened name='Running Scenario #{scenario}']\""
+  config.vm.provision "dsc" do |dsc|
+    dsc.configuration_file  = "#{scenario}.ps1"
+    dsc.configuration_data_file  = "E2ETests/Scenarios/Configuration.psd1"
+    dsc.manifests_path = "E2ETests/Scenarios/"
+    dsc.abort_on_dsc_failure = true
   end
+  config.vm.provision "shell", inline: "write-output \"##teamcity[blockClosed name='Running Scenario #{scenario}']\""
+  config.vm.provision "shell", path: "Tests/surface-logs.ps1"
+  publish_logs(config, scenario, log_files)
 end
 
 Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
@@ -96,6 +113,8 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     override.vm.network :forwarded_port, guest: 80,   host: 8000, id: "web"
     override.vm.network :forwarded_port, guest: 443, host: 8443,  id: "ssl"
     override.vm.network :forwarded_port, guest: 22, host: 9222,  id: "ssh"
+    override.winrm.port = 5986
+    override.winrm.ssl_peer_verification = false
   end
 
   if Vagrant::Util::Platform.windows? then
@@ -175,13 +194,13 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   if ENV['OctopusDSCTestMode'] != "TentacleOnly" then
     # Run DSC to install server
-    run_scenario(config,
+    run_octopus_scenario(config,
       'Server_Scenario_01_Install',
       ['C:/ChezOctopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-OctopusServer.config'])
 
     # Run DSC to install second HA node
-    run_scenario(config,
+    run_octopus_scenario(config,
       'Server_Scenario_02_Install_Second_Node',
       ['C:/ChezOctopus/Logs/OctopusServer.txt',
        'C:/ChezOctopusSecondNode/Logs/OctopusServer.txt',
@@ -189,69 +208,69 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
        'C:/Octopus/OctopusServer-OctopusServer.config'])
 
     # remove the first node
-    run_scenario(config,
+    run_octopus_scenario(config,
       'Server_Scenario_03_Remove',
       ['C:/ChezOctopusSecondNode/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-HANode.config'])
 
     # remove the second ode
-    run_scenario(config, 'Server_Scenario_04_Remove_Second_Node', [])
+    run_octopus_scenario(config, 'Server_Scenario_04_Remove_Second_Node', [])
 
     # Run DSC to install server with a custom instance name
-    run_scenario(config, 'Server_Scenario_05_Install_Custom_Instance',
+    run_octopus_scenario(config, 'Server_Scenario_05_Install_Custom_Instance',
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-MyOctopusServer.config'])
 
     # remove the server with a custom instance name
-    run_scenario(config, 'Server_Scenario_06_Remove_Custom_Instance', [])
+    run_octopus_scenario(config, 'Server_Scenario_06_Remove_Custom_Instance', [])
 
     # re-install old version
-    run_scenario(config,
+    run_octopus_scenario(config,
       'Server_Scenario_07_Reinstall',
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-OctopusServer.config'])
 
     # upgrade to the latest
-    run_scenario(config,
+    run_octopus_scenario(config,
       'Server_Scenario_08_Upgrade',
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-OctopusServer.config'])
 
     # install watchdog
-    run_scenario(config,
+    run_octopus_scenario(config,
       'Server_Scenario_09_Watchdog_Create',
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-OctopusServer.config'])
 
     # delete watchdog
-    run_scenario(config,
+    run_octopus_scenario(config,
       'Server_Scenario_10_Watchdog_Delete',
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-OctopusServer.config'])
 
     # remove again prior to installing 4
-    run_scenario(config, 'Server_Scenario_11_Remove',
+    run_octopus_scenario(config, 'Server_Scenario_11_Remove',
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-OctopusServer.config'])
 
     # install v4
-    run_scenario(config, 'Server_Scenario_12_Built_In_Worker',
+    run_octopus_scenario(config, 'Server_Scenario_12_Built_In_Worker',
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-OctopusServer.config'])
 
     # remove again prior to testing "install only"
-    run_scenario(config, 'Server_Scenario_13_Remove',
+    run_octopus_scenario(config, 'Server_Scenario_13_Remove',
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-OctopusServer.config'])
 
   end
   # install only without configure
-  run_scenario(config, 'Server_Scenario_14_Install_Without_Configure',
+  run_octopus_scenario(config, 'Server_Scenario_14_Install_Without_Configure',
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-OctopusServer.config'])
 
   # go from installed to configured
-  run_scenario(config, 'Server_Scenario_15_Configure_Preinstalled_Instance',
+  run_octopus_scenario(config, 'Server_Scenario_15_Configure_Preinstalled_Instance',
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-OctopusServer.config'])
 
@@ -261,7 +280,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     publish_logs(config, 'Tentacle_Setup', ['C:/Octopus/Logs/configure-octopus-for-tentacle-tests.txt'])
 
     # initial tentacle install
-    run_scenario(config,
+    run_tentacle_scenario(config,
       'Tentacle_Scenario_01_Install',
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-ConfigurePreInstalledInstance.config',
@@ -270,20 +289,20 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     publish_logs(config, 'Tentacle_Scenario_01_Install', ['C:/Octopus/Logs/register-polling-tentacle.txt'])
     config.vm.provision "shell", path: "Tests/trigger-and-wait-for-healthcheck.ps1"
     publish_logs(config, 'Tentacle_Scenario_01_Install', ['C:/Octopus/Logs/trigger-and-wait-for-healthcheck.txt'])
-    config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_01_install')
+    run_tests(config, 'tentacle_scenario_01_install')
 
     # uninstall tentacle
-    run_scenario(config,
+    run_tentacle_scenario(config,
       'Tentacle_Scenario_02_Remove',
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-ConfigurePreInstalledInstance.config',
        'C:/Octopus/OctopusServer-OctopusServer.config'])
     config.vm.provision "shell", path: "Tests/trigger-and-wait-for-healthcheck.ps1"
     publish_logs(config, 'Tentacle_Scenario_02_Remove', ['C:/Octopus/Logs/trigger-and-wait-for-healthcheck.txt'])
-    config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_02_remove')
+    run_tests(config, 'tentacle_scenario_02_remove')
 
     # Install old version
-    run_scenario(config,
+    run_tentacle_scenario(config,
       'Tentacle_Scenario_03_Reinstall',
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-ConfigurePreInstalledInstance.config',
@@ -292,10 +311,10 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
        'C:/Octopus/OctopusTentacleHome/Tentacle/Tentacle.config'])
     config.vm.provision "shell", path: "Tests/trigger-and-wait-for-healthcheck.ps1"
     publish_logs(config, 'Tentacle_Scenario_03_Reinstall', ['C:/Octopus/Logs/trigger-and-wait-for-healthcheck.txt'])
-    config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_03_reinstall')
+    run_tests(config, 'tentacle_scenario_03_reinstall')
 
     # Upgrade it
-    run_scenario(config,
+    run_tentacle_scenario(config,
       'Tentacle_Scenario_04_Upgrade',
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-ConfigurePreInstalledInstance.config',
@@ -304,46 +323,46 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
        'C:/Octopus/OctopusTentacleHome/Tentacle/Tentacle.config'])
     config.vm.provision "shell", path: "Tests/trigger-and-wait-for-healthcheck.ps1"
     publish_logs(config, 'Tentacle_Scenario_04_Upgrade', ['C:/Octopus/Logs/trigger-and-wait-for-healthcheck.txt'])
-    config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_04_upgrade')
+    run_tests(config, 'tentacle_scenario_04_upgrade')
 
     # install watchdog
-    run_scenario(config,
+    run_tentacle_scenario(config,
       'Tentacle_Scenario_05_Watchdog_Create',
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-ConfigurePreInstalledInstance.config',
        'C:/Octopus/OctopusServer-OctopusServer.config',
        'C:/Octopus/OctopusTentacleHome/Logs/OctopusTentacle.txt',
        'C:/Octopus/OctopusTentacleHome/Tentacle/Tentacle.config'])
-    config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_05_watchdog_create')
+    run_tests(config, 'tentacle_scenario_05_watchdog_create')
 
     # delete watchdog
-    run_scenario(config,
+    run_tentacle_scenario(config,
       'Tentacle_Scenario_06_Watchdog_Delete',
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-ConfigurePreInstalledInstance.config',
        'C:/Octopus/OctopusServer-OctopusServer.config',
        'C:/Octopus/OctopusTentacleHome/Logs/OctopusTentacle.txt',
        'C:/Octopus/OctopusTentacleHome/Tentacle/Tentacle.config'])
-    config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_06_watchdog_delete')
+    run_tests(config, 'tentacle_scenario_06_watchdog_delete')
 
     # remove in preparation for testing comms port
-    run_scenario(config,
+    run_tentacle_scenario(config,
       'Tentacle_Scenario_07_Remove',
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-ConfigurePreInstalledInstance.config',
        'C:/Octopus/OctopusServer-OctopusServer.config',
        'C:/Octopus/OctopusTentacleHome/Logs/OctopusTentacle.txt',
        'C:/Octopus/OctopusTentacleHome/Tentacle/Tentacle.config'])
-    config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_07_remove')
+    run_tests(config, 'tentacle_scenario_07_remove')
 
     # tentacle comms port
-    run_scenario(config,
+    run_tentacle_scenario(config,
       'Tentacle_Scenario_08_Tentacle_Comms_Port',
       ['C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-ConfigurePreInstalledInstance.config',
        'C:/Octopus/OctopusServer-OctopusServer.config',
        'C:/Octopus/OctopusTentacleHome/Logs/OctopusTentacle.txt',
        'C:/Octopus/OctopusTentacleHome/Tentacle/Tentacle.config'])
-    config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_08_tentacle_comms_port')
+    run_tests(config, 'tentacle_scenario_08_tentacle_comms_port')
   end
 end
