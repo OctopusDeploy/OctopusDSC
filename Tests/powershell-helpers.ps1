@@ -49,15 +49,11 @@ function Invoke-PesterTests {
     $configuration.TestResult.Enabled = $true
     $configuration.TestResult.OutputPath = 'PesterTestResults.xml'
     $configuration.TestResult.OutputFormat = 'NUnitXml'
-    $configuration.Run.PassThru = $true
-    $configuration.Run.Exit = $true
     $configuration.Run.Path = @("./Tests", "./OctopusDSC")
     $configuration.Output.Verbosity = 'Detailed'
-    $result = Invoke-Pester -configuration $configuration
+    Invoke-Pester -configuration $configuration
     write-output "##teamcity[publishArtifacts 'PesterTestResults.xml']"
-    if ($result.FailedCount -gt 0) {
-      exit 1
-    }
+
     Write-Output "##teamcity[blockClosed name='Pester tests']"
 }
 
