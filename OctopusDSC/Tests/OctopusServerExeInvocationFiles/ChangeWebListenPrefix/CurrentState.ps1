@@ -9,7 +9,7 @@ return @{
   State = "Started";
   Name = "OctopusServer";
   WebListenPrefix = "http://localhost:82";
-  DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer";
+  DownloadUrl = "https://octopus-downloads-staging.s3.amazonaws.com/octopus/Octopus.2021.3.7176-corey-use-octopus-client-netframework-on-win-x64-x64.msi";
   SqlDbConnectionString = "Server=(local);Database=Octopus;Trusted_Connection=True;";
   OctopusAdminCredential = $cred;
   ListenPort = 10935;

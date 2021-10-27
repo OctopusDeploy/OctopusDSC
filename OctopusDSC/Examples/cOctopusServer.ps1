@@ -36,7 +36,7 @@ Configuration SampleConfig
             AllowCollectionOfUsageStatistics = $true
             ForceSSL = $false
             ListenPort = 10943
-            DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer"
+            DownloadUrl = "https://octopus-downloads-staging.s3.amazonaws.com/octopus/Octopus.2021.3.7176-corey-use-octopus-client-netframework-on-win-x64-x64.msi"
 
             # for pre 3.5, valid values are "UsernamePassword" or "Domain"
             # for 3.5 and above, only "Ignore" is valid (this is the default value)

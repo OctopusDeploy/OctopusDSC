@@ -22,7 +22,7 @@ function Get-TargetResource {
         [string]$Name,
         [ValidateSet("Started", "Stopped", "Installed")]
         [string]$State = "Started",
-        [string]$DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer",
+        [string]$DownloadUrl = "https://octopus-downloads-staging.s3.amazonaws.com/octopus/Octopus.2021.3.7176-corey-use-octopus-client-netframework-on-win-x64-x64.msi",
         [string]$WebListenPrefix,
         [string]$SqlDbConnectionString,
         [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty,
@@ -375,7 +375,7 @@ function Set-TargetResource {
         [string]$Name,
         [ValidateSet("Started", "Stopped", "Installed")]
         [string]$State = "Started",
-        [string]$DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer",
+        [string]$DownloadUrl = "https://octopus-downloads-staging.s3.amazonaws.com/octopus/Octopus.2021.3.7176-corey-use-octopus-client-netframework-on-win-x64-x64.msi",
         [string]$WebListenPrefix,
         [string]$SqlDbConnectionString,
         [PSCredential]$OctopusAdminCredential = [PSCredential]::Empty,
@@ -1444,7 +1444,7 @@ function Test-TargetResource {
         [string]$Name,
         [ValidateSet("Started", "Stopped", "Installed")]
         [string]$State = "Started",
-        [string]$DownloadUrl = "https://octopus.com/downloads/latest/WindowsX64/OctopusServer",
+        [string]$DownloadUrl = "https://octopus-downloads-staging.s3.amazonaws.com/octopus/Octopus.2021.3.7176-corey-use-octopus-client-netframework-on-win-x64-x64.msi",
         [string]$WebListenPrefix,
         [string]$SqlDbConnectionString,
         [PSCredential]$OctopusAdminCredential,

@@ -33,7 +33,7 @@ Describe "Request-File" {
             Mock Test-Path { return $true }
         }
         It "Should only request the file hash and not download the file" {
-            Request-File 'https://octopus.com/downloads/latest/WindowsX64/OctopusServer' $env:tmp\OctopusServer.msi # -verbose
+            Request-File 'https://octopus-downloads-staging.s3.amazonaws.com/octopus/Octopus.2021.3.7176-corey-use-octopus-client-netframework-on-win-x64-x64.msi' $env:tmp\OctopusServer.msi # -verbose
             Assert-MockCalled "Invoke-WebRequest" -ParameterFilter {$Method -eq "HEAD" } -Times 1
             Assert-MockCalled "Invoke-WebClient" -Times 0
         }
@@ -52,7 +52,7 @@ Describe "Request-File" {
             Mock Test-Path { return $true }
         }
         It "Should request the file has and also download the file" {
-            Request-File 'https://octopus.com/downloads/latest/WindowsX64/OctopusServer' $env:tmp\OctopusServer.msi # -verbose
+            Request-File 'https://octopus-downloads-staging.s3.amazonaws.com/octopus/Octopus.2021.3.7176-corey-use-octopus-client-netframework-on-win-x64-x64.msi' $env:tmp\OctopusServer.msi # -verbose
             Assert-MockCalled "Invoke-WebRequest"  -Times 1
             Assert-MockCalled "Invoke-WebClient" -Times 1
         }
