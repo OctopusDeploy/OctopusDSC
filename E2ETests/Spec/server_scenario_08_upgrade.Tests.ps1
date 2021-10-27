@@ -112,7 +112,7 @@ describe server_scenario_08_upgrade {
       }
 
       It "should have applied <_.ResourceId> correctly" -ForEach $resourceStates {
-        $_.InDesiredState | should -be $false
+        $_.InDesiredState | should -be $true
       }
 
       It "should have not received any errors from <_.ResourceId>" -ForEach $resourceStates {
