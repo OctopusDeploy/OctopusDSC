@@ -55,7 +55,9 @@ describe tentacle_scenario_08_tentacle_comms_port {
     }
 
     it "should be online" {
-      $tentacle.IsOnline | Should -be $true
+      # this tentacle wont actually come online, as this scenario is configuring a tentacle behind a loadbalancer
+      # which we don't have setup. The main thing we care about here is the endpoint below
+      $tentacle.IsOnline | Should -be $false
     }
 
     it "should be a listening tentacle" {
