@@ -41,24 +41,7 @@ Test-PluginInstalled "vagrant-winrm-file-download"
 Remove-OldLogsBeforeNewRun
 
 if(-not $SkipPester) {
-  Write-Output "##teamcity[blockOpened name='Pester tests']"
-  Write-Output "Importing Pester module"
-  Import-PowerShellModule -Name "Pester" -MinimumVersion "5.2.1"
-  Import-PowerShellModule -Name "PSScriptAnalyzer" -MinimumVersion "1.19.0"
-
-  Write-Output "Running Pester Tests"
-  $configuration = [PesterConfiguration]::Default
-  $configuration.TestResult.Enabled = $true
-  $configuration.TestResult.OutputPath = 'PesterTestResults.xml'
-  $configuration.TestResult.OutputFormat = 'NUnitXml'
-  $configuration.Run.PassThru = $true
-  $configuration.Run.Exit = $true
-  $result = Invoke-Pester -configuration $configuration
-  write-output "##teamcity[publishArtifacts 'PesterTestResults.xml']"
-  if ($result.FailedCount -gt 0) {
-    exit 1
-  }
-  Write-Output "##teamcity[blockClosed name='Pester tests']"
+  Invoke-PesterTests
 } else {
   Write-Output "-SkipPester was specified, skipping pester tests"
 }
