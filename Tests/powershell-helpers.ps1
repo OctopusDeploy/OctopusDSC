@@ -37,6 +37,30 @@ function Test-AppExists($appName) {
   return $null -ne $command
 }
 
+function Invoke-PesterTests {
+  Write-Output "##teamcity[blockOpened name='Pester tests']"
+  Write-Output "##teamcity[blockOpened name='Importing modules']"
+  Write-Output "Importing Pester module"
+  Import-PowerShellModule -Name "Pester" -MinimumVersion "5.2.1"
+  Import-PowerShellModule -Name "PSScriptAnalyzer" -MinimumVersion "1.19.0"
+  Write-Output "##teamcity[blockClosed name='Importing modules']"
+  Write-Output "Running Pester Tests"
+  $configuration = [PesterConfiguration]::Default
+  $configuration.TestResult.Enabled = $true
+  $configuration.TestResult.OutputPath = 'PesterTestResults.xml'
+  $configuration.TestResult.OutputFormat = 'NUnitXml'
+  $configuration.Run.PassThru = $true
+  $configuration.Run.Exit = $true
+  $configuration.Run.Path = @("./Tests", "./OctopusDSC")
+  $configuration.Output.Verbosity = 'Detailed'
+  $result = Invoke-Pester -configuration $configuration
+  write-output "##teamcity[publishArtifacts 'PesterTestResults.xml']"
+  if ($result.FailedCount -gt 0) {
+    exit 1
+  }
+  Write-Output "##teamcity[blockClosed name='Pester tests']"
+}
+
 function Import-PowerShellModule ($Name, $MinimumVersion) {
   $command = Get-Module $Name -listavailable
   if ($null -eq $command) {
