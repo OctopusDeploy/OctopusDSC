@@ -49,10 +49,10 @@ Describe "OctopusDSC" {
                     #even though it works fine on ubuntu locally
                     Set-ItResult -Inconclusive -Because "We couldnt get this test to run on our CentOS buildagent"
                 } else {
+                    $path = Resolve-Path "$PSCommandPath/../../E2ETests/Scenarios"
                     Write-Output "Running PsScriptAnalyzer against $path"
                     $results = @(Invoke-ScriptAnalyzer $path -recurse -exclude @('PSUseShouldProcessForStateChangingFunctions', 'PSAvoidUsingConvertToSecureStringWithPlainText'))
                     $results | ConvertTo-Json | Out-File PsScriptAnalyzer-Scenarios.log
-                    $path = Resolve-Path "$PSCommandPath/../../E2ETests/Scenarios"
                     if ($IsLinux -or $IsMacOS) {
                         $results = $results | where-object {
                             # these DSC resources are available on linux
