@@ -49,7 +49,7 @@ Describe "OctopusDSC" {
                     #even though it works fine on ubuntu locally
                     Set-ItResult -Inconclusive -Because "We couldnt get this test to run on our CentOS buildagent"
                 } else {
-                    $path = Resolve-Path "$PSCommandPath/../../Tests/Scenarios"
+                    $path = Resolve-Path "$PSCommandPath/../../E2ETests/Scenarios"
                     Write-Output "Running PsScriptAnalyzer against $path"
                     $results = @(Invoke-ScriptAnalyzer $path -recurse -exclude @('PSUseShouldProcessForStateChangingFunctions', 'PSAvoidUsingConvertToSecureStringWithPlainText'))
                     $results | ConvertTo-Json | Out-File PsScriptAnalyzer-Scenarios.log
@@ -288,11 +288,12 @@ Describe "OctopusDSC" {
 
     Describe "Configuration Scenarios" {
         BeforeDiscovery {
-            $path = Resolve-Path "$PSCommandPath/../../Tests/Scenarios"
+            $path = Resolve-Path "$PSCommandPath/../../E2ETests/Scenarios"
             $name = @{label="name";expression={[System.Io.Path]::GetFileNameWithoutExtension($_.Name)}};
             $fullName = @{label="fullName";expression={$_.FullName}};
+            $specPath = @{label="specPath";expression={"$path/../Spec/$([System.Io.Path]::GetFileNameWithoutExtension($_.Name).ToLower() + '_spec.rb')"}};
 
-            $cases = @(Get-ChildItem $path -Recurse -Filter *.ps1 | Select-Object -Property $name, $fullName) | ConvertTo-Hashtable
+            $cases = @(Get-ChildItem $path -Recurse -Filter *.ps1 | Select-Object -Property $name, $fullName, $specPath) | ConvertTo-Hashtable
         }
 
         It "Configuration block in scenario <name> should have the same name as the file" -ForEach $cases {
@@ -300,10 +301,9 @@ Describe "OctopusDSC" {
             $fullName | Should -FileContentMatch "Configuration $name"
         }
 
-        It "Scenario <name> should have a matching spec" -ForEach $cases {
-            param([string]$name, [string]$fullName)
-            $specName = ($name + '_spec.rb').ToLower()
-            (Resolve-Path "$PSCommandPath/../../Tests/Spec/$specName") | Should -Exist
+        It "Scenario <name> should have a matching spec at <specPath>" -ForEach $cases {
+            param([string]$name, [string]$fullName, [string]$specPath)
+            (Resolve-Path $specPath) | Should -Exist
         }
     }
 }
