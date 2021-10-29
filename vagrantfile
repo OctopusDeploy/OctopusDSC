@@ -269,8 +269,8 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
        'C:/Octopus/Logs/OctopusServer.txt',
        'C:/Octopus/OctopusServer-ConfigurePreInstalledInstance.config',
        'C:/Octopus/OctopusServer-OctopusServer.config'])
-    config.vm.provision "shell", inline: "& c:\\temp\\Tests\\register-polling-tentacle.ps1; exit $LASTEXITCODE"
-    config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
+    config.vm.provision "shell", path: "Tests/register-polling-tentacle.ps1"
+    config.vm.provision "shell", path: "Tests/trigger-and-wait-for-healthcheck.ps1"
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_01_install')
 
     # uninstall tentacle
@@ -282,7 +282,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
        'C:/Octopus/Logs/trigger-and-wait-for-healthcheck.txt',
        'C:/Octopus/OctopusServer-ConfigurePreInstalledInstance.config',
        'C:/Octopus/OctopusServer-OctopusServer.config'])
-    config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
+    config.vm.provision "shell", path: "Tests/trigger-and-wait-for-healthcheck.ps1"
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_02_remove')
 
     # Install old version
@@ -296,7 +296,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
        'C:/Octopus/OctopusServer-OctopusServer.config',
        'C:/Octopus/OctopusTentacleHome/Logs/OctopusTentacle.txt',
        'C:/Octopus/OctopusTentacleHome/Tentacle/Tentacle.config'])
-    config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
+    config.vm.provision "shell", path: "Tests/trigger-and-wait-for-healthcheck.ps1"
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_03_reinstall')
 
     # Upgrade it
@@ -310,7 +310,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
        'C:/Octopus/OctopusServer-OctopusServer.config',
        'C:/Octopus/OctopusTentacleHome/Logs/OctopusTentacle.txt',
        'C:/Octopus/OctopusTentacleHome/Tentacle/Tentacle.config'])
-    config.vm.provision "shell", inline: "& c:\\temp\\Tests\\trigger-and-wait-for-healthcheck.ps1; exit $LASTEXITCODE"
+    config.vm.provision "shell", path: "Tests/trigger-and-wait-for-healthcheck.ps1"
     config.vm.provision "shell", inline: $run_test_scenario_script.gsub('{scenario_name}', 'tentacle_scenario_04_upgrade')
 
     # install watchdog
