@@ -404,7 +404,7 @@ describe tentacle_scenario_01_install {
             Test-Path 'C:\Octopus\WorkerTentacleHome\WorkerTentacle\Tentacle.config' -PathType Leaf | should -be $true
         }
 
-        it "should have set ConfigurationFilePath in the config file" {
+        it "should have registered the tentacle with the server" {
             Get-Content 'C:\Octopus\WorkerTentacleHome\WorkerTentacle\Tentacle.config' -raw | should -match "Tentacle.Communication.TrustedOctopusServers"
         }
     }
@@ -495,7 +495,7 @@ describe tentacle_scenario_01_install {
             Test-Path 'C:\Octopus\ListeningTentacleWithCustomAccountHome\ListeningTentacleWithCustomAccount\Tentacle.config' -PathType Leaf | should -be $true
         }
 
-        it "should have set ConfigurationFilePath in the config file" {
+        it "should have registered the tentacle with the server" {
             Get-Content 'C:\Octopus\ListeningTentacleWithCustomAccountHome\ListeningTentacleWithCustomAccount\Tentacle.config' -raw | Should -match "Tentacle.Communication.TrustedOctopusServers"
         }
     }
