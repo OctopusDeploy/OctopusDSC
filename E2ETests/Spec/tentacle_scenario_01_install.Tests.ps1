@@ -322,7 +322,7 @@ describe tentacle_scenario_01_install {
             Test-Path 'C:/ProgramData/Octopus/Tentacle/Instances/ListeningTentacleWithThumbprintWithoutAutoRegister.config' -PathType Leaf | should -be $true
         }
 
-        it "should have set ConfigurationFilePath in the instance config" {
+        it "should have set ConfigurationFilePath in the config file" {
             (Get-Content 'C:/ProgramData/Octopus/Tentacle/Instances/ListeningTentacleWithThumbprintWithoutAutoRegister.config' -raw | ConvertFrom-Json).ConfigurationFilePath | Should -be 'C:\Octopus\ListeningTentacleWithThumbprintWithoutAutoRegisterHome\ListeningTentacleWithThumbprintWithoutAutoRegister\Tentacle.config'
         }
 
