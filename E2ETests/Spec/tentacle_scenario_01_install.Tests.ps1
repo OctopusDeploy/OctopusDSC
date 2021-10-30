@@ -101,7 +101,7 @@ describe tentacle_scenario_01_install {
             Test-Path 'C:/ProgramData/Octopus/Tentacle/Instances/listeningtentacle.config' -PathType Leaf | should -be $true
         }
 
-        it "should set the ConfigurationFilePath" {
+        it "should have set ConfigurationFilePath in the config file" {
             (Get-Content 'C:/ProgramData/Octopus/Tentacle/Instances/listeningtentacle.config' -raw | ConvertFrom-Json).ConfigurationFilePath | Should -be 'C:\Octopus\ListeningTentacleHome\ListeningTentacle\Tentacle.config'
         }
     }
