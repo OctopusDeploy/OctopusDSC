@@ -154,5 +154,12 @@ Configuration Tentacle_Scenario_02_Remove
 
             TentacleServiceCredential = $serviceusercredential
         }
+
+        cTentacleAgent ListeningTentacleWithCustomAccount
+        {
+            Ensure = "Absent";
+            State = "Stopped";
+            Name = "ListeningTentacleWithCustomAccount";
+        }
     }
 }

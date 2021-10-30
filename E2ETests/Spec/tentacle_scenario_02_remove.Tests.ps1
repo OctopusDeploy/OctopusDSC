@@ -104,6 +104,28 @@ describe tentacle_scenario_02_remove {
         }
     }
 
+    describe "ListeningTentacleWithCustomAccount" {
+        # Listening Tentacle with autoregister disabled but thumbprint set
+        it "should have uninstalled the service" {
+            Get-Service 'OctopusDeploy Tentacle: ListeningTentacleWithCustomAccount' -ErrorAction SilentlyContinue | should -be $null
+        }
+
+        describe "Tentacle: ListeningTentacleWithCustomAccount" {
+            BeforeAll {
+                foreach ($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
+                    . $import.fullname
+                }
+
+                $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
+                $tentacle = Get-TentacleDetails $config.OctopusServerUrl $config.OctopusApiKey "ListeningTentacleWithCustomAccount"
+            }
+
+            it "should not exist" {
+                $tentacle.Exists | Should -be $false
+            }
+        }
+    }
+
     describe "WorkerTentacle" {
         # Worker Tentacle
         it "should have uninstalled the service" {
