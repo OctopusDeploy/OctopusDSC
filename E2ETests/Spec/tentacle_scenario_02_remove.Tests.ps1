@@ -12,7 +12,7 @@ describe tentacle_scenario_02_remove {
         Test-Path 'C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe' | should -be $false
     }
 
-    descibe "ListeningTentacle" {
+    describe "ListeningTentacle" {
         it "should have removed OctopusDeploy Tentacle: ListeningTentacle" {
             Get-Service 'OctopusDeploy Tentacle: ListeningTentacle' -ErrorAction SilentlyContinue | should -be $null
         }
