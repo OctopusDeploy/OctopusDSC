@@ -1,10 +1,10 @@
 describe tentacle_scenario_07_remove {
 
-  it "should have created c:/Octopus" {
+  it "should have kept c:/Octopus" {
     Test-Path 'c:/Octopus' -PathType Container | should -be $true
   }
 
-  it "should have created c:/Applications" {
+  it "should have kept c:/Applications" {
     Test-Path 'c:/Applications' -PathType Container | should -be $true
   }
 
