@@ -60,20 +60,20 @@ describe tentacle_scenario_02_remove {
         }
     }
 
-    describe "PollingTentacleWithoutAutoRegister" {
-        # Polling Tentacle with autoregister disabled
+    describe "ListeningTentacleWithoutAutoRegister" {
+        # Listening Tentacle with autoregister disabled
         it "should have uninstalled the service" {
-            Get-Service 'OctopusDeploy Tentacle: PollingTentacleWithoutAutoRegister' -ErrorAction SilentlyContinue | should -be $null
+            Get-Service 'OctopusDeploy Tentacle: ListeningTentacleWithoutAutoRegister' -ErrorAction SilentlyContinue | should -be $null
         }
 
-        describe "Tentacle: PollingTentacleWithoutAutoRegister" {
+        describe "Tentacle: ListeningTentacleWithoutAutoRegister" {
             BeforeAll {
                 foreach ($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
                     . $import.fullname
                 }
 
                 $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-                $tentacle = Get-TentacleDetails $config.OctopusServerUrl $config.OctopusApiKey "PollingTentacleWithoutAutoRegister"
+                $tentacle = Get-TentacleDetails $config.OctopusServerUrl $config.OctopusApiKey "ListeningTentacleWithoutAutoRegister"
             }
 
             it "should not exist" {
@@ -82,20 +82,20 @@ describe tentacle_scenario_02_remove {
         }
     }
 
-    describe "PollingTentacleWithThumbprintWithoutAutoRegister" {
-        # Polling Tentacle with autoregister disabled but thumbprint set
+    describe "ListeningTentacleWithThumbprintWithoutAutoRegister" {
+        # Listening Tentacle with autoregister disabled but thumbprint set
         it "should have uninstalled the service" {
-            Get-Service 'OctopusDeploy Tentacle: PollingTentacleWithThumbprintWithoutAutoRegister' -ErrorAction SilentlyContinue | should -be $null
+            Get-Service 'OctopusDeploy Tentacle: ListeningTentacleWithThumbprintWithoutAutoRegister' -ErrorAction SilentlyContinue | should -be $null
         }
 
-        describe "Tentacle: PollingTentacleWithThumbprintWithoutAutoRegister" {
+        describe "Tentacle: ListeningTentacleWithThumbprintWithoutAutoRegister" {
             BeforeAll {
                 foreach ($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
                     . $import.fullname
                 }
 
                 $config = Get-Content "c:\temp\octopus-configured.marker" | ConvertFrom-Json
-                $tentacle = Get-TentacleDetails $config.OctopusServerUrl $config.OctopusApiKey "PollingTentacleWithThumbprintWithoutAutoRegister"
+                $tentacle = Get-TentacleDetails $config.OctopusServerUrl $config.OctopusApiKey "ListeningTentacleWithThumbprintWithoutAutoRegister"
             }
 
             it "should not exist" {
