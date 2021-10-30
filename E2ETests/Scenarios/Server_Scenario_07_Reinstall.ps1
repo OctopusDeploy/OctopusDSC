@@ -41,11 +41,29 @@ Configuration Server_Scenario_07_Reinstall
             AllowCollectionOfUsageStatistics = $false
         }
 
-        cOctopusServerUsernamePasswordAuthentication "Enable Username/Password Auth"
+        cOctopusServerUsernamePasswordAuthentication "EnableUsernamePasswordAuth"
         {
             InstanceName = "OctopusServer"
             Enabled = $true
             DependsOn = "[cOctopusServer]OctopusServer"
+        }
+
+        #hack until https://github.com/OctopusDeploy/Issues/issues/7113 is resolved
+        Script "SleepForABitToWorkaroundServerBug"
+        {
+            SetScript = {
+                Start-Sleep -seconds 120
+                Set-Content c:\temp\SleepAfterInstallHasHappened_Server_Scenario_07_Reinstall.txt -value "true"
+            }
+            TestScript = {
+                return Test-Path c:\temp\SleepAfterInstallHasHappened_Server_Scenario_07_Reinstall.txt
+            }
+            GetScript = {
+                @{
+                    Result = Test-Path c:\temp\SleepAfterInstallHasHappened_Server_Scenario_07_Reinstall.txt
+                }
+            }
+            DependsOn = "[cOctopusServerUsernamePasswordAuthentication]EnableUsernamePasswordAuth"
         }
 
         cOctopusEnvironment "Create 'UAT 1' Environment"
@@ -54,7 +72,7 @@ Configuration Server_Scenario_07_Reinstall
             Ensure = "Present"
             OctopusCredentials = $cred
             EnvironmentName = "UAT 1"
-            DependsOn = "[cOctopusServer]OctopusServer"
+            DependsOn = "[Script]SleepForABitToWorkaroundServerBug"
         }
 
         Script "Create Api Key and set environment variables for tests"
