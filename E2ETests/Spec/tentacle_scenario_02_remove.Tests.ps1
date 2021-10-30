@@ -13,7 +13,7 @@ describe tentacle_scenario_02_remove {
     }
 
     describe "ListeningTentacle" {
-        it "should have removed OctopusDeploy Tentacle: ListeningTentacle" {
+        it "should have uninstalled the service" {
             Get-Service 'OctopusDeploy Tentacle: ListeningTentacle' -ErrorAction SilentlyContinue | should -be $null
         }
 
@@ -40,7 +40,7 @@ describe tentacle_scenario_02_remove {
 
     describe "PollingTentacle" {
         # Polling Tentacle
-        it "should have removed OctopusDeploy Tentacle: PollingTentacle" {
+        it "should have uninstalled the service" {
             Get-Service 'OctopusDeploy Tentacle: PollingTentacle' -ErrorAction SilentlyContinue | should -be $null
         }
 
@@ -62,7 +62,7 @@ describe tentacle_scenario_02_remove {
 
     describe "PollingTentacleWithoutAutoRegister" {
         # Polling Tentacle with autoregister disabled
-        it "should have removed OctopusDeploy Tentacle: PollingTentacleWithoutAutoRegister" {
+        it "should have uninstalled the service" {
             Get-Service 'OctopusDeploy Tentacle: PollingTentacleWithoutAutoRegister' -ErrorAction SilentlyContinue | should -be $null
         }
 
@@ -84,7 +84,7 @@ describe tentacle_scenario_02_remove {
 
     describe "PollingTentacleWithThumbprintWithoutAutoRegister" {
         # Polling Tentacle with autoregister disabled but thumbprint set
-        it "should have removed OctopusDeploy Tentacle: PollingTentacleWithThumbprintWithoutAutoRegister" {
+        it "should have uninstalled the service" {
             Get-Service 'OctopusDeploy Tentacle: PollingTentacleWithThumbprintWithoutAutoRegister' -ErrorAction SilentlyContinue | should -be $null
         }
 
@@ -106,7 +106,7 @@ describe tentacle_scenario_02_remove {
 
     describe "WorkerTentacle" {
         # Worker Tentacle
-        it "should have removed OctopusDeploy Tentacle: WorkerTentacle" {
+        it "should have uninstalled the service" {
             Get-Service 'OctopusDeploy Tentacle: WorkerTentacle' -ErrorAction SilentlyContinue | should -be $null
         }
 

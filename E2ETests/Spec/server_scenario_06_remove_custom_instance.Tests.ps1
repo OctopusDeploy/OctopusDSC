@@ -9,7 +9,7 @@ describe server_scenario_06_remove_custom_instance {
         Test-Path 'C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe' | should -be $false
     }
 
-    it "should have removed OctopusDeploy: MyOctopusServer" {
+    it "should have uninstalled the service" {
         Get-Service 'OctopusDeploy: MyOctopusServer' -ErrorAction SilentlyContinue | should -be $null
     }
 

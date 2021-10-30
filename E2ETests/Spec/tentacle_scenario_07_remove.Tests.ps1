@@ -12,7 +12,7 @@ describe tentacle_scenario_07_remove {
     Test-Path 'C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe' | should -be $false
   }
 
-  it "should have removed OctopusDeploy Tentacle" {
+  it "should have uninstalled the service" {
     Get-Service 'OctopusDeploy Tentacle' -ErrorAction SilentlyContinue | should -be $null
   }
 

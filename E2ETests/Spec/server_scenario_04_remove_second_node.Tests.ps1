@@ -9,7 +9,7 @@ describe server_scenario_04_remove_second_node {
         Test-Path 'C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe' | should -be $false
     }
 
-    it "should have removed OctopusDeploy: HANode" {
+    it "should have uninstalled the service" {
         Get-Service 'OctopusDeploy: HANode' -ErrorAction SilentlyContinue | should -be $null
     }
 

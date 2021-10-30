@@ -21,7 +21,7 @@ describe server_scenario_14_install_without_configure {
         Test-Path 'C:/ProgramData/Octopus/OctopusServer/Instances/OctopusServer.config' | should -be $false
     }
 
-    it "should have removed OctopusDeploy" {
+    it "should have uninstalled the service" {
         Get-Service 'OctopusDeploy' -ErrorAction SilentlyContinue | should -be $null
     }
 
