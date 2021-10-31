@@ -1,6 +1,6 @@
 describe server_scenario_10_watchdog_delete {
 
-    it "should have installed the watchdog" {
+    it "should have disabled the watchdog" {
         $ProgressPreference = "SilentlyContinue"
         $response = (& "C:/Program Files/Octopus Deploy/Octopus/Octopus.Server.exe" show-configuration --format json-hierarchical | out-string | ConvertFrom-Json)
         $LASTEXITCODE | Should -be 0
