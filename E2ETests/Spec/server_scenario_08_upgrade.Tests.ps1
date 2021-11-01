@@ -69,7 +69,7 @@ describe server_scenario_08_upgrade {
             $environment = Get-EnvironmentDetails $config.OctopusServerUrl $config.OctopusApiKey "UAT 1"
         }
 
-        it "should exist" {
+        it "should not exist" {
             $environment.Exists | Should -be $false
         }
     }
