@@ -87,6 +87,9 @@ describe tentacle_scenario_04_upgrade {
 
         it "should have created registry entries" {
             Test-Path 'HKLM:\Software\Octopus\Tentacle' | should -be $true
+        }
+
+        it "should have set the InstallLocation" {
             (Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle' -Name "InstallLocation" -ErrorAction SilentlyContinue).InstallLocation | Should -be "C:\Program Files\Octopus Deploy\Tentacle\"
         }
 
