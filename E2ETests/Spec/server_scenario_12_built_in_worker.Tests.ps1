@@ -46,7 +46,7 @@ describe server_scenario_12_built_in_worker {
         Get-LocalUser 'OctoSquid' -ErrorAction SilentlyContinue | should -not -be $null
     }
 
-    it "should have added OctoSquid to local administrators" {
+    it "should have added OctoSquid to the local administrators group" {
         (Get-LocalGroupMember "Administrators").Name -contains "$env:COMPUTERNAME\OctoSquid" | should -be $true
     }
 
@@ -54,7 +54,7 @@ describe server_scenario_12_built_in_worker {
         Get-LocalUser 'OctoMollusc' -ErrorAction SilentlyContinue | should -not -be $null
     }
 
-    it "should not have added octoMollusc to the local administrators group" {
+    it "should not have added OctoMollusc to the local administrators group" {
         (Get-LocalGroupMember "Administrators").Name -contains "$env:COMPUTERNAME\OctoMollusc" | should -be $false
     }
 

@@ -45,7 +45,7 @@ describe tentacle_scenario_01_install {
             (Get-NetTCPConnection -LocalPort 10933 -ErrorAction SilentlyContinue).State -contains "Listen" | should -be $true
         }
 
-        describe "Tentacle: Listening Tentacle" {
+        describe "Tentacle: ListeningTentacle" {
             BeforeAll {
                 foreach ($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
                     . $import.fullname
@@ -127,7 +127,7 @@ describe tentacle_scenario_01_install {
             (Get-WmiObject Win32_Service -Filter "Name='OctopusDeploy Tentacle: PollingTentacle'").StartName | should -be 'LocalSystem'
         }
 
-        describe "Tentacle: Polling Tentacle" {
+        describe "Tentacle: PollingTentacle" {
             BeforeAll {
                 foreach ($import in @(Get-ChildItem -Path $PSScriptRoot\TestHelpers\*.ps1 -recurse)) {
                     . $import.fullname

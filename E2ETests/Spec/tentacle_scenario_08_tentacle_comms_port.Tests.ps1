@@ -11,11 +11,6 @@ describe tentacle_scenario_08_tentacle_comms_port {
         Test-Path 'C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe' -PathType Leaf | should -be $true
     }
 
-    it "should have installed a newer version" {
-        # we should've upgraded past this
-        (Get-Item 'C:/Program Files/Octopus Deploy/Tentacle/Tentacle.exe').VersionInfo.FileVersion | should -BeGreaterThan  [System.Version]::Parse('3.20.0')
-    }
-
     describe "Tentacle" {
         it "should have created the service" {
             Get-Service 'OctopusDeploy Tentacle' | should -not -be $null
@@ -55,7 +50,7 @@ describe tentacle_scenario_08_tentacle_comms_port {
                 $tentacle.IsRegisteredWithTheServer | Should -be $true
             }
 
-            it "should be online" {
+            it "should not be online" {
                 # this tentacle wont actually come online, as this scenario is configuring a tentacle behind a loadbalancer
                 # which we don't have setup. The main thing we care about here is the endpoint below
                 $tentacle.IsOnline | Should -be $false
@@ -102,7 +97,7 @@ describe tentacle_scenario_08_tentacle_comms_port {
             Test-Path 'HKLM:\Software\Octopus\Tentacle\Tentacle' | should -be $true
         }
 
-        it "should have kept the ConfigurationFilePath" {
+        it "should have set the ConfigurationFilePath" {
             (Get-ItemProperty -Path 'HKLM:\Software\Octopus\Tentacle\Tentacle' -Name "ConfigurationFilePath" -ErrorAction SilentlyContinue).ConfigurationFilePath | Should -be "C:\Octopus\OctopusTentacleHome\Tentacle\Tentacle.config"
         }
 
