@@ -118,11 +118,12 @@ Configuration Server_Scenario_01_Install
                 $user = $repository.Users.GetCurrent()
                 $createApiKeyResult = $repository.Users.CreateApiKey($user, "Octopus DSC Testing")
 
-                #save it to enviornment variables for tests to use
-                [environment]::SetEnvironmentVariable("OctopusServerUrl", "http://localhost:81", "User")
-                [environment]::SetEnvironmentVariable("OctopusServerUrl", "http://localhost:81", "Machine")
-                [environment]::SetEnvironmentVariable("OctopusApiKey", $createApiKeyResult.ApiKey, "User")
-                [environment]::SetEnvironmentVariable("OctopusApiKey", $createApiKeyResult.ApiKey, "Machine")
+                #save it to file for tests to use
+                $content = @{
+                    "OctopusServerUrl" = "http://localhost:81";
+                    "OctopusApiKey" = $createApiKeyResult.ApiKey;
+                }
+                set-content "c:\temp\octopus-configured.marker" ($content | ConvertTo-Json)
             }
             TestScript = {
                 Add-Type -Path "${env:ProgramFiles}\Octopus Deploy\Octopus\Newtonsoft.Json.dll"

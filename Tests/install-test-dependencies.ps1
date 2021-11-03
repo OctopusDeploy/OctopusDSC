@@ -1,47 +1,6 @@
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12,[System.Net.SecurityProtocolType]::Tls11,[System.Net.SecurityProtocolType]::Tls
 
-if (-not (Test-Path "c:\ProgramData\Chocolatey")) {
-  write-output "##teamcity[blockOpened name='Installing Chocolatey']"
-
-  write-output "Installing Chocolatey"
-  iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-  if ($LASTEXITCODE -ne 0) { exit 1 }
-
-  write-output "##teamcity[blockClosed name='Installing Chocolatey']"
-}
-
-if (-not (Test-Path "C:\tools\ruby25")) {
-
-  write-output "##teamcity[blockOpened name='Install Ruby']"
-
-  choco install ruby --allow-empty-checksums --yes --version 2.5.0.1 --no-progress
-  if ($LASTEXITCODE -ne 0) { exit 1 }
-
-  refreshenv
-  if ($LASTEXITCODE -ne 0) { exit 1 }
-
-  if (-not (Test-Path "c:\temp")) {
-    New-Item "C:\temp" -Type Directory | out-null
-  }
-
-  Invoke-WebRequest "https://rubygems.org/downloads/rubygems-update-2.7.4.gem" -outFile "C:\temp\rubygems-update-2.7.4.gem"
-  & C:\tools\ruby25\bin\gem.cmd install --local C:\temp\rubygems-update-2.7.4.gem
-  if ($LASTEXITCODE -ne 0) { exit 1 }
-  & C:\tools\ruby25\bin\update_rubygems.bat --no-ri --no-rdoc
-  if ($LASTEXITCODE -ne 0) { exit 1 }
-
-  write-output "##teamcity[blockClosed name='Install Ruby']"
-
-  write-output "##teamcity[blockOpened name='Install ServerSpec']"
-
-  write-output "running 'C:\tools\ruby25\bin\gem.cmd install bundler --version 1.16.1 --no-ri --no-rdoc'"
-  & C:\tools\ruby25\bin\gem.cmd install bundler --version 1.16.1 --no-ri --no-rdoc --force
-  if ($LASTEXITCODE -ne 0) { exit 1 }
-
-  write-output "##teamcity[blockClosed name='Install ServerSpec']"
-}
-
 write-output "##teamcity[blockOpened name='Configuring SQL Server']"
 
 Write-Output "Determining SQL Server service name"
@@ -139,13 +98,3 @@ $s.Alter()
 Restart-Service $serviceName -Force
 
 write-output "##teamcity[blockClosed name='Configuring SQL Server']"
-
-write-output "##teamcity[blockOpened name='Installing gem bundle']"
-
-Set-Location c:\temp\tests
-write-output "installing gem bundle"
-& C:\tools\ruby25\bin\bundle.bat _1.16.1_ install --path=vendor
-if ($LASTEXITCODE -ne 0) { exit 1 }
-
-write-output "##teamcity[blockClosed name='Install gem bundle']"
-
