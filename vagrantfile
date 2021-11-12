@@ -107,7 +107,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
     v.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
     v.customize ["modifyvm", :id, "--usb", "off"]
     v.customize ["modifyvm", :id, "--vram", "32"]
-    override.vm.box = "OctopusDeploy/dsc-test-server-windows-server-1909"
+    override.vm.box = "OctopusDeploy/dsc-test-server-windows-server-20H2"
     override.vm.box_url = "https://s3-ap-southeast-2.amazonaws.com/octopus-vagrant-boxes/vagrant/json/OctopusDeploy/virtualbox/dsc-test-server-windows-server-20H2.json"
     override.vm.network :forwarded_port, guest: 5985, host: 5985, id: "winrm", auto_correct: true
     override.vm.network :forwarded_port, guest: 80,   host: 8000, id: "web"
