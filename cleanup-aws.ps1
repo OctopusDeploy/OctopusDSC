@@ -37,9 +37,9 @@ Write-Output "Using key pair $keyName.pem"
 
 # this is a global action, so it doesn't get saved outside of the docker container when running
 Write-Output "Adding vagrant box"
-vagrant box add OctopusDeploy/dsc-test-server-windows-server-20H2 https://s3-ap-southeast-2.amazonaws.com/octopus-vagrant-boxes/vagrant/json/OctopusDeploy/amazon-ebs/dsc-test-server-windows-server-20H2.json --force
+vagrant box add OctopusDeploy/dsc-test-server-windows-server-2019 https://s3-ap-southeast-2.amazonaws.com/octopus-vagrant-boxes/vagrant/json/OctopusDeploy/amazon-ebs/dsc-test-server-windows-server-2019.json --force
 Write-Output "Ensuring vagrant box is latest"
-vagrant box update --box OctopusDeploy/dsc-test-server-windows-server-20H2 --provider aws
+vagrant box update --box OctopusDeploy/dsc-test-server-windows-server-2019 --provider aws
 
 #todo: check vagrant status and exit cleanly if not running
 
