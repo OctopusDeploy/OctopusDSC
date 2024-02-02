@@ -119,7 +119,7 @@ function Test-LogContainsRetriableFailure($log) {
 
 function Invoke-VagrantWithRetries {
   param(
-    [ValidateSet("aws", "azure", "hyperv", "virtualbox")]
+    [ValidateSet("aws", "azure", "hyperv")]
     $provider,
     $retries = 3,
     [switch]$retainondestroy,
@@ -201,7 +201,7 @@ function Set-OctopusDSCEnvVars {
   }
 
   # offline installers - saves downloading a ton of installer data, can speed things up on slow connections
-  # only really useful for hyper-v and virtualbox. currently broken
+  # only really useful for hyper-v. currently broken
   if($offline.IsPresent) {
     Set-OfflineConfig
   } else {
