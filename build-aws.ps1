@@ -1,6 +1,5 @@
 #!/usr/local/bin/pwsh
 param(
-  [switch]$offline,
   [switch]$SkipPester,
   [switch]$ServerOnly,
   [switch]$TentacleOnly,
