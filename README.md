@@ -38,14 +38,12 @@ The community has also submitted a few [other options](https://github.com/Octopu
 
 ## Development
 
-This project is setup to use [Vagrant](vagrant.io) to provide a dev/test environment. Once you've installed Vagrant, you can use the build scripts to spin up a local virtual machine and run the test scenarios (**NOTE:** The first time you run `vagrant up` in Virtualbox or Hyper-V it has to download the `octopusdeploy/dsc-test-server` box and this can take some time depending on your Internet speed, so be patient and go grab a coffee while it downloads).
+This project is setup to use [Vagrant](vagrant.io) to provide a dev/test environment. Once you've installed Vagrant, you can use the build scripts to spin up a local virtual machine and run the test scenarios 
 
 There are four options provided:
 
  - [build-aws.ps1](build-aws.ps1)
  - [build-azure.ps1](build-azure.ps1)
- - [build-hyperv-ps1](build-hyperv-ps1) - windows virtualisation
- - [build-virtualbox.ps1](build-virtualbox.ps1) - cross-platform virtualisation
 
 On a build server, you most likely want to use [build-aws.ps1](build-aws.ps1) to spin up a virtual machine on AWS to run the tests.
 
@@ -54,22 +52,8 @@ Configuration is handled by environment variables. The shell scripts will show a
 To run just the scenarios locally, follow these steps:
 
 1. Install Vagrant from [vagrantup.com](https://vagrantup.com). (Note: version after 2.2.3 have altered WinRM upload behaviour which may cause issues)
-2. Install VirtualBox from [virtualbox.org](https://virtualbox.org) or Hyper-V (`Install-WindowsFeature –Name Hyper-V -IncludeManagementTools -Restart`  )
-3. _**If you are on a Mac or Linux**_ you need to install PowerShell, see https://github.com/PowerShell/PowerShell/blob/master/docs/installation/linux.md.
-4. If you want to test locally using virtualbox
-    - Download the Octopus version of [vagrant-dsc](https://github.com/OctopusDeploy/vagrant-dsc/releases/download/v2.0.2/vagrant-dsc-2.0.2.gem)
-    - Run `vagrant plugin install <filepath to downloaded .gem file> ie vagrant plugin install c:\temp\vagrant-dsc-2.0.2.gem`
-    - Run `vagrant plugin install vagrant-winrm-syncedfolders`
-     - Run `Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))` to install Chocolatey on the Host system.
-    - Run `build-virtualbox.ps1`. This will run all the scenarios under the [Tests](Tests) folder.
-5. If you want to test locally using Hyper-V
-    - Download the Octopus version of [vagrant-dsc](https://github.com/OctopusDeploy/vagrant-dsc/releases/download/v2.0.2/vagrant-dsc-2.0.2.gem)
-    - Run `vagrant plugin install <filepath to downloaded .gem file> ie vagrant plugin install c:\temp\vagrant-dsc-2.0.2.gem`
-    - Run `vagrant plugin install vagrant-winrm-syncedfolders`
-    - Run `Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))` to install Chocolatey on the Host system.
-    - Optionally set the environment variable `OctopusDSCVMSwitch`, to use a specific Hyper-V switch by name. For example, for older Hyper-V systems, you may wish to set this to 'External Connection'
-    - Run `build-hyperv.ps1`. This will run all the scenarios under the [Tests](Tests) folder.
-6. If you want to test using AWS
+2. _**If you are on a Mac or Linux**_ you need to install PowerShell, see https://github.com/PowerShell/PowerShell/blob/master/docs/installation/linux.md.
+3. If you want to test using AWS
     - Run `vagrant plugin install vagrant-aws`. If you run into issues around libxml2, take a look at https://github.com/mitchellh/vagrant-aws/issues/539
     - Run `vagrant plugin install vagrant-aws-winrm`
     - Set an environment variable `AWS_ACCESS_KEY_ID` to a valid value
@@ -77,7 +61,7 @@ To run just the scenarios locally, follow these steps:
     - Set an environment variable `AWS_SUBNET_ID` to a valid subnet where you want the instance launched
     - Set an environment variable `AWS_SECURITY_GROUP_ID` to a valid security group you want to assign to the instance
     - Run `build-aws.ps1`. This will run all the scenarios under the [Tests](Tests) folder.
-7. If you want to test using Azure
+4. If you want to test using Azure
     - Run `vagrant plugin install vagrant-azure`
     - Set an environment variable `AZURE_VM_PASSWORD` to a valid value
     - Set an environment variable `AZURE_SUBSCRIPTION_ID` to a valid value
@@ -85,7 +69,7 @@ To run just the scenarios locally, follow these steps:
     - Set an environment variable `AZURE_CLIENT_ID` to a valid value
     - Srt an environment variable `AZURE_CLIENT_SECRET` to a valid value
     - Run `build-azure.ps1`. This will run all the scenarios under the [Tests](Tests) folder.
-8. Run `vagrant destroy -f` or the appropriate `cleanup-*.ps1` once you have finished to kill the virtual machine.
+5. Run `vagrant destroy -f` or the appropriate `cleanup-*.ps1` once you have finished to kill the virtual machine.
 
 Each of the `build-*` scripts can take parameters at the command prompt.
 
@@ -102,4 +86,4 @@ These are generally designed to tighten the feedback loop during development, si
 
 Tests are written in [ServerSpec](serverspec.org), which is an infrastructure oriented layer over [RSpec](rspec.info) and use our [octopus-serverspec-extensions](https://github.com/OctopusDeploy/octopus-serverspec-extensions) project for octopus-specific tests.
 
-When creating a PR, please ensure that all existing tests run succesfully against VirtualBox, and please include a new scenario where possible. Before you start, please raise an issue to discuss your plans so we can make sure it fits with the goals of the project.
+When creating a PR, please ensure that all existing tests run succesfully, and please include a new scenario where possible. Before you start, please raise an issue to discuss your plans so we can make sure it fits with the goals of the project.
