@@ -32,7 +32,7 @@ if (-not (Test-AppExists "aws")) {
 }
 Write-Output "AWS CLI installed - good."
 
-Test-PluginInstalled "vagrant-aws"
+Test-PluginInstalled "vagrant-gecko-aws"
 Test-PluginInstalled "vagrant-aws-winrm"
 Test-CustomVersionOfVagrantDscPluginIsInstalled
 Test-PluginInstalled "vagrant-winrm-syncedfolders"
