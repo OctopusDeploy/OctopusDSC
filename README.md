@@ -20,7 +20,7 @@ Other resources of note are:
 * [cOctopusServerSpace](README-cOctopusServerSpace.md) to manage spaces
 * [cOctopusServerSslCertificate](README-OctopusServerSslCertificate) to configure the server to use Ssl with a certificate
 
-Version 3.0 of OctopusDSC supports Octopus Deploy 4.x and above with backwards compatibility to 3.x
+Version 3.0 of OctopusDSC supports Octopus Deploy 4.x and above with backwards compatibility to 3.x.
 
 ## Installation
 
