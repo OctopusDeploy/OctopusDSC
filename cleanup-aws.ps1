@@ -18,7 +18,7 @@ if (-not (Test-AppExists "aws")) {
   exit 1
 }
 
-Test-PluginInstalled "vagrant-aws"
+Test-PluginInstalled "vagrant-gecko-aws"
 Test-PluginInstalled "vagrant-aws-winrm"
 Test-PluginInstalled "vagrant-dsc"
 Test-PluginInstalled "vagrant-winrm-syncedfolders"

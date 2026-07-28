@@ -815,7 +815,7 @@ function Invoke-MsiExec ($name, $logDirectory, $msiPath) {
     Write-Verbose "Installing MSI..."
     $msiLog = "$logDirectory\Tentacle.$name.msi.log"
     write-verbose "Executing 'msiexec.exe /i $msiPath /quiet /l*v $msiLog'"
-    $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList @("/i", "`"$msiPath`"", "/quiet", "/l*v", $msiLog) -Wait -Passthru).ExitCode
+    $msiExitCode = (Start-Process -FilePath "msiexec.exe" -ArgumentList @("/i", "`"$msiPath`"", "/quiet", "/l*v", "`"$msiLog`"") -Wait -Passthru).ExitCode
     Write-Verbose "MSI installer returned exit code $msiExitCode"
     if ($msiExitCode -ne 0) {
         throw "Installation of the MSI failed; MSIEXEC exited with code: $msiExitCode. View the log at $msiLog"
